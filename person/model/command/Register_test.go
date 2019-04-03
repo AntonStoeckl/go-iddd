@@ -1,75 +1,75 @@
-package command
+package command_test
 
 import (
+	"go-iddd/person/model/command"
 	"go-iddd/person/model/vo"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-type RegisterTestSuite struct {
-	suite.Suite
-}
-
-func Test_RegisterTestSuite(t *testing.T) {
-	tests := new(RegisterTestSuite)
-	suite.Run(t, tests)
-}
-
-func (suite *RegisterTestSuite) Test_NewRegister() {
-	// given
+func TestNewRegister(t *testing.T) {
 	id := vo.NewID("12345")
 	emailAddress := vo.NewEmailAddress("foo@bar.com")
 	name := vo.NewName("Anton", "Stöckl")
 
-	// when
-	command, err := NewRegister(id, emailAddress, name)
+	Convey("Given ID, EmailAddress and Name are valid", t, func() {
+		Convey("When NewRegister is called", func() {
+			register, err := command.NewRegister(id, emailAddress, name)
 
-	// then
-	suite.NoError(err)
-	expectedCommandName := "Register"
-	suite.Equal(expectedCommandName, command.CommandName(), "the CommandName should be %s", expectedCommandName)
-	suite.Equal(id.ID(), command.Identifier(), "the Identifier should be %s", id.ID())
+			Convey("Then it should succeed", func() {
+				So(err, ShouldBeNil)
+			})
+
+			Convey("And it should return a Register Command", func() {
+				So(register, ShouldImplement, (*command.Register)(nil))
+			})
+
+			Convey("And it's CommandName should be as expected", func() {
+				So(register.CommandName(), ShouldEqual, "Register")
+			})
+
+			Convey("And it's Identifier should be as expected", func() {
+				So(register.Identifier(), ShouldEqual, id.ID())
+			})
+		})
+	})
 }
 
-func (suite *RegisterTestSuite) Test_NewRegister_WithNilID() {
-	// given
-	var id vo.ID
+func TestNewRegisterWithInvalidInput(t *testing.T) {
+	id := vo.NewID("12345")
 	emailAddress := vo.NewEmailAddress("foo@bar.com")
 	name := vo.NewName("Anton", "Stöckl")
 
-	// when
-	command, err := NewRegister(id, emailAddress, name)
+	conveyNewRegisterWithInvalidInput := func(id vo.ID, emailAddress vo.EmailAddress, name vo.Name) {
+		Convey("When NewRegister is called", func() {
+			register, err := command.NewRegister(id, emailAddress, name)
 
-	// then
-	suite.Error(err, "it should fail because ID is nil")
-	suite.Nil(command, "the command should be nil")
-}
+			Convey("Then it should fail", func() {
+				So(err, ShouldBeError)
+			})
 
-func (suite *RegisterTestSuite) Test_NewRegister_WithNilEmailAddress() {
-	// given
-	id := vo.NewID("12345")
-	var emailAddress vo.EmailAddress
-	name := vo.NewName("Anton", "Stöckl")
+			Convey("And it should return nil instead of a Register Command", func() {
+				So(register, ShouldBeNil)
+			})
+		})
+	}
 
-	// when
-	command, err := NewRegister(id, emailAddress, name)
+	Convey("Given ID is nil", t, func() {
+		var id vo.ID
 
-	// then
-	suite.Error(err, "it should fail because EmailAddress is nil")
-	suite.Nil(command, "the command should be nil")
-}
+		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+	})
 
-func (suite *RegisterTestSuite) Test_NewRegister_WithNilName() {
-	// given
-	id := vo.NewID("12345")
-	emailAddress := vo.NewEmailAddress("foo@bar.com")
-	var name vo.Name
+	Convey("Given EmailAddress is nil", t, func() {
+		var emailAddress vo.EmailAddress
 
-	// when
-	command, err := NewRegister(id, emailAddress, name)
+		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+	})
 
-	// then
-	suite.Error(err, "it should fail because Name is nil")
-	suite.Nil(command, "the command should be nil")
+	Convey("Given Name is nil", t, func() {
+		var name vo.Name
+
+		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+	})
 }
