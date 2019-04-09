@@ -1,4 +1,4 @@
-package vo
+package valueobjects
 
 type Name interface {
 	GivenName() string
@@ -11,12 +11,19 @@ type name struct {
 }
 
 func NewName(givenName string, familyName string) *name {
-	newName := &name{
+	newName := ReconstituteName(givenName, familyName)
+	// TODO: validate
+
+	return newName
+}
+
+func ReconstituteName(givenName string, familyName string) *name {
+	reconstitutedName := &name{
 		givenName:  givenName,
 		familyName: familyName,
 	}
 
-	return newName
+	return reconstitutedName
 }
 
 func (name *name) GivenName() string {
