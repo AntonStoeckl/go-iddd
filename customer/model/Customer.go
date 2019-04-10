@@ -31,7 +31,7 @@ func (customer *customer) Apply(command shared.Command) error {
 
 	switch command := command.(type) {
 	case commands.Register:
-		err = customer.register(command)
+		customer.register(command)
 	case commands.ConfirmEmailAddress:
 		err = customer.confirmEmailAddress(command)
 	case nil:
@@ -70,12 +70,10 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 	return nil
 }
 
-func (customer *customer) register(register commands.Register) error {
+func (customer *customer) register(register commands.Register) {
 	customer.id = register.ID()
 	customer.emailAddress = register.ConfirmableEmailAddress()
 	customer.name = register.Name()
-
-	return nil
 }
 
 func (customer *customer) confirmEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
