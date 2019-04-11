@@ -20,7 +20,7 @@ func TestHandleRegister(t *testing.T) {
 
 		Convey("And given a valid Register Command", func() {
 			id := valueobjects.GenerateID()
-			emailAddress := valueobjects.NewConfirmableEmailAddress("foo@bar.com")
+			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 			name := valueobjects.NewName("Anton", "Stöckl")
 
 			register, err := commands.NewRegister(id, emailAddress, name)
@@ -64,7 +64,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 		Convey("And given a valid ConfirmEmailAddress Command", func() {
 			id := valueobjects.GenerateID()
-			emailAddress := valueobjects.NewConfirmableEmailAddress("foo@bar.com")
+			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 			confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.String())
 
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)

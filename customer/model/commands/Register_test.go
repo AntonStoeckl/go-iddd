@@ -11,7 +11,7 @@ import (
 func TestNewRegister(t *testing.T) {
 	Convey("Given that ID, ConfirmableEmailAddress and Name are valid", t, func() {
 		id := valueobjects.GenerateID()
-		emailAddress := valueobjects.NewConfirmableEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 		name := valueobjects.NewName("Anton", "Stöckl")
 
 		Convey("When NewRegister is invoked", func() {
@@ -34,7 +34,7 @@ func TestNewRegister(t *testing.T) {
 
 	Convey("Given that ID is nil", t, func() {
 		var id valueobjects.ID
-		emailAddress := valueobjects.NewConfirmableEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 		name := valueobjects.NewName("Anton", "Stöckl")
 
 		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
@@ -50,7 +50,7 @@ func TestNewRegister(t *testing.T) {
 
 	Convey("Given that Name is nil", t, func() {
 		id := valueobjects.GenerateID()
-		emailAddress := valueobjects.NewConfirmableEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 		var name valueobjects.Name
 
 		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
