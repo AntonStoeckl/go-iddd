@@ -11,7 +11,7 @@ import (
 func TestNewConfirmEmailAddress(t *testing.T) {
 	Convey("Given that ID, EmailAddress and Name are valid", t, func() {
 		id := valueobjects.GenerateID()
-		emailAddress := valueobjects.NewEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
 		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.String())
 
 		Convey("When NewConfirmEmailAddress is invoked", func() {
@@ -34,7 +34,7 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 
 	Convey("Given that ID is nil", t, func() {
 		var id valueobjects.ID
-		emailAddress := valueobjects.NewEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
 		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.String())
 
 		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
@@ -50,7 +50,7 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 
 	Convey("Given that Name is nil", t, func() {
 		id := valueobjects.GenerateID()
-		emailAddress := valueobjects.NewEmailAddress("foo@bar.com")
+		emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
 		var confirmationHash valueobjects.ConfirmationHash
 
 		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
