@@ -2,13 +2,18 @@ package valueobjects
 
 import (
 	"errors"
+	"regexp"
+)
+
+var (
+	emailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
 )
 
 type ConfirmableEmailAddress interface {
-	Confirm(with ConfirmationHash) (*confirmableEmailAddress, error)
-	String() string
-	Equals(other EmailAddress) bool
+	Confirm(given ConfirmationHash) (*confirmableEmailAddress, error)
 	IsConfirmed() bool
+
+	EmailAddress
 }
 
 type confirmableEmailAddress struct {
@@ -17,11 +22,14 @@ type confirmableEmailAddress struct {
 	isConfirmed      bool
 }
 
-func NewConfirmableEmailAddress(from string) *confirmableEmailAddress {
+func NewConfirmableEmailAddress(from string) (*confirmableEmailAddress, error) {
 	newEmailAddress := newConfirmableEmailAddress(from, GenerateConfirmationHash(from))
-	// TODO: validation
 
-	return newEmailAddress
+	if err := newEmailAddress.mustBeValid(); err != nil {
+		return nil, err
+	}
+
+	return newEmailAddress, nil
 }
 
 func newConfirmableEmailAddress(from string, with ConfirmationHash) *confirmableEmailAddress {
@@ -31,13 +39,21 @@ func newConfirmableEmailAddress(from string, with ConfirmationHash) *confirmable
 	}
 }
 
+func (confirmableEmailAddress *confirmableEmailAddress) mustBeValid() error {
+	if matched := emailAddressRegExp.MatchString(confirmableEmailAddress.value); matched != true {
+		return errors.New("confirmableEmailAddress - invalid input given")
+	}
+
+	return nil
+}
+
 func ReconstituteConfirmableEmailAddress(from string, withConfirmationHash string) *confirmableEmailAddress {
 	return newConfirmableEmailAddress(from, ReconstituteConfirmationHash(withConfirmationHash))
 }
 
-func (confirmableEmailAddress *confirmableEmailAddress) Confirm(with ConfirmationHash) (*confirmableEmailAddress, error) {
-	if confirmableEmailAddress.confirmationHash.Equals(with) {
-		return nil, errors.New("confirmableEmailAddress - confirmationHash does not match")
+func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given ConfirmationHash) (*confirmableEmailAddress, error) {
+	if err := confirmableEmailAddress.confirmationHash.MustMatch(given); err != nil {
+		return nil, err
 	}
 
 	confirmedEmailAddress := newConfirmableEmailAddress(

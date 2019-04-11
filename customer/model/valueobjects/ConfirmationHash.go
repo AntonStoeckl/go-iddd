@@ -2,6 +2,7 @@ package valueobjects
 
 import (
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 type ConfirmationHash interface {
 	String() string
-	Equals(other ConfirmationHash) bool
+	MustMatch(other ConfirmationHash) error
 }
 
 type confirmationHash struct {
@@ -34,6 +35,10 @@ func (confirmationHash *confirmationHash) String() string {
 	return confirmationHash.value
 }
 
-func (confirmationHash *confirmationHash) Equals(other ConfirmationHash) bool {
-	return confirmationHash.value == other.String()
+func (confirmationHash *confirmationHash) MustMatch(other ConfirmationHash) error {
+	if confirmationHash.value != other.String() {
+		return errors.New("confirmationHash - is not equal")
+	}
+
+	return nil
 }
