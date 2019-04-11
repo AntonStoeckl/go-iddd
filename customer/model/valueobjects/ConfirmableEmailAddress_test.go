@@ -35,7 +35,7 @@ func TestNewConfirmableEmailAddress(t *testing.T) {
 			confirmableEmailAddress, err := NewConfirmableEmailAddress(emailAddressValue)
 
 			Convey("Then it should fail", func() {
-				So(err, ShouldBeError, "confirmableEmailAddress - invalid input given")
+				So(err, ShouldBeError, "emailAddress - invalid input given")
 				So(confirmableEmailAddress, ShouldBeNil)
 			})
 		})

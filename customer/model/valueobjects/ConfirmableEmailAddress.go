@@ -1,14 +1,5 @@
 package valueobjects
 
-import (
-	"errors"
-	"regexp"
-)
-
-var (
-	confirmableEmailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
-)
-
 type ConfirmableEmailAddress interface {
 	Confirm(given ConfirmationHash) (*confirmableEmailAddress, error)
 	IsConfirmed() bool
@@ -17,38 +8,35 @@ type ConfirmableEmailAddress interface {
 }
 
 type confirmableEmailAddress struct {
-	value            string
+	baseEmailAddress *emailAddress
 	confirmationHash ConfirmationHash
 	isConfirmed      bool
 }
 
 func NewConfirmableEmailAddress(from string) (*confirmableEmailAddress, error) {
-	newEmailAddress := newConfirmableEmailAddress(from, GenerateConfirmationHash(from))
-
-	if err := newEmailAddress.mustBeValid(); err != nil {
+	baseEmailAddress, err := NewEmailAddress(from)
+	if err != nil {
+		// TODO: map error?
 		return nil, err
 	}
+
+	newEmailAddress := newConfirmableEmailAddress(baseEmailAddress, GenerateConfirmationHash(from))
 
 	return newEmailAddress, nil
 }
 
-func newConfirmableEmailAddress(from string, with ConfirmationHash) *confirmableEmailAddress {
+func newConfirmableEmailAddress(from *emailAddress, with ConfirmationHash) *confirmableEmailAddress {
 	return &confirmableEmailAddress{
-		value:            from,
+		baseEmailAddress: from,
 		confirmationHash: with,
 	}
 }
 
-func (confirmableEmailAddress *confirmableEmailAddress) mustBeValid() error {
-	if matched := confirmableEmailAddressRegExp.MatchString(confirmableEmailAddress.value); matched != true {
-		return errors.New("confirmableEmailAddress - invalid input given")
-	}
-
-	return nil
-}
-
 func ReconstituteConfirmableEmailAddress(from string, withConfirmationHash string) *confirmableEmailAddress {
-	return newConfirmableEmailAddress(from, ReconstituteConfirmationHash(withConfirmationHash))
+	return newConfirmableEmailAddress(
+		ReconstituteEmailAddress(from),
+		ReconstituteConfirmationHash(withConfirmationHash),
+	)
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given ConfirmationHash) (*confirmableEmailAddress, error) {
@@ -57,7 +45,7 @@ func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given Confirmati
 	}
 
 	confirmedEmailAddress := newConfirmableEmailAddress(
-		confirmableEmailAddress.value,
+		confirmableEmailAddress.baseEmailAddress,
 		confirmableEmailAddress.confirmationHash,
 	)
 
@@ -67,11 +55,11 @@ func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given Confirmati
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) String() string {
-	return confirmableEmailAddress.value
+	return confirmableEmailAddress.baseEmailAddress.String()
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) Equals(other EmailAddress) bool {
-	return confirmableEmailAddress.String() == other.String()
+	return confirmableEmailAddress.baseEmailAddress.Equals(other)
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) IsConfirmed() bool {
