@@ -76,6 +76,7 @@ func TestConfirmOnConfirmableEmailAddress(t *testing.T) {
 		})
 	})
 }
+
 func TestEqualsOnConfirmableEmailAddress(t *testing.T) {
 	Convey("Given that two ConfirmableEmailAddresses represent equal emailAddresses", t, func() {
 		emailAddress := ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
