@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	emailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
+	confirmableEmailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
 )
 
 type ConfirmableEmailAddress interface {
@@ -40,7 +40,7 @@ func newConfirmableEmailAddress(from string, with ConfirmationHash) *confirmable
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) mustBeValid() error {
-	if matched := emailAddressRegExp.MatchString(confirmableEmailAddress.value); matched != true {
+	if matched := confirmableEmailAddressRegExp.MatchString(confirmableEmailAddress.value); matched != true {
 		return errors.New("confirmableEmailAddress - invalid input given")
 	}
 
