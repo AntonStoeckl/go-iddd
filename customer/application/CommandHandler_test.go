@@ -3,8 +3,8 @@ package application
 import (
 	"errors"
 	"go-iddd/customer/application/mocks"
-	"go-iddd/customer/model/commands"
-	"go-iddd/customer/model/valueobjects"
+	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 	"testing"
 
@@ -29,7 +29,7 @@ func TestHandleRegister(t *testing.T) {
 			Convey("When the command is handled", func() {
 				Convey("And when applying register succeeds", func() {
 					Convey("And when saving the Customer succeeds", func() {
-						mockCustomers.On("Save", mock.AnythingOfType("*model.customer")).Return(nil).Once()
+						mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
 
 						err := commandHandler.Handle(register)
 
@@ -41,7 +41,7 @@ func TestHandleRegister(t *testing.T) {
 
 					Convey("And when saving the Customer fails", func() {
 						expectedErr := errors.New("mocked error")
-						mockCustomers.On("Save", mock.AnythingOfType("*model.customer")).Return(expectedErr).Once()
+						mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
 
 						err := commandHandler.Handle(register)
 

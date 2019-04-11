@@ -1,8 +1,8 @@
 package commands_test
 
 import (
-	"go-iddd/customer/model/commands"
-	"go-iddd/customer/model/valueobjects"
+	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"

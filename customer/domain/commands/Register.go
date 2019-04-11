@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"go-iddd/customer/model/valueobjects"
+	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 )
 

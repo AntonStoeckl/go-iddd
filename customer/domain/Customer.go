@@ -1,9 +1,9 @@
-package model
+package domain
 
 import (
 	"errors"
-	"go-iddd/customer/model/commands"
-	"go-iddd/customer/model/valueobjects"
+	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 )
 

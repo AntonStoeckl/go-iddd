@@ -2,16 +2,16 @@ package application
 
 import (
 	"errors"
-	"go-iddd/customer/model"
-	"go-iddd/customer/model/commands"
+	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/commands"
 	"go-iddd/shared"
 )
 
 type commandHandler struct {
-	customers model.Customers
+	customers domain.Customers
 }
 
-func NewCommandHandler(customers model.Customers) *commandHandler {
+func NewCommandHandler(customers domain.Customers) *commandHandler {
 	return &commandHandler{customers: customers}
 }
 
@@ -33,7 +33,7 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 }
 
 func (handler *commandHandler) register(register commands.Register) error {
-	newCustomer := model.NewUnregisteredCustomer()
+	newCustomer := domain.NewUnregisteredCustomer()
 
 	if err := newCustomer.Apply(register); err != nil {
 		return err

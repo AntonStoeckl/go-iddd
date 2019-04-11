@@ -1,6 +1,6 @@
-package model
+package domain
 
-import "go-iddd/customer/model/valueobjects"
+import "go-iddd/customer/domain/valueobjects"
 
 type Customers interface {
 	Save(Customer) error
