@@ -36,6 +36,22 @@ func (_m *Customers) FindBy(id valueobjects.ID) (domain.Customer, error) {
 	return r0, r1
 }
 
+// New provides a mock function with given fields:
+func (_m *Customers) New() domain.Customer {
+	ret := _m.Called()
+
+	var r0 domain.Customer
+	if rf, ok := ret.Get(0).(func() domain.Customer); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(domain.Customer)
+		}
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: _a0
 func (_m *Customers) Save(_a0 domain.Customer) error {
 	ret := _m.Called(_a0)

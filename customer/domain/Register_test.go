@@ -1,7 +1,7 @@
-package commands_test
+package domain_test
 
 import (
-	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
@@ -15,11 +15,11 @@ func TestNewRegister(t *testing.T) {
 		name := valueobjects.NewName("Anton", "Stöckl")
 
 		Convey("When NewRegister is invoked", func() {
-			register, err := commands.NewRegister(id, emailAddress, name)
+			register, err := domain.NewRegister(id, emailAddress, name)
 
 			Convey("Then it should create a Register command", func() {
 				So(err, ShouldBeNil)
-				So(register, ShouldImplement, (*commands.Register)(nil))
+				So(register, ShouldImplement, (*domain.Register)(nil))
 			})
 
 			Convey("And then it should expose the expected CommandName, Identifier, ID, ConfirmableEmailAddress and Name ", func() {
@@ -64,7 +64,7 @@ func conveyNewRegisterWithInvalidInput(
 ) {
 
 	Convey("When NewRegister is invoked", func() {
-		register, err := commands.NewRegister(id, emailAddress, name)
+		register, err := domain.NewRegister(id, emailAddress, name)
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)

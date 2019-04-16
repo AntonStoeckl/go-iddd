@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 )
@@ -32,9 +31,9 @@ func (customer *customer) Apply(command shared.Command) error {
 	}
 
 	switch command := command.(type) {
-	case commands.Register:
+	case Register:
 		customer.register(command)
-	case commands.ConfirmEmailAddress:
+	case ConfirmEmailAddress:
 		err = customer.confirmEmailAddress(command)
 	case nil:
 		err = errors.New("customer - nil command applied")
@@ -47,7 +46,7 @@ func (customer *customer) Apply(command shared.Command) error {
 
 func (customer *customer) assertCustomerIsInValidState(command shared.Command) error {
 	switch command.(type) {
-	case commands.Register:
+	case Register:
 		if customer.isRegistered {
 			return errors.New("customer - was already registered")
 		}
@@ -72,13 +71,13 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 	return nil
 }
 
-func (customer *customer) register(register commands.Register) {
+func (customer *customer) register(register Register) {
 	customer.id = register.ID()
 	customer.emailAddress = register.ConfirmableEmailAddress()
 	customer.name = register.Name()
 }
 
-func (customer *customer) confirmEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
+func (customer *customer) confirmEmailAddress(confirmEmailAddress ConfirmEmailAddress) error {
 	var err error
 
 	if customer.emailAddress.IsConfirmed() {

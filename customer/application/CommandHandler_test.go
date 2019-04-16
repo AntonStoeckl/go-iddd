@@ -3,45 +3,50 @@ package application
 import (
 	"errors"
 	"go-iddd/customer/application/mocks"
-	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestHandleRegister(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
 		commandHandler := NewCommandHandler(mockCustomers)
-		So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
 
 		Convey("And given a valid Register Command", func() {
 			id := valueobjects.GenerateID()
 			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 			name := valueobjects.NewName("Anton", "Stöckl")
 
-			register, err := commands.NewRegister(id, emailAddress, name)
+			register, err := domain.NewRegister(id, emailAddress, name)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
+				mockCustomer := new(mocks.Customer)
+				mockCustomers.On("New").Return(mockCustomer)
+				expectedErr := errors.New("mocked error")
+
 				Convey("And when applying register succeeds", func() {
+					mockCustomer.On("Apply", register).Return(nil)
+
 					Convey("And when saving the Customer succeeds", func() {
-						mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
+						mockCustomers.On("Save", mockCustomer).Return(nil).Once()
 
 						err := commandHandler.Handle(register)
 
 						Convey("Then it should register and save a Customer", func() {
 							So(err, ShouldBeNil)
+							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})
 
 					Convey("And when saving the Customer fails", func() {
 						expectedErr := errors.New("mocked error")
-						mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
+						mockCustomers.On("Save", mockCustomer).Return(expectedErr).Once()
 
 						err := commandHandler.Handle(register)
 
@@ -49,6 +54,18 @@ func TestHandleRegister(t *testing.T) {
 							So(err, ShouldBeError, expectedErr)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 						})
+					})
+				})
+
+				Convey("And when applying register fails", func() {
+					mockCustomer.On("Apply", register).Return(expectedErr)
+
+					err := commandHandler.Handle(register)
+
+					Convey("Then it should fail", func() {
+						So(err, ShouldBeError, expectedErr)
+						So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
 			})
@@ -60,14 +77,13 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
 		commandHandler := NewCommandHandler(mockCustomers)
-		So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
 
 		Convey("And given a valid ConfirmEmailAddress Command", func() {
 			id := valueobjects.GenerateID()
 			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
 			confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.String())
 
-			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
@@ -87,6 +103,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 							Convey("Then it should confirmEmailAddress of a Customer and save it", func() {
 								So(err, ShouldBeNil)
+								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 								So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 							})
 						})
@@ -110,6 +127,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 						Convey("Then it should fail", func() {
 							So(err, ShouldBeError, expectedErr)
+							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})

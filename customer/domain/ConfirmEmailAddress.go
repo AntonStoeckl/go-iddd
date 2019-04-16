@@ -1,4 +1,4 @@
-package commands
+package domain
 
 import (
 	"go-iddd/customer/domain/valueobjects"
@@ -38,22 +38,22 @@ func NewConfirmEmailAddress(
 	return command, nil
 }
 
-func (register *confirmEmailAddress) ID() valueobjects.ID {
-	return register.id
+func (confirmEmailAddress *confirmEmailAddress) ID() valueobjects.ID {
+	return confirmEmailAddress.id
 }
 
-func (register *confirmEmailAddress) EmailAddress() valueobjects.EmailAddress {
-	return register.emailAddress
+func (confirmEmailAddress *confirmEmailAddress) EmailAddress() valueobjects.EmailAddress {
+	return confirmEmailAddress.emailAddress
 }
 
-func (register *confirmEmailAddress) ConfirmationHash() valueobjects.ConfirmationHash {
-	return register.confirmationHash
+func (confirmEmailAddress *confirmEmailAddress) ConfirmationHash() valueobjects.ConfirmationHash {
+	return confirmEmailAddress.confirmationHash
 }
 
-func (register *confirmEmailAddress) Identifier() string {
-	return register.id.String()
+func (confirmEmailAddress *confirmEmailAddress) Identifier() string {
+	return confirmEmailAddress.id.String()
 }
 
-func (register *confirmEmailAddress) CommandName() string {
-	return shared.BuildNameFor(register)
+func (confirmEmailAddress *confirmEmailAddress) CommandName() string {
+	return shared.BuildNameFor(confirmEmailAddress)
 }
