@@ -3,6 +3,7 @@ package application
 import (
 	"errors"
 	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 )
 
@@ -21,7 +22,7 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	case domain.Register:
 		err = handler.register(command)
 	case domain.ConfirmEmailAddress:
-		err = handler.confirmEmailAddress(command)
+		err = handler.applyToExistingCustomer(command.ID(), command)
 	case nil:
 		err = errors.New("commandHandler - nil command handled")
 	default:
@@ -45,13 +46,13 @@ func (handler *commandHandler) register(register domain.Register) error {
 	return nil
 }
 
-func (handler *commandHandler) confirmEmailAddress(confirmEmailAddress domain.ConfirmEmailAddress) error {
-	customer, err := handler.customers.FindBy(confirmEmailAddress.ID())
+func (handler *commandHandler) applyToExistingCustomer(id valueobjects.ID, command shared.Command) error {
+	customer, err := handler.customers.FindBy(id)
 	if err != nil {
 		return err
 	}
 
-	if err := customer.Apply(confirmEmailAddress); err != nil {
+	if err := customer.Apply(command); err != nil {
 		return err
 	}
 
