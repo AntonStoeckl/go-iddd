@@ -1,9 +1,32 @@
 package domain
 
 import (
+	"errors"
 	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 )
+
+/*** The Customer behaviour method to apply the ConfirmEmailAddress command ***/
+
+func (customer *customer) confirmEmailAddress(confirmEmailAddress ConfirmEmailAddress) error {
+	var err error
+
+	if customer.emailAddress.IsConfirmed() {
+		return nil
+	}
+
+	if !customer.emailAddress.Equals(confirmEmailAddress.EmailAddress()) {
+		return errors.New("customer - emailAddress can not be confirmed because it has changed")
+	}
+
+	if customer.emailAddress, err = customer.emailAddress.Confirm(confirmEmailAddress.ConfirmationHash()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*** The ConfirmEmailAddress command itself - struct, factory, own getters, shared.Command getters ***/
 
 type ConfirmEmailAddress interface {
 	ID() valueobjects.ID

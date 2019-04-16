@@ -5,6 +5,16 @@ import (
 	"go-iddd/shared"
 )
 
+/*** The Customer behaviour method to apply the Register command ***/
+
+func (customer *customer) register(register Register) {
+	customer.id = register.ID()
+	customer.emailAddress = register.ConfirmableEmailAddress()
+	customer.name = register.Name()
+}
+
+/*** The Register command itself - struct, factory, own getters, shared.Command getters ***/
+
 type Register interface {
 	ID() valueobjects.ID
 	ConfirmableEmailAddress() valueobjects.ConfirmableEmailAddress

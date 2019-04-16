@@ -30,6 +30,8 @@ func (customer *customer) Apply(command shared.Command) error {
 		return err
 	}
 
+	/*** All methods to apply the commands to the Customer are located in the Commands itself ***/
+
 	switch command := command.(type) {
 	case Register:
 		customer.register(command)
@@ -66,30 +68,6 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 		if customer.name == nil {
 			return errors.New("customer - was registered but has no name")
 		}
-	}
-
-	return nil
-}
-
-func (customer *customer) register(register Register) {
-	customer.id = register.ID()
-	customer.emailAddress = register.ConfirmableEmailAddress()
-	customer.name = register.Name()
-}
-
-func (customer *customer) confirmEmailAddress(confirmEmailAddress ConfirmEmailAddress) error {
-	var err error
-
-	if customer.emailAddress.IsConfirmed() {
-		return nil
-	}
-
-	if !customer.emailAddress.Equals(confirmEmailAddress.EmailAddress()) {
-		return errors.New("customer - emailAddress can not be confirmed because it has changed")
-	}
-
-	if customer.emailAddress, err = customer.emailAddress.Confirm(confirmEmailAddress.ConfirmationHash()); err != nil {
-		return err
 	}
 
 	return nil
