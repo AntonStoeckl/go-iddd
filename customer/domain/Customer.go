@@ -7,6 +7,8 @@ import (
 	"go-iddd/shared"
 )
 
+//go:generate mockery -name Customer -output ../application/mocks -outpkg mocks -note "Regenerate by running `go generate` in customer/domain"
+
 type Customer interface {
 	Apply(cmd shared.Command) error
 }
