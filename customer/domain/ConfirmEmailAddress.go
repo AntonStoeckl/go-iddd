@@ -78,5 +78,5 @@ func (confirmEmailAddress *confirmEmailAddress) Identifier() string {
 }
 
 func (confirmEmailAddress *confirmEmailAddress) CommandName() string {
-	return shared.BuildNameFor(confirmEmailAddress)
+	return shared.BuildCommandNameFor(confirmEmailAddress)
 }

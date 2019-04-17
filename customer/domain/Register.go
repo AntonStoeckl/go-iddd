@@ -65,5 +65,5 @@ func (register *register) Identifier() string {
 }
 
 func (register *register) CommandName() string {
-	return shared.BuildNameFor(register)
+	return shared.BuildCommandNameFor(register)
 }

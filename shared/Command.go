@@ -11,7 +11,7 @@ type Command interface {
 	CommandName() string
 }
 
-func BuildNameFor(command Command) string {
+func BuildCommandNameFor(command Command) string {
 	commandType := reflect.TypeOf(command).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]
