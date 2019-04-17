@@ -10,7 +10,7 @@ import (
 func (customer *customer) register(register Register) {
 	customer.id = register.ID()
 	customer.emailAddress = register.ConfirmableEmailAddress()
-	customer.name = register.Name()
+	customer.personName = register.PersonName()
 }
 
 /*** The Register command itself - struct, factory, own getters, shared.Command getters ***/
@@ -18,7 +18,7 @@ func (customer *customer) register(register Register) {
 type Register interface {
 	ID() valueobjects.ID
 	ConfirmableEmailAddress() valueobjects.ConfirmableEmailAddress
-	Name() valueobjects.Name
+	PersonName() valueobjects.PersonName
 
 	shared.Command
 }
@@ -26,19 +26,19 @@ type Register interface {
 type register struct {
 	id                      valueobjects.ID
 	confirmableEmailAddress valueobjects.ConfirmableEmailAddress
-	name                    valueobjects.Name
+	personName              valueobjects.PersonName
 }
 
 func NewRegister(
 	id valueobjects.ID,
 	emailAddress valueobjects.ConfirmableEmailAddress,
-	name valueobjects.Name,
+	personName valueobjects.PersonName,
 ) (*register, error) {
 
 	command := &register{
 		id:                      id,
 		confirmableEmailAddress: emailAddress,
-		name:                    name,
+		personName:              personName,
 	}
 
 	if err := shared.AssertAllPropertiesAreNotNil(command); err != nil {
@@ -56,8 +56,8 @@ func (register *register) ConfirmableEmailAddress() valueobjects.ConfirmableEmai
 	return register.confirmableEmailAddress
 }
 
-func (register *register) Name() valueobjects.Name {
-	return register.name
+func (register *register) PersonName() valueobjects.PersonName {
+	return register.personName
 }
 
 func (register *register) Identifier() string {

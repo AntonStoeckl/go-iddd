@@ -9,25 +9,25 @@ import (
 )
 
 func TestNewRegister(t *testing.T) {
-	Convey("Given that ID, ConfirmableEmailAddress and Name are valid", t, func() {
+	Convey("Given that ID, ConfirmableEmailAddress and PersonName are valid", t, func() {
 		id := valueobjects.GenerateID()
 		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-		name := valueobjects.NewName("Anton", "Stöckl")
+		personName := valueobjects.NewPersonName("Anton", "Stöckl")
 
 		Convey("When NewRegister is invoked", func() {
-			register, err := domain.NewRegister(id, emailAddress, name)
+			register, err := domain.NewRegister(id, emailAddress, personName)
 
 			Convey("Then it should create a Register command", func() {
 				So(err, ShouldBeNil)
 				So(register, ShouldImplement, (*domain.Register)(nil))
 			})
 
-			Convey("And then it should expose the expected CommandName, Identifier, ID, ConfirmableEmailAddress and Name ", func() {
+			Convey("And then it should expose the expected CommandName, Identifier, ID, ConfirmableEmailAddress and PersonName ", func() {
 				So(register.CommandName(), ShouldEqual, "Register")
 				So(register.Identifier(), ShouldEqual, id.String())
 				So(register.ID(), ShouldEqual, id)
 				So(register.ConfirmableEmailAddress(), ShouldEqual, emailAddress)
-				So(register.Name(), ShouldEqual, name)
+				So(register.PersonName(), ShouldEqual, personName)
 			})
 		})
 	})
@@ -35,36 +35,36 @@ func TestNewRegister(t *testing.T) {
 	Convey("Given that ID is nil", t, func() {
 		var id valueobjects.ID
 		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-		name := valueobjects.NewName("Anton", "Stöckl")
+		personName := valueobjects.NewPersonName("Anton", "Stöckl")
 
-		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 
 	Convey("Given that ConfirmableEmailAddress is nil", t, func() {
 		id := valueobjects.GenerateID()
 		var emailAddress valueobjects.ConfirmableEmailAddress
-		name := valueobjects.NewName("Anton", "Stöckl")
+		personName := valueobjects.NewPersonName("Anton", "Stöckl")
 
-		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 
-	Convey("Given that Name is nil", t, func() {
+	Convey("Given that PersonName is nil", t, func() {
 		id := valueobjects.GenerateID()
 		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-		var name valueobjects.Name
+		var personName valueobjects.PersonName
 
-		conveyNewRegisterWithInvalidInput(id, emailAddress, name)
+		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 }
 
 func conveyNewRegisterWithInvalidInput(
 	id valueobjects.ID,
 	emailAddress valueobjects.ConfirmableEmailAddress,
-	name valueobjects.Name,
+	personName valueobjects.PersonName,
 ) {
 
 	Convey("When NewRegister is invoked", func() {
-		register, err := domain.NewRegister(id, emailAddress, name)
+		register, err := domain.NewRegister(id, emailAddress, personName)
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)

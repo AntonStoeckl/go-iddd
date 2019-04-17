@@ -19,9 +19,9 @@ func TestHandleRegister(t *testing.T) {
 		Convey("And given a valid Register Command", func() {
 			id := valueobjects.GenerateID()
 			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-			name := valueobjects.NewName("Anton", "Stöckl")
+			personName := valueobjects.NewPersonName("Anton", "Stöckl")
 
-			register, err := domain.NewRegister(id, emailAddress, name)
+			register, err := domain.NewRegister(id, emailAddress, personName)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {

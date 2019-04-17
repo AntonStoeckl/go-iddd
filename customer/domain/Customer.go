@@ -15,7 +15,7 @@ type Customer interface {
 type customer struct {
 	id           valueobjects.ID
 	emailAddress valueobjects.ConfirmableEmailAddress
-	name         valueobjects.Name
+	personName   valueobjects.PersonName
 	isRegistered bool
 }
 
@@ -65,8 +65,8 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 			return errors.New("customer - was registered but has no emailAddress")
 		}
 
-		if customer.name == nil {
-			return errors.New("customer - was registered but has no name")
+		if customer.personName == nil {
+			return errors.New("customer - was registered but has no personName")
 		}
 	}
 
