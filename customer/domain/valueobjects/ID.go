@@ -13,7 +13,7 @@ type id struct {
 func GenerateID() *id {
 	uid, err := uuid.NewRandom()
 	if err != nil {
-		panic("id - could not generate uuid: " + err.Error())
+		panic("id - could not generate uid: " + err.Error())
 	}
 
 	return ReconstituteID(uid.String())
