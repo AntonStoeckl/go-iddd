@@ -189,8 +189,8 @@ func TestHandleUnknownCommand(t *testing.T) {
 
 type unknownCommand struct{}
 
-func (c *unknownCommand) Identifier() string {
-	return "unknown"
+func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
+	return valueobjects.GenerateID()
 }
 
 func (c *unknownCommand) CommandName() string {

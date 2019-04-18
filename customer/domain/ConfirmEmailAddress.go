@@ -73,8 +73,8 @@ func (confirmEmailAddress *confirmEmailAddress) ConfirmationHash() valueobjects.
 	return confirmEmailAddress.confirmationHash
 }
 
-func (confirmEmailAddress *confirmEmailAddress) Identifier() string {
-	return confirmEmailAddress.id.String()
+func (confirmEmailAddress *confirmEmailAddress) AggregateIdentifier() shared.AggregateIdentifier {
+	return confirmEmailAddress.id
 }
 
 func (confirmEmailAddress *confirmEmailAddress) CommandName() string {

@@ -22,9 +22,9 @@ func TestNewRegister(t *testing.T) {
 				So(register, ShouldImplement, (*domain.Register)(nil))
 			})
 
-			Convey("And then it should expose the expected CommandName, Identifier, ID, ConfirmableEmailAddress and PersonName ", func() {
+			Convey("And then it should expose the expected CommandName, AggregateIdentifier, ID, ConfirmableEmailAddress and PersonName ", func() {
 				So(register.CommandName(), ShouldEqual, "Register")
-				So(register.Identifier(), ShouldEqual, id.String())
+				So(register.AggregateIdentifier(), ShouldEqual, id)
 				So(register.ID(), ShouldEqual, id)
 				So(register.ConfirmableEmailAddress(), ShouldEqual, emailAddress)
 				So(register.PersonName(), ShouldEqual, personName)

@@ -60,8 +60,8 @@ func (register *register) PersonName() valueobjects.PersonName {
 	return register.personName
 }
 
-func (register *register) Identifier() string {
-	return register.id.String()
+func (register *register) AggregateIdentifier() shared.AggregateIdentifier {
+	return register.id
 }
 
 func (register *register) CommandName() string {

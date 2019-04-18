@@ -1,9 +1,13 @@
 package valueobjects
 
-import "github.com/google/uuid"
+import (
+	"go-iddd/shared"
+
+	"github.com/google/uuid"
+)
 
 type ID interface {
-	String() string
+	shared.AggregateIdentifier
 }
 
 type id struct {
@@ -11,18 +15,21 @@ type id struct {
 }
 
 func GenerateID() *id {
-	uid, err := uuid.NewRandom()
-	if err != nil {
-		panic("id - could not generate uid: " + err.Error())
-	}
-
-	return ReconstituteID(uid.String())
+	return ReconstituteID(uuid.New().String())
 }
 
 func ReconstituteID(from string) *id {
 	return &id{value: from}
 }
 
-func (id *id) String() string {
-	return id.value
+func (idenfifier *id) String() string {
+	return idenfifier.value
+}
+
+func (idenfifier *id) Equals(other shared.AggregateIdentifier) bool {
+	if _, ok := other.(*id); !ok {
+		return false
+	}
+
+	return idenfifier.String() == other.String()
 }

@@ -10,6 +10,8 @@ import (
 
 type Customer interface {
 	Apply(cmd shared.Command) error
+
+	shared.Aggregate
 }
 
 type customer struct {
@@ -71,4 +73,12 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 	}
 
 	return nil
+}
+
+func (customer *customer) AggregateIdentifier() shared.AggregateIdentifier {
+	return customer.id
+}
+
+func (customer *customer) AggregateName() string {
+	return shared.BuildAggregateNameFor(customer)
 }

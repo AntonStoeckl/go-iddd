@@ -7,7 +7,7 @@ import (
 )
 
 type Command interface {
-	Identifier() string
+	AggregateIdentifier() AggregateIdentifier
 	CommandName() string
 }
 

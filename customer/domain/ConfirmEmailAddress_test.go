@@ -22,9 +22,9 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 				So(confirmEmailAddress, ShouldImplement, (*domain.ConfirmEmailAddress)(nil))
 			})
 
-			Convey("And then it should expose the expected CommandName, Identifier, ID, EmailAddress and ConfirmationHash ", func() {
+			Convey("And then it should expose the expected CommandName, AggregateIdentifier, ID, EmailAddress and ConfirmationHash ", func() {
 				So(confirmEmailAddress.CommandName(), ShouldEqual, "ConfirmEmailAddress")
-				So(confirmEmailAddress.Identifier(), ShouldEqual, id.String())
+				So(confirmEmailAddress.AggregateIdentifier(), ShouldEqual, id)
 				So(confirmEmailAddress.ID(), ShouldEqual, id)
 				So(confirmEmailAddress.EmailAddress(), ShouldEqual, emailAddress)
 				So(confirmEmailAddress.ConfirmationHash(), ShouldEqual, confirmationHash)
