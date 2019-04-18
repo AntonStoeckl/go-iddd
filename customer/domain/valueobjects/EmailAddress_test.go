@@ -51,6 +51,7 @@ func TestEqualsOnEmailAddress(t *testing.T) {
 			})
 		})
 	})
+
 	Convey("Given that tow EmailAddresses represent different emailAddresses", t, func() {
 		emailAddress := ReconstituteEmailAddress("foo@bar.com")
 		differentEmailAddress := ReconstituteEmailAddress("foo+different@bar.com")
