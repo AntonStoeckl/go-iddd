@@ -15,10 +15,10 @@ type Customer interface {
 }
 
 type customer struct {
-	id           valueobjects.ID
-	emailAddress valueobjects.ConfirmableEmailAddress
-	personName   valueobjects.PersonName
-	isRegistered bool
+	id                      valueobjects.ID
+	confirmableEmailAddress valueobjects.ConfirmableEmailAddress
+	personName              valueobjects.PersonName
+	isRegistered            bool
 }
 
 func NewUnregisteredCustomer() *customer {
@@ -63,7 +63,7 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 			return errors.New("customer - was registered but has no id")
 		}
 
-		if customer.emailAddress == nil {
+		if customer.confirmableEmailAddress == nil {
 			return errors.New("customer - was registered but has no emailAddress")
 		}
 

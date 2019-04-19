@@ -9,7 +9,7 @@ import (
 
 func (customer *customer) register(register Register) {
 	customer.id = register.ID()
-	customer.emailAddress = register.ConfirmableEmailAddress()
+	customer.confirmableEmailAddress = register.ConfirmableEmailAddress()
 	customer.personName = register.PersonName()
 }
 

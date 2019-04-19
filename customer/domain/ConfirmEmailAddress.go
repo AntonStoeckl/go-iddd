@@ -11,15 +11,15 @@ import (
 func (customer *customer) confirmEmailAddress(confirmEmailAddress ConfirmEmailAddress) error {
 	var err error
 
-	if customer.emailAddress.IsConfirmed() {
+	if customer.confirmableEmailAddress.IsConfirmed() {
 		return nil
 	}
 
-	if !customer.emailAddress.Equals(confirmEmailAddress.EmailAddress()) {
+	if !customer.confirmableEmailAddress.Equals(confirmEmailAddress.EmailAddress()) {
 		return errors.New("customer - emailAddress can not be confirmed because it has changed")
 	}
 
-	if customer.emailAddress, err = customer.emailAddress.Confirm(confirmEmailAddress.ConfirmationHash()); err != nil {
+	if customer.confirmableEmailAddress, err = customer.confirmableEmailAddress.Confirm(confirmEmailAddress.ConfirmationHash()); err != nil {
 		return err
 	}
 
