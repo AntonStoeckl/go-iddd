@@ -1,35 +1,35 @@
 package valueobjects
 
 import (
-	"go-iddd/shared"
+    "go-iddd/shared"
 
-	"github.com/google/uuid"
+    "github.com/google/uuid"
 )
 
 type ID interface {
-	shared.AggregateIdentifier
+    shared.AggregateIdentifier
 }
 
 type id struct {
-	value string
+    value string
 }
 
 func GenerateID() *id {
-	return ReconstituteID(uuid.New().String())
+    return ReconstituteID(uuid.New().String())
 }
 
 func ReconstituteID(from string) *id {
-	return &id{value: from}
+    return &id{value: from}
 }
 
 func (idenfifier *id) String() string {
-	return idenfifier.value
+    return idenfifier.value
 }
 
 func (idenfifier *id) Equals(other shared.AggregateIdentifier) bool {
-	if _, ok := other.(*id); !ok {
-		return false
-	}
+    if _, ok := other.(*id); !ok {
+        return false
+    }
 
-	return idenfifier.String() == other.String()
+    return idenfifier.String() == other.String()
 }

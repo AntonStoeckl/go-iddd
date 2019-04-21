@@ -1,6 +1,6 @@
 package shared
 
 type AggregateIdentifier interface {
-	String() string
-	Equals(other AggregateIdentifier) bool
+    String() string
+    Equals(other AggregateIdentifier) bool
 }
