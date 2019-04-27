@@ -1,116 +1,118 @@
-// +buildx ignore
-
 //go:generate go run main.go
 
 package main
 
 import (
-    "io"
-    "log"
-    "os"
-    "os/exec"
-    "strings"
-    "text/template"
+	"io"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+	"text/template"
 
-    "github.com/joncalhoun/pipe"
+	"github.com/joncalhoun/pipe"
 )
 
 type Field struct {
-    FieldName string
-    DataType  string
+	FieldName string
+	DataType  string
 }
 
 type Event struct {
-    EventType        string
-    EventFactory     string
-    AggregateFactory string
-    Fields           []Field
+	EventType        string
+	EventFactory     string
+	AggregateFactory string
+	Fields           []Field
 }
 
 var events = []Event{
-    {
-        EventType:    "registered",
-        EventFactory: "ItWasRegistered",
-        Fields: []Field{
-            {FieldName: "id", DataType: "valueobjects.ID"},
-            {FieldName: "confirmableEmailAddress", DataType: "valueobjects.ConfirmableEmailAddress"},
-            {FieldName: "personName", DataType: "valueobjects.PersonName"},
-        },
-    },
-    {
-        EventType:    "emailAddressConfirmed",
-        EventFactory: "EmailAddressWasConfirmed",
-        Fields: []Field{
-            {FieldName: "id", DataType: "valueobjects.ID"},
-            {FieldName: "emailAddress", DataType: "valueobjects.EmailAddress"},
-            {FieldName: "confirmationHash", DataType: "valueobjects.ConfirmationHash"},
-        },
-    },
+	{
+		EventType:    "registered",
+		EventFactory: "ItWasRegistered",
+		Fields: []Field{
+			{FieldName: "id", DataType: "valueobjects.ID"},
+			{FieldName: "confirmableEmailAddress", DataType: "valueobjects.ConfirmableEmailAddress"},
+			{FieldName: "personName", DataType: "valueobjects.PersonName"},
+		},
+	},
+	{
+		EventType:    "emailAddressConfirmed",
+		EventFactory: "EmailAddressWasConfirmed",
+		Fields: []Field{
+			{FieldName: "id", DataType: "valueobjects.ID"},
+			{FieldName: "emailAddress", DataType: "valueobjects.EmailAddress"},
+			{FieldName: "confirmationHash", DataType: "valueobjects.ConfirmationHash"},
+		},
+	},
 }
 
 type Config struct {
-    RelativeOutputPath string
-    AggregateFactory   string
-    Events             []Event
+	RelativeOutputPath string
+	AggregateFactory   string
+	Events             []Event
 }
 
 var config = Config{
-    RelativeOutputPath: "../../domain",
-    AggregateFactory:   "NewUnregisteredCustomer",
+	RelativeOutputPath: "../../domain",
+	AggregateFactory:   "NewUnregisteredCustomer",
 }
 
 func main() {
-    var err error
+	var err error
 
-    methodName := func(input string) string {
-        parts := strings.Split(input, ".")
-        return parts[1]
-    }
+	methodName := func(input string) string {
+		parts := strings.Split(input, ".")
+		return parts[1]
+	}
 
-    for _, event := range events {
-        event.AggregateFactory = config.AggregateFactory
+	for _, event := range events {
+		event.AggregateFactory = config.AggregateFactory
 
-        t := template.New(event.EventType)
-        t = t.Funcs(
-            template.FuncMap{
-                "title":      strings.Title,
-                "methodName": methodName,
-                "eventName":  t.Name,
-            },
-        )
+		t := template.New(event.EventType)
+		t = t.Funcs(
+			template.FuncMap{
+				"title":      strings.Title,
+				"methodName": methodName,
+				"eventName":  t.Name,
+			},
+		)
 
-        t, err = t.Parse(tmpl)
-        die(err)
+		t, err = t.Parse(tmpl)
+		die(err)
 
-        // uncomment for testing, outputs to stdout
-        err = t.Execute(os.Stdout, event)
-        die(err)
+		outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.EventType) + ".go")
+		die(err)
 
-        rc, wc, _ := pipe.Commands(
-            exec.Command("gofmt"),
-            exec.Command("goimports"),
-        )
+		// comment for generating without formating
+		rc, wc, _ := pipe.Commands(
+			exec.Command("gofmt"),
+			exec.Command("goimports"),
+		)
 
-        err = t.Execute(wc, event)
-        die(err)
+		err = t.Execute(wc, event)
+		die(err)
 
-        err = wc.Close()
-        die(err)
+		err = wc.Close()
+		die(err)
 
-        outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.EventType) + ".go")
-        die(err)
+		_, err = io.Copy(outFile, rc)
+		die(err)
 
-        _, err = io.Copy(outFile, rc)
-        die(err)
+		// uncomment for generating without formating
+		//err = t.Execute(outFile, event)
+		//die(err)
 
-    }
+		// uncomment for testing, outputs to stdout
+		//err = t.Execute(os.Stdout, event)
+		//die(err)
+	}
 
 }
 
 func die(err error) {
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 var tmpl = `
@@ -139,7 +141,7 @@ func {{.EventFactory}}(
 ) *{{eventName}} {
 
 	{{eventName}} := &{{eventName}}{
-		{{range .Fields}} {{.FieldName}}: {{.FieldName}},
+		{{range .Fields}}{{.FieldName}}: {{.FieldName}},
 		{{end -}}
 	}
 
