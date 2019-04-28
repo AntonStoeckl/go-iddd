@@ -36,7 +36,7 @@ func (confirmationHash *confirmationHash) String() string {
 }
 
 func (confirmationHash *confirmationHash) MustMatch(other ConfirmationHash) error {
-	if confirmationHash.value != other.String() {
+	if confirmationHash.String() != other.String() {
 		return errors.New("confirmationHash - is not equal")
 	}
 
