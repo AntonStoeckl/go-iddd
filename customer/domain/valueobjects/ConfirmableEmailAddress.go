@@ -8,7 +8,7 @@ type ConfirmableEmailAddress interface {
 }
 
 type confirmableEmailAddress struct {
-	baseEmailAddress *emailAddress
+	baseEmailAddress EmailAddress
 	confirmationHash ConfirmationHash
 	isConfirmed      bool
 }
@@ -25,7 +25,7 @@ func NewConfirmableEmailAddress(from string) (*confirmableEmailAddress, error) {
 	return newEmailAddress, nil
 }
 
-func newConfirmableEmailAddress(from *emailAddress, with ConfirmationHash) *confirmableEmailAddress {
+func newConfirmableEmailAddress(from EmailAddress, with ConfirmationHash) *confirmableEmailAddress {
 	return &confirmableEmailAddress{
 		baseEmailAddress: from,
 		confirmationHash: with,
@@ -54,14 +54,14 @@ func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given Confirmati
 	return confirmedEmailAddress, nil
 }
 
+func (confirmableEmailAddress *confirmableEmailAddress) IsConfirmed() bool {
+	return confirmableEmailAddress.isConfirmed
+}
+
 func (confirmableEmailAddress *confirmableEmailAddress) String() string {
 	return confirmableEmailAddress.baseEmailAddress.String()
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) Equals(other EmailAddress) bool {
 	return confirmableEmailAddress.baseEmailAddress.Equals(other)
-}
-
-func (confirmableEmailAddress *confirmableEmailAddress) IsConfirmed() bool {
-	return confirmableEmailAddress.isConfirmed
 }
