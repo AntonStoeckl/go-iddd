@@ -1,6 +1,7 @@
-package valueobjects
+package valueobjects_test
 
 import (
+	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -11,12 +12,12 @@ func TestNewEmailAddress(t *testing.T) {
 		emailAddressValue := "foo@bar.com"
 
 		Convey("When NewEmailAddress is invoked", func() {
-			emailAddress, err := NewEmailAddress(emailAddressValue)
+			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
 			Convey("Then it should create an EmailAddress", func() {
 				So(err, ShouldBeNil)
 				So(emailAddress, ShouldNotBeNil)
-				So(emailAddress, ShouldImplement, (*EmailAddress)(nil))
+				So(emailAddress, ShouldImplement, (*valueobjects.EmailAddress)(nil))
 			})
 
 			Convey("And then it should expose the expected value", func() {
@@ -29,7 +30,7 @@ func TestNewEmailAddress(t *testing.T) {
 		emailAddressValue := "foo@bar.c"
 
 		Convey("When NewEmailAddress is invoked", func() {
-			emailAddress, err := NewEmailAddress(emailAddressValue)
+			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
 			Convey("Then it should fail", func() {
 				So(err, ShouldBeError, "emailAddress - invalid input given")
@@ -42,11 +43,11 @@ func TestNewEmailAddress(t *testing.T) {
 func TestReconstituteEmailAddress(t *testing.T) {
 	Convey("When ReconstituteEmailAddress invoked", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress := ReconstituteEmailAddress(emailAddressValue)
+		emailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
 
 		Convey("Then it should reconstitute an EmailAddress", func() {
 			So(emailAddress, ShouldNotBeNil)
-			So(emailAddress, ShouldImplement, (*EmailAddress)(nil))
+			So(emailAddress, ShouldImplement, (*valueobjects.EmailAddress)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -58,10 +59,10 @@ func TestReconstituteEmailAddress(t *testing.T) {
 func TestEqualsOnEmailAddress(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress := ReconstituteEmailAddress(emailAddressValue)
+		emailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
 
 		Convey("And given another equal EmailAddress", func() {
-			equalEmailAddress := ReconstituteEmailAddress(emailAddressValue)
+			equalEmailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := emailAddress.Equals(equalEmailAddress)
@@ -74,7 +75,7 @@ func TestEqualsOnEmailAddress(t *testing.T) {
 
 		Convey("And given another different EmailAddress", func() {
 			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress := ReconstituteEmailAddress(differentEmailAddressValue)
+			differentEmailAddress := valueobjects.ReconstituteEmailAddress(differentEmailAddressValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := emailAddress.Equals(differentEmailAddress)

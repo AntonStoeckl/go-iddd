@@ -1,6 +1,7 @@
-package valueobjects
+package valueobjects_test
 
 import (
+	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -11,11 +12,11 @@ func TestGenerateConfirmationHash(t *testing.T) {
 		confirmationHashValue := "secret_hash"
 
 		Convey("When GenerateConfirmationHash is invoked", func() {
-			confirmationHash := GenerateConfirmationHash(confirmationHashValue)
+			confirmationHash := valueobjects.GenerateConfirmationHash(confirmationHashValue)
 
 			Convey("Then it should create a ConfirmationHash", func() {
 				So(confirmationHash, ShouldNotBeNil)
-				So(confirmationHash, ShouldImplement, (*ConfirmationHash)(nil))
+				So(confirmationHash, ShouldImplement, (*valueobjects.ConfirmationHash)(nil))
 			})
 
 			Convey("And then it should expose the generated ConfirmationHash", func() {
@@ -28,11 +29,11 @@ func TestGenerateConfirmationHash(t *testing.T) {
 func TestReconstituteConfirmationHash(t *testing.T) {
 	Convey("When ReconstituteConfirmationHash is invoked", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
 
 		Convey("Then it should reconstitute a ConfirmationHash", func() {
 			So(confirmationHash, ShouldNotBeNil)
-			So(confirmationHash, ShouldImplement, (*ConfirmationHash)(nil))
+			So(confirmationHash, ShouldImplement, (*valueobjects.ConfirmationHash)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -44,10 +45,10 @@ func TestReconstituteConfirmationHash(t *testing.T) {
 func TestMustMatchOnConfirmationHash(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
 
 		Convey("And given another equal ConfirmationHash", func() {
-			equalConfirmationHash := ReconstituteConfirmationHash(confirmationHashValue)
+			equalConfirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
 
 			Convey("When MustMatch is invoked", func() {
 				err := confirmationHash.MustMatch(equalConfirmationHash)
@@ -60,7 +61,7 @@ func TestMustMatchOnConfirmationHash(t *testing.T) {
 
 		Convey("And given another different ConfirmationHash", func() {
 			differentConfirmationHashValue := "different_hash"
-			differentConfirmationHash := ReconstituteConfirmationHash(differentConfirmationHashValue)
+			differentConfirmationHash := valueobjects.ReconstituteConfirmationHash(differentConfirmationHashValue)
 
 			Convey("When MustMatch is invoked", func() {
 				err := confirmationHash.MustMatch(differentConfirmationHash)

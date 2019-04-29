@@ -1,6 +1,7 @@
-package valueobjects
+package valueobjects_test
 
 import (
+	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -11,12 +12,12 @@ func TestNewConfirmableEmailAddress(t *testing.T) {
 		validEmailAddressValue := "foo@bar.com"
 
 		Convey("When NewConfirmableEmailAddress is invoked", func() {
-			confirmableEmailAddress, err := NewConfirmableEmailAddress(validEmailAddressValue)
+			confirmableEmailAddress, err := valueobjects.NewConfirmableEmailAddress(validEmailAddressValue)
 
 			Convey("Then it should create a ConfirmableEmailAddress", func() {
 				So(err, ShouldBeNil)
 				So(confirmableEmailAddress, ShouldNotBeNil)
-				So(confirmableEmailAddress, ShouldImplement, (*ConfirmableEmailAddress)(nil))
+				So(confirmableEmailAddress, ShouldImplement, (*valueobjects.ConfirmableEmailAddress)(nil))
 			})
 
 			Convey("And then it should expose the expected value", func() {
@@ -33,7 +34,7 @@ func TestNewConfirmableEmailAddress(t *testing.T) {
 		invalidEmailAddressValue := "foo@bar.c"
 
 		Convey("When NewConfirmableEmailAddress is invoked", func() {
-			confirmableEmailAddress, err := NewConfirmableEmailAddress(invalidEmailAddressValue)
+			confirmableEmailAddress, err := valueobjects.NewConfirmableEmailAddress(invalidEmailAddressValue)
 
 			Convey("Then it should fail", func() {
 				So(err, ShouldBeError, "emailAddress - invalid input given")
@@ -47,11 +48,11 @@ func TestReconstituteConfirmableEmailAddress(t *testing.T) {
 	Convey("When ReconstituteConfirmableEmailAddress invoked", t, func() {
 		emailAddressValue := "foo@bar.com"
 		confirmationHashValue := "secret_hash"
-		confirmableEmailAddress := ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		confirmableEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
 
 		Convey("Then it should reconstitute a ConfirmableEmailAddress", func() {
 			So(confirmableEmailAddress, ShouldNotBeNil)
-			So(confirmableEmailAddress, ShouldImplement, (*ConfirmableEmailAddress)(nil))
+			So(confirmableEmailAddress, ShouldImplement, (*valueobjects.ConfirmableEmailAddress)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -65,10 +66,10 @@ func TestConfirmOnConfirmableEmailAddress(t *testing.T) {
 		emailAddressValue := "foo@bar.com"
 		confirmationHashValue := "secret_hash"
 		differentConfirmationHashValue := "different_secret_hash"
-		unconfirmedEmailAddress := ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		unconfirmedEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
 
 		Convey("When Confirm is invoked with a matching ConfirmationHash", func() {
-			suppliedConfirmationHash := ReconstituteConfirmationHash(confirmationHashValue)
+			suppliedConfirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
 			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(suppliedConfirmationHash)
 
 			Convey("Then it should succeed", func() {
@@ -87,7 +88,7 @@ func TestConfirmOnConfirmableEmailAddress(t *testing.T) {
 		})
 
 		Convey("When Confirm is invoked with a different ConfirmationHash", func() {
-			given := ReconstituteConfirmationHash(differentConfirmationHashValue)
+			given := valueobjects.ReconstituteConfirmationHash(differentConfirmationHashValue)
 			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(given)
 
 			Convey("Then it should fail", func() {
@@ -102,10 +103,10 @@ func TestEqualsOnConfirmableEmailAddress(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
 		confirmationHashValue := "secret_hash"
-		emailAddress := ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
 
 		Convey("And given another equal ConfirmableEmailAddress", func() {
-			equalEmailAddress := ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+			equalEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := emailAddress.Equals(equalEmailAddress)
@@ -118,7 +119,7 @@ func TestEqualsOnConfirmableEmailAddress(t *testing.T) {
 
 		Convey("And given another different ConfirmableEmailAddress", func() {
 			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress := ReconstituteConfirmableEmailAddress(differentEmailAddressValue, confirmationHashValue)
+			differentEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(differentEmailAddressValue, confirmationHashValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := emailAddress.Equals(differentEmailAddress)

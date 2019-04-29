@@ -1,6 +1,7 @@
-package valueobjects
+package valueobjects_test
 
 import (
+	"go-iddd/customer/domain/valueobjects"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -12,12 +13,12 @@ func TestNewPersonName(t *testing.T) {
 
 	Convey("Given that the supplied givenName and familyName are valid", t, func() {
 		Convey("When NewPersonName is invoked", func() {
-			personName, err := NewPersonName(givenName, familyName)
+			personName, err := valueobjects.NewPersonName(givenName, familyName)
 
 			Convey("Then it should create a PersonName", func() {
 				So(err, ShouldBeNil)
 				So(personName, ShouldNotBeNil)
-				So(personName, ShouldImplement, (*PersonName)(nil))
+				So(personName, ShouldImplement, (*valueobjects.PersonName)(nil))
 			})
 
 			Convey("And then it should expose the expected values", func() {
@@ -31,7 +32,7 @@ func TestNewPersonName(t *testing.T) {
 		givenName = ""
 
 		Convey("When NewPersonName is invoked", func() {
-			emailAddress, err := NewPersonName(givenName, familyName)
+			emailAddress, err := valueobjects.NewPersonName(givenName, familyName)
 
 			Convey("Then it should fail", func() {
 				So(err, ShouldBeError, "personName - empty input given for givenName")
@@ -44,7 +45,7 @@ func TestNewPersonName(t *testing.T) {
 		familyName = ""
 
 		Convey("When NewPersonName is invoked", func() {
-			emailAddress, err := NewPersonName(givenName, familyName)
+			emailAddress, err := valueobjects.NewPersonName(givenName, familyName)
 
 			Convey("Then it should fail", func() {
 				So(err, ShouldBeError, "personName - empty input given for familyName")
@@ -58,11 +59,11 @@ func TestReconstitutePersonName(t *testing.T) {
 	Convey("When ReconstitutePersonName invoked", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName := ReconstitutePersonName(givenName, familyName)
+		personName := valueobjects.ReconstitutePersonName(givenName, familyName)
 
 		Convey("Then it should reconstitute a PersonName", func() {
 			So(personName, ShouldNotBeNil)
-			So(personName, ShouldImplement, (*PersonName)(nil))
+			So(personName, ShouldImplement, (*valueobjects.PersonName)(nil))
 		})
 
 		Convey("And then it should expose the expected values", func() {
@@ -76,10 +77,10 @@ func TestEqualsOnPersonName(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName := ReconstitutePersonName(givenName, familyName)
+		personName := valueobjects.ReconstitutePersonName(givenName, familyName)
 
 		Convey("And given another equal PersonName", func() {
-			equalPersonName := ReconstitutePersonName(givenName, familyName)
+			equalPersonName := valueobjects.ReconstitutePersonName(givenName, familyName)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := personName.Equals(equalPersonName)
@@ -92,7 +93,7 @@ func TestEqualsOnPersonName(t *testing.T) {
 
 		Convey("And given another PersonName with different givenName", func() {
 			givenName = "Peter"
-			differentPersonName := ReconstitutePersonName(givenName, familyName)
+			differentPersonName := valueobjects.ReconstitutePersonName(givenName, familyName)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := personName.Equals(differentPersonName)
@@ -105,7 +106,7 @@ func TestEqualsOnPersonName(t *testing.T) {
 
 		Convey("And given another PersonName with different familyName", func() {
 			familyName = "Mueller"
-			differentPersonName := ReconstitutePersonName(givenName, familyName)
+			differentPersonName := valueobjects.ReconstitutePersonName(givenName, familyName)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := personName.Equals(differentPersonName)

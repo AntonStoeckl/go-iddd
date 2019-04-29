@@ -1,6 +1,7 @@
-package valueobjects
+package valueobjects_test
 
 import (
+	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 	"sync"
 	"testing"
@@ -10,11 +11,11 @@ import (
 
 func TestGenerateID(t *testing.T) {
 	Convey("When GenerateID is invoked", t, func() {
-		id := GenerateID()
+		id := valueobjects.GenerateID()
 
 		Convey("Then it should generate an ID", func() {
 			So(id, ShouldNotBeNil)
-			So(id, ShouldImplement, (*ID)(nil))
+			So(id, ShouldImplement, (*valueobjects.ID)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -50,7 +51,7 @@ func generateIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, a
 	generatedIDs := make(map[string]int)
 
 	for i := 0; i < amountPerRoutine; i++ {
-		id := GenerateID()
+		id := valueobjects.GenerateID()
 		generatedIDs[id.String()] = i
 	}
 
@@ -66,11 +67,11 @@ func generateIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, a
 func TestReconstituteID(t *testing.T) {
 	Convey("When ReconstituteID is invoked", t, func() {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
-		id := ReconstituteID(idValue)
+		id := valueobjects.ReconstituteID(idValue)
 
 		Convey("Then it should reconstitute an ID", func() {
 			So(id, ShouldNotBeNil)
-			So(id, ShouldImplement, (*ID)(nil))
+			So(id, ShouldImplement, (*valueobjects.ID)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -82,10 +83,10 @@ func TestReconstituteID(t *testing.T) {
 func TestEqualsOnID(t *testing.T) {
 	Convey("Given an Identifier of type ID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		id := ReconstituteID(idValue)
+		id := valueobjects.ReconstituteID(idValue)
 
 		Convey("And given another ID with equal value", func() {
-			equalId := ReconstituteID(idValue)
+			equalId := valueobjects.ReconstituteID(idValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := id.Equals(equalId)
@@ -110,7 +111,7 @@ func TestEqualsOnID(t *testing.T) {
 
 		Convey("And given another ID with different value", func() {
 			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
-			differentId := ReconstituteID(differentIdValue)
+			differentId := valueobjects.ReconstituteID(differentIdValue)
 
 			Convey("When Equals is invoked", func() {
 				isEqual := id.Equals(differentId)
