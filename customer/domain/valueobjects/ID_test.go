@@ -14,10 +14,13 @@ func TestGenerateID(t *testing.T) {
 
 		Convey("Then it should generate an ID", func() {
 			So(id, ShouldNotBeNil)
+			So(id, ShouldImplement, (*ID)(nil))
 		})
 
-		Convey("And then it should expose the expected id", func() {
+		Convey("And then it should expose the expected value", func() {
+			So(id.ID(), ShouldNotBeBlank)
 			So(id.String(), ShouldNotBeBlank)
+			So(id.ID(), ShouldEqual, id.String())
 		})
 	})
 
@@ -62,28 +65,29 @@ func generateIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, a
 
 func TestReconstituteID(t *testing.T) {
 	Convey("When ReconstituteID is invoked", t, func() {
-		from := "someId"
-		id := ReconstituteID(from)
+		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
+		id := ReconstituteID(idValue)
 
 		Convey("Then it should reconstitute an ID", func() {
 			So(id, ShouldNotBeNil)
+			So(id, ShouldImplement, (*ID)(nil))
 		})
 
-		Convey("And then it should expose the expected id", func() {
-			So(id.String(), ShouldEqual, from)
+		Convey("And then it should expose the expected value", func() {
+			So(id.String(), ShouldEqual, idValue)
 		})
 	})
 }
 
 func TestEqualsOnID(t *testing.T) {
 	Convey("Given an Identifier of type ID", t, func() {
-		from := "someId"
-		id := ReconstituteID(from)
+		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+		id := ReconstituteID(idValue)
 
-		Convey("And given a second ID with equal value", func() {
-			equalId := ReconstituteID(from)
+		Convey("And given another ID with equal value", func() {
+			equalId := ReconstituteID(idValue)
 
-			Convey("When they are compared", func() {
+			Convey("When Equals is invoked", func() {
 				isEqual := id.Equals(equalId)
 
 				Convey("Then they should be equal", func() {
@@ -92,10 +96,10 @@ func TestEqualsOnID(t *testing.T) {
 			})
 		})
 
-		Convey("And given a second Identifier with equal value but different type", func() {
-			differentId := &dummyIdentifier{value: from}
+		Convey("And given another ID with equal value but different type", func() {
+			differentId := &dummyIdentifier{value: idValue}
 
-			Convey("When they are compared", func() {
+			Convey("When Equals is invoked", func() {
 				isEqual := id.Equals(differentId)
 
 				Convey("Then they should not be equal", func() {
@@ -104,10 +108,11 @@ func TestEqualsOnID(t *testing.T) {
 			})
 		})
 
-		Convey("And given a second ID with different value", func() {
-			differentId := ReconstituteID("differentId")
+		Convey("And given another ID with different value", func() {
+			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
+			differentId := ReconstituteID(differentIdValue)
 
-			Convey("When they are compared", func() {
+			Convey("When Equals is invoked", func() {
 				isEqual := id.Equals(differentId)
 
 				Convey("Then they should not be equal", func() {
@@ -127,5 +132,6 @@ func (idenfifier *dummyIdentifier) String() string {
 }
 
 func (idenfifier *dummyIdentifier) Equals(other shared.AggregateIdentifier) bool {
+	// this method will never be invoked, as we don't test the dummy
 	return false
 }

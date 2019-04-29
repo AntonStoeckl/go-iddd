@@ -15,11 +15,12 @@ func TestNewEmailAddress(t *testing.T) {
 
 			Convey("Then it should create an EmailAddress", func() {
 				So(err, ShouldBeNil)
+				So(emailAddress, ShouldNotBeNil)
 				So(emailAddress, ShouldImplement, (*EmailAddress)(nil))
 			})
 
-			Convey("And then it should expose the expected emailAddress", func() {
-				So(emailAddress.String(), ShouldEqual, emailAddressValue)
+			Convey("And then it should expose the expected value", func() {
+				So(emailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
 			})
 		})
 	})
@@ -38,29 +39,49 @@ func TestNewEmailAddress(t *testing.T) {
 	})
 }
 
-func TestEqualsOnEmailAddress(t *testing.T) {
-	Convey("Given that two EmailAddresses represent equal emailAddresses", t, func() {
-		emailAddress := ReconstituteEmailAddress("foo@bar.com")
-		equalEmailAddress := ReconstituteEmailAddress("foo@bar.com")
+func TestReconstituteEmailAddress(t *testing.T) {
+	Convey("When ReconstituteEmailAddress invoked", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress := ReconstituteEmailAddress(emailAddressValue)
 
-		Convey("When Equal is invoked", func() {
-			isEqual := emailAddress.Equals(equalEmailAddress)
+		Convey("Then it should reconstitute an EmailAddress", func() {
+			So(emailAddress, ShouldNotBeNil)
+			So(emailAddress, ShouldImplement, (*EmailAddress)(nil))
+		})
 
-			Convey("Then they should be equal", func() {
-				So(isEqual, ShouldBeTrue)
-			})
+		Convey("And then it should expose the expected value", func() {
+			So(emailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
 		})
 	})
+}
 
-	Convey("Given that two EmailAddresses represent different emailAddresses", t, func() {
-		emailAddress := ReconstituteEmailAddress("foo@bar.com")
-		differentEmailAddress := ReconstituteEmailAddress("foo+different@bar.com")
+func TestEqualsOnEmailAddress(t *testing.T) {
+	Convey("Given an EmailAddress", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress := ReconstituteEmailAddress(emailAddressValue)
 
-		Convey("When Equal is invoked", func() {
-			isEqual := emailAddress.Equals(differentEmailAddress)
+		Convey("And given another equal EmailAddress", func() {
+			equalEmailAddress := ReconstituteEmailAddress(emailAddressValue)
 
-			Convey("Then they should not be equal", func() {
-				So(isEqual, ShouldBeFalse)
+			Convey("When Equals is invoked", func() {
+				isEqual := emailAddress.Equals(equalEmailAddress)
+
+				Convey("Then they should be equal", func() {
+					So(isEqual, ShouldBeTrue)
+				})
+			})
+		})
+
+		Convey("And given another different EmailAddress", func() {
+			differentEmailAddressValue := "foo+different@bar.com"
+			differentEmailAddress := ReconstituteEmailAddress(differentEmailAddressValue)
+
+			Convey("When Equals is invoked", func() {
+				isEqual := emailAddress.Equals(differentEmailAddress)
+
+				Convey("Then they should not be equal", func() {
+					So(isEqual, ShouldBeFalse)
+				})
 			})
 		})
 	})

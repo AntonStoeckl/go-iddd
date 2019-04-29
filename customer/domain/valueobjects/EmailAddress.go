@@ -10,7 +10,7 @@ var (
 )
 
 type EmailAddress interface {
-	String() string
+	EmailAddress() string
 	Equals(other EmailAddress) bool
 }
 
@@ -18,8 +18,10 @@ type emailAddress struct {
 	value string
 }
 
+/*** Factory methods ***/
+
 func NewEmailAddress(from string) (*emailAddress, error) {
-	newEmailAddress := ReconstituteEmailAddress(from)
+	newEmailAddress := buildEmailAddress(from)
 
 	if err := newEmailAddress.mustBeValid(); err != nil {
 		return nil, err
@@ -27,6 +29,16 @@ func NewEmailAddress(from string) (*emailAddress, error) {
 
 	return newEmailAddress, nil
 }
+
+func ReconstituteEmailAddress(from string) *emailAddress {
+	return buildEmailAddress(from)
+}
+
+func buildEmailAddress(from string) *emailAddress {
+	return &emailAddress{value: from}
+}
+
+/*** Validation ***/
 
 func (emailAddress *emailAddress) mustBeValid() error {
 	if matched := emailAddressRegExp.MatchString(emailAddress.value); matched != true {
@@ -36,14 +48,12 @@ func (emailAddress *emailAddress) mustBeValid() error {
 	return nil
 }
 
-func ReconstituteEmailAddress(from string) *emailAddress {
-	return &emailAddress{value: from}
-}
+/*** Public methods implementing EmailAddress ***/
 
-func (emailAddress *emailAddress) String() string {
+func (emailAddress *emailAddress) EmailAddress() string {
 	return emailAddress.value
 }
 
 func (emailAddress *emailAddress) Equals(other EmailAddress) bool {
-	return emailAddress.String() == other.String()
+	return emailAddress.EmailAddress() == other.EmailAddress()
 }

@@ -1,8 +1,11 @@
 package valueobjects
 
+import "errors"
+
 type PersonName interface {
 	GivenName() string
 	FamilyName() string
+	Equals(other PersonName) bool
 }
 
 type personName struct {
@@ -10,21 +13,43 @@ type personName struct {
 	familyName string
 }
 
-func NewPersonName(givenName string, familyName string) *personName {
-	newPersonName := ReconstitutePersonName(givenName, familyName)
-	// TODO: validate
+/*** Factory methods ***/
 
-	return newPersonName
+func NewPersonName(givenName string, familyName string) (*personName, error) {
+	newPersonName := buildPersonName(givenName, familyName)
+	if err := newPersonName.mustBeValid(); err != nil {
+		return nil, err
+	}
+
+	return newPersonName, nil
 }
 
 func ReconstitutePersonName(givenName string, familyName string) *personName {
-	reconstitutedPersonName := &personName{
+	return buildPersonName(givenName, familyName)
+}
+
+func buildPersonName(givenName string, familyName string) *personName {
+	return &personName{
 		givenName:  givenName,
 		familyName: familyName,
 	}
-
-	return reconstitutedPersonName
 }
+
+/*** Validation ***/
+
+func (personName *personName) mustBeValid() error {
+	if personName.familyName == "" {
+		return errors.New("personName - empty input given for familyName")
+	}
+
+	if personName.givenName == "" {
+		return errors.New("personName - empty input given for givenName")
+	}
+
+	return nil
+}
+
+/*** Public methods implementing PersonName ***/
 
 func (personName *personName) GivenName() string {
 	return personName.givenName
@@ -32,4 +57,16 @@ func (personName *personName) GivenName() string {
 
 func (personName *personName) FamilyName() string {
 	return personName.familyName
+}
+
+func (personName *personName) Equals(other PersonName) bool {
+	if personName.GivenName() != other.GivenName() {
+		return false
+	}
+
+	if personName.FamilyName() != other.FamilyName() {
+		return false
+	}
+
+	return true
 }

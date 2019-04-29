@@ -7,6 +7,8 @@ import (
 )
 
 type ID interface {
+	ID() string
+
 	shared.AggregateIdentifier
 }
 
@@ -14,13 +16,27 @@ type id struct {
 	value string
 }
 
+/*** Factory methods ***/
+
 func GenerateID() *id {
-	return ReconstituteID(uuid.New().String())
+	return buildID(uuid.New().String())
 }
 
 func ReconstituteID(from string) *id {
+	return buildID(from)
+}
+
+func buildID(from string) *id {
 	return &id{value: from}
 }
+
+/*** Public methods implementing ID ***/
+
+func (idenfifier *id) ID() string {
+	return idenfifier.value
+}
+
+/*** Public methods implementing ID (methods for shared.AggregateIdentifier) ***/
 
 func (idenfifier *id) String() string {
 	return idenfifier.value

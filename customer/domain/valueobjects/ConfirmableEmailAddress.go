@@ -13,6 +13,8 @@ type confirmableEmailAddress struct {
 	isConfirmed      bool
 }
 
+/*** Factory methods ***/
+
 func NewConfirmableEmailAddress(from string) (*confirmableEmailAddress, error) {
 	baseEmailAddress, err := NewEmailAddress(from)
 	if err != nil {
@@ -20,31 +22,33 @@ func NewConfirmableEmailAddress(from string) (*confirmableEmailAddress, error) {
 		return nil, err
 	}
 
-	newEmailAddress := newConfirmableEmailAddress(baseEmailAddress, GenerateConfirmationHash(from))
+	newEmailAddress := buildConfirmableEmailAddress(baseEmailAddress, GenerateConfirmationHash(from))
 
 	return newEmailAddress, nil
 }
 
-func newConfirmableEmailAddress(from EmailAddress, with ConfirmationHash) *confirmableEmailAddress {
+func ReconstituteConfirmableEmailAddress(from string, withConfirmationHash string) *confirmableEmailAddress {
+	return buildConfirmableEmailAddress(
+		ReconstituteEmailAddress(from),
+		ReconstituteConfirmationHash(withConfirmationHash),
+	)
+}
+
+func buildConfirmableEmailAddress(from EmailAddress, with ConfirmationHash) *confirmableEmailAddress {
 	return &confirmableEmailAddress{
 		baseEmailAddress: from,
 		confirmationHash: with,
 	}
 }
 
-func ReconstituteConfirmableEmailAddress(from string, withConfirmationHash string) *confirmableEmailAddress {
-	return newConfirmableEmailAddress(
-		ReconstituteEmailAddress(from),
-		ReconstituteConfirmationHash(withConfirmationHash),
-	)
-}
+/*** Public methods implementing ConfirmableEmailAddress (own methods) ***/
 
 func (confirmableEmailAddress *confirmableEmailAddress) Confirm(given ConfirmationHash) (*confirmableEmailAddress, error) {
 	if err := confirmableEmailAddress.confirmationHash.MustMatch(given); err != nil {
 		return nil, err
 	}
 
-	confirmedEmailAddress := newConfirmableEmailAddress(
+	confirmedEmailAddress := buildConfirmableEmailAddress(
 		confirmableEmailAddress.baseEmailAddress,
 		confirmableEmailAddress.confirmationHash,
 	)
@@ -58,8 +62,10 @@ func (confirmableEmailAddress *confirmableEmailAddress) IsConfirmed() bool {
 	return confirmableEmailAddress.isConfirmed
 }
 
-func (confirmableEmailAddress *confirmableEmailAddress) String() string {
-	return confirmableEmailAddress.baseEmailAddress.String()
+/*** Public methods implementing ConfirmableEmailAddress (methods for EmailAddress) ***/
+
+func (confirmableEmailAddress *confirmableEmailAddress) EmailAddress() string {
+	return confirmableEmailAddress.baseEmailAddress.EmailAddress()
 }
 
 func (confirmableEmailAddress *confirmableEmailAddress) Equals(other EmailAddress) bool {
