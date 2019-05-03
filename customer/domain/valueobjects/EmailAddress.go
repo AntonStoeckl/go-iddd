@@ -1,6 +1,7 @@
 package valueobjects
 
 import (
+	"encoding/json"
 	"errors"
 	"regexp"
 )
@@ -56,4 +57,17 @@ func (emailAddress *emailAddress) EmailAddress() string {
 
 func (emailAddress *emailAddress) Equals(other EmailAddress) bool {
 	return emailAddress.EmailAddress() == other.EmailAddress()
+}
+
+func (emailAddress *emailAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(emailAddress.value)
+}
+
+func UnmarshalEmailAddress(data interface{}) (*emailAddress, error) {
+	value, ok := data.(string)
+	if !ok {
+		return nil, errors.New("zefix")
+	}
+
+	return &emailAddress{value: value}, nil
 }

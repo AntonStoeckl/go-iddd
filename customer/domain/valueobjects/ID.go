@@ -1,6 +1,8 @@
 package valueobjects
 
 import (
+	"encoding/json"
+	"errors"
 	"go-iddd/shared"
 
 	"github.com/google/uuid"
@@ -48,4 +50,17 @@ func (idenfifier *id) Equals(other shared.AggregateIdentifier) bool {
 	}
 
 	return idenfifier.String() == other.String()
+}
+
+func (idenfifier *id) MarshalJSON() ([]byte, error) {
+	return json.Marshal(idenfifier.value)
+}
+
+func UnmarshalID(data interface{}) (*id, error) {
+	value, ok := data.(string)
+	if !ok {
+		return nil, errors.New("zefix")
+	}
+
+	return &id{value: value}, nil
 }

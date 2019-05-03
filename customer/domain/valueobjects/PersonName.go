@@ -1,6 +1,9 @@
 package valueobjects
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+)
 
 type PersonName interface {
 	GivenName() string
@@ -69,4 +72,41 @@ func (personName *personName) Equals(other PersonName) bool {
 	}
 
 	return true
+}
+
+func (personName *personName) MarshalJSON() ([]byte, error) {
+	data := &struct {
+		GivenName  string `json:"givenName"`
+		FamilyName string `json:"familyName"`
+	}{
+		GivenName:  personName.givenName,
+		FamilyName: personName.familyName,
+	}
+
+	return json.Marshal(data)
+}
+
+func UnmarshalPersonName(data interface{}) (*personName, error) {
+	values, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("zefix")
+	}
+
+	personName := &personName{}
+
+	for key, value := range values {
+		value, ok := value.(string)
+		if !ok {
+			return nil, errors.New("zefix")
+		}
+
+		switch key {
+		case "givenName":
+			personName.givenName = value
+		case "familyName":
+			personName.familyName = value
+		}
+	}
+
+	return personName, nil
 }

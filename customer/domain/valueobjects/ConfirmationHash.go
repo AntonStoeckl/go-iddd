@@ -2,6 +2,7 @@ package valueobjects
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -48,4 +49,17 @@ func (confirmationHash *confirmationHash) MustMatch(other ConfirmationHash) erro
 	}
 
 	return nil
+}
+
+func (confirmationHash *confirmationHash) MarshalJSON() ([]byte, error) {
+	return json.Marshal(confirmationHash.value)
+}
+
+func UnmarshalConfirmationHash(data interface{}) (*confirmationHash, error) {
+	value, ok := data.(string)
+	if !ok {
+		return nil, errors.New("zefix")
+	}
+
+	return &confirmationHash{value: value}, nil
 }

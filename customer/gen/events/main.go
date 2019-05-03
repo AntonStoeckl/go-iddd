@@ -41,7 +41,6 @@ var events = []Event{
 		Fields: []Field{
 			{FieldName: "id", DataType: "valueobjects.ID"},
 			{FieldName: "emailAddress", DataType: "valueobjects.EmailAddress"},
-			{FieldName: "confirmationHash", DataType: "valueobjects.ConfirmationHash"},
 		},
 	},
 }
