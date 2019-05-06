@@ -15,7 +15,7 @@ func TestMarshalJSONOnEmailAddressConfirmed(t *testing.T) {
 
 		event := EmailAddressWasConfirmed(id, emailAddress)
 		So(event, ShouldNotBeNil)
-		So(event, ShouldImplement, (*EmailAddressConfirmed)(nil))
+		So(event, ShouldHaveSameTypeAs, (*EmailAddressConfirmed)(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := json.Marshal(event)
@@ -27,12 +27,13 @@ func TestMarshalJSONOnEmailAddressConfirmed(t *testing.T) {
 			})
 
 			Convey("And when it is unmarshaled from json", func() {
-				unmarshaledEvent, err := UnmarshalEmailAddressConfirmedFromJSON(data)
+				unmarshaledEvent := &EmailAddressConfirmed{}
+				err := json.Unmarshal(data, unmarshaledEvent)
 
 				Convey("Then it should succeed", func() {
 					So(err, ShouldBeNil)
 					So(unmarshaledEvent, ShouldNotBeNil)
-					So(unmarshaledEvent, ShouldImplement, (*EmailAddressConfirmed)(nil))
+					So(unmarshaledEvent, ShouldHaveSameTypeAs, (*EmailAddressConfirmed)(nil))
 					So(event, ShouldResemble, unmarshaledEvent)
 				})
 			})

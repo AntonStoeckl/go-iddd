@@ -8,14 +8,7 @@ import (
 
 const emailAddressConfirmedAggregateName = "Customer"
 
-type EmailAddressConfirmed interface {
-	ID() *valueobjects.ID
-	EmailAddress() *valueobjects.EmailAddress
-
-	shared.DomainEvent
-}
-
-type emailAddressConfirmed struct {
+type EmailAddressConfirmed struct {
 	id           *valueobjects.ID
 	emailAddress *valueobjects.EmailAddress
 
@@ -25,9 +18,9 @@ type emailAddressConfirmed struct {
 func EmailAddressWasConfirmed(
 	id *valueobjects.ID,
 	emailAddress *valueobjects.EmailAddress,
-) *emailAddressConfirmed {
+) *EmailAddressConfirmed {
 
-	emailAddressConfirmed := &emailAddressConfirmed{
+	emailAddressConfirmed := &EmailAddressConfirmed{
 		id:           id,
 		emailAddress: emailAddress,
 	}
@@ -41,27 +34,27 @@ func EmailAddressWasConfirmed(
 	return emailAddressConfirmed
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) ID() *valueobjects.ID {
+func (emailAddressConfirmed *EmailAddressConfirmed) ID() *valueobjects.ID {
 	return emailAddressConfirmed.id
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) EmailAddress() *valueobjects.EmailAddress {
+func (emailAddressConfirmed *EmailAddressConfirmed) EmailAddress() *valueobjects.EmailAddress {
 	return emailAddressConfirmed.emailAddress
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) Identifier() string {
+func (emailAddressConfirmed *EmailAddressConfirmed) Identifier() string {
 	return emailAddressConfirmed.meta.Identifier
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) EventName() string {
+func (emailAddressConfirmed *EmailAddressConfirmed) EventName() string {
 	return emailAddressConfirmed.meta.EventName
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) OccurredAt() string {
+func (emailAddressConfirmed *EmailAddressConfirmed) OccurredAt() string {
 	return emailAddressConfirmed.meta.OccurredAt
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) MarshalJSON() ([]byte, error) {
+func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		ID           *valueobjects.ID           `json:"id"`
 		EmailAddress *valueobjects.EmailAddress `json:"emailAddress"`
@@ -75,40 +68,20 @@ func (emailAddressConfirmed *emailAddressConfirmed) MarshalJSON() ([]byte, error
 	return json.Marshal(data)
 }
 
-func UnmarshalEmailAddressConfirmedFromJSON(jsonData []byte) (EmailAddressConfirmed, error) {
-	var err error
-	var data map[string]interface{}
+func (emailAddressConfirmed *EmailAddressConfirmed) UnmarshalJSON(data []byte) error {
+	values := &struct {
+		ID           *valueobjects.ID           `json:"id"`
+		EmailAddress *valueobjects.EmailAddress `json:"emailAddress"`
+		Meta         *shared.DomainEventMeta    `json:"meta"`
+	}{}
 
-	var id *valueobjects.ID
-	var emailAddress *valueobjects.EmailAddress
-	var meta *shared.DomainEventMeta
-
-	if err := json.Unmarshal(jsonData, &data); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, values); err != nil {
+		return err
 	}
 
-	for key, value := range data {
-		switch key {
-		case "id":
-			if id, err = valueobjects.UnmarshalID(value); err != nil {
-				return nil, err
-			}
-		case "emailAddress":
-			if emailAddress, err = valueobjects.UnmarshalEmailAddress(value); err != nil {
-				return nil, err
-			}
-		case "meta":
-			if meta, err = shared.UnmarshalDomainEventMeta(value); err != nil {
-				return nil, err
-			}
-		}
-	}
+	emailAddressConfirmed.id = values.ID
+	emailAddressConfirmed.emailAddress = values.EmailAddress
+	emailAddressConfirmed.meta = values.Meta
 
-	emailAddressConfirmed := &emailAddressConfirmed{
-		id:           id,
-		emailAddress: emailAddress,
-		meta:         meta,
-	}
-
-	return emailAddressConfirmed, nil
+	return nil
 }
