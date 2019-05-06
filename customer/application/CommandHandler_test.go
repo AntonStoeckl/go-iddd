@@ -80,7 +80,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 		Convey("And given a valid ConfirmEmailAddress Command", func() {
 			id := valueobjects.GenerateID()
-			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
+			emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
 			confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)

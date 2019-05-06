@@ -2,9 +2,11 @@ package valueobjects_test
 
 import (
 	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/shared"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
 func TestNewEmailAddress(t *testing.T) {
@@ -17,7 +19,7 @@ func TestNewEmailAddress(t *testing.T) {
 			Convey("Then it should create an EmailAddress", func() {
 				So(err, ShouldBeNil)
 				So(emailAddress, ShouldNotBeNil)
-				So(emailAddress, ShouldImplement, (*valueobjects.EmailAddress)(nil))
+				So(emailAddress, ShouldHaveSameTypeAs, (*valueobjects.EmailAddress)(nil))
 			})
 
 			Convey("And then it should expose the expected value", func() {
@@ -33,7 +35,8 @@ func TestNewEmailAddress(t *testing.T) {
 			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
 			Convey("Then it should fail", func() {
-				So(err, ShouldBeError, "emailAddress - invalid input given")
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
 				So(emailAddress, ShouldBeNil)
 			})
 		})
@@ -47,7 +50,7 @@ func TestReconstituteEmailAddress(t *testing.T) {
 
 		Convey("Then it should reconstitute an EmailAddress", func() {
 			So(emailAddress, ShouldNotBeNil)
-			So(emailAddress, ShouldImplement, (*valueobjects.EmailAddress)(nil))
+			So(emailAddress, ShouldHaveSameTypeAs, (*valueobjects.EmailAddress)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {

@@ -33,25 +33,25 @@ func TestNewRegister(t *testing.T) {
 	})
 
 	Convey("Given that ID is nil", t, func() {
-		var id valueobjects.ID
+		var id *valueobjects.ID
 		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 
 	Convey("Given that ConfirmableEmailAddress is nil", t, func() {
-		var emailAddress valueobjects.ConfirmableEmailAddress
+		var emailAddress *valueobjects.ConfirmableEmailAddress
 		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 
 	Convey("Given that PersonName is nil", t, func() {
-		var personName valueobjects.PersonName
+		var personName *valueobjects.PersonName
 		conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 	})
 }
 
 func conveyNewRegisterWithInvalidInput(
-	id valueobjects.ID,
-	emailAddress valueobjects.ConfirmableEmailAddress,
-	personName valueobjects.PersonName,
+	id *valueobjects.ID,
+	emailAddress *valueobjects.ConfirmableEmailAddress,
+	personName *valueobjects.PersonName,
 ) {
 
 	Convey("When NewRegister is invoked", func() {

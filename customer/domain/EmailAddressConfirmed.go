@@ -9,22 +9,22 @@ import (
 const emailAddressConfirmedAggregateName = "Customer"
 
 type EmailAddressConfirmed interface {
-	ID() valueobjects.ID
-	EmailAddress() valueobjects.EmailAddress
+	ID() *valueobjects.ID
+	EmailAddress() *valueobjects.EmailAddress
 
 	shared.DomainEvent
 }
 
 type emailAddressConfirmed struct {
-	id           valueobjects.ID
-	emailAddress valueobjects.EmailAddress
+	id           *valueobjects.ID
+	emailAddress *valueobjects.EmailAddress
 
 	meta *shared.DomainEventMeta
 }
 
 func EmailAddressWasConfirmed(
-	id valueobjects.ID,
-	emailAddress valueobjects.EmailAddress,
+	id *valueobjects.ID,
+	emailAddress *valueobjects.EmailAddress,
 ) *emailAddressConfirmed {
 
 	emailAddressConfirmed := &emailAddressConfirmed{
@@ -41,11 +41,11 @@ func EmailAddressWasConfirmed(
 	return emailAddressConfirmed
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) ID() valueobjects.ID {
+func (emailAddressConfirmed *emailAddressConfirmed) ID() *valueobjects.ID {
 	return emailAddressConfirmed.id
 }
 
-func (emailAddressConfirmed *emailAddressConfirmed) EmailAddress() valueobjects.EmailAddress {
+func (emailAddressConfirmed *emailAddressConfirmed) EmailAddress() *valueobjects.EmailAddress {
 	return emailAddressConfirmed.emailAddress
 }
 
@@ -63,9 +63,9 @@ func (emailAddressConfirmed *emailAddressConfirmed) OccurredAt() string {
 
 func (emailAddressConfirmed *emailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID           valueobjects.ID           `json:"id"`
-		EmailAddress valueobjects.EmailAddress `json:"emailAddress"`
-		Meta         *shared.DomainEventMeta   `json:"meta"`
+		ID           *valueobjects.ID           `json:"id"`
+		EmailAddress *valueobjects.EmailAddress `json:"emailAddress"`
+		Meta         *shared.DomainEventMeta    `json:"meta"`
 	}{
 		ID:           emailAddressConfirmed.id,
 		EmailAddress: emailAddressConfirmed.emailAddress,
@@ -79,8 +79,8 @@ func UnmarshalEmailAddressConfirmedFromJSON(jsonData []byte) (EmailAddressConfir
 	var err error
 	var data map[string]interface{}
 
-	var id valueobjects.ID
-	var emailAddress valueobjects.EmailAddress
+	var id *valueobjects.ID
+	var emailAddress *valueobjects.EmailAddress
 	var meta *shared.DomainEventMeta
 
 	if err := json.Unmarshal(jsonData, &data); err != nil {

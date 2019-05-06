@@ -3,25 +3,22 @@ package valueobjects
 import (
 	"crypto/md5"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"go-iddd/shared"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"golang.org/x/xerrors"
 )
 
-type ConfirmationHash interface {
-	Hash() string
-	MustMatch(other ConfirmationHash) error
-}
-
-type confirmationHash struct {
+type ConfirmationHash struct {
 	value string
 }
 
 /*** Factory methods ***/
 
-func GenerateConfirmationHash(using string) *confirmationHash {
+func GenerateConfirmationHash(using string) *ConfirmationHash {
 	randomInt := rand.New(rand.NewSource(time.Now().UnixNano())).Int()
 	md5Sum := md5.Sum([]byte(strconv.Itoa(randomInt) + using))
 	value := fmt.Sprintf("%x", md5Sum)
@@ -29,37 +26,37 @@ func GenerateConfirmationHash(using string) *confirmationHash {
 	return buildConfirmationHash(value)
 }
 
-func ReconstituteConfirmationHash(from string) *confirmationHash {
+func ReconstituteConfirmationHash(from string) *ConfirmationHash {
 	return buildConfirmationHash(from)
 }
 
-func buildConfirmationHash(from string) *confirmationHash {
-	return &confirmationHash{value: from}
+func buildConfirmationHash(from string) *ConfirmationHash {
+	return &ConfirmationHash{value: from}
 }
 
 /*** Public methods implementing ConfirmationHash ***/
 
-func (confirmationHash *confirmationHash) Hash() string {
+func (confirmationHash *ConfirmationHash) Hash() string {
 	return confirmationHash.value
 }
 
-func (confirmationHash *confirmationHash) MustMatch(other ConfirmationHash) error {
+func (confirmationHash *ConfirmationHash) MustMatch(other *ConfirmationHash) error {
 	if confirmationHash.Hash() != other.Hash() {
-		return errors.New("confirmationHash - is not equal")
+		return xerrors.Errorf("confirmationHash.MustMatch: input does not match: %w", shared.ErrInvalidInput) // TODO: use a distinct error type?
 	}
 
 	return nil
 }
 
-func (confirmationHash *confirmationHash) MarshalJSON() ([]byte, error) {
+func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
 	return json.Marshal(confirmationHash.value)
 }
 
-func UnmarshalConfirmationHash(data interface{}) (*confirmationHash, error) {
+func UnmarshalConfirmationHash(data interface{}) (*ConfirmationHash, error) {
 	value, ok := data.(string)
 	if !ok {
-		return nil, errors.New("zefix")
+		return nil, xerrors.Errorf("UnmarshalConfirmationHash: input is not [string]: %w", shared.ErrUnmarshaling)
 	}
 
-	return &confirmationHash{value: value}, nil
+	return &ConfirmationHash{value: value}, nil
 }

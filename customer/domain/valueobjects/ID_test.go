@@ -15,7 +15,7 @@ func TestGenerateID(t *testing.T) {
 
 		Convey("Then it should generate an ID", func() {
 			So(id, ShouldNotBeNil)
-			So(id, ShouldImplement, (*valueobjects.ID)(nil))
+			So(id, ShouldHaveSameTypeAs, (*valueobjects.ID)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -71,7 +71,7 @@ func TestReconstituteID(t *testing.T) {
 
 		Convey("Then it should reconstitute an ID", func() {
 			So(id, ShouldNotBeNil)
-			So(id, ShouldImplement, (*valueobjects.ID)(nil))
+			So(id, ShouldHaveSameTypeAs, (*valueobjects.ID)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {

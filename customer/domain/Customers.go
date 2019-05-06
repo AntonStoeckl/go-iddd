@@ -7,5 +7,5 @@ import "go-iddd/customer/domain/valueobjects"
 type Customers interface {
 	New() Customer
 	Save(Customer) error
-	FindBy(id valueobjects.ID) (Customer, error)
+	FindBy(id *valueobjects.ID) (Customer, error)
 }

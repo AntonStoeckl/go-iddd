@@ -2,26 +2,23 @@ package valueobjects
 
 import (
 	"encoding/json"
-	"errors"
+	"go-iddd/shared"
 	"regexp"
+
+	"golang.org/x/xerrors"
 )
 
 var (
 	emailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
 )
 
-type EmailAddress interface {
-	EmailAddress() string
-	Equals(other EmailAddress) bool
-}
-
-type emailAddress struct {
+type EmailAddress struct {
 	value string
 }
 
 /*** Factory methods ***/
 
-func NewEmailAddress(from string) (*emailAddress, error) {
+func NewEmailAddress(from string) (*EmailAddress, error) {
 	newEmailAddress := buildEmailAddress(from)
 
 	if err := newEmailAddress.mustBeValid(); err != nil {
@@ -31,19 +28,19 @@ func NewEmailAddress(from string) (*emailAddress, error) {
 	return newEmailAddress, nil
 }
 
-func ReconstituteEmailAddress(from string) *emailAddress {
+func ReconstituteEmailAddress(from string) *EmailAddress {
 	return buildEmailAddress(from)
 }
 
-func buildEmailAddress(from string) *emailAddress {
-	return &emailAddress{value: from}
+func buildEmailAddress(from string) *EmailAddress {
+	return &EmailAddress{value: from}
 }
 
 /*** Validation ***/
 
-func (emailAddress *emailAddress) mustBeValid() error {
+func (emailAddress *EmailAddress) mustBeValid() error {
 	if matched := emailAddressRegExp.MatchString(emailAddress.value); matched != true {
-		return errors.New("emailAddress - invalid input given")
+		return xerrors.Errorf("emailAddress.mustBeValid: input does not match regex: %w", shared.ErrInvalidInput)
 	}
 
 	return nil
@@ -51,23 +48,23 @@ func (emailAddress *emailAddress) mustBeValid() error {
 
 /*** Public methods implementing EmailAddress ***/
 
-func (emailAddress *emailAddress) EmailAddress() string {
+func (emailAddress *EmailAddress) EmailAddress() string {
 	return emailAddress.value
 }
 
-func (emailAddress *emailAddress) Equals(other EmailAddress) bool {
+func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
 	return emailAddress.EmailAddress() == other.EmailAddress()
 }
 
-func (emailAddress *emailAddress) MarshalJSON() ([]byte, error) {
+func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
 	return json.Marshal(emailAddress.value)
 }
 
-func UnmarshalEmailAddress(data interface{}) (*emailAddress, error) {
-	value, ok := data.(string)
+func UnmarshalEmailAddress(input interface{}) (*EmailAddress, error) {
+	value, ok := input.(string)
 	if !ok {
-		return nil, errors.New("zefix")
+		return nil, xerrors.Errorf("UnmarshalEmailAddress: input is not a [string]: %w", shared.ErrUnmarshaling)
 	}
 
-	return &emailAddress{value: value}, nil
+	return &EmailAddress{value: value}, nil
 }

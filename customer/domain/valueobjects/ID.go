@@ -8,59 +8,57 @@ import (
 	"github.com/google/uuid"
 )
 
-type ID interface {
-	ID() string
-
-	shared.AggregateIdentifier
-}
-
-type id struct {
+type ID struct {
 	value string
 }
 
 /*** Factory methods ***/
 
-func GenerateID() *id {
+func GenerateID() *ID {
 	return buildID(uuid.New().String())
 }
 
-func ReconstituteID(from string) *id {
+func ReconstituteID(from string) *ID {
 	return buildID(from)
 }
 
-func buildID(from string) *id {
-	return &id{value: from}
+func buildID(from string) *ID {
+	return &ID{value: from}
 }
 
-/*** Public methods implementing ID ***/
+/*** Getter methods ***/
 
-func (idenfifier *id) ID() string {
-	return idenfifier.value
+func (id *ID) ID() string {
+	return id.value
 }
 
-/*** Public methods implementing ID (methods for shared.AggregateIdentifier) ***/
+/*** Implement shared.AggregateIdentifier ***/
 
-func (idenfifier *id) String() string {
-	return idenfifier.value
+func (id *ID) String() string {
+	return id.value
 }
 
-func (idenfifier *id) Equals(other shared.AggregateIdentifier) bool {
-	if _, ok := other.(*id); !ok {
+func (id *ID) Equals(other shared.AggregateIdentifier) bool {
+	if _, ok := other.(*ID); !ok {
 		return false
 	}
 
-	return idenfifier.String() == other.String()
+	return id.String() == other.String()
 }
 
-func (idenfifier *id) MarshalJSON() ([]byte, error) {
-	return json.Marshal(idenfifier.value)
+/*** Implement json.Marshaler ***/
+
+func (id *ID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(id.value)
 }
 
-func UnmarshalID(data interface{}) (*id, error) {
+/*** Another factory method ***/
+
+func UnmarshalID(data interface{}) (*ID, error) {
 	value, ok := data.(string)
 	if !ok {
 		return nil, errors.New("zefix")
 	}
 
-	return &id{value: value}, nil
+	return &ID{value: value}, nil
 }

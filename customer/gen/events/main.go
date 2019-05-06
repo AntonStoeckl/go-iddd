@@ -31,17 +31,17 @@ var events = []Event{
 		EventType:    "registered",
 		EventFactory: "ItWasRegistered",
 		Fields: []Field{
-			{FieldName: "id", DataType: "valueobjects.ID"},
-			{FieldName: "confirmableEmailAddress", DataType: "valueobjects.ConfirmableEmailAddress"},
-			{FieldName: "personName", DataType: "valueobjects.PersonName"},
+			{FieldName: "id", DataType: "*valueobjects.ID"},
+			{FieldName: "confirmableEmailAddress", DataType: "*valueobjects.ConfirmableEmailAddress"},
+			{FieldName: "personName", DataType: "*valueobjects.PersonName"},
 		},
 	},
 	{
 		EventType:    "emailAddressConfirmed",
 		EventFactory: "EmailAddressWasConfirmed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "valueobjects.ID"},
-			{FieldName: "emailAddress", DataType: "valueobjects.EmailAddress"},
+			{FieldName: "id", DataType: "*valueobjects.ID"},
+			{FieldName: "emailAddress", DataType: "*valueobjects.EmailAddress"},
 		},
 	},
 }

@@ -18,7 +18,7 @@ func TestNewPersonName(t *testing.T) {
 			Convey("Then it should create a PersonName", func() {
 				So(err, ShouldBeNil)
 				So(personName, ShouldNotBeNil)
-				So(personName, ShouldImplement, (*valueobjects.PersonName)(nil))
+				So(personName, ShouldHaveSameTypeAs, (*valueobjects.PersonName)(nil))
 			})
 
 			Convey("And then it should expose the expected values", func() {
@@ -63,7 +63,7 @@ func TestReconstitutePersonName(t *testing.T) {
 
 		Convey("Then it should reconstitute a PersonName", func() {
 			So(personName, ShouldNotBeNil)
-			So(personName, ShouldImplement, (*valueobjects.PersonName)(nil))
+			So(personName, ShouldHaveSameTypeAs, (*valueobjects.PersonName)(nil))
 		})
 
 		Convey("And then it should expose the expected values", func() {

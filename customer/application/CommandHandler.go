@@ -46,7 +46,7 @@ func (handler *commandHandler) register(register domain.Register) error {
 	return nil
 }
 
-func (handler *commandHandler) applyToExistingCustomer(id valueobjects.ID, command shared.Command) error {
+func (handler *commandHandler) applyToExistingCustomer(id *valueobjects.ID, command shared.Command) error {
 	customer, err := handler.customers.FindBy(id)
 	if err != nil {
 		return err

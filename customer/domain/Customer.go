@@ -15,9 +15,9 @@ type Customer interface {
 }
 
 type customer struct {
-	id                      valueobjects.ID
-	confirmableEmailAddress valueobjects.ConfirmableEmailAddress
-	personName              valueobjects.PersonName
+	id                      *valueobjects.ID
+	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
+	personName              *valueobjects.PersonName
 	isRegistered            bool
 }
 
@@ -31,8 +31,6 @@ func (customer *customer) Apply(command shared.Command) error {
 	if err := customer.assertCustomerIsInValidState(command); err != nil {
 		return err
 	}
-
-	/*** All methods to apply the commands to the Customer are located in the Commands itself ***/
 
 	switch command := command.(type) {
 	case Register:
@@ -70,6 +68,30 @@ func (customer *customer) assertCustomerIsInValidState(command shared.Command) e
 		if customer.personName == nil {
 			return errors.New("customer - was registered but has no personName")
 		}
+	}
+
+	return nil
+}
+
+func (customer *customer) register(given Register) {
+	customer.id = given.ID()
+	customer.confirmableEmailAddress = given.ConfirmableEmailAddress()
+	customer.personName = given.PersonName()
+}
+
+func (customer *customer) confirmEmailAddress(given ConfirmEmailAddress) error {
+	var err error
+
+	if customer.confirmableEmailAddress.IsConfirmed() {
+		return nil
+	}
+
+	if !customer.confirmableEmailAddress.EqualsAny(given.EmailAddress()) {
+		return errors.New("customer - emailAddress can not be confirmed because it has changed")
+	}
+
+	if customer.confirmableEmailAddress, err = customer.confirmableEmailAddress.Confirm(given.ConfirmationHash()); err != nil {
+		return err
 	}
 
 	return nil

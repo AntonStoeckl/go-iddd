@@ -14,11 +14,11 @@ type Customers struct {
 }
 
 // FindBy provides a mock function with given fields: id
-func (_m *Customers) FindBy(id valueobjects.ID) (domain.Customer, error) {
+func (_m *Customers) FindBy(id *valueobjects.ID) (domain.Customer, error) {
 	ret := _m.Called(id)
 
 	var r0 domain.Customer
-	if rf, ok := ret.Get(0).(func(valueobjects.ID) domain.Customer); ok {
+	if rf, ok := ret.Get(0).(func(*valueobjects.ID) domain.Customer); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -27,7 +27,7 @@ func (_m *Customers) FindBy(id valueobjects.ID) (domain.Customer, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(valueobjects.ID) error); ok {
+	if rf, ok := ret.Get(1).(func(*valueobjects.ID) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)

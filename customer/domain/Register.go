@@ -5,34 +5,26 @@ import (
 	"go-iddd/shared"
 )
 
-/*** The Customer behaviour method to apply the Register command ***/
-
-func (customer *customer) register(register Register) {
-	customer.id = register.ID()
-	customer.confirmableEmailAddress = register.ConfirmableEmailAddress()
-	customer.personName = register.PersonName()
-}
-
 /*** The Register command itself - struct, factory, own getters, shared.Command getters ***/
 
 type Register interface {
-	ID() valueobjects.ID
-	ConfirmableEmailAddress() valueobjects.ConfirmableEmailAddress
-	PersonName() valueobjects.PersonName
+	ID() *valueobjects.ID
+	ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress
+	PersonName() *valueobjects.PersonName
 
 	shared.Command
 }
 
 type register struct {
-	id                      valueobjects.ID
-	confirmableEmailAddress valueobjects.ConfirmableEmailAddress
-	personName              valueobjects.PersonName
+	id                      *valueobjects.ID
+	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
+	personName              *valueobjects.PersonName
 }
 
 func NewRegister(
-	id valueobjects.ID,
-	emailAddress valueobjects.ConfirmableEmailAddress,
-	personName valueobjects.PersonName,
+	id *valueobjects.ID,
+	emailAddress *valueobjects.ConfirmableEmailAddress,
+	personName *valueobjects.PersonName,
 ) (*register, error) {
 
 	command := &register{
@@ -48,15 +40,15 @@ func NewRegister(
 	return command, nil
 }
 
-func (register *register) ID() valueobjects.ID {
+func (register *register) ID() *valueobjects.ID {
 	return register.id
 }
 
-func (register *register) ConfirmableEmailAddress() valueobjects.ConfirmableEmailAddress {
+func (register *register) ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress {
 	return register.confirmableEmailAddress
 }
 
-func (register *register) PersonName() valueobjects.PersonName {
+func (register *register) PersonName() *valueobjects.PersonName {
 	return register.personName
 }
 

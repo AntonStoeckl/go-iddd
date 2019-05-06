@@ -33,28 +33,28 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 	})
 
 	Convey("Given that ID is nil", t, func() {
-		var id valueobjects.ID
+		var id *valueobjects.ID
 
 		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 	})
 
 	Convey("Given that EmailAddress is nil", t, func() {
-		var emailAddress valueobjects.EmailAddress
+		var emailAddress *valueobjects.EmailAddress
 
 		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 	})
 
 	Convey("Given that PersonName is nil", t, func() {
-		var confirmationHash valueobjects.ConfirmationHash
+		var confirmationHash *valueobjects.ConfirmationHash
 
 		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 	})
 }
 
 func conveyNewConfirmEmailAddressWithInvalidInput(
-	id valueobjects.ID,
-	emailAddress valueobjects.EmailAddress,
-	confirmationHash valueobjects.ConfirmationHash,
+	id *valueobjects.ID,
+	emailAddress *valueobjects.EmailAddress,
+	confirmationHash *valueobjects.ConfirmationHash,
 ) {
 
 	Convey("When NewConfirmEmailAddress is invoked", func() {

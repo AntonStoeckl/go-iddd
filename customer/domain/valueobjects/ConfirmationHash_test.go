@@ -2,7 +2,10 @@ package valueobjects_test
 
 import (
 	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/shared"
 	"testing"
+
+	"golang.org/x/xerrors"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -16,7 +19,7 @@ func TestGenerateConfirmationHash(t *testing.T) {
 
 			Convey("Then it should create a ConfirmationHash", func() {
 				So(confirmationHash, ShouldNotBeNil)
-				So(confirmationHash, ShouldImplement, (*valueobjects.ConfirmationHash)(nil))
+				So(confirmationHash, ShouldHaveSameTypeAs, (*valueobjects.ConfirmationHash)(nil))
 			})
 
 			Convey("And then it should expose the generated ConfirmationHash", func() {
@@ -33,7 +36,7 @@ func TestReconstituteConfirmationHash(t *testing.T) {
 
 		Convey("Then it should reconstitute a ConfirmationHash", func() {
 			So(confirmationHash, ShouldNotBeNil)
-			So(confirmationHash, ShouldImplement, (*valueobjects.ConfirmationHash)(nil))
+			So(confirmationHash, ShouldHaveSameTypeAs, (*valueobjects.ConfirmationHash)(nil))
 		})
 
 		Convey("And then it should expose the expected value", func() {
@@ -67,7 +70,8 @@ func TestMustMatchOnConfirmationHash(t *testing.T) {
 				err := confirmationHash.MustMatch(differentConfirmationHash)
 
 				Convey("Then they must not match", func() {
-					So(err, ShouldBeError, "confirmationHash - is not equal")
+					So(err, ShouldBeError)
+					So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
 				})
 			})
 		})
