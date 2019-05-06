@@ -2,8 +2,9 @@ package valueobjects
 
 import (
 	"encoding/json"
-	"errors"
 	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 
 	"github.com/google/uuid"
 )
@@ -49,16 +50,24 @@ func (id *ID) Equals(other shared.AggregateIdentifier) bool {
 /*** Implement json.Marshaler ***/
 
 func (id *ID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(id.value)
-}
-
-/*** Another factory method ***/
-
-func UnmarshalID(data interface{}) (*ID, error) {
-	value, ok := data.(string)
-	if !ok {
-		return nil, errors.New("zefix")
+	bytes, err := json.Marshal(id.value)
+	if err != nil {
+		return bytes, xerrors.Errorf("id.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
 	}
 
-	return &ID{value: value}, nil
+	return bytes, nil
+}
+
+/*** Implement json.Unmarshaler ***/
+
+func (id *ID) UnmarshalJSON(data []byte) error {
+	var value string
+
+	if err := json.Unmarshal(data, &value); err != nil {
+		return xerrors.Errorf("id.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+	}
+
+	id.value = value
+
+	return nil
 }

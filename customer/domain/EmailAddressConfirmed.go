@@ -54,6 +54,8 @@ func (emailAddressConfirmed *EmailAddressConfirmed) OccurredAt() string {
 	return emailAddressConfirmed.meta.OccurredAt
 }
 
+/*** Implement json.Marshaler ***/
+
 func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		ID           *valueobjects.ID           `json:"id"`
@@ -67,6 +69,8 @@ func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error
 
 	return json.Marshal(data)
 }
+
+/*** Implement json.Unmarshaler ***/
 
 func (emailAddressConfirmed *EmailAddressConfirmed) UnmarshalJSON(data []byte) error {
 	values := &struct {

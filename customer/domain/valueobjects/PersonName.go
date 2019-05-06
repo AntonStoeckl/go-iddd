@@ -3,6 +3,9 @@ package valueobjects
 import (
 	"encoding/json"
 	"errors"
+	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 )
 
 type PersonName struct {
@@ -68,6 +71,8 @@ func (personName *PersonName) Equals(other *PersonName) bool {
 	return true
 }
 
+/*** Implement json.Marshaler ***/
+
 func (personName *PersonName) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		GivenName  string `json:"givenName"`
@@ -77,30 +82,28 @@ func (personName *PersonName) MarshalJSON() ([]byte, error) {
 		FamilyName: personName.familyName,
 	}
 
-	return json.Marshal(data)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return bytes, xerrors.Errorf("personName.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+	}
+
+	return bytes, nil
 }
 
-func UnmarshalPersonName(data interface{}) (*PersonName, error) {
-	values, ok := data.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("zefix")
+/*** Implement json.Unmarshaler ***/
+
+func (personName *PersonName) UnmarshalJSON(data []byte) error {
+	values := &struct {
+		GivenName  string `json:"givenName"`
+		FamilyName string `json:"familyName"`
+	}{}
+
+	if err := json.Unmarshal(data, values); err != nil {
+		return xerrors.Errorf("personName.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
 	}
 
-	personName := &PersonName{}
+	personName.givenName = values.GivenName
+	personName.familyName = values.FamilyName
 
-	for key, value := range values {
-		value, ok := value.(string)
-		if !ok {
-			return nil, errors.New("zefix")
-		}
-
-		switch key {
-		case "givenName":
-			personName.givenName = value
-		case "familyName":
-			personName.familyName = value
-		}
-	}
-
-	return personName, nil
+	return nil
 }

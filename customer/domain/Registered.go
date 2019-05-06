@@ -8,15 +8,7 @@ import (
 
 const registeredAggregateName = "Customer"
 
-type Registered interface {
-	ID() *valueobjects.ID
-	ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress
-	PersonName() *valueobjects.PersonName
-
-	shared.DomainEvent
-}
-
-type registered struct {
+type Registered struct {
 	id                      *valueobjects.ID
 	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
 	personName              *valueobjects.PersonName
@@ -28,9 +20,9 @@ func ItWasRegistered(
 	id *valueobjects.ID,
 	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress,
 	personName *valueobjects.PersonName,
-) *registered {
+) *Registered {
 
-	registered := &registered{
+	registered := &Registered{
 		id:                      id,
 		confirmableEmailAddress: confirmableEmailAddress,
 		personName:              personName,
@@ -45,31 +37,33 @@ func ItWasRegistered(
 	return registered
 }
 
-func (registered *registered) ID() *valueobjects.ID {
+func (registered *Registered) ID() *valueobjects.ID {
 	return registered.id
 }
 
-func (registered *registered) ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress {
+func (registered *Registered) ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress {
 	return registered.confirmableEmailAddress
 }
 
-func (registered *registered) PersonName() *valueobjects.PersonName {
+func (registered *Registered) PersonName() *valueobjects.PersonName {
 	return registered.personName
 }
 
-func (registered *registered) Identifier() string {
+func (registered *Registered) Identifier() string {
 	return registered.meta.Identifier
 }
 
-func (registered *registered) EventName() string {
+func (registered *Registered) EventName() string {
 	return registered.meta.EventName
 }
 
-func (registered *registered) OccurredAt() string {
+func (registered *Registered) OccurredAt() string {
 	return registered.meta.OccurredAt
 }
 
-func (registered *registered) MarshalJSON() ([]byte, error) {
+/*** Implement json.Marshaler ***/
+
+func (registered *Registered) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		ID                      *valueobjects.ID                      `json:"id"`
 		ConfirmableEmailAddress *valueobjects.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
@@ -85,46 +79,24 @@ func (registered *registered) MarshalJSON() ([]byte, error) {
 	return json.Marshal(data)
 }
 
-func UnmarshalRegisteredFromJSON(jsonData []byte) (Registered, error) {
-	var err error
-	var data map[string]interface{}
+/*** Implement json.Unmarshaler ***/
 
-	var id *valueobjects.ID
-	var confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
-	var personName *valueobjects.PersonName
-	var meta *shared.DomainEventMeta
+func (registered *Registered) UnmarshalJSON(data []byte) error {
+	values := &struct {
+		ID                      *valueobjects.ID                      `json:"id"`
+		ConfirmableEmailAddress *valueobjects.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
+		PersonName              *valueobjects.PersonName              `json:"personName"`
+		Meta                    *shared.DomainEventMeta               `json:"meta"`
+	}{}
 
-	if err := json.Unmarshal(jsonData, &data); err != nil {
-		return nil, err
+	if err := json.Unmarshal(data, values); err != nil {
+		return err
 	}
 
-	for key, value := range data {
-		switch key {
-		case "id":
-			if id, err = valueobjects.UnmarshalID(value); err != nil {
-				return nil, err
-			}
-		case "confirmableEmailAddress":
-			if confirmableEmailAddress, err = valueobjects.UnmarshalConfirmableEmailAddress(value); err != nil {
-				return nil, err
-			}
-		case "personName":
-			if personName, err = valueobjects.UnmarshalPersonName(value); err != nil {
-				return nil, err
-			}
-		case "meta":
-			if meta, err = shared.UnmarshalDomainEventMeta(value); err != nil {
-				return nil, err
-			}
-		}
-	}
+	registered.id = values.ID
+	registered.confirmableEmailAddress = values.ConfirmableEmailAddress
+	registered.personName = values.PersonName
+	registered.meta = values.Meta
 
-	registered := &registered{
-		id:                      id,
-		confirmableEmailAddress: confirmableEmailAddress,
-		personName:              personName,
-		meta:                    meta,
-	}
-
-	return registered, nil
+	return nil
 }

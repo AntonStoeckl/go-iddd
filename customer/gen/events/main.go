@@ -9,11 +9,13 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/joncalhoun/pipe"
 )
 
-const mode = "format" // "format", "noformat", "stoud"
+const mode = "format" // "format", "noformat", "stdout"
 
 type Field struct {
 	FieldName string
@@ -28,7 +30,7 @@ type Event struct {
 
 var events = []Event{
 	{
-		EventType:    "registered",
+		EventType:    "Registered",
 		EventFactory: "ItWasRegistered",
 		Fields: []Field{
 			{FieldName: "id", DataType: "*valueobjects.ID"},
@@ -37,7 +39,7 @@ var events = []Event{
 		},
 	},
 	{
-		EventType:    "emailAddressConfirmed",
+		EventType:    "EmailAddressConfirmed",
 		EventFactory: "EmailAddressWasConfirmed",
 		Fields: []Field{
 			{FieldName: "id", DataType: "*valueobjects.ID"},
@@ -63,6 +65,14 @@ func main() {
 		return parts[1]
 	}
 
+	lcFirst := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		r, n := utf8.DecodeRuneInString(s)
+		return string(unicode.ToLower(r)) + s[n:]
+	}
+
 	tick := func() string {
 		return "`"
 	}
@@ -74,6 +84,7 @@ func main() {
 				"title":      strings.Title,
 				"methodName": methodName,
 				"eventName":  t.Name,
+				"lcFirst":    lcFirst,
 				"tick":       tick,
 			},
 		)
@@ -127,13 +138,7 @@ import (
 	"go-iddd/shared"
 )
 
-const {{eventName}}AggregateName = "Customer"
-
-type {{title eventName}} interface {
-	{{range .Fields}}{{methodName .DataType}}() {{.DataType}}
-	{{end}}
-	shared.DomainEvent
-}
+const {{lcFirst eventName}}AggregateName = "Customer"
 
 type {{eventName}} struct {
 	{{range .Fields}}{{.FieldName}} {{.DataType}}
@@ -146,84 +151,72 @@ func {{.EventFactory}}(
 	{{end -}}
 ) *{{eventName}} {
 
-	{{eventName}} := &{{eventName}}{
+	{{lcFirst eventName}} := &{{eventName}}{
 		{{range .Fields}}{{.FieldName}}: {{.FieldName}},
 		{{end -}}
 	}
 
-	{{eventName}}.meta = shared.NewDomainEventMeta(
+	{{lcFirst eventName}}.meta = shared.NewDomainEventMeta(
 		id.String(),
-		{{eventName}},
-		{{eventName}}AggregateName,
+		{{lcFirst eventName}},
+		{{lcFirst eventName}}AggregateName,
 	)
 
-	return {{eventName}}
+	return {{lcFirst eventName}}
 }
 
 {{range .Fields}}
-func ({{eventName}} *{{eventName}}) {{methodName .DataType}}() {{.DataType}} {
-	return {{eventName}}.{{.FieldName}}
+func ({{lcFirst eventName}} *{{eventName}}) {{methodName .DataType}}() {{.DataType}} {
+	return {{lcFirst eventName}}.{{.FieldName}}
 }
 {{end}}
 
-func ({{eventName}} *{{eventName}}) Identifier() string {
-	return {{eventName}}.meta.Identifier
+func ({{lcFirst eventName}} *{{eventName}}) Identifier() string {
+	return {{lcFirst eventName}}.meta.Identifier
 }
 
-func ({{eventName}} *{{eventName}}) EventName() string {
-	return {{eventName}}.meta.EventName
+func ({{lcFirst eventName}} *{{eventName}}) EventName() string {
+	return {{lcFirst eventName}}.meta.EventName
 }
 
-func ({{eventName}} *{{eventName}}) OccurredAt() string {
-	return {{eventName}}.meta.OccurredAt
+func ({{lcFirst eventName}} *{{eventName}}) OccurredAt() string {
+	return {{lcFirst eventName}}.meta.OccurredAt
 }
 
-func ({{eventName}} *{{eventName}}) MarshalJSON() ([]byte, error) {
+/*** Implement json.Marshaler ***/
+
+func ({{lcFirst eventName}} *{{eventName}}) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		{{range .Fields}}{{methodName .DataType}} {{.DataType}} {{tick}}json:"{{.FieldName}}"{{tick}}
 		{{end -}}
 		Meta *shared.DomainEventMeta {{tick}}json:"meta"{{tick}}
 	}{
-		{{range .Fields}}{{methodName .DataType}}: {{eventName}}.{{.FieldName}},
+		{{range .Fields}}{{methodName .DataType}}: {{lcFirst eventName}}.{{.FieldName}},
 		{{end -}}
-		Meta: {{eventName}}.meta,
+		Meta: {{lcFirst eventName}}.meta,
 	}
 
 	return json.Marshal(data)
 }
 
-func Unmarshal{{title eventName}}FromJSON(jsonData []byte) ({{title eventName}}, error) {
-	var err error
-	var data map[string]interface{}
+/*** Implement json.Unmarshaler ***/
 
-	{{range .Fields}}var {{.FieldName}} {{.DataType}}
+func ({{lcFirst eventName}} *{{eventName}}) UnmarshalJSON(data []byte) error {
+	values := &struct {
+		{{range .Fields}}{{methodName .DataType}} {{.DataType}} {{tick}}json:"{{.FieldName}}"{{tick}}
+		{{end -}}
+		Meta *shared.DomainEventMeta {{tick}}json:"meta"{{tick}}
+	}{}
+
+	if err := json.Unmarshal(data, values); err != nil {
+		return err
+	}
+
+	{{range .Fields}}{{lcFirst eventName}}.{{.FieldName}} = values.{{methodName .DataType}}
 	{{end -}}
-	var meta *shared.DomainEventMeta
 
-	if err := json.Unmarshal(jsonData, &data); err != nil {
-		return nil, err
-	}
+	{{lcFirst eventName}}.meta = values.Meta
 
-	for key, value := range data {
-		switch key {
-		{{range .Fields}}case "{{.FieldName}}":
-			if {{.FieldName}}, err = valueobjects.Unmarshal{{methodName .DataType}}(value); err != nil {
-				return nil, err
-			}
-		{{end -}}
-		case "meta":
-			if meta, err = shared.UnmarshalDomainEventMeta(value); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	{{eventName}} := &{{eventName}}{
-		{{range .Fields}}{{.FieldName}}: {{.FieldName}},
-		{{end -}}
-		meta: meta,
-	}
-
-	return {{eventName}}, nil
+	return nil
 }
 `

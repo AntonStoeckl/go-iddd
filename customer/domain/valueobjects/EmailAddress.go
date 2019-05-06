@@ -56,15 +56,27 @@ func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
 	return emailAddress.EmailAddress() == other.EmailAddress()
 }
 
-func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
-	return json.Marshal(emailAddress.value)
-}
+/*** Implement json.Marshaler ***/
 
-func UnmarshalEmailAddress(input interface{}) (*EmailAddress, error) {
-	value, ok := input.(string)
-	if !ok {
-		return nil, xerrors.Errorf("UnmarshalEmailAddress: input is not a [string]: %w", shared.ErrUnmarshaling)
+func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
+	bytes, err := json.Marshal(emailAddress.value)
+	if err != nil {
+		return nil, xerrors.Errorf("emailAddress.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
 	}
 
-	return &EmailAddress{value: value}, nil
+	return bytes, nil
+}
+
+/*** Implement json.Unmarshaler ***/
+
+func (emailAddress *EmailAddress) UnmarshalJSON(data []byte) error {
+	var value string
+
+	if err := json.Unmarshal(data, &value); err != nil {
+		return xerrors.Errorf("emailAddress.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+	}
+
+	emailAddress.value = value
+
+	return nil
 }

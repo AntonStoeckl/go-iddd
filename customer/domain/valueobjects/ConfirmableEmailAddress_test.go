@@ -1,7 +1,6 @@
 package valueobjects_test
 
 import (
-	"fmt"
 	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 	"testing"
@@ -68,51 +67,51 @@ func TestReconstituteConfirmableEmailAddress(t *testing.T) {
 	})
 }
 
-func TestUnmarshalConfirmableEmailAddress(t *testing.T) {
-	Convey("Given valid input", t, func() {
-		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := "secret_hash"
-
-		input := map[string]interface{}{
-			"emailAddress":     emailAddressValue,
-			"confirmationHash": confirmationHashValue,
-		}
-
-		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
-			confirmableEmailAddress, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
-
-			Convey("Then it should unmarshal a ConfirmableEmailAddress", func() {
-				So(err, ShouldBeNil)
-				So(confirmableEmailAddress, ShouldNotBeNil)
-				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
-
-				Convey("And then it should expose the expected value", func() {
-					So(confirmableEmailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
-				})
-			})
-		})
-	})
-
-	Convey("Given invalid input", t, func() {
-		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := 12345 // string expected
-
-		input := map[string]interface{}{
-			"emailAddress":     emailAddressValue,
-			"confirmationHash": confirmationHashValue,
-		}
-
-		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
-			_, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
-			fmt.Println(err)
-
-			Convey("Then it should fail", func() {
-				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrUnmarshaling), ShouldBeTrue)
-			})
-		})
-	})
-}
+//func TestUnmarshalConfirmableEmailAddress(t *testing.T) {
+//	Convey("Given valid input", t, func() {
+//		emailAddressValue := "foo@bar.com"
+//		confirmationHashValue := "secret_hash"
+//
+//		input := map[string]interface{}{
+//			"emailAddress":     emailAddressValue,
+//			"confirmationHash": confirmationHashValue,
+//		}
+//
+//		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
+//			confirmableEmailAddress, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
+//
+//			Convey("Then it should unmarshal a ConfirmableEmailAddress", func() {
+//				So(err, ShouldBeNil)
+//				So(confirmableEmailAddress, ShouldNotBeNil)
+//				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
+//
+//				Convey("And then it should expose the expected value", func() {
+//					So(confirmableEmailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
+//				})
+//			})
+//		})
+//	})
+//
+//	Convey("Given invalid input", t, func() {
+//		emailAddressValue := "foo@bar.com"
+//		confirmationHashValue := 12345 // string expected
+//
+//		input := map[string]interface{}{
+//			"emailAddress":     emailAddressValue,
+//			"confirmationHash": confirmationHashValue,
+//		}
+//
+//		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
+//			_, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
+//			fmt.Println(err)
+//
+//			Convey("Then it should fail", func() {
+//				So(err, ShouldBeError)
+//				So(xerrors.Is(err, shared.ErrUnmarshaling), ShouldBeTrue)
+//			})
+//		})
+//	})
+//}
 
 func TestConfirmOnConfirmableEmailAddress(t *testing.T) {
 	Convey("Given an unconfirmed EmailAddress", t, func() {

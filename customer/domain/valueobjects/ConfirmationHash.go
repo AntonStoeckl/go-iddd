@@ -48,15 +48,27 @@ func (confirmationHash *ConfirmationHash) MustMatch(other *ConfirmationHash) err
 	return nil
 }
 
-func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
-	return json.Marshal(confirmationHash.value)
-}
+/*** Implement json.Marshaler ***/
 
-func UnmarshalConfirmationHash(data interface{}) (*ConfirmationHash, error) {
-	value, ok := data.(string)
-	if !ok {
-		return nil, xerrors.Errorf("UnmarshalConfirmationHash: input is not [string]: %w", shared.ErrUnmarshaling)
+func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
+	bytes, err := json.Marshal(confirmationHash.value)
+	if err != nil {
+		return bytes, xerrors.Errorf("confirmationHash.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
 	}
 
-	return &ConfirmationHash{value: value}, nil
+	return bytes, nil
+}
+
+/*** Implement json.Unmarshaler ***/
+
+func (confirmationHash *ConfirmationHash) UnmarshalJSON(data []byte) error {
+	var value string
+
+	if err := json.Unmarshal(data, &value); err != nil {
+		return xerrors.Errorf("confirmationHash.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+	}
+
+	confirmationHash.value = value
+
+	return nil
 }

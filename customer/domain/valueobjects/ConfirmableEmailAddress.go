@@ -74,6 +74,8 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) EqualsAny(other *EmailAd
 	return confirmableEmailAddress.baseEmailAddress.Equals(other)
 }
 
+/*** Implement json.Marshaler ***/
+
 func (confirmableEmailAddress *ConfirmableEmailAddress) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		EmailAddress     *EmailAddress     `json:"emailAddress"`
@@ -83,35 +85,28 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) MarshalJSON() ([]byte, e
 		ConfirmationHash: confirmableEmailAddress.confirmationHash,
 	}
 
-	return json.Marshal(data)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return bytes, xerrors.Errorf("confirmableEmailAddress.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+	}
+
+	return bytes, nil
 }
 
-func UnmarshalConfirmableEmailAddress(input interface{}) (*ConfirmableEmailAddress, error) {
-	var err error
+/*** Implement json.Unmarshaler ***/
 
-	values, ok := input.(map[string]interface{})
-	if !ok {
-		return nil,
-			xerrors.Errorf(
-				"UnmarshalConfirmableEmailAddress: input is not [map[string]interface{}]: %w",
-				shared.ErrUnmarshaling,
-			)
+func (confirmableEmailAddress *ConfirmableEmailAddress) UnmarshalJSON(data []byte) error {
+	values := &struct {
+		EmailAddress     *EmailAddress     `json:"emailAddress"`
+		ConfirmationHash *ConfirmationHash `json:"confirmationHash"`
+	}{}
+
+	if err := json.Unmarshal(data, values); err != nil {
+		return xerrors.Errorf("confirmableEmailAddress.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
 	}
 
-	confirmableEmailAddress := &ConfirmableEmailAddress{}
+	confirmableEmailAddress.baseEmailAddress = values.EmailAddress
+	confirmableEmailAddress.confirmationHash = values.ConfirmationHash
 
-	for key, value := range values {
-		switch key {
-		case "emailAddress":
-			if confirmableEmailAddress.baseEmailAddress, err = UnmarshalEmailAddress(value); err != nil {
-				return nil, xerrors.Errorf("UnmarshalConfirmableEmailAddress: %w", err)
-			}
-		case "confirmationHash":
-			if confirmableEmailAddress.confirmationHash, err = UnmarshalConfirmationHash(value); err != nil {
-				return nil, xerrors.Errorf("UnmarshalConfirmableEmailAddress: %w", err)
-			}
-		}
-	}
-
-	return confirmableEmailAddress, nil
+	return nil
 }

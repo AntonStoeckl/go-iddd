@@ -16,7 +16,7 @@ func TestMarshalJSONOnRegistered(t *testing.T) {
 
 		event := ItWasRegistered(id, emailAddress, personName)
 		So(event, ShouldNotBeNil)
-		So(event, ShouldImplement, (*Registered)(nil))
+		So(event, ShouldHaveSameTypeAs, (*Registered)(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := json.Marshal(event)
@@ -28,12 +28,13 @@ func TestMarshalJSONOnRegistered(t *testing.T) {
 			})
 
 			Convey("And when it is unmarshaled from json", func() {
-				unmarshaledEvent, err := UnmarshalRegisteredFromJSON(data)
+				unmarshaledEvent := &Registered{}
+				err := json.Unmarshal(data, unmarshaledEvent)
 
 				Convey("Then it should succeed", func() {
 					So(err, ShouldBeNil)
 					So(unmarshaledEvent, ShouldNotBeNil)
-					So(unmarshaledEvent, ShouldImplement, (*Registered)(nil))
+					So(unmarshaledEvent, ShouldHaveSameTypeAs, (*Registered)(nil))
 					So(event, ShouldResemble, unmarshaledEvent)
 				})
 			})
