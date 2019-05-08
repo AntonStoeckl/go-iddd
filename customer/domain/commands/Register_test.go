@@ -1,7 +1,7 @@
-package domain_test
+package commands_test
 
 import (
-	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"testing"
 
@@ -17,11 +17,11 @@ func TestNewRegister(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("When a new Register command is created", func() {
-			register, err := domain.NewRegister(id, emailAddress, personName)
+			register, err := commands.NewRegister(id, emailAddress, personName)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
-				So(register, ShouldHaveSameTypeAs, (*domain.Register)(nil))
+				So(register, ShouldHaveSameTypeAs, (*commands.Register)(nil))
 			})
 		})
 
@@ -52,7 +52,7 @@ func conveyNewRegisterWithInvalidInput(
 ) {
 
 	Convey("When a new Register command is created", func() {
-		register, err := domain.NewRegister(id, emailAddress, personName)
+		register, err := commands.NewRegister(id, emailAddress, personName)
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
@@ -69,7 +69,7 @@ func TestRegisterExposesExpectedValues(t *testing.T) {
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
-		register, err := domain.NewRegister(id, emailAddress, personName)
+		register, err := commands.NewRegister(id, emailAddress, personName)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {

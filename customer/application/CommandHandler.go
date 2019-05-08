@@ -3,6 +3,7 @@ package application
 import (
 	"errors"
 	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
@@ -19,9 +20,9 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	var err error
 
 	switch command := command.(type) {
-	case *domain.Register:
+	case *commands.Register:
 		err = handler.register(command)
-	case *domain.ConfirmEmailAddress:
+	case *commands.ConfirmEmailAddress:
 		err = handler.applyToExistingCustomer(command.ID(), command)
 	case nil:
 		err = errors.New("commandHandler - nil command handled")
@@ -32,7 +33,7 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	return err
 }
 
-func (handler *commandHandler) register(register *domain.Register) error {
+func (handler *commandHandler) register(register *commands.Register) error {
 	customer := handler.customers.New()
 
 	if err := customer.Apply(register); err != nil {

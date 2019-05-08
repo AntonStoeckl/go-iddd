@@ -1,4 +1,4 @@
-package domain
+package commands
 
 import (
 	"go-iddd/customer/domain/values"

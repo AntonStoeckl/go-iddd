@@ -1,7 +1,7 @@
-package domain_test
+package commands_test
 
 import (
-	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"testing"
 
@@ -16,11 +16,11 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 		Convey("When a new ConfirmEmailAddress command is created", func() {
-			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
-				So(confirmEmailAddress, ShouldHaveSameTypeAs, (*domain.ConfirmEmailAddress)(nil))
+				So(confirmEmailAddress, ShouldHaveSameTypeAs, (*commands.ConfirmEmailAddress)(nil))
 			})
 		})
 
@@ -51,7 +51,7 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 ) {
 
 	Convey("When a new ConfirmEmailAddress command is created", func() {
-		confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
@@ -67,7 +67,7 @@ func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 		So(err, ShouldBeNil)
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
-		register, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+		register, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {

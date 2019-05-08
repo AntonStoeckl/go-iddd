@@ -3,7 +3,7 @@ package application
 import (
 	"errors"
 	"go-iddd/customer/application/mocks"
-	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -23,7 +23,7 @@ func TestHandleRegister(t *testing.T) {
 			personName, err := values.NewPersonName("John", "Doe")
 			So(err, ShouldBeNil)
 
-			register, err := domain.NewRegister(id, emailAddress, personName)
+			register, err := commands.NewRegister(id, emailAddress, personName)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
@@ -86,7 +86,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 			So(err, ShouldBeNil)
 			confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
-			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
