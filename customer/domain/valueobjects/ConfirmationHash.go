@@ -34,15 +34,17 @@ func buildConfirmationHash(from string) *ConfirmationHash {
 	return &ConfirmationHash{value: from}
 }
 
-/*** Public methods implementing ConfirmationHash ***/
+/*** Getter Methods ***/
 
 func (confirmationHash *ConfirmationHash) Hash() string {
 	return confirmationHash.value
 }
 
-func (confirmationHash *ConfirmationHash) MustMatch(other *ConfirmationHash) error {
-	if confirmationHash.Hash() != other.Hash() {
-		return xerrors.Errorf("confirmationHash.MustMatch: input does not match: %w", shared.ErrInvalidInput) // TODO: use a distinct error type?
+/*** Comparison Methods ***/
+
+func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) error {
+	if confirmationHash.value != other.value {
+		return xerrors.Errorf("confirmationHash.ShouldEqual: input does not match: %w", shared.ErrNotEqual)
 	}
 
 	return nil
@@ -53,7 +55,7 @@ func (confirmationHash *ConfirmationHash) MustMatch(other *ConfirmationHash) err
 func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
 	bytes, err := json.Marshal(confirmationHash.value)
 	if err != nil {
-		return bytes, xerrors.Errorf("confirmationHash.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+		return bytes, xerrors.Errorf("confirmationHash.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
 
 	return bytes, nil
@@ -65,7 +67,7 @@ func (confirmationHash *ConfirmationHash) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := json.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("confirmationHash.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+		return xerrors.Errorf("confirmationHash.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	confirmationHash.value = value

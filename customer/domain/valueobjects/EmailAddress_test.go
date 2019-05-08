@@ -9,29 +9,27 @@ import (
 	"golang.org/x/xerrors"
 )
 
+/*** Tests for Factory methods ***/
+
 func TestNewEmailAddress(t *testing.T) {
-	Convey("Given that the supplied emailAddress is valid", t, func() {
+	Convey("Given a valid emailAddress as input", t, func() {
 		emailAddressValue := "foo@bar.com"
 
-		Convey("When NewEmailAddress is invoked", func() {
+		Convey("When a new EmailAddress is created", func() {
 			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
-			Convey("Then it should create an EmailAddress", func() {
+			Convey("Then it should succeed", func() {
 				So(err, ShouldBeNil)
 				So(emailAddress, ShouldNotBeNil)
 				So(emailAddress, ShouldHaveSameTypeAs, (*valueobjects.EmailAddress)(nil))
 			})
-
-			Convey("And then it should expose the expected value", func() {
-				So(emailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
-			})
 		})
 	})
 
-	Convey("Given that the supplied emailAddress is not valid", t, func() {
+	Convey("Given an invalid emailAddress as input", t, func() {
 		emailAddressValue := "foo@bar.c"
 
-		Convey("When NewEmailAddress is invoked", func() {
+		Convey("When a new EmailAddress is created", func() {
 			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
 			Convey("Then it should fail", func() {
@@ -43,31 +41,33 @@ func TestNewEmailAddress(t *testing.T) {
 	})
 }
 
-func TestReconstituteEmailAddress(t *testing.T) {
-	Convey("When ReconstituteEmailAddress invoked", t, func() {
+/*** Tests for Getter methods ***/
+
+func TestEmailAddressExposesExpectedValues(t *testing.T) {
+	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
 
-		Convey("Then it should reconstitute an EmailAddress", func() {
-			So(emailAddress, ShouldNotBeNil)
-			So(emailAddress, ShouldHaveSameTypeAs, (*valueobjects.EmailAddress)(nil))
-		})
-
-		Convey("And then it should expose the expected value", func() {
+		Convey("It should expose the expected values", func() {
 			So(emailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
 		})
 	})
 }
 
-func TestEqualsOnEmailAddress(t *testing.T) {
+/*** Tests for Comparison methods ***/
+
+func TestEmailAddressEquals(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
 
-		Convey("And given another equal EmailAddress", func() {
-			equalEmailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
+		Convey("And given an equal EmailAddress", func() {
+			equalEmailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+			So(err, ShouldBeNil)
 
-			Convey("When Equals is invoked", func() {
+			Convey("When they are compared", func() {
 				isEqual := emailAddress.Equals(equalEmailAddress)
 
 				Convey("Then they should be equal", func() {
@@ -76,16 +76,90 @@ func TestEqualsOnEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("And given another different EmailAddress", func() {
+		Convey("And given a different EmailAddress", func() {
 			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress := valueobjects.ReconstituteEmailAddress(differentEmailAddressValue)
+			differentEmailAddress, err := valueobjects.NewEmailAddress(differentEmailAddressValue)
+			So(err, ShouldBeNil)
 
-			Convey("When Equals is invoked", func() {
+			Convey("When they are compared", func() {
 				isEqual := emailAddress.Equals(differentEmailAddress)
 
 				Convey("Then they should not be equal", func() {
 					So(isEqual, ShouldBeFalse)
 				})
+			})
+		})
+	})
+}
+
+/*** Tests for Conversion methods ***/
+
+func TestEmailAddressToConfirmable(t *testing.T) {
+	Convey("Given an EmailAddress", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+
+		Convey("When it is converted to confirmable", func() {
+			confirmableEmailAddress := emailAddress.ToConfirmable()
+
+			Convey("Then it should be a ConfirmableEmailAddress", func() {
+				So(err, ShouldBeNil)
+				So(confirmableEmailAddress, ShouldNotBeNil)
+				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
+			})
+		})
+	})
+}
+
+/*** Tests for Marshal/Unmarshal methods ***/
+
+func TestEmailAddressMarshalJSON(t *testing.T) {
+	Convey("Given an EmailAddress", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+
+		Convey("When it is marshaled to json", func() {
+			data, err := emailAddress.MarshalJSON()
+
+			Convey("It should create the expected json", func() {
+				So(err, ShouldBeNil)
+				So(string(data), ShouldEqual, `"`+emailAddress.EmailAddress()+`"`)
+			})
+		})
+	})
+}
+
+func TestEmailAddressUnmarshalJSON(t *testing.T) {
+	Convey("Given an EmailAddress marshaled to json", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+		data, err := emailAddress.MarshalJSON()
+		So(err, ShouldBeNil)
+
+		Convey("When it is unmarshaled", func() {
+			unmarshaled := &valueobjects.EmailAddress{}
+			err := unmarshaled.UnmarshalJSON(data)
+
+			Convey("It should be equal to the original EmailAddress", func() {
+				So(err, ShouldBeNil)
+				So(emailAddress, ShouldResemble, unmarshaled)
+			})
+		})
+	})
+
+	Convey("Given invalid json", t, func() {
+		data := []byte("666")
+
+		Convey("When it is unmarshaled to EmailAddress", func() {
+			unmarshaled := &valueobjects.EmailAddress{}
+			err := unmarshaled.UnmarshalJSON(data)
+
+			Convey("It should fail", func() {
+				So(err, ShouldNotBeNil)
+				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

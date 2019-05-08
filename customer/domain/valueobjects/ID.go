@@ -27,17 +27,13 @@ func buildID(from string) *ID {
 	return &ID{value: from}
 }
 
-/*** Getter methods ***/
-
-func (id *ID) ID() string {
-	return id.value
-}
-
-/*** Implement shared.AggregateIdentifier ***/
+/*** Getter Methods (implement shared.AggregateIdentifier) ***/
 
 func (id *ID) String() string {
 	return id.value
 }
+
+/*** Comparison Methods (implement shared.AggregateIdentifier) ***/
 
 func (id *ID) Equals(other shared.AggregateIdentifier) bool {
 	if _, ok := other.(*ID); !ok {
@@ -52,7 +48,7 @@ func (id *ID) Equals(other shared.AggregateIdentifier) bool {
 func (id *ID) MarshalJSON() ([]byte, error) {
 	bytes, err := json.Marshal(id.value)
 	if err != nil {
-		return bytes, xerrors.Errorf("id.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+		return bytes, xerrors.Errorf("id.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
 
 	return bytes, nil
@@ -64,7 +60,7 @@ func (id *ID) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := json.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("id.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+		return xerrors.Errorf("id.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	id.value = value

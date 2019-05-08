@@ -1,6 +1,7 @@
 package valueobjects_test
 
 import (
+	"fmt"
 	"go-iddd/customer/domain/valueobjects"
 	"go-iddd/shared"
 	"testing"
@@ -9,209 +10,153 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func TestNewConfirmableEmailAddress(t *testing.T) {
-	Convey("Given that the supplied emailAddress is valid", t, func() {
-		validEmailAddressValue := "foo@bar.com"
+/*** Tests for Getter methods ***/
 
-		Convey("When NewConfirmableEmailAddress is invoked", func() {
-			confirmableEmailAddress, err := valueobjects.NewConfirmableEmailAddress(validEmailAddressValue)
-
-			Convey("Then it should create a ConfirmableEmailAddress", func() {
-				So(err, ShouldBeNil)
-				So(confirmableEmailAddress, ShouldNotBeNil)
-				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
-			})
-
-			// TODO: move all "And ..." into previous block and set FailureMode to FailureHalts (generic?)
-			// can be done via init: https://github.com/smartystreets/goconvey/wiki/FAQ
-			Convey("And then it should expose the expected value", func() {
-				So(confirmableEmailAddress.EmailAddress(), ShouldEqual, validEmailAddressValue)
-			})
-
-			Convey("And then it should not be confirmed", func() {
-				So(confirmableEmailAddress.IsConfirmed(), ShouldBeFalse)
-				// TODO: check if confirmationHash is as expected (can only be done via calling Confirm()
-			})
-		})
-	})
-
-	Convey("Given that the supplied emailAddress is not valid", t, func() {
-		invalidEmailAddressValue := "foo@bar.c"
-
-		Convey("When NewConfirmableEmailAddress is invoked", func() {
-			confirmableEmailAddress, err := valueobjects.NewConfirmableEmailAddress(invalidEmailAddressValue)
-
-			Convey("Then it should fail", func() {
-				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
-				So(confirmableEmailAddress, ShouldBeNil)
-			})
-		})
-	})
-}
-
-func TestReconstituteConfirmableEmailAddress(t *testing.T) {
-	Convey("When ReconstituteConfirmableEmailAddress is invoked", t, func() {
+func TestConfirmableEmailAddressExposesExpectedValues(t *testing.T) {
+	Convey("Given a new ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := "secret_hash"
-		confirmableEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
 
-		Convey("Then it should reconstitute a ConfirmableEmailAddress", func() {
-			So(confirmableEmailAddress, ShouldNotBeNil)
-			So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
-		})
-
-		Convey("And then it should expose the expected value", func() {
+		Convey("It should expose the expected EmailAddress", func() {
 			So(confirmableEmailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
 		})
+
+		Convey("And it should expose a ConfirmationHash", func() {
+			So(confirmableEmailAddress.ConfirmationHash(), ShouldNotBeBlank)
+		})
+
+		Convey("And it should not be confirmed", func() {
+			So(confirmableEmailAddress.IsConfirmed(), ShouldBeFalse)
+		})
 	})
 }
 
-//func TestUnmarshalConfirmableEmailAddress(t *testing.T) {
-//	Convey("Given valid input", t, func() {
-//		emailAddressValue := "foo@bar.com"
-//		confirmationHashValue := "secret_hash"
-//
-//		input := map[string]interface{}{
-//			"emailAddress":     emailAddressValue,
-//			"confirmationHash": confirmationHashValue,
-//		}
-//
-//		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
-//			confirmableEmailAddress, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
-//
-//			Convey("Then it should unmarshal a ConfirmableEmailAddress", func() {
-//				So(err, ShouldBeNil)
-//				So(confirmableEmailAddress, ShouldNotBeNil)
-//				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))
-//
-//				Convey("And then it should expose the expected value", func() {
-//					So(confirmableEmailAddress.EmailAddress(), ShouldEqual, emailAddressValue)
-//				})
-//			})
-//		})
-//	})
-//
-//	Convey("Given invalid input", t, func() {
-//		emailAddressValue := "foo@bar.com"
-//		confirmationHashValue := 12345 // string expected
-//
-//		input := map[string]interface{}{
-//			"emailAddress":     emailAddressValue,
-//			"confirmationHash": confirmationHashValue,
-//		}
-//
-//		Convey("When ReconstituteConfirmableEmailAddress is invoked", func() {
-//			_, err := valueobjects.UnmarshalConfirmableEmailAddress(input)
-//			fmt.Println(err)
-//
-//			Convey("Then it should fail", func() {
-//				So(err, ShouldBeError)
-//				So(xerrors.Is(err, shared.ErrUnmarshaling), ShouldBeTrue)
-//			})
-//		})
-//	})
-//}
+/*** Tests for Comparison methods ***/
 
-func TestConfirmOnConfirmableEmailAddress(t *testing.T) {
-	Convey("Given an unconfirmed EmailAddress", t, func() {
+func TestConfirmableEmailAddressEquals(t *testing.T) {
+	Convey("Given a ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := "secret_hash"
-		differentConfirmationHashValue := "different_secret_hash"
-		unconfirmedEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
 
-		Convey("When Confirm is invoked with a matching ConfirmationHash", func() {
-			suppliedConfirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
-			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(suppliedConfirmationHash)
+		Convey("And given an equal EmailAddress", func() {
+			equalConfirmableEmailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+			So(err, ShouldBeNil)
 
-			Convey("Then it should succeed", func() {
+			Convey("When they are compared", func() {
+				isEqual := confirmableEmailAddress.Equals(equalConfirmableEmailAddress)
+
+				Convey("They should be equal", func() {
+					So(isEqual, ShouldBeTrue)
+				})
+			})
+		})
+
+		Convey("And given a different EmailAddress", func() {
+			differentEmailAddress, err := valueobjects.NewEmailAddress("foo+different@bar.com")
+			So(err, ShouldBeNil)
+
+			Convey("When they are compared", func() {
+				isEqual := confirmableEmailAddress.Equals(differentEmailAddress)
+
+				Convey("They should not be equal", func() {
+					So(isEqual, ShouldBeFalse)
+				})
+			})
+		})
+	})
+}
+
+/*** Tests for Modification methods ***/
+
+func TestConfirmableEmailAddressConfirm(t *testing.T) {
+	Convey("Given a new ConfirmableEmailAddress", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+		unconfirmedEmailAddress := emailAddress.ToConfirmable()
+
+		Convey("When it is confirmed with the right ConfirmationHash", func() {
+			confirmationHash := valueobjects.ReconstituteConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(confirmationHash)
+
+			Convey("It should be confirmed", func() {
 				So(err, ShouldBeNil)
-				So(confirmedEmailAddress.Equals(unconfirmedEmailAddress), ShouldBeTrue)
-			})
-
-			Convey("And then it should be confirmed", func() {
 				So(confirmedEmailAddress.IsConfirmed(), ShouldBeTrue)
-			})
-
-			Convey("And then the original should be unchanged", func() {
 				So(unconfirmedEmailAddress.IsConfirmed(), ShouldBeFalse)
 			})
 		})
 
-		Convey("When Confirm is invoked with a different ConfirmationHash", func() {
-			given := valueobjects.ReconstituteConfirmationHash(differentConfirmationHashValue)
-			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(given)
+		Convey("When it is confirmed with a wrong ConfirmationHash", func() {
+			confirmationHash := valueobjects.ReconstituteConfirmationHash("invalid_confirmation_hash")
+			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(confirmationHash)
 
-			Convey("Then it should fail", func() {
+			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
+				So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 				So(confirmedEmailAddress, ShouldBeNil)
 			})
 		})
 	})
 }
 
-func TestEqualsOnConfirmableEmailAddress(t *testing.T) {
+/*** Tests for Marshal/Unmarshal methods ***/
+
+func TestConfirmableEmailAddressMarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
-		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := "secret_hash"
-		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
 
-		Convey("And given another equal ConfirmableEmailAddress", func() {
-			equalEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+		Convey("When it is marshaled to json", func() {
+			data, err := confirmableEmailAddress.MarshalJSON()
 
-			Convey("When Equals is invoked", func() {
-				isEqual := emailAddress.Equals(equalEmailAddress)
+			Convey("It should create the expected json", func() {
+				So(err, ShouldBeNil)
 
-				Convey("Then they should be equal", func() {
-					So(isEqual, ShouldBeTrue)
-				})
-			})
-		})
+				expectedJSON := fmt.Sprintf(
+					`{"emailAddress":"%s","confirmationHash":"%s"}`,
+					confirmableEmailAddress.EmailAddress(),
+					confirmableEmailAddress.ConfirmationHash(),
+				)
 
-		Convey("And given another different ConfirmableEmailAddress", func() {
-			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress := valueobjects.ReconstituteConfirmableEmailAddress(differentEmailAddressValue, confirmationHashValue)
-
-			Convey("When Equals is invoked", func() {
-				isEqual := emailAddress.Equals(differentEmailAddress)
-
-				Convey("Then they should not be equal", func() {
-					So(isEqual, ShouldBeFalse)
-				})
+				So(string(data), ShouldEqual, expectedJSON)
 			})
 		})
 	})
 }
 
-func TestEqualsAnyOnConfirmableEmailAddress(t *testing.T) {
-	Convey("Given a ConfirmableEmailAddress", t, func() {
-		emailAddressValue := "foo@bar.com"
-		confirmationHashValue := "secret_hash"
-		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress(emailAddressValue, confirmationHashValue)
+func TestConfirmableEmailAddressUnmarshalJSON(t *testing.T) {
+	Convey("Given a ConfirmableEmailAddress marshaled to json", t, func() {
+		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		data, err := confirmableEmailAddress.MarshalJSON()
 
-		Convey("And given another equal EmailAddress", func() {
-			equalEmailAddress := valueobjects.ReconstituteEmailAddress(emailAddressValue)
+		Convey("And when it is unmarshaled", func() {
+			unmarshaled := &valueobjects.ConfirmableEmailAddress{}
+			err := unmarshaled.UnmarshalJSON(data)
 
-			Convey("When EqualsAny is invoked", func() {
-				isEqual := emailAddress.EqualsAny(equalEmailAddress)
-
-				Convey("Then they should be equal", func() {
-					So(isEqual, ShouldBeTrue)
-				})
+			Convey("It should be equal to the original ConfirmableEmailAddress", func() {
+				So(err, ShouldBeNil)
+				So(confirmableEmailAddress, ShouldResemble, unmarshaled)
 			})
 		})
+	})
 
-		Convey("And given another different EmailAddress", func() {
-			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress := valueobjects.ReconstituteEmailAddress(differentEmailAddressValue)
+	Convey("Given invalid json", t, func() {
+		data := []byte("666")
 
-			Convey("When EqualsAny is invoked", func() {
-				isEqual := emailAddress.EqualsAny(differentEmailAddress)
+		Convey("When it is unmarshaled to ConfirmableEmailAddress", func() {
+			unmarshaled := &valueobjects.ConfirmableEmailAddress{}
+			err := unmarshaled.UnmarshalJSON(data)
 
-				Convey("Then they should not be equal", func() {
-					So(isEqual, ShouldBeFalse)
-				})
+			Convey("It should fail", func() {
+				So(err, ShouldNotBeNil)
+				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

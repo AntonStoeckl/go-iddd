@@ -17,15 +17,24 @@ type PersonName struct {
 
 func NewPersonName(givenName string, familyName string) (*PersonName, error) {
 	newPersonName := buildPersonName(givenName, familyName)
-	if err := newPersonName.mustBeValid(); err != nil {
-		return nil, err
+
+	if err := newPersonName.shouldBeValid(); err != nil {
+		return nil, xerrors.Errorf("personName.New -> %s: %w", err, shared.ErrInvalidInput)
 	}
 
 	return newPersonName, nil
 }
 
-func ReconstitutePersonName(givenName string, familyName string) *PersonName {
-	return buildPersonName(givenName, familyName)
+func (personName *PersonName) shouldBeValid() error {
+	if personName.familyName == "" {
+		return errors.New("empty input for familyName")
+	}
+
+	if personName.givenName == "" {
+		return errors.New("empty input for givenName")
+	}
+
+	return nil
 }
 
 func buildPersonName(givenName string, familyName string) *PersonName {
@@ -35,21 +44,7 @@ func buildPersonName(givenName string, familyName string) *PersonName {
 	}
 }
 
-/*** Validation ***/
-
-func (personName *PersonName) mustBeValid() error {
-	if personName.familyName == "" {
-		return errors.New("personName - empty input given for familyName")
-	}
-
-	if personName.givenName == "" {
-		return errors.New("personName - empty input given for givenName")
-	}
-
-	return nil
-}
-
-/*** Public methods implementing PersonName ***/
+/*** Getter methods ***/
 
 func (personName *PersonName) GivenName() string {
 	return personName.givenName
@@ -58,6 +53,8 @@ func (personName *PersonName) GivenName() string {
 func (personName *PersonName) FamilyName() string {
 	return personName.familyName
 }
+
+/*** Comparison methods ***/
 
 func (personName *PersonName) Equals(other *PersonName) bool {
 	if personName.GivenName() != other.GivenName() {
@@ -84,7 +81,7 @@ func (personName *PersonName) MarshalJSON() ([]byte, error) {
 
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		return bytes, xerrors.Errorf("personName.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+		return bytes, xerrors.Errorf("personName.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
 
 	return bytes, nil
@@ -99,7 +96,7 @@ func (personName *PersonName) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := json.Unmarshal(data, values); err != nil {
-		return xerrors.Errorf("personName.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+		return xerrors.Errorf("personName.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	personName.givenName = values.GivenName

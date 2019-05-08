@@ -2,6 +2,7 @@ package valueobjects
 
 import (
 	"encoding/json"
+	"errors"
 	"go-iddd/shared"
 	"regexp"
 
@@ -21,39 +22,41 @@ type EmailAddress struct {
 func NewEmailAddress(from string) (*EmailAddress, error) {
 	newEmailAddress := buildEmailAddress(from)
 
-	if err := newEmailAddress.mustBeValid(); err != nil {
-		return nil, err
+	if err := newEmailAddress.shouldBeValid(); err != nil {
+		return nil, xerrors.Errorf("emailAddress.New -> %s: %w", err, shared.ErrInvalidInput)
 	}
 
 	return newEmailAddress, nil
 }
 
-func ReconstituteEmailAddress(from string) *EmailAddress {
-	return buildEmailAddress(from)
+func (emailAddress *EmailAddress) shouldBeValid() error {
+	if matched := emailAddressRegExp.MatchString(emailAddress.value); matched != true {
+		return errors.New("input does not match regex")
+	}
+
+	return nil
 }
 
 func buildEmailAddress(from string) *EmailAddress {
 	return &EmailAddress{value: from}
 }
 
-/*** Validation ***/
-
-func (emailAddress *EmailAddress) mustBeValid() error {
-	if matched := emailAddressRegExp.MatchString(emailAddress.value); matched != true {
-		return xerrors.Errorf("emailAddress.mustBeValid: input does not match regex: %w", shared.ErrInvalidInput)
-	}
-
-	return nil
-}
-
-/*** Public methods implementing EmailAddress ***/
+/*** Getter Methods ***/
 
 func (emailAddress *EmailAddress) EmailAddress() string {
 	return emailAddress.value
 }
 
+/*** Comparison Methods ***/
+
 func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
-	return emailAddress.EmailAddress() == other.EmailAddress()
+	return emailAddress.value == other.value
+}
+
+/*** Conversion Methods ***/
+
+func (emailAddress *EmailAddress) ToConfirmable() *ConfirmableEmailAddress {
+	return buildConfirmableEmailAddress(emailAddress, GenerateConfirmationHash(emailAddress.EmailAddress()))
 }
 
 /*** Implement json.Marshaler ***/
@@ -61,7 +64,7 @@ func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
 func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
 	bytes, err := json.Marshal(emailAddress.value)
 	if err != nil {
-		return nil, xerrors.Errorf("emailAddress.MarshalJSON: %s: %w", err, shared.ErrMarshaling)
+		return nil, xerrors.Errorf("emailAddress.MarshalJSON -> %s: %w", err, shared.ErrMarshalingFailed)
 	}
 
 	return bytes, nil
@@ -73,7 +76,7 @@ func (emailAddress *EmailAddress) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := json.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("emailAddress.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshaling)
+		return xerrors.Errorf("emailAddress.UnmarshalJSON -> %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	emailAddress.value = value
