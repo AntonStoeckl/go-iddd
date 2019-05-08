@@ -16,10 +16,12 @@ func TestHandleRegister(t *testing.T) {
 		mockCustomers := new(mocks.Customers)
 		commandHandler := NewCommandHandler(mockCustomers)
 
-		Convey("And given a valid Register Command", func() {
+		Convey("And given a Register command", func() {
 			id := valueobjects.GenerateID()
-			emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-			personName := valueobjects.ReconstitutePersonName("Anton", "Stöckl")
+			emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+			So(err, ShouldBeNil)
+			personName, err := valueobjects.NewPersonName("John", "Doe")
+			So(err, ShouldBeNil)
 
 			register, err := domain.NewRegister(id, emailAddress, personName)
 			So(err, ShouldBeNil)
@@ -37,7 +39,7 @@ func TestHandleRegister(t *testing.T) {
 
 						err := commandHandler.Handle(register)
 
-						Convey("Then it should register and save a Customer", func() {
+						Convey("It should register and save a Customer", func() {
 							So(err, ShouldBeNil)
 							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
@@ -50,7 +52,7 @@ func TestHandleRegister(t *testing.T) {
 
 						err := commandHandler.Handle(register)
 
-						Convey("Then it should fail", func() {
+						Convey("It should fail", func() {
 							So(err, ShouldBeError, expectedErr)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 						})
@@ -62,7 +64,7 @@ func TestHandleRegister(t *testing.T) {
 
 					err := commandHandler.Handle(register)
 
-					Convey("Then it should fail", func() {
+					Convey("It should fail", func() {
 						So(err, ShouldBeError, expectedErr)
 						So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
@@ -78,9 +80,10 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 		mockCustomers := new(mocks.Customers)
 		commandHandler := NewCommandHandler(mockCustomers)
 
-		Convey("And given a valid ConfirmEmailAddress Command", func() {
+		Convey("And given a ConfirmEmailAddress command", func() {
 			id := valueobjects.GenerateID()
-			emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
+			emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+			So(err, ShouldBeNil)
 			confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
@@ -101,7 +104,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 							err := commandHandler.Handle(confirmEmailAddress)
 
-							Convey("Then it should confirmEmailAddress of a Customer and save it", func() {
+							Convey("It should confirmEmailAddress of a Customer and save it", func() {
 								So(err, ShouldBeNil)
 								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 								So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
@@ -113,7 +116,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 							err := commandHandler.Handle(confirmEmailAddress)
 
-							Convey("Then it should fail", func() {
+							Convey("It should fail", func() {
 								So(err, ShouldBeError, expectedErr)
 								So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 							})
@@ -125,7 +128,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 						err := commandHandler.Handle(confirmEmailAddress)
 
-						Convey("Then it should fail", func() {
+						Convey("It should fail", func() {
 							So(err, ShouldBeError, expectedErr)
 							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
@@ -137,7 +140,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 					mockCustomers.On("FindBy", id).Return(nil, expectedErr).Once()
 					err := commandHandler.Handle(confirmEmailAddress)
 
-					Convey("Then it should fail", func() {
+					Convey("It should fail", func() {
 						So(err, ShouldBeError, expectedErr)
 						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
@@ -159,7 +162,7 @@ func TestHandleInvalidCommand(t *testing.T) {
 			Convey("When the command is handled", func() {
 				err := commandHandler.Handle(invalidCommand)
 
-				Convey("Then it should fail", func() {
+				Convey("It should fail", func() {
 					So(err, ShouldBeError, "commandHandler - nil command handled")
 				})
 			})
@@ -179,7 +182,7 @@ func TestHandleUnknownCommand(t *testing.T) {
 			Convey("When the command is handled", func() {
 				err := commandHandler.Handle(unknownCommand)
 
-				Convey("Then it should fail", func() {
+				Convey("It should fail", func() {
 					So(err, ShouldBeError, "commandHandler - unknown command handled")
 				})
 			})

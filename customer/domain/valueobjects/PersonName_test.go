@@ -26,7 +26,7 @@ func TestNewPersonName(t *testing.T) {
 				So(personName, ShouldHaveSameTypeAs, (*valueobjects.PersonName)(nil))
 			})
 
-			Convey("And then it should expose the expected values", func() {
+			Convey("And it should expose the expected values", func() {
 				So(personName.GivenName(), ShouldEqual, givenName)
 				So(personName.FamilyName(), ShouldEqual, familyName)
 			})

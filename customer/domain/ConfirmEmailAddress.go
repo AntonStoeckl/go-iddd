@@ -5,27 +5,21 @@ import (
 	"go-iddd/shared"
 )
 
-type ConfirmEmailAddress interface {
-	ID() *valueobjects.ID
-	EmailAddress() *valueobjects.EmailAddress
-	ConfirmationHash() *valueobjects.ConfirmationHash
-
-	shared.Command
-}
-
-type confirmEmailAddress struct {
+type ConfirmEmailAddress struct {
 	id               *valueobjects.ID
 	emailAddress     *valueobjects.EmailAddress
 	confirmationHash *valueobjects.ConfirmationHash
 }
 
+/*** Factory Method ***/
+
 func NewConfirmEmailAddress(
 	id *valueobjects.ID,
 	emailAddress *valueobjects.EmailAddress,
 	confirmationHash *valueobjects.ConfirmationHash,
-) (*confirmEmailAddress, error) {
+) (*ConfirmEmailAddress, error) {
 
-	command := &confirmEmailAddress{
+	command := &ConfirmEmailAddress{
 		id:               id,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
@@ -38,22 +32,26 @@ func NewConfirmEmailAddress(
 	return command, nil
 }
 
-func (confirmEmailAddress *confirmEmailAddress) ID() *valueobjects.ID {
+/*** Getter Methods ***/
+
+func (confirmEmailAddress *ConfirmEmailAddress) ID() *valueobjects.ID {
 	return confirmEmailAddress.id
 }
 
-func (confirmEmailAddress *confirmEmailAddress) EmailAddress() *valueobjects.EmailAddress {
+func (confirmEmailAddress *ConfirmEmailAddress) EmailAddress() *valueobjects.EmailAddress {
 	return confirmEmailAddress.emailAddress
 }
 
-func (confirmEmailAddress *confirmEmailAddress) ConfirmationHash() *valueobjects.ConfirmationHash {
+func (confirmEmailAddress *ConfirmEmailAddress) ConfirmationHash() *valueobjects.ConfirmationHash {
 	return confirmEmailAddress.confirmationHash
 }
 
-func (confirmEmailAddress *confirmEmailAddress) AggregateIdentifier() shared.AggregateIdentifier {
+/*** Implement shared.Command ***/
+
+func (confirmEmailAddress *ConfirmEmailAddress) AggregateIdentifier() shared.AggregateIdentifier {
 	return confirmEmailAddress.id
 }
 
-func (confirmEmailAddress *confirmEmailAddress) CommandName() string {
+func (confirmEmailAddress *ConfirmEmailAddress) CommandName() string {
 	return shared.BuildCommandNameFor(confirmEmailAddress)
 }

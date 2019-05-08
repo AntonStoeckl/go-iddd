@@ -16,6 +16,8 @@ type Registered struct {
 	meta *shared.DomainEventMeta
 }
 
+/*** Factory Methods ***/
+
 func ItWasRegistered(
 	id *valueobjects.ID,
 	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress,
@@ -37,6 +39,8 @@ func ItWasRegistered(
 	return registered
 }
 
+/*** Getter Methods ***/
+
 func (registered *Registered) ID() *valueobjects.ID {
 	return registered.id
 }
@@ -48,6 +52,8 @@ func (registered *Registered) ConfirmableEmailAddress() *valueobjects.Confirmabl
 func (registered *Registered) PersonName() *valueobjects.PersonName {
 	return registered.personName
 }
+
+/*** Implement shared.DomainEvent ***/
 
 func (registered *Registered) Identifier() string {
 	return registered.meta.Identifier

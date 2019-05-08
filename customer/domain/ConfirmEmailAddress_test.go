@@ -9,45 +9,38 @@ import (
 )
 
 func TestNewConfirmEmailAddress(t *testing.T) {
-	id := valueobjects.GenerateID()
-	emailAddress := valueobjects.ReconstituteEmailAddress("foo@bar.com")
-	confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
+	Convey("Given valid ID, EmailAddress and ConfirmationHash", t, func() {
+		id := valueobjects.GenerateID()
+		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
 
-	Convey("Given that ID, EmailAddress and PersonName are valid", t, func() {
-		Convey("When NewConfirmEmailAddress is invoked", func() {
+		Convey("When a new ConfirmEmailAddress command is created", func() {
 			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
-			Convey("Then it should create a ConfirmEmailAddress command", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
-				So(confirmEmailAddress, ShouldImplement, (*domain.ConfirmEmailAddress)(nil))
-			})
-
-			Convey("And then it should expose the expected CommandName, AggregateIdentifier, ID, EmailAddress and ConfirmationHash ", func() {
-				So(confirmEmailAddress.CommandName(), ShouldEqual, "ConfirmEmailAddress")
-				So(confirmEmailAddress.AggregateIdentifier(), ShouldEqual, id)
-				So(confirmEmailAddress.ID(), ShouldEqual, id)
-				So(confirmEmailAddress.EmailAddress(), ShouldEqual, emailAddress)
-				So(confirmEmailAddress.ConfirmationHash(), ShouldEqual, confirmationHash)
+				So(confirmEmailAddress, ShouldHaveSameTypeAs, (*domain.ConfirmEmailAddress)(nil))
 			})
 		})
-	})
 
-	Convey("Given that ID is nil", t, func() {
-		var id *valueobjects.ID
+		Convey("Given that ID is nil instead", func() {
+			var id *valueobjects.ID
 
-		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
-	})
+			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
+		})
 
-	Convey("Given that EmailAddress is nil", t, func() {
-		var emailAddress *valueobjects.EmailAddress
+		Convey("Given that EmailAddress is nil instead", func() {
+			var emailAddress *valueobjects.EmailAddress
 
-		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
-	})
+			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
+		})
 
-	Convey("Given that PersonName is nil", t, func() {
-		var confirmationHash *valueobjects.ConfirmationHash
+		Convey("Given that PersonName is nil instead", func() {
+			var confirmationHash *valueobjects.ConfirmationHash
 
-		conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
+			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
+		})
 	})
 }
 
@@ -57,12 +50,32 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 	confirmationHash *valueobjects.ConfirmationHash,
 ) {
 
-	Convey("When NewConfirmEmailAddress is invoked", func() {
+	Convey("When a new ConfirmEmailAddress command is created", func() {
 		confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
-		Convey("Then it should fail", func() {
+		Convey("It should fail", func() {
 			So(err, ShouldBeError)
 			So(confirmEmailAddress, ShouldBeNil)
+		})
+	})
+}
+
+func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
+	Convey("Given a ConfirmEmailAddress command", t, func() {
+		id := valueobjects.GenerateID()
+		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
+
+		register, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+		So(err, ShouldBeNil)
+
+		Convey("It should expose the expected values", func() {
+			So(register.ID(), ShouldResemble, id)
+			So(register.EmailAddress(), ShouldResemble, emailAddress)
+			So(register.ConfirmationHash(), ShouldResemble, confirmationHash)
+			So(register.CommandName(), ShouldEqual, "ConfirmEmailAddress")
+			So(register.AggregateIdentifier(), ShouldResemble, id)
 		})
 	})
 }

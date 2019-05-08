@@ -15,6 +15,8 @@ type EmailAddressConfirmed struct {
 	meta *shared.DomainEventMeta
 }
 
+/*** Factory Methods ***/
+
 func EmailAddressWasConfirmed(
 	id *valueobjects.ID,
 	emailAddress *valueobjects.EmailAddress,
@@ -34,6 +36,8 @@ func EmailAddressWasConfirmed(
 	return emailAddressConfirmed
 }
 
+/*** Getter Methods ***/
+
 func (emailAddressConfirmed *EmailAddressConfirmed) ID() *valueobjects.ID {
 	return emailAddressConfirmed.id
 }
@@ -41,6 +45,8 @@ func (emailAddressConfirmed *EmailAddressConfirmed) ID() *valueobjects.ID {
 func (emailAddressConfirmed *EmailAddressConfirmed) EmailAddress() *valueobjects.EmailAddress {
 	return emailAddressConfirmed.emailAddress
 }
+
+/*** Implement shared.DomainEvent ***/
 
 func (emailAddressConfirmed *EmailAddressConfirmed) Identifier() string {
 	return emailAddressConfirmed.meta.Identifier

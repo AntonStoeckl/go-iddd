@@ -11,17 +11,20 @@ import (
 func TestMarshalJSONOnRegistered(t *testing.T) {
 	Convey("Given a valid Registered event", t, func() {
 		id := valueobjects.GenerateID()
-		emailAddress := valueobjects.ReconstituteConfirmableEmailAddress("foo@bar.com", "secret_hash")
-		personName := valueobjects.ReconstitutePersonName("John", "Doe")
+		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := valueobjects.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
 
-		event := ItWasRegistered(id, emailAddress, personName)
+		event := ItWasRegistered(id, confirmableEmailAddress, personName)
 		So(event, ShouldNotBeNil)
 		So(event, ShouldHaveSameTypeAs, (*Registered)(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := json.Marshal(event)
 
-			Convey("Then it should succeed", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(string(data), ShouldStartWith, "{")
 				So(string(data), ShouldEndWith, "}")
@@ -31,7 +34,7 @@ func TestMarshalJSONOnRegistered(t *testing.T) {
 				unmarshaledEvent := &Registered{}
 				err := json.Unmarshal(data, unmarshaledEvent)
 
-				Convey("Then it should succeed", func() {
+				Convey("It should succeed", func() {
 					So(err, ShouldBeNil)
 					So(unmarshaledEvent, ShouldNotBeNil)
 					So(unmarshaledEvent, ShouldHaveSameTypeAs, (*Registered)(nil))

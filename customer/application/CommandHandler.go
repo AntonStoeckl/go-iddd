@@ -19,9 +19,9 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	var err error
 
 	switch command := command.(type) {
-	case domain.Register:
+	case *domain.Register:
 		err = handler.register(command)
-	case domain.ConfirmEmailAddress:
+	case *domain.ConfirmEmailAddress:
 		err = handler.applyToExistingCustomer(command.ID(), command)
 	case nil:
 		err = errors.New("commandHandler - nil command handled")
@@ -32,7 +32,7 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	return err
 }
 
-func (handler *commandHandler) register(register domain.Register) error {
+func (handler *commandHandler) register(register *domain.Register) error {
 	customer := handler.customers.New()
 
 	if err := customer.Apply(register); err != nil {

@@ -146,6 +146,8 @@ type {{eventName}} struct {
 	meta *shared.DomainEventMeta
 }
 
+/*** Factory Methods ***/
+
 func {{.EventFactory}}(
 	{{range .Fields}}{{.FieldName}} {{.DataType}},
 	{{end -}}
@@ -165,11 +167,15 @@ func {{.EventFactory}}(
 	return {{lcFirst eventName}}
 }
 
+/*** Getter Methods ***/
+
 {{range .Fields}}
 func ({{lcFirst eventName}} *{{eventName}}) {{methodName .DataType}}() {{.DataType}} {
 	return {{lcFirst eventName}}.{{.FieldName}}
 }
 {{end}}
+
+/*** Implement shared.DomainEvent ***/
 
 func ({{lcFirst eventName}} *{{eventName}}) Identifier() string {
 	return {{lcFirst eventName}}.meta.Identifier
