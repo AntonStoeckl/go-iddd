@@ -2,7 +2,7 @@ package domain
 
 import (
 	"errors"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
@@ -15,9 +15,9 @@ type Customer interface {
 }
 
 type customer struct {
-	id                      *valueobjects.ID
-	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
-	personName              *valueobjects.PersonName
+	id                      *values.ID
+	confirmableEmailAddress *values.ConfirmableEmailAddress
+	personName              *values.PersonName
 	isRegistered            bool
 }
 

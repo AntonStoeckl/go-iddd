@@ -1,8 +1,8 @@
-package valueobjects_test
+package values_test
 
 import (
 	"fmt"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
 
@@ -18,12 +18,12 @@ func TestNewPersonName(t *testing.T) {
 
 	Convey("Given that the supplied givenName and familyName are valid", t, func() {
 		Convey("When NewPersonName is invoked", func() {
-			personName, err := valueobjects.NewPersonName(givenName, familyName)
+			personName, err := values.NewPersonName(givenName, familyName)
 
 			Convey("It should create a PersonName", func() {
 				So(err, ShouldBeNil)
 				So(personName, ShouldNotBeNil)
-				So(personName, ShouldHaveSameTypeAs, (*valueobjects.PersonName)(nil))
+				So(personName, ShouldHaveSameTypeAs, (*values.PersonName)(nil))
 			})
 
 			Convey("And it should expose the expected values", func() {
@@ -37,7 +37,7 @@ func TestNewPersonName(t *testing.T) {
 		givenName = ""
 
 		Convey("When NewPersonName is invoked", func() {
-			personName, err := valueobjects.NewPersonName(givenName, familyName)
+			personName, err := values.NewPersonName(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -51,7 +51,7 @@ func TestNewPersonName(t *testing.T) {
 		familyName = ""
 
 		Convey("When NewPersonName is invoked", func() {
-			personName, err := valueobjects.NewPersonName(givenName, familyName)
+			personName, err := values.NewPersonName(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -68,7 +68,7 @@ func TestPersonNameExposesExpectedValues(t *testing.T) {
 	Convey("Given an PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := valueobjects.NewPersonName(givenName, familyName)
+		personName, err := values.NewPersonName(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected GivenName", func() {
@@ -87,11 +87,11 @@ func TestPersonNameEquals(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := valueobjects.NewPersonName(givenName, familyName)
+		personName, err := values.NewPersonName(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal PersonName", func() {
-			equalPersonName, err := valueobjects.NewPersonName(givenName, familyName)
+			equalPersonName, err := values.NewPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -105,7 +105,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 		Convey("And given another PersonName with different givenName", func() {
 			givenName = "Peter"
-			differentPersonName, err := valueobjects.NewPersonName(givenName, familyName)
+			differentPersonName, err := values.NewPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -119,7 +119,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 		Convey("And given another PersonName with different familyName", func() {
 			familyName = "Mueller"
-			differentPersonName, err := valueobjects.NewPersonName(givenName, familyName)
+			differentPersonName, err := values.NewPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -137,7 +137,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 func TestPersonNameMarshalJSON(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
-		personName, err := valueobjects.NewPersonName("John", "Doe")
+		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
 		Convey("When it is marshaled to json", func() {
@@ -159,13 +159,13 @@ func TestPersonNameMarshalJSON(t *testing.T) {
 
 func TestPersonNameUnmarshalJSON(t *testing.T) {
 	Convey("Given a PersonName marshaled to json", t, func() {
-		personName, err := valueobjects.NewPersonName("John", "Doe")
+		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 		data, err := personName.MarshalJSON()
 		So(err, ShouldBeNil)
 
 		Convey("When it is unmarshaled", func() {
-			unmarshaled := &valueobjects.PersonName{}
+			unmarshaled := &values.PersonName{}
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should be equal to the original PersonName", func() {
@@ -179,7 +179,7 @@ func TestPersonNameUnmarshalJSON(t *testing.T) {
 		data := []byte("666")
 
 		Convey("When it is unmarshaled to PersonName", func() {
-			unmarshaled := &valueobjects.PersonName{}
+			unmarshaled := &values.PersonName{}
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should fail", func() {

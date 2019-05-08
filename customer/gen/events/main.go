@@ -33,17 +33,17 @@ var events = []Event{
 		EventType:    "Registered",
 		EventFactory: "ItWasRegistered",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*valueobjects.ID"},
-			{FieldName: "confirmableEmailAddress", DataType: "*valueobjects.ConfirmableEmailAddress"},
-			{FieldName: "personName", DataType: "*valueobjects.PersonName"},
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
+			{FieldName: "personName", DataType: "*values.PersonName"},
 		},
 	},
 	{
 		EventType:    "EmailAddressConfirmed",
 		EventFactory: "EmailAddressWasConfirmed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*valueobjects.ID"},
-			{FieldName: "emailAddress", DataType: "*valueobjects.EmailAddress"},
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
 		},
 	},
 }
@@ -134,7 +134,7 @@ package domain
 
 import (
 	"encoding/json"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
@@ -208,20 +208,20 @@ func ({{lcFirst eventName}} *{{eventName}}) MarshalJSON() ([]byte, error) {
 /*** Implement json.Unmarshaler ***/
 
 func ({{lcFirst eventName}} *{{eventName}}) UnmarshalJSON(data []byte) error {
-	values := &struct {
+	unmarshaledData := &struct {
 		{{range .Fields}}{{methodName .DataType}} {{.DataType}} {{tick}}json:"{{.FieldName}}"{{tick}}
 		{{end -}}
 		Meta *shared.DomainEventMeta {{tick}}json:"meta"{{tick}}
 	}{}
 
-	if err := json.Unmarshal(data, values); err != nil {
+	if err := json.Unmarshal(data, unmarshaledData); err != nil {
 		return err
 	}
 
-	{{range .Fields}}{{lcFirst eventName}}.{{.FieldName}} = values.{{methodName .DataType}}
+	{{range .Fields}}{{lcFirst eventName}}.{{.FieldName}} = unmarshaledData.{{methodName .DataType}}
 	{{end -}}
 
-	{{lcFirst eventName}}.meta = values.Meta
+	{{lcFirst eventName}}.meta = unmarshaledData.Meta
 
 	return nil
 }

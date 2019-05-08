@@ -2,7 +2,7 @@ package domain
 
 import (
 	"encoding/json"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,8 +10,8 @@ import (
 
 func TestMarshalJSONOnEmailAddressConfirmed(t *testing.T) {
 	Convey("Given a valid EmailAddressConfirmed event", t, func() {
-		id := valueobjects.GenerateID()
-		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		event := EmailAddressWasConfirmed(id, emailAddress)

@@ -1,22 +1,22 @@
 package domain
 
 import (
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
 /*** Factory Method ***/
 
 type Register struct {
-	id           *valueobjects.ID
-	emailAddress *valueobjects.EmailAddress
-	personName   *valueobjects.PersonName
+	id           *values.ID
+	emailAddress *values.EmailAddress
+	personName   *values.PersonName
 }
 
 func NewRegister(
-	id *valueobjects.ID,
-	emailAddress *valueobjects.EmailAddress,
-	personName *valueobjects.PersonName,
+	id *values.ID,
+	emailAddress *values.EmailAddress,
+	personName *values.PersonName,
 ) (*Register, error) {
 
 	command := &Register{
@@ -34,15 +34,15 @@ func NewRegister(
 
 /*** Getter Methods ***/
 
-func (register *Register) ID() *valueobjects.ID {
+func (register *Register) ID() *values.ID {
 	return register.id
 }
 
-func (register *Register) EmailAddress() *valueobjects.EmailAddress {
+func (register *Register) EmailAddress() *values.EmailAddress {
 	return register.emailAddress
 }
 
-func (register *Register) PersonName() *valueobjects.PersonName {
+func (register *Register) PersonName() *values.PersonName {
 	return register.personName
 }
 

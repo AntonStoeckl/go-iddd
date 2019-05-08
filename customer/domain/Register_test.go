@@ -2,7 +2,7 @@ package domain_test
 
 import (
 	"go-iddd/customer/domain"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,10 +10,10 @@ import (
 
 func TestNewRegister(t *testing.T) {
 	Convey("Given valid ID, EmailAddress and PersonName", t, func() {
-		id := valueobjects.GenerateID()
-		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
-		personName, err := valueobjects.NewPersonName("John", "Doe")
+		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
 		Convey("When a new Register command is created", func() {
@@ -26,19 +26,19 @@ func TestNewRegister(t *testing.T) {
 		})
 
 		Convey("Given that ID is nil instead", func() {
-			var id *valueobjects.ID
+			var id *values.ID
 
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 
 		Convey("Given that EmailAddress is nil intead", func() {
-			var emailAddress *valueobjects.EmailAddress
+			var emailAddress *values.EmailAddress
 
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 
 		Convey("Given that PersonName is nil instead", func() {
-			var personName *valueobjects.PersonName
+			var personName *values.PersonName
 
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
@@ -46,9 +46,9 @@ func TestNewRegister(t *testing.T) {
 }
 
 func conveyNewRegisterWithInvalidInput(
-	id *valueobjects.ID,
-	emailAddress *valueobjects.EmailAddress,
-	personName *valueobjects.PersonName,
+	id *values.ID,
+	emailAddress *values.EmailAddress,
+	personName *values.PersonName,
 ) {
 
 	Convey("When a new Register command is created", func() {
@@ -63,10 +63,10 @@ func conveyNewRegisterWithInvalidInput(
 
 func TestRegisterExposesExpectedValues(t *testing.T) {
 	Convey("Given a Register command", t, func() {
-		id := valueobjects.GenerateID()
-		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
-		personName, err := valueobjects.NewPersonName("John", "Doe")
+		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
 		register, err := domain.NewRegister(id, emailAddress, personName)

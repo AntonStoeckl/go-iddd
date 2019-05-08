@@ -2,7 +2,7 @@ package domain_test
 
 import (
 	"go-iddd/customer/domain"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,10 +10,10 @@ import (
 
 func TestNewConfirmEmailAddress(t *testing.T) {
 	Convey("Given valid ID, EmailAddress and ConfirmationHash", t, func() {
-		id := valueobjects.GenerateID()
-		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
-		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 		Convey("When a new ConfirmEmailAddress command is created", func() {
 			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
@@ -25,19 +25,19 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 		})
 
 		Convey("Given that ID is nil instead", func() {
-			var id *valueobjects.ID
+			var id *values.ID
 
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
 		Convey("Given that EmailAddress is nil instead", func() {
-			var emailAddress *valueobjects.EmailAddress
+			var emailAddress *values.EmailAddress
 
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
 		Convey("Given that PersonName is nil instead", func() {
-			var confirmationHash *valueobjects.ConfirmationHash
+			var confirmationHash *values.ConfirmationHash
 
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
@@ -45,9 +45,9 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 }
 
 func conveyNewConfirmEmailAddressWithInvalidInput(
-	id *valueobjects.ID,
-	emailAddress *valueobjects.EmailAddress,
-	confirmationHash *valueobjects.ConfirmationHash,
+	id *values.ID,
+	emailAddress *values.EmailAddress,
+	confirmationHash *values.ConfirmationHash,
 ) {
 
 	Convey("When a new ConfirmEmailAddress command is created", func() {
@@ -62,10 +62,10 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 
 func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 	Convey("Given a ConfirmEmailAddress command", t, func() {
-		id := valueobjects.GenerateID()
-		emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
-		confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 		register, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 		So(err, ShouldBeNil)

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"go-iddd/customer/application/mocks"
 	"go-iddd/customer/domain"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
 
@@ -17,10 +17,10 @@ func TestHandleRegister(t *testing.T) {
 		commandHandler := NewCommandHandler(mockCustomers)
 
 		Convey("And given a Register command", func() {
-			id := valueobjects.GenerateID()
-			emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+			id := values.GenerateID()
+			emailAddress, err := values.NewEmailAddress("foo@bar.com")
 			So(err, ShouldBeNil)
-			personName, err := valueobjects.NewPersonName("John", "Doe")
+			personName, err := values.NewPersonName("John", "Doe")
 			So(err, ShouldBeNil)
 
 			register, err := domain.NewRegister(id, emailAddress, personName)
@@ -81,10 +81,10 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 		commandHandler := NewCommandHandler(mockCustomers)
 
 		Convey("And given a ConfirmEmailAddress command", func() {
-			id := valueobjects.GenerateID()
-			emailAddress, err := valueobjects.NewEmailAddress("foo@bar.com")
+			id := values.GenerateID()
+			emailAddress, err := values.NewEmailAddress("foo@bar.com")
 			So(err, ShouldBeNil)
-			confirmationHash := valueobjects.GenerateConfirmationHash(emailAddress.EmailAddress())
+			confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
 			confirmEmailAddress, err := domain.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 			So(err, ShouldBeNil)
@@ -193,7 +193,7 @@ func TestHandleUnknownCommand(t *testing.T) {
 type unknownCommand struct{}
 
 func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
-	return valueobjects.GenerateID()
+	return values.GenerateID()
 }
 
 func (c *unknownCommand) CommandName() string {

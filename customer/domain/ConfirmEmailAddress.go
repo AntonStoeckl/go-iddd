@@ -1,22 +1,22 @@
 package domain
 
 import (
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
 type ConfirmEmailAddress struct {
-	id               *valueobjects.ID
-	emailAddress     *valueobjects.EmailAddress
-	confirmationHash *valueobjects.ConfirmationHash
+	id               *values.ID
+	emailAddress     *values.EmailAddress
+	confirmationHash *values.ConfirmationHash
 }
 
 /*** Factory Method ***/
 
 func NewConfirmEmailAddress(
-	id *valueobjects.ID,
-	emailAddress *valueobjects.EmailAddress,
-	confirmationHash *valueobjects.ConfirmationHash,
+	id *values.ID,
+	emailAddress *values.EmailAddress,
+	confirmationHash *values.ConfirmationHash,
 ) (*ConfirmEmailAddress, error) {
 
 	command := &ConfirmEmailAddress{
@@ -34,15 +34,15 @@ func NewConfirmEmailAddress(
 
 /*** Getter Methods ***/
 
-func (confirmEmailAddress *ConfirmEmailAddress) ID() *valueobjects.ID {
+func (confirmEmailAddress *ConfirmEmailAddress) ID() *values.ID {
 	return confirmEmailAddress.id
 }
 
-func (confirmEmailAddress *ConfirmEmailAddress) EmailAddress() *valueobjects.EmailAddress {
+func (confirmEmailAddress *ConfirmEmailAddress) EmailAddress() *values.EmailAddress {
 	return confirmEmailAddress.emailAddress
 }
 
-func (confirmEmailAddress *ConfirmEmailAddress) ConfirmationHash() *valueobjects.ConfirmationHash {
+func (confirmEmailAddress *ConfirmEmailAddress) ConfirmationHash() *values.ConfirmationHash {
 	return confirmEmailAddress.confirmationHash
 }
 

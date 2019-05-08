@@ -2,16 +2,16 @@ package domain
 
 import (
 	"encoding/json"
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
 const registeredAggregateName = "Customer"
 
 type Registered struct {
-	id                      *valueobjects.ID
-	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress
-	personName              *valueobjects.PersonName
+	id                      *values.ID
+	confirmableEmailAddress *values.ConfirmableEmailAddress
+	personName              *values.PersonName
 
 	meta *shared.DomainEventMeta
 }
@@ -19,9 +19,9 @@ type Registered struct {
 /*** Factory Methods ***/
 
 func ItWasRegistered(
-	id *valueobjects.ID,
-	confirmableEmailAddress *valueobjects.ConfirmableEmailAddress,
-	personName *valueobjects.PersonName,
+	id *values.ID,
+	confirmableEmailAddress *values.ConfirmableEmailAddress,
+	personName *values.PersonName,
 ) *Registered {
 
 	registered := &Registered{
@@ -41,15 +41,15 @@ func ItWasRegistered(
 
 /*** Getter Methods ***/
 
-func (registered *Registered) ID() *valueobjects.ID {
+func (registered *Registered) ID() *values.ID {
 	return registered.id
 }
 
-func (registered *Registered) ConfirmableEmailAddress() *valueobjects.ConfirmableEmailAddress {
+func (registered *Registered) ConfirmableEmailAddress() *values.ConfirmableEmailAddress {
 	return registered.confirmableEmailAddress
 }
 
-func (registered *Registered) PersonName() *valueobjects.PersonName {
+func (registered *Registered) PersonName() *values.PersonName {
 	return registered.personName
 }
 
@@ -71,10 +71,10 @@ func (registered *Registered) OccurredAt() string {
 
 func (registered *Registered) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID                      *valueobjects.ID                      `json:"id"`
-		ConfirmableEmailAddress *valueobjects.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
-		PersonName              *valueobjects.PersonName              `json:"personName"`
-		Meta                    *shared.DomainEventMeta               `json:"meta"`
+		ID                      *values.ID                      `json:"id"`
+		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
+		PersonName              *values.PersonName              `json:"personName"`
+		Meta                    *shared.DomainEventMeta         `json:"meta"`
 	}{
 		ID:                      registered.id,
 		ConfirmableEmailAddress: registered.confirmableEmailAddress,
@@ -88,21 +88,21 @@ func (registered *Registered) MarshalJSON() ([]byte, error) {
 /*** Implement json.Unmarshaler ***/
 
 func (registered *Registered) UnmarshalJSON(data []byte) error {
-	values := &struct {
-		ID                      *valueobjects.ID                      `json:"id"`
-		ConfirmableEmailAddress *valueobjects.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
-		PersonName              *valueobjects.PersonName              `json:"personName"`
-		Meta                    *shared.DomainEventMeta               `json:"meta"`
+	unmarshaledData := &struct {
+		ID                      *values.ID                      `json:"id"`
+		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
+		PersonName              *values.PersonName              `json:"personName"`
+		Meta                    *shared.DomainEventMeta         `json:"meta"`
 	}{}
 
-	if err := json.Unmarshal(data, values); err != nil {
+	if err := json.Unmarshal(data, unmarshaledData); err != nil {
 		return err
 	}
 
-	registered.id = values.ID
-	registered.confirmableEmailAddress = values.ConfirmableEmailAddress
-	registered.personName = values.PersonName
-	registered.meta = values.Meta
+	registered.id = unmarshaledData.ID
+	registered.confirmableEmailAddress = unmarshaledData.ConfirmableEmailAddress
+	registered.personName = unmarshaledData.PersonName
+	registered.meta = unmarshaledData.Meta
 
 	return nil
 }

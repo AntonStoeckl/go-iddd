@@ -1,4 +1,4 @@
-package valueobjects
+package values
 
 import (
 	"crypto/md5"

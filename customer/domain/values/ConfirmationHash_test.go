@@ -1,7 +1,7 @@
-package valueobjects_test
+package values_test
 
 import (
-	"go-iddd/customer/domain/valueobjects"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
 
@@ -15,11 +15,11 @@ func TestGenerateConfirmationHash(t *testing.T) {
 		confirmationHashValue := "secret_hash"
 
 		Convey("When a ConfirmationHash is generated", func() {
-			confirmationHash := valueobjects.GenerateConfirmationHash(confirmationHashValue)
+			confirmationHash := values.GenerateConfirmationHash(confirmationHashValue)
 
 			Convey("It should succeed", func() {
 				So(confirmationHash, ShouldNotBeNil)
-				So(confirmationHash, ShouldHaveSameTypeAs, (*valueobjects.ConfirmationHash)(nil))
+				So(confirmationHash, ShouldHaveSameTypeAs, (*values.ConfirmationHash)(nil))
 			})
 		})
 	})
@@ -30,11 +30,11 @@ func TestReconstituteConfirmationHash(t *testing.T) {
 		confirmationHashValue := "secret_hash"
 
 		Convey("When a ConfirmationHash is reconstituted", func() {
-			confirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
+			confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
 
 			Convey("It should succeed", func() {
 				So(confirmationHash, ShouldNotBeNil)
-				So(confirmationHash, ShouldHaveSameTypeAs, (*valueobjects.ConfirmationHash)(nil))
+				So(confirmationHash, ShouldHaveSameTypeAs, (*values.ConfirmationHash)(nil))
 			})
 		})
 	})
@@ -43,7 +43,7 @@ func TestReconstituteConfirmationHash(t *testing.T) {
 func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 	Convey("Given a generated ConfirmationHash", t, func() {
 		confirmationHashInput := "foo@bar.com"
-		confirmationHash := valueobjects.GenerateConfirmationHash(confirmationHashInput)
+		confirmationHash := values.GenerateConfirmationHash(confirmationHashInput)
 
 		Convey("It should expose a generated value", func() {
 			So(confirmationHash.Hash(), ShouldNotBeBlank)
@@ -52,7 +52,7 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 
 	Convey("Given a reconstituted ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
 
 		Convey("It should expose the expected value", func() {
 			So(confirmationHash.Hash(), ShouldEqual, confirmationHashValue)
@@ -63,10 +63,10 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 func TestConfirmationHashShouldEqual(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
 
 		Convey("And given an equal ConfirmationHash", func() {
-			equalConfirmationHash := valueobjects.ReconstituteConfirmationHash(confirmationHashValue)
+			equalConfirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
 
 			Convey("When they are compared", func() {
 				err := confirmationHash.ShouldEqual(equalConfirmationHash)
@@ -79,7 +79,7 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 
 		Convey("And given another different ConfirmationHash", func() {
 			differentConfirmationHashValue := "different_hash"
-			differentConfirmationHash := valueobjects.ReconstituteConfirmationHash(differentConfirmationHashValue)
+			differentConfirmationHash := values.ReconstituteConfirmationHash(differentConfirmationHashValue)
 
 			Convey("When they are compared", func() {
 				err := confirmationHash.ShouldEqual(differentConfirmationHash)
@@ -95,7 +95,7 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 
 func TestConfirmationHashMarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
-		confirmationHash := valueobjects.GenerateConfirmationHash("foo@bar.com")
+		confirmationHash := values.GenerateConfirmationHash("foo@bar.com")
 
 		Convey("When it is marshaled to json", func() {
 			data, err := confirmationHash.MarshalJSON()
@@ -110,12 +110,12 @@ func TestConfirmationHashMarshalJSON(t *testing.T) {
 
 func TestConfirmationHashUnmarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmationHash marshaled to json", t, func() {
-		confirmationHash := valueobjects.GenerateConfirmationHash("foo@bar.com")
+		confirmationHash := values.GenerateConfirmationHash("foo@bar.com")
 		data, err := confirmationHash.MarshalJSON()
 		So(err, ShouldBeNil)
 
 		Convey("When it is unmarshaled", func() {
-			unmarshaled := &valueobjects.ConfirmationHash{}
+			unmarshaled := &values.ConfirmationHash{}
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should be equal to the original ConfirmationHash", func() {
@@ -129,7 +129,7 @@ func TestConfirmationHashUnmarshalJSON(t *testing.T) {
 		data := []byte("666")
 
 		Convey("When it is unmarshaled to ConfirmationHash", func() {
-			unmarshaled := &valueobjects.ConfirmationHash{}
+			unmarshaled := &values.ConfirmationHash{}
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should fail", func() {
