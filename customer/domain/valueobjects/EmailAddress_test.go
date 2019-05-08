@@ -18,7 +18,7 @@ func TestNewEmailAddress(t *testing.T) {
 		Convey("When a new EmailAddress is created", func() {
 			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
-			Convey("Then it should succeed", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(emailAddress, ShouldNotBeNil)
 				So(emailAddress, ShouldHaveSameTypeAs, (*valueobjects.EmailAddress)(nil))
@@ -32,7 +32,7 @@ func TestNewEmailAddress(t *testing.T) {
 		Convey("When a new EmailAddress is created", func() {
 			emailAddress, err := valueobjects.NewEmailAddress(emailAddressValue)
 
-			Convey("Then it should fail", func() {
+			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
 				So(emailAddress, ShouldBeNil)
@@ -103,7 +103,7 @@ func TestEmailAddressToConfirmable(t *testing.T) {
 		Convey("When it is converted to confirmable", func() {
 			confirmableEmailAddress := emailAddress.ToConfirmable()
 
-			Convey("Then it should be a ConfirmableEmailAddress", func() {
+			Convey("It should be a ConfirmableEmailAddress", func() {
 				So(err, ShouldBeNil)
 				So(confirmableEmailAddress, ShouldNotBeNil)
 				So(confirmableEmailAddress, ShouldHaveSameTypeAs, (*valueobjects.ConfirmableEmailAddress)(nil))

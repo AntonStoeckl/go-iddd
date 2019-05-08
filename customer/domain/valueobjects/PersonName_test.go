@@ -20,7 +20,7 @@ func TestNewPersonName(t *testing.T) {
 		Convey("When NewPersonName is invoked", func() {
 			personName, err := valueobjects.NewPersonName(givenName, familyName)
 
-			Convey("Then it should create a PersonName", func() {
+			Convey("It should create a PersonName", func() {
 				So(err, ShouldBeNil)
 				So(personName, ShouldNotBeNil)
 				So(personName, ShouldHaveSameTypeAs, (*valueobjects.PersonName)(nil))
@@ -39,7 +39,7 @@ func TestNewPersonName(t *testing.T) {
 		Convey("When NewPersonName is invoked", func() {
 			personName, err := valueobjects.NewPersonName(givenName, familyName)
 
-			Convey("Then it should fail", func() {
+			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
 				So(personName, ShouldBeNil)
@@ -53,7 +53,7 @@ func TestNewPersonName(t *testing.T) {
 		Convey("When NewPersonName is invoked", func() {
 			personName, err := valueobjects.NewPersonName(givenName, familyName)
 
-			Convey("Then it should fail", func() {
+			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
 				So(personName, ShouldBeNil)
