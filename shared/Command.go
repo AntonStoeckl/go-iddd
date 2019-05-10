@@ -19,11 +19,11 @@ func BuildCommandNameFor(command Command) string {
 	return strings.Title(commandName)
 }
 
-func AssertAllPropertiesAreNotNil(command Command) error {
-	return AssertPropertiesAreNotNilExcept(command)
+func AssertAllCommandPropertiesAreNotNil(command Command) error {
+	return AssertCommandPropertiesAreNotNilExcept(command)
 }
 
-func AssertPropertiesAreNotNilExcept(command Command, canBeNil ...string) error {
+func AssertCommandPropertiesAreNotNilExcept(command Command, canBeNil ...string) error {
 	elem := reflect.ValueOf(command).Elem()
 	typeOf := elem.Type()
 
