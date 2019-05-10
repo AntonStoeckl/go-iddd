@@ -1,10 +1,8 @@
 package shared
 
 import (
-	"errors"
+	"fmt"
 	"reflect"
-	"strings"
-	"time"
 )
 
 type DomainEvent interface {
@@ -13,56 +11,25 @@ type DomainEvent interface {
 	OccurredAt() string
 }
 
-func NewDomainEventMeta(aggregateID string, event DomainEvent, aggregateName string) *DomainEventMeta {
-	newDomainEventMeta := &DomainEventMeta{
-		Identifier: aggregateID,
-		EventName:  buildEventNameFor(event, aggregateName),
-		OccurredAt: time.Now().Format(time.RFC3339Nano),
-	}
+func AssertEventPropertiesAreNotNilExcept(event DomainEvent, canBeNil ...string) error {
+	elem := reflect.ValueOf(event).Elem()
+	typeOf := elem.Type()
 
-	return newDomainEventMeta
-}
+outer:
+	for i := 0; i < elem.NumField(); i++ {
+		property := elem.Field(i)
+		propertyName := typeOf.Field(i).Name
 
-func buildEventNameFor(event DomainEvent, withAggregateName string) string {
-	eventType := reflect.TypeOf(event).String()
-	eventTypeParts := strings.Split(eventType, ".")
-	eventName := eventTypeParts[len(eventTypeParts)-1]
-	eventName = strings.Title(eventName)
-
-	fullEventName := withAggregateName + eventName
-
-	return fullEventName
-}
-
-type DomainEventMeta struct {
-	Identifier string `json:"identifier"`
-	EventName  string `json:"eventName"`
-	OccurredAt string `json:"occurredAt"`
-}
-
-func UnmarshalDomainEventMeta(data interface{}) (*DomainEventMeta, error) {
-	values, ok := data.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("zefix")
-	}
-
-	meta := &DomainEventMeta{}
-
-	for key, value := range values {
-		value, ok := value.(string)
-		if !ok {
-			return nil, errors.New("zefix")
+		for _, bar := range canBeNil {
+			if bar == propertyName {
+				continue outer
+			}
 		}
 
-		switch key {
-		case "identifier":
-			meta.Identifier = value
-		case "eventName":
-			meta.EventName = value
-		case "occurredAt":
-			meta.OccurredAt = value
+		if property.IsNil() {
+			return fmt.Errorf("nil given for: %s", propertyName)
 		}
 	}
 
-	return meta, nil
+	return nil
 }
