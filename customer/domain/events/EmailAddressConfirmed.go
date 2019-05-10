@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 )
 
 const emailAddressConfirmedAggregateName = "Customer"
@@ -86,7 +88,7 @@ func (emailAddressConfirmed *EmailAddressConfirmed) UnmarshalJSON(data []byte) e
 	}{}
 
 	if err := json.Unmarshal(data, unmarshaledData); err != nil {
-		return err
+		return xerrors.Errorf("emailAddressConfirmed.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	emailAddressConfirmed.id = unmarshaledData.ID

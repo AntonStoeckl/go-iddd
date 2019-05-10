@@ -130,12 +130,14 @@ func die(err error) {
 }
 
 var eventTemplate = `
-package domain
+package events
 
 import (
 	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 )
 
 const {{lcFirst eventName}}AggregateName = "Customer"
@@ -215,7 +217,7 @@ func ({{lcFirst eventName}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := json.Unmarshal(data, unmarshaledData); err != nil {
-		return err
+		return xerrors.Errorf("{{lcFirst eventName}}.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
 	{{range .Fields}}{{lcFirst eventName}}.{{.FieldName}} = unmarshaledData.{{methodName .DataType}}

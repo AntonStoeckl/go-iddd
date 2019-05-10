@@ -1,15 +1,18 @@
-package domain
+package events_test
 
 import (
-	"encoding/json"
+	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
+	"go-iddd/shared"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
-func TestMarshalJSONOnRegistered(t *testing.T) {
-	Convey("Given a valid Registered event", t, func() {
+func TestItWasRegistered(t *testing.T) {
+	Convey("Given valid parameters as input", t, func() {
 		id := values.GenerateID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
@@ -17,29 +20,107 @@ func TestMarshalJSONOnRegistered(t *testing.T) {
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
-		event := ItWasRegistered(id, confirmableEmailAddress, personName)
-		So(event, ShouldNotBeNil)
-		So(event, ShouldHaveSameTypeAs, (*Registered)(nil))
-
-		Convey("When it is marshaled to json", func() {
-			data, err := json.Marshal(event)
+		Convey("When a new Registered event is created", func() {
+			registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
 
 			Convey("It should succeed", func() {
+				So(registered, ShouldNotBeNil)
+				So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
+			})
+		})
+	})
+}
+
+func TestRegisteredExposesExpectedValues(t *testing.T) {
+	Convey("Given a Register command", t, func() {
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		beforeItOccurred := time.Now()
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		afterItOccurred := time.Now()
+		So(registered, ShouldNotBeNil)
+		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
+
+		Convey("It should expose the expected values", func() {
+			So(registered.ID(), ShouldResemble, id)
+			So(registered.ConfirmableEmailAddress(), ShouldResemble, confirmableEmailAddress)
+			So(registered.PersonName(), ShouldResemble, personName)
+			So(registered.Identifier(), ShouldEqual, id.String())
+			So(registered.EventName(), ShouldEqual, "CustomerRegistered")
+			actualOccurredAt, err := time.Parse(time.RFC3339Nano, registered.OccurredAt())
+			So(err, ShouldBeNil)
+			So(beforeItOccurred, ShouldHappenBefore, actualOccurredAt)
+			So(afterItOccurred, ShouldHappenAfter, actualOccurredAt)
+		})
+	})
+}
+
+func TestRegisteredMarshalJSON(t *testing.T) {
+	Convey("Given a Registered event", t, func() {
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		So(registered, ShouldNotBeNil)
+		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
+
+		Convey("When it is marshaled to json", func() {
+			data, err := registered.MarshalJSON()
+
+			Convey("It should create the expected json", func() {
 				So(err, ShouldBeNil)
 				So(string(data), ShouldStartWith, "{")
 				So(string(data), ShouldEndWith, "}")
 			})
+		})
+	})
+}
 
-			Convey("And when it is unmarshaled from json", func() {
-				unmarshaledEvent := &Registered{}
-				err := json.Unmarshal(data, unmarshaledEvent)
+func TestRegisteredUnmarshalJSON(t *testing.T) {
+	Convey("Given a Registered event marshaled to json", t, func() {
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
 
-				Convey("It should succeed", func() {
-					So(err, ShouldBeNil)
-					So(unmarshaledEvent, ShouldNotBeNil)
-					So(unmarshaledEvent, ShouldHaveSameTypeAs, (*Registered)(nil))
-					So(event, ShouldResemble, unmarshaledEvent)
-				})
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		So(registered, ShouldNotBeNil)
+		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
+
+		data, err := registered.MarshalJSON()
+
+		Convey("And when it is unmarshaled", func() {
+			unmarshaled := &events.Registered{}
+			err := unmarshaled.UnmarshalJSON(data)
+
+			Convey("It should be equal to the original Registered event", func() {
+				So(err, ShouldBeNil)
+				So(registered, ShouldResemble, unmarshaled)
+			})
+		})
+	})
+
+	Convey("Given invalid json", t, func() {
+		data := []byte("666")
+
+		Convey("When it is unmarshaled to Registered event", func() {
+			unmarshaled := &events.Registered{}
+			err := unmarshaled.UnmarshalJSON(data)
+
+			Convey("It should fail", func() {
+				So(err, ShouldNotBeNil)
+				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})
