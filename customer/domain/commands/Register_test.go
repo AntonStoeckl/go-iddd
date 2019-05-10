@@ -3,9 +3,11 @@ package commands_test
 import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
+	"go-iddd/shared"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
 func TestNewRegister(t *testing.T) {
@@ -56,6 +58,7 @@ func conveyNewRegisterWithInvalidInput(
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrNilInput), ShouldBeTrue)
 			So(register, ShouldBeNil)
 		})
 	})

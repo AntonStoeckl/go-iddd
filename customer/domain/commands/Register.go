@@ -3,6 +3,8 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 )
 
 /*** Factory Method ***/
@@ -25,8 +27,8 @@ func NewRegister(
 		personName:   personName,
 	}
 
-	if err := shared.AssertAllPropertiesAreNotNil(command); err != nil {
-		return nil, err
+	if err := shared.AssertAllCommandPropertiesAreNotNil(command); err != nil {
+		return nil, xerrors.Errorf("register.New -> %s: %w", err, shared.ErrNilInput)
 	}
 
 	return command, nil

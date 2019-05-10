@@ -3,6 +3,8 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
 )
 
 type ConfirmEmailAddress struct {
@@ -25,8 +27,8 @@ func NewConfirmEmailAddress(
 		confirmationHash: confirmationHash,
 	}
 
-	if err := shared.AssertAllPropertiesAreNotNil(command); err != nil {
-		return nil, err
+	if err := shared.AssertAllCommandPropertiesAreNotNil(command); err != nil {
+		return nil, xerrors.Errorf("confirmEmailAddress.New -> %s: %w", err, shared.ErrNilInput)
 	}
 
 	return command, nil
