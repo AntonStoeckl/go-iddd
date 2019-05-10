@@ -54,7 +54,7 @@ type Config struct {
 }
 
 var config = Config{
-	RelativeOutputPath: "../../domain/events",
+	RelativeOutputPath: "..",
 }
 
 func main() {
