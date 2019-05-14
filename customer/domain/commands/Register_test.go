@@ -33,7 +33,7 @@ func TestNewRegister(t *testing.T) {
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 
-		Convey("Given that EmailAddress is nil intead", func() {
+		Convey("Given that EmailAddress is nil instead", func() {
 			var emailAddress *values.EmailAddress
 
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
