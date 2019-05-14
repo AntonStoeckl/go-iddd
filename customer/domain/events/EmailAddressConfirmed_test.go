@@ -31,7 +31,7 @@ func TestEmailAddressWasConfirmed(t *testing.T) {
 }
 
 func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
-	Convey("Given a EmailAddressConfirmed command", t, func() {
+	Convey("Given an EmailAddressConfirmed event", t, func() {
 		id := values.GenerateID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)

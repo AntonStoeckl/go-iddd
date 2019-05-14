@@ -32,7 +32,7 @@ func TestItWasRegistered(t *testing.T) {
 }
 
 func TestRegisteredExposesExpectedValues(t *testing.T) {
-	Convey("Given a Register command", t, func() {
+	Convey("Given a Register event", t, func() {
 		id := values.GenerateID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
