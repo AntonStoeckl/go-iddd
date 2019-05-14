@@ -1,105 +1,95 @@
 package events_test
 
 import (
-	"encoding/json"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
 	"time"
 
-	"golang.org/x/xerrors"
-
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
 func TestEmailAddressWasConfirmed(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
 		id := values.GenerateID()
+
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When a new EmailAddressConfirmed event is created", func() {
-			emailAddressWasConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
+			emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
 
 			Convey("It should succeed", func() {
-				So(emailAddressWasConfirmed, ShouldNotBeNil)
-				So(emailAddressWasConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
+				So(emailAddressConfirmed, ShouldNotBeNil)
+				So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 			})
 		})
 	})
 }
 
 func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
-	Convey("Given an EmailAddressConfirmed event", t, func() {
+	Convey("Given a EmailAddressConfirmed event", t, func() {
 		id := values.GenerateID()
+
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		beforeItOccurred := time.Now()
-		emailAddressWasConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
 		afterItOccurred := time.Now()
-		So(emailAddressWasConfirmed, ShouldNotBeNil)
-		So(emailAddressWasConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
+		So(emailAddressConfirmed, ShouldNotBeNil)
+		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
 		Convey("It should expose the expected values", func() {
-			So(emailAddressWasConfirmed.ID(), ShouldResemble, id)
-			So(emailAddressWasConfirmed.EmailAddress(), ShouldResemble, emailAddress)
-			So(emailAddressWasConfirmed.Identifier(), ShouldEqual, id.String())
-			So(emailAddressWasConfirmed.EventName(), ShouldEqual, "CustomerEmailAddressConfirmed")
-			actualOccurredAt, err := time.Parse(time.RFC3339Nano, emailAddressWasConfirmed.OccurredAt())
+			So(emailAddressConfirmed.ID(), ShouldResemble, id)
+			So(emailAddressConfirmed.EmailAddress(), ShouldResemble, emailAddress)
+			So(emailAddressConfirmed.Identifier(), ShouldEqual, id.String())
+			So(emailAddressConfirmed.EventName(), ShouldEqual, "CustomerEmailAddressConfirmed")
+			itOccurred, err := time.Parse(shared.DomainEventMetaTimestampFormat, emailAddressConfirmed.OccurredAt())
 			So(err, ShouldBeNil)
-			So(beforeItOccurred, ShouldHappenBefore, actualOccurredAt)
-			So(afterItOccurred, ShouldHappenAfter, actualOccurredAt)
+			So(beforeItOccurred, ShouldHappenBefore, itOccurred)
+			So(afterItOccurred, ShouldHappenAfter, itOccurred)
 		})
 	})
 }
 
 func TestEmailAddressConfirmedMarshalJSON(t *testing.T) {
-	Convey("Given a valid EmailAddressConfirmed event", t, func() {
+	Convey("Given a EmailAddressConfirmed event", t, func() {
 		id := values.GenerateID()
+
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
-		emailAddressWasConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
-		So(emailAddressWasConfirmed, ShouldNotBeNil)
-		So(emailAddressWasConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
+		So(emailAddressConfirmed, ShouldNotBeNil)
+		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
 		Convey("When it is marshaled to json", func() {
-			data, err := json.Marshal(emailAddressWasConfirmed)
+			data, err := emailAddressConfirmed.MarshalJSON()
 
-			Convey("It should succeed", func() {
+			Convey("It should create the expected json", func() {
 				So(err, ShouldBeNil)
 				So(string(data), ShouldStartWith, "{")
 				So(string(data), ShouldEndWith, "}")
-			})
-
-			Convey("And when it is unmarshaled from json", func() {
-				unmarshaledEvent := &events.EmailAddressConfirmed{}
-				err := json.Unmarshal(data, unmarshaledEvent)
-
-				Convey("It should succeed", func() {
-					So(err, ShouldBeNil)
-					So(unmarshaledEvent, ShouldNotBeNil)
-					So(unmarshaledEvent, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
-					So(emailAddressWasConfirmed, ShouldResemble, unmarshaledEvent)
-				})
 			})
 		})
 	})
 }
 
 func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
-	Convey("Given an EmailAddressConfirmed event marshaled to json", t, func() {
+	Convey("Given a EmailAddressConfirmed event marshaled to json", t, func() {
 		id := values.GenerateID()
+
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
-		emailAddressWasConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
-		So(emailAddressWasConfirmed, ShouldNotBeNil)
-		So(emailAddressWasConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
+		So(emailAddressConfirmed, ShouldNotBeNil)
+		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
-		data, err := emailAddressWasConfirmed.MarshalJSON()
+		data, err := emailAddressConfirmed.MarshalJSON()
 
 		Convey("And when it is unmarshaled", func() {
 			unmarshaled := &events.EmailAddressConfirmed{}
@@ -107,7 +97,7 @@ func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
 
 			Convey("It should be equal to the original EmailAddressConfirmed event", func() {
 				So(err, ShouldBeNil)
-				So(emailAddressWasConfirmed, ShouldResemble, unmarshaled)
+				So(emailAddressConfirmed, ShouldResemble, unmarshaled)
 			})
 		})
 	})

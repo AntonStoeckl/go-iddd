@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const DomainEventMetaTimestampFormat = time.RFC3339Nano
+
 type DomainEventMeta struct {
 	Identifier string `json:"identifier"`
 	EventName  string `json:"eventName"`
@@ -22,7 +24,7 @@ func NewDomainEventMeta(aggregateID string, event DomainEvent, aggregateName str
 	newDomainEventMeta := &DomainEventMeta{
 		Identifier: aggregateID,
 		EventName:  fullEventName,
-		OccurredAt: time.Now().Format(time.RFC3339Nano),
+		OccurredAt: time.Now().Format(DomainEventMetaTimestampFormat),
 	}
 
 	return newDomainEventMeta
