@@ -7,13 +7,13 @@ import (
 	"golang.org/x/xerrors"
 )
 
-/*** Factory Method ***/
-
 type Register struct {
 	id           *values.ID
 	emailAddress *values.EmailAddress
 	personName   *values.PersonName
 }
+
+/*** Factory Method ***/
 
 func NewRegister(
 	id *values.ID,
