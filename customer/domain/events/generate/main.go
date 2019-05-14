@@ -1,4 +1,4 @@
-// +buil generator
+// +build generator
 
 //go:generate go run main.go
 
@@ -207,7 +207,7 @@ func generateTestsForEvents() {
 			_, err = io.Copy(outFile, rc)
 			die(err)
 		case "noformat":
-			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.EventType) + "_test2.go")
+			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.EventType) + "_test.go")
 			die(err)
 
 			err = t.Execute(outFile, event)
