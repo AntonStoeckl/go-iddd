@@ -21,17 +21,17 @@ func NewRegister(
 	personName *values.PersonName,
 ) (*Register, error) {
 
-	command := &Register{
+	register := &Register{
 		id:           id,
 		emailAddress: emailAddress,
 		personName:   personName,
 	}
 
-	if err := shared.AssertAllCommandPropertiesAreNotNil(command); err != nil {
+	if err := shared.AssertAllCommandPropertiesAreNotNil(register); err != nil {
 		return nil, xerrors.Errorf("register.New -> %s: %w", err, shared.ErrNilInput)
 	}
 
-	return command, nil
+	return register, nil
 }
 
 /*** Getter Methods ***/

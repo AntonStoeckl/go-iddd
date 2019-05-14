@@ -21,17 +21,17 @@ func NewConfirmEmailAddress(
 	confirmationHash *values.ConfirmationHash,
 ) (*ConfirmEmailAddress, error) {
 
-	command := &ConfirmEmailAddress{
+	confirmEmailAddress := &ConfirmEmailAddress{
 		id:               id,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
 	}
 
-	if err := shared.AssertAllCommandPropertiesAreNotNil(command); err != nil {
+	if err := shared.AssertAllCommandPropertiesAreNotNil(confirmEmailAddress); err != nil {
 		return nil, xerrors.Errorf("confirmEmailAddress.New -> %s: %w", err, shared.ErrNilInput)
 	}
 
-	return command, nil
+	return confirmEmailAddress, nil
 }
 
 /*** Getter Methods ***/
