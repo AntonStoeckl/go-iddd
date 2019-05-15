@@ -28,19 +28,16 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 
 		Convey("Given that ID is nil instead", func() {
 			var id *values.ID
-
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
 		Convey("Given that EmailAddress is nil instead", func() {
 			var emailAddress *values.EmailAddress
-
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
-		Convey("Given that PersonName is nil instead", func() {
+		Convey("Given that ConfirmationHash is nil instead", func() {
 			var confirmationHash *values.ConfirmationHash
-
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 	})
@@ -70,15 +67,15 @@ func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 		So(err, ShouldBeNil)
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 
-		register, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			So(register.ID(), ShouldResemble, id)
-			So(register.EmailAddress(), ShouldResemble, emailAddress)
-			So(register.ConfirmationHash(), ShouldResemble, confirmationHash)
-			So(register.CommandName(), ShouldEqual, "ConfirmEmailAddress")
-			So(register.AggregateIdentifier(), ShouldResemble, id)
+			So(confirmEmailAddress.ID(), ShouldResemble, id)
+			So(confirmEmailAddress.EmailAddress(), ShouldResemble, emailAddress)
+			So(confirmEmailAddress.ConfirmationHash(), ShouldResemble, confirmationHash)
+			So(confirmEmailAddress.CommandName(), ShouldEqual, "ConfirmEmailAddress")
+			So(confirmEmailAddress.AggregateIdentifier(), ShouldResemble, id)
 		})
 	})
 }

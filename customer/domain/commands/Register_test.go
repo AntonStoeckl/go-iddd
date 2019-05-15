@@ -29,19 +29,16 @@ func TestNewRegister(t *testing.T) {
 
 		Convey("Given that ID is nil instead", func() {
 			var id *values.ID
-
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 
 		Convey("Given that EmailAddress is nil instead", func() {
 			var emailAddress *values.EmailAddress
-
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 
 		Convey("Given that PersonName is nil instead", func() {
 			var personName *values.PersonName
-
 			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
 		})
 	})

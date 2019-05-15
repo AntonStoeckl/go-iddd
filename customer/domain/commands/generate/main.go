@@ -1,0 +1,361 @@
+// +build generator
+
+//go:generate go run main.go
+
+package main
+
+import (
+	"bytes"
+	"errors"
+	"io"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+	"text/template"
+	"unicode"
+	"unicode/utf8"
+
+	"github.com/joncalhoun/pipe"
+)
+
+const mode = "format" // "format", "noformat", "stdout"
+
+type Field struct {
+	FieldName string
+	DataType  string
+}
+
+type Command struct {
+	CommandType string
+	Fields      []Field
+}
+
+var commands = []Command{
+	{
+		CommandType: "Register",
+		Fields: []Field{
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
+			{FieldName: "personName", DataType: "*values.PersonName"},
+		},
+	},
+	{
+		CommandType: "ConfirmEmailAddress",
+		Fields: []Field{
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
+			{FieldName: "confirmationHash", DataType: "*values.ConfirmationHash"},
+		},
+	},
+}
+
+type Config struct {
+	RelativeOutputPath string
+	Commands           []Command
+}
+
+var config = Config{
+	RelativeOutputPath: "..",
+}
+
+func main() {
+	generateCommands()
+	generateTestsForEvents()
+}
+
+func generateCommands() {
+	var err error
+
+	methodName := func(input string) string {
+		parts := strings.Split(input, ".")
+		return parts[1]
+	}
+
+	lcFirst := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		r, n := utf8.DecodeRuneInString(s)
+		return string(unicode.ToLower(r)) + s[n:]
+	}
+
+	for _, command := range commands {
+		t := template.New(command.CommandType)
+
+		t = t.Funcs(
+			template.FuncMap{
+				"methodName":  methodName,
+				"commandName": t.Name,
+				"lcFirst":     lcFirst,
+			},
+		)
+
+		t, err = t.Parse(commandTemplate)
+		die(err)
+
+		switch mode {
+		case "format":
+			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(command.CommandType) + ".go")
+			die(err)
+
+			rc, wc, _ := pipe.Commands(
+				exec.Command("gofmt"),
+				exec.Command("goimports"),
+			)
+
+			err = t.Execute(wc, command)
+			die(err)
+
+			err = wc.Close()
+			die(err)
+
+			_, err = io.Copy(outFile, rc)
+			die(err)
+		case "noformat":
+			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(command.CommandType) + ".go")
+			die(err)
+
+			err = t.Execute(outFile, command)
+			die(err)
+		case "stdout":
+			err = t.Execute(os.Stdout, command)
+			die(err)
+		}
+	}
+}
+
+func generateTestsForEvents() {
+	var err error
+
+	methodName := func(input string) string {
+		parts := strings.Split(input, ".")
+		return parts[1]
+	}
+
+	lcFirst := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		r, n := utf8.DecodeRuneInString(s)
+		return string(unicode.ToLower(r)) + s[n:]
+	}
+
+	secondLastIndex := func(x []Field) int {
+		return len(x) - 2
+	}
+
+	valueFactoryForTestTemplates := map[string]string{
+		"id":               idFactoryForTestTemplate,
+		"emailAddress":     emailAddressFactoryForTestTemplate,
+		"confirmationHash": confirmationHashFactoryForTestTemplate,
+		"personName":       personNameFactoryForTestTemplate,
+	}
+
+	valueFactoryForTest := func(templateName string) string {
+		t := template.New("valueFactoryForTest")
+
+		tpl, found := valueFactoryForTestTemplates[templateName]
+		if !found {
+			die(errors.New("could not find valueFactoryForTest template for: " + templateName))
+		}
+
+		t, err = t.Parse(tpl)
+		die(err)
+
+		buf := bytes.NewBuffer([]byte{})
+		err = t.Execute(buf, false)
+		die(err)
+
+		return buf.String()
+	}
+
+	for _, event := range commands {
+		t := template.New(event.CommandType)
+
+		t = t.Funcs(
+			template.FuncMap{
+				"methodName":          methodName,
+				"commandName":         t.Name,
+				"lcFirst":             lcFirst,
+				"valueFactoryForTest": valueFactoryForTest,
+				"secondLastIndex":     secondLastIndex,
+			},
+		)
+
+		t, err = t.Parse(testTemplate)
+		die(err)
+
+		switch mode {
+		case "format":
+			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.CommandType) + "_test.go")
+			die(err)
+
+			rc, wc, _ := pipe.Commands(
+				exec.Command("gofmt"),
+				exec.Command("goimports"),
+			)
+
+			err = t.Execute(wc, event)
+			die(err)
+
+			err = wc.Close()
+			die(err)
+
+			_, err = io.Copy(outFile, rc)
+			die(err)
+		case "noformat":
+			outFile, err := os.Create(config.RelativeOutputPath + "/" + strings.Title(event.CommandType) + "_test.go")
+			die(err)
+
+			err = t.Execute(outFile, event)
+			die(err)
+		case "stdout":
+			err = t.Execute(os.Stdout, event)
+			die(err)
+		}
+	}
+}
+
+func die(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+var commandTemplate = `
+{{$commandVar := lcFirst commandName}}
+package commands
+
+import (
+	"go-iddd/customer/domain/values"
+	"go-iddd/shared"
+
+	"golang.org/x/xerrors"
+)
+
+type {{commandName}} struct {
+	{{range .Fields}}{{.FieldName}} {{.DataType}}
+	{{end -}}
+}
+
+/*** Factory Method ***/
+
+func New{{commandName}}(
+	{{range .Fields}}{{.FieldName}} {{.DataType}},
+	{{end -}}
+) (*{{commandName}}, error) {
+
+	{{$commandVar}} := &{{commandName}}{
+		{{range .Fields}}{{.FieldName}}: {{.FieldName}},
+		{{end -}}
+	}
+
+	if err := shared.AssertAllCommandPropertiesAreNotNil({{$commandVar}}); err != nil {
+		return nil, xerrors.Errorf("{{lcFirst commandName}}.New -> %s: %w", err, shared.ErrNilInput)
+	}
+
+	return {{$commandVar}}, nil
+}
+
+/*** Getter Methods ***/
+
+{{range .Fields}}
+func ({{$commandVar}} *{{commandName}}) {{methodName .DataType}}() {{.DataType}} {
+	return {{$commandVar}}.{{.FieldName}}
+}
+{{end}}
+
+/*** Implement shared.Command ***/
+
+func ({{$commandVar}} *{{commandName}}) AggregateIdentifier() shared.AggregateIdentifier {
+	return {{$commandVar}}.id
+}
+
+func ({{$commandVar}} *{{commandName}}) CommandName() string {
+	return shared.BuildCommandNameFor({{$commandVar}})
+}
+`
+
+var idFactoryForTestTemplate = `id := values.GenerateID()`
+
+var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
+	So(err, ShouldBeNil)`
+
+var confirmationHashFactoryForTestTemplate = `confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())`
+
+var personNameFactoryForTestTemplate = `personName, err := values.NewPersonName("John", "Doe")
+	So(err, ShouldBeNil)`
+
+var testTemplate = `
+{{$commandVar := lcFirst commandName}}
+{{$fields := .Fields}}
+{{$secondLastIndex := secondLastIndex .Fields}}
+package commands_test
+
+import (
+	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/values"
+	"go-iddd/shared"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
+)
+
+func TestNew{{commandName}}(t *testing.T) {
+	Convey("Given valid {{range $idx, $foo := .Fields}}{{methodName .DataType}}{{if lt $idx $secondLastIndex}}, {{end}}{{if eq $idx $secondLastIndex}} and {{end}}{{end}}", t, func() {
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
+
+		Convey("When a new {{commandName}} command is created", func() {
+			{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+
+			Convey("It should succeed", func() {
+				So(err, ShouldBeNil)
+				So({{$commandVar}}, ShouldHaveSameTypeAs, (*commands.{{commandName}})(nil))
+			})
+		})
+
+		{{range .Fields}}
+		Convey("Given that {{methodName .DataType}} is nil instead", func() {
+			var {{.FieldName}} {{.DataType}}
+			conveyNew{{commandName}}WithInvalidInput({{range $fields}}{{.FieldName}}, {{end}})
+		})
+		{{end -}}
+	})
+}
+
+func conveyNew{{commandName}}WithInvalidInput(
+	{{range .Fields}}{{.FieldName}} {{.DataType}},
+	{{end -}}
+) {
+
+	Convey("When a new {{commandName}} command is created", func() {
+		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+
+		Convey("It should fail", func() {
+			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrNilInput), ShouldBeTrue)
+			So({{$commandVar}}, ShouldBeNil)
+		})
+	})
+}
+
+func Test{{commandName}}ExposesExpectedValues(t *testing.T) {
+	Convey("Given a {{commandName}} command", t, func() {
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
+
+		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+		So(err, ShouldBeNil)
+
+		Convey("It should expose the expected values", func() {
+			{{range .Fields}}So({{$commandVar}}.{{methodName .DataType}}(), ShouldResemble, {{.FieldName}})
+			{{end -}}
+			So({{$commandVar}}.CommandName(), ShouldEqual, "{{commandName}}")
+			So({{$commandVar}}.AggregateIdentifier(), ShouldResemble, id)
+		})
+	})
+}
+`
