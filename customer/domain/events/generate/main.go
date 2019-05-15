@@ -328,25 +328,17 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 }
 `
 
-var idFactoryForTestTemplate = `
-	id := values.GenerateID()
-`
+var idFactoryForTestTemplate = `id := values.GenerateID()`
 
-var emailAddressFactoryForTestTemplate = `
-	emailAddress, err := values.NewEmailAddress("foo@bar.com")
-	So(err, ShouldBeNil)
-`
+var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
+	So(err, ShouldBeNil)`
 
-var confirmableEmailAddressFactoryForTestTemplate = `
-	emailAddress, err := values.NewEmailAddress("foo@bar.com")
+var confirmableEmailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
 	So(err, ShouldBeNil)
-	confirmableEmailAddress := emailAddress.ToConfirmable()
-`
+	confirmableEmailAddress := emailAddress.ToConfirmable()`
 
-var personNameFactoryForTestTemplate = `
-	personName, err := values.NewPersonName("John", "Doe")
-	So(err, ShouldBeNil)
-`
+var personNameFactoryForTestTemplate = `personName, err := values.NewPersonName("John", "Doe")
+	So(err, ShouldBeNil)`
 
 var testTemplate = `
 {{$eventVar := lcFirst eventName}}
@@ -366,8 +358,8 @@ import (
 
 func Test{{.EventFactory}}(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
-		{{- range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end -}}
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
 
 		Convey("When a new {{eventName}} event is created", func() {
 			{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
@@ -382,8 +374,8 @@ func Test{{.EventFactory}}(t *testing.T) {
 
 func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
-		{{- range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end -}}
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
 		beforeItOccurred := time.Now()
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
 		afterItOccurred := time.Now()
@@ -405,8 +397,8 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 
 func Test{{eventName}}MarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
-		{{- range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end -}}
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
 		So({{$eventVar}}, ShouldNotBeNil)
@@ -426,8 +418,8 @@ func Test{{eventName}}MarshalJSON(t *testing.T) {
 
 func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event marshaled to json", t, func() {
-		{{- range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end -}}
+		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{end}}
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
 		So({{$eventVar}}, ShouldNotBeNil)
