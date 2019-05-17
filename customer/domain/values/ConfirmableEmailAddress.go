@@ -2,6 +2,7 @@ package values
 
 import (
 	"encoding/json"
+	"errors"
 	"go-iddd/shared"
 
 	"golang.org/x/xerrors"
@@ -45,8 +46,16 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) Equals(other *EmailAddre
 
 /*** Modification Methods ***/
 
-func (confirmableEmailAddress *ConfirmableEmailAddress) Confirm(given *ConfirmationHash) (*ConfirmableEmailAddress, error) {
-	if err := confirmableEmailAddress.confirmationHash.ShouldEqual(given); err != nil {
+func (confirmableEmailAddress *ConfirmableEmailAddress) Confirm(
+	given *EmailAddress,
+	with *ConfirmationHash,
+) (*ConfirmableEmailAddress, error) {
+
+	if !confirmableEmailAddress.baseEmailAddress.Equals(given) {
+		return nil, errors.New("confirmableEmailAddress.Confirm: emailAddress is not equal")
+	}
+
+	if err := confirmableEmailAddress.confirmationHash.ShouldEqual(with); err != nil {
 		return nil, xerrors.Errorf("confirmableEmailAddress.Confirm: %w", err)
 	}
 
