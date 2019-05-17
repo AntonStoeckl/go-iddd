@@ -44,7 +44,7 @@ func (confirmationHash *ConfirmationHash) Hash() string {
 
 func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) error {
 	if confirmationHash.value != other.value {
-		return xerrors.Errorf("confirmationHash.ShouldEqual: input does not match: %w", shared.ErrNotEqual)
+		return xerrors.Errorf("confirmationHash.ShouldEqual: %w", shared.ErrNotEqual)
 	}
 
 	return nil
