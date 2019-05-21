@@ -32,8 +32,8 @@ outer:
 		property := elem.Field(i)
 		propertyName := typeOf.Field(i).Name
 
-		for _, bar := range canBeNil {
-			if bar == propertyName {
+		for _, field := range canBeNil {
+			if field == propertyName {
 				continue outer
 			}
 		}
