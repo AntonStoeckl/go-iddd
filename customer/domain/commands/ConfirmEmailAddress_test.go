@@ -67,7 +67,7 @@ func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 
 		idValue, err := values.NewID(id)
 		So(err, ShouldBeNil)
-		emailAddressValue, err := values.NewEmailAddress("foo@bar.com")
+		emailAddressValue, err := values.NewEmailAddress(emailAddress)
 		So(err, ShouldBeNil)
 		confirmationHashValue, err := values.NewConfirmationHash(confirmationHash)
 		So(err, ShouldBeNil)
