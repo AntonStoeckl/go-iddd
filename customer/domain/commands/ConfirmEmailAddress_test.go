@@ -30,12 +30,12 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
-		Convey("Given that EmailAddress is nil instead", func() {
+		Convey("Given that EmailAddress is invalid instead", func() {
 			emailAddress = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
-		Convey("Given that ConfirmationHash is nil instead", func() {
+		Convey("Given that ConfirmationHash is invalid instead", func() {
 			confirmationHash = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
