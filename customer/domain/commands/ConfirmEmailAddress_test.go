@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewConfirmEmailAddress(t *testing.T) {
-	Convey("Given valid ID, EmailAddress and ConfirmationHash", t, func() {
+	Convey("Given valid input", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		emailAddress := "foo@bar.com"
 		confirmationHash := "secret_hash"
@@ -25,17 +25,17 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("Given that ID is invalid instead", func() {
+		Convey("Given that id is invalid", func() {
 			id = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
-		Convey("Given that EmailAddress is invalid instead", func() {
+		Convey("Given that emailAddress is invalid", func() {
 			emailAddress = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
-		Convey("Given that ConfirmationHash is invalid instead", func() {
+		Convey("Given that confirmationHash is invalid", func() {
 			confirmationHash = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
