@@ -3,8 +3,6 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
-
-	"golang.org/x/xerrors"
 )
 
 type Register struct {
@@ -16,19 +14,31 @@ type Register struct {
 /*** Factory Method ***/
 
 func NewRegister(
-	id *values.ID,
-	emailAddress *values.EmailAddress,
-	personName *values.PersonName,
+	id string,
+	emailAddress string,
+	givenName string,
+	familyName string,
 ) (*Register, error) {
 
-	register := &Register{
-		id:           id,
-		emailAddress: emailAddress,
-		personName:   personName,
+	idValue, err := values.NewID(id)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := shared.AssertAllCommandPropertiesAreNotNil(register); err != nil {
-		return nil, xerrors.Errorf("register.New -> %s: %w", err, shared.ErrNilInput)
+	emailAddressValue, err := values.NewEmailAddress(emailAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	personNameValue, err := values.NewPersonName(givenName, familyName)
+	if err != nil {
+		return nil, err
+	}
+
+	register := &Register{
+		id:           idValue,
+		emailAddress: emailAddressValue,
+		personName:   personNameValue,
 	}
 
 	return register, nil

@@ -1,12 +1,10 @@
-// +build generator
+// +buil generator
 
 //go:generate go run main.go
 
 package main
 
 import (
-	"bytes"
-	"errors"
 	"io"
 	"log"
 	"os"
@@ -21,9 +19,18 @@ import (
 
 const mode = "format" // "format", "noformat", "stdout"
 
-type Field struct {
+type Input struct {
 	FieldName string
 	DataType  string
+	Valid     string
+	Invalid   string
+}
+
+type Field struct {
+	FieldName    string
+	DataType     string
+	ValueFactory string
+	Input        []Input
 }
 
 type Command struct {
@@ -35,17 +42,60 @@ var commands = []Command{
 	{
 		CommandType: "Register",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
-			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
-			{FieldName: "personName", DataType: "*values.PersonName"},
+			{
+				FieldName:    "id",
+				DataType:     "*values.ID",
+				ValueFactory: "values.NewID(id)",
+				Input: []Input{
+					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+				},
+			},
+			{
+				FieldName:    "emailAddress",
+				DataType:     "*values.EmailAddress",
+				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				Input: []Input{
+					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
+				},
+			},
+			{
+				FieldName:    "personName",
+				DataType:     "*values.PersonName",
+				ValueFactory: "values.NewPersonName(givenName, familyName)",
+				Input: []Input{
+					{FieldName: "givenName", DataType: "string", Valid: `"John"`, Invalid: `""`},
+					{FieldName: "familyName", DataType: "string", Valid: `"Doe"`, Invalid: `""`},
+				},
+			},
 		},
 	},
 	{
 		CommandType: "ConfirmEmailAddress",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
-			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
-			{FieldName: "confirmationHash", DataType: "*values.ConfirmationHash"},
+			{
+				FieldName:    "id",
+				DataType:     "*values.ID",
+				ValueFactory: "values.NewID(id)",
+				Input: []Input{
+					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+				},
+			},
+			{
+				FieldName:    "emailAddress",
+				DataType:     "*values.EmailAddress",
+				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				Input: []Input{
+					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
+				},
+			},
+			{
+				FieldName:    "confirmationHash",
+				DataType:     "*values.ConfirmationHash",
+				ValueFactory: "values.NewConfirmationHash(confirmationHash)",
+				Input: []Input{
+					{FieldName: "confirmationHash", DataType: "string", Valid: `"secret_hash"`, Invalid: `""`},
+				},
+			},
 		},
 	},
 }
@@ -61,7 +111,7 @@ var config = Config{
 
 func main() {
 	generateCommands()
-	generateTestsForEvents()
+	generateTestsForCommands()
 }
 
 func generateCommands() {
@@ -125,7 +175,7 @@ func generateCommands() {
 	}
 }
 
-func generateTestsForEvents() {
+func generateTestsForCommands() {
 	var err error
 
 	methodName := func(input string) string {
@@ -141,45 +191,14 @@ func generateTestsForEvents() {
 		return string(unicode.ToLower(r)) + s[n:]
 	}
 
-	secondLastIndex := func(x []Field) int {
-		return len(x) - 2
-	}
-
-	valueFactoryForTestTemplates := map[string]string{
-		"id":               idFactoryForTestTemplate,
-		"emailAddress":     emailAddressFactoryForTestTemplate,
-		"confirmationHash": confirmationHashFactoryForTestTemplate,
-		"personName":       personNameFactoryForTestTemplate,
-	}
-
-	valueFactoryForTest := func(templateName string) string {
-		t := template.New("valueFactoryForTest")
-
-		tpl, found := valueFactoryForTestTemplates[templateName]
-		if !found {
-			die(errors.New("could not find valueFactoryForTest template for: " + templateName))
-		}
-
-		t, err = t.Parse(tpl)
-		die(err)
-
-		buf := bytes.NewBuffer([]byte{})
-		err = t.Execute(buf, false)
-		die(err)
-
-		return buf.String()
-	}
-
 	for _, event := range commands {
 		t := template.New(event.CommandType)
 
 		t = t.Funcs(
 			template.FuncMap{
-				"methodName":          methodName,
-				"commandName":         t.Name,
-				"lcFirst":             lcFirst,
-				"valueFactoryForTest": valueFactoryForTest,
-				"secondLastIndex":     secondLastIndex,
+				"methodName":  methodName,
+				"commandName": t.Name,
+				"lcFirst":     lcFirst,
 			},
 		)
 
@@ -242,17 +261,22 @@ type {{commandName}} struct {
 /*** Factory Method ***/
 
 func New{{commandName}}(
-	{{range .Fields}}{{.FieldName}} {{.DataType}},
+	{{range .Fields}}
+	{{- range .Input}}{{.FieldName}} {{.DataType}},
+	{{end -}}
 	{{end -}}
 ) (*{{commandName}}, error) {
 
-	{{$commandVar}} := &{{commandName}}{
-		{{range .Fields}}{{.FieldName}}: {{.FieldName}},
-		{{end -}}
+	{{range .Fields}}
+	{{.FieldName}}Value, err := {{.ValueFactory}}
+	if err != nil {
+		return nil, err
 	}
+	{{end}}
 
-	if err := shared.AssertAllCommandPropertiesAreNotNil({{$commandVar}}); err != nil {
-		return nil, xerrors.Errorf("{{lcFirst commandName}}.New -> %s: %w", err, shared.ErrNilInput)
+	{{$commandVar}} := &{{commandName}}{
+		{{range .Fields}}{{.FieldName}}: {{.FieldName}}Value,
+		{{end -}}
 	}
 
 	return {{$commandVar}}, nil
@@ -277,20 +301,9 @@ func ({{$commandVar}} *{{commandName}}) CommandName() string {
 }
 `
 
-var idFactoryForTestTemplate = `id := values.GenerateID()`
-
-var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
-	So(err, ShouldBeNil)`
-
-var confirmationHashFactoryForTestTemplate = `confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())`
-
-var personNameFactoryForTestTemplate = `personName, err := values.NewPersonName("John", "Doe")
-	So(err, ShouldBeNil)`
-
 var testTemplate = `
 {{$commandVar := lcFirst commandName}}
 {{$fields := .Fields}}
-{{$secondLastIndex := secondLastIndex .Fields}}
 package commands_test
 
 import (
@@ -304,12 +317,12 @@ import (
 )
 
 func TestNew{{commandName}}(t *testing.T) {
-	Convey("Given valid {{range $idx, $foo := .Fields}}{{methodName .DataType}}{{if lt $idx $secondLastIndex}}, {{end}}{{if eq $idx $secondLastIndex}} and {{end}}{{end}}", t, func() {
-		{{range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end}}
+	Convey("Given valid input", t, func() {
+		{{range .Fields}}{{range .Input}}{{.FieldName}} := {{.Valid}}
+		{{end}}{{end}}
 
 		Convey("When a new {{commandName}} command is created", func() {
-			{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+			{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{range .Input}}{{.FieldName}}, {{end}}{{end}})
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -318,25 +331,29 @@ func TestNew{{commandName}}(t *testing.T) {
 		})
 
 		{{range .Fields}}
-		Convey("Given that {{methodName .DataType}} is nil instead", func() {
-			var {{.FieldName}} {{.DataType}}
-			conveyNew{{commandName}}WithInvalidInput({{range $fields}}{{.FieldName}}, {{end}})
+		{{range .Input}}
+		Convey("Given that {{.FieldName}} is invalid", func() {
+			{{.FieldName}} = {{.Invalid}}
+			conveyNew{{commandName}}WithInvalidInput({{range $fields}}{{range .Input}}{{.FieldName}}, {{end}}{{end}})
 		})
+		{{end -}}
 		{{end -}}
 	})
 }
 
 func conveyNew{{commandName}}WithInvalidInput(
-	{{range .Fields}}{{.FieldName}} {{.DataType}},
+	{{range .Fields}}
+	{{- range .Input}}{{.FieldName}} {{.DataType}},
+	{{end -}}
 	{{end -}}
 ) {
 
 	Convey("When a new {{commandName}} command is created", func() {
-		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{range .Input}}{{.FieldName}}, {{end}}{{end}})
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrNilInput), ShouldBeTrue)
+			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So({{$commandVar}}, ShouldBeNil)
 		})
 	})
@@ -344,17 +361,21 @@ func conveyNew{{commandName}}WithInvalidInput(
 
 func Test{{commandName}}ExposesExpectedValues(t *testing.T) {
 	Convey("Given a {{commandName}} command", t, func() {
-		{{range .Fields}}{{valueFactoryForTest .FieldName}}
+		{{range .Fields}}{{range .Input}}{{.FieldName}} := {{.Valid}}
+		{{end}}{{end}}
+
+		{{range .Fields}}{{.FieldName}}Value, err := {{.ValueFactory}}
+		So(err, ShouldBeNil)
 		{{end}}
 
-		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{.FieldName}}, {{end}})
+		{{$commandVar}}, err := commands.New{{commandName}}({{range .Fields}}{{range .Input}}{{.FieldName}}, {{end}}{{end}})
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			{{range .Fields}}So({{$commandVar}}.{{methodName .DataType}}(), ShouldResemble, {{.FieldName}})
+			{{range .Fields}}So({{.FieldName}}Value.Equals({{$commandVar}}.{{methodName .DataType}}()), ShouldBeTrue)
 			{{end -}}
 			So({{$commandVar}}.CommandName(), ShouldEqual, "{{commandName}}")
-			So({{$commandVar}}.AggregateIdentifier(), ShouldResemble, id)
+			So(idValue.Equals({{$commandVar}}.AggregateIdentifier()), ShouldBeTrue)
 		})
 	})
 }

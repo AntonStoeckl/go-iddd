@@ -11,15 +11,14 @@ import (
 )
 
 func TestNewRegister(t *testing.T) {
-	Convey("Given valid ID, EmailAddress and PersonName", t, func() {
-		id := values.GenerateID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
-		So(err, ShouldBeNil)
-		personName, err := values.NewPersonName("John", "Doe")
-		So(err, ShouldBeNil)
+	Convey("Given valid input", t, func() {
+		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+		emailAddress := "john@doe.com"
+		givenName := "John"
+		familyName := "Doe"
 
 		Convey("When a new Register command is created", func() {
-			register, err := commands.NewRegister(id, emailAddress, personName)
+			register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -27,35 +26,41 @@ func TestNewRegister(t *testing.T) {
 			})
 		})
 
-		Convey("Given that ID is nil instead", func() {
-			var id *values.ID
-			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
+		Convey("Given that id is invalid", func() {
+			id = ""
+			conveyNewRegisterWithInvalidInput(id, emailAddress, givenName, familyName)
 		})
 
-		Convey("Given that EmailAddress is nil instead", func() {
-			var emailAddress *values.EmailAddress
-			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
+		Convey("Given that emailAddress is invalid", func() {
+			emailAddress = ""
+			conveyNewRegisterWithInvalidInput(id, emailAddress, givenName, familyName)
 		})
 
-		Convey("Given that PersonName is nil instead", func() {
-			var personName *values.PersonName
-			conveyNewRegisterWithInvalidInput(id, emailAddress, personName)
+		Convey("Given that givenName is invalid", func() {
+			givenName = ""
+			conveyNewRegisterWithInvalidInput(id, emailAddress, givenName, familyName)
+		})
+
+		Convey("Given that familyName is invalid", func() {
+			familyName = ""
+			conveyNewRegisterWithInvalidInput(id, emailAddress, givenName, familyName)
 		})
 	})
 }
 
 func conveyNewRegisterWithInvalidInput(
-	id *values.ID,
-	emailAddress *values.EmailAddress,
-	personName *values.PersonName,
+	id string,
+	emailAddress string,
+	givenName string,
+	familyName string,
 ) {
 
 	Convey("When a new Register command is created", func() {
-		register, err := commands.NewRegister(id, emailAddress, personName)
+		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrNilInput), ShouldBeTrue)
+			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So(register, ShouldBeNil)
 		})
 	})
@@ -63,21 +68,27 @@ func conveyNewRegisterWithInvalidInput(
 
 func TestRegisterExposesExpectedValues(t *testing.T) {
 	Convey("Given a Register command", t, func() {
-		id := values.GenerateID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+		emailAddress := "john@doe.com"
+		givenName := "John"
+		familyName := "Doe"
+
+		idValue, err := values.NewID(id)
 		So(err, ShouldBeNil)
-		personName, err := values.NewPersonName("John", "Doe")
+		emailAddressValue, err := values.NewEmailAddress(emailAddress)
+		So(err, ShouldBeNil)
+		personNameValue, err := values.NewPersonName(givenName, familyName)
 		So(err, ShouldBeNil)
 
-		register, err := commands.NewRegister(id, emailAddress, personName)
+		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			So(register.ID(), ShouldResemble, id)
-			So(register.EmailAddress(), ShouldResemble, emailAddress)
-			So(register.PersonName(), ShouldResemble, personName)
+			So(idValue.Equals(register.ID()), ShouldBeTrue)
+			So(emailAddressValue.Equals(register.EmailAddress()), ShouldBeTrue)
+			So(personNameValue.Equals(register.PersonName()), ShouldBeTrue)
 			So(register.CommandName(), ShouldEqual, "Register")
-			So(register.AggregateIdentifier(), ShouldResemble, id)
+			So(idValue.Equals(register.AggregateIdentifier()), ShouldBeTrue)
 		})
 	})
 }

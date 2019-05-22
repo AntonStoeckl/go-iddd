@@ -13,7 +13,7 @@ import (
 func TestNewConfirmEmailAddress(t *testing.T) {
 	Convey("Given valid input", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "foo@bar.com"
+		emailAddress := "john@doe.com"
 		confirmationHash := "secret_hash"
 
 		Convey("When a new ConfirmEmailAddress command is created", func() {
@@ -62,7 +62,7 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 	Convey("Given a ConfirmEmailAddress command", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "foo@bar.com"
+		emailAddress := "john@doe.com"
 		confirmationHash := "secret_hash"
 
 		idValue, err := values.NewID(id)
