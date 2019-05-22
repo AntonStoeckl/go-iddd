@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 
@@ -27,11 +28,44 @@ func NewConfirmEmailAddress(
 		confirmationHash: confirmationHash,
 	}
 
-	if err := shared.AssertAllCommandPropertiesAreNotNil(confirmEmailAddress); err != nil {
-		return nil, xerrors.Errorf("confirmEmailAddress.New -> %s: %w", err, shared.ErrNilInput)
+	if err := confirmEmailAddress.shouldHaveNonEmpty(id, emailAddress, confirmationHash); err != nil {
+		return nil, xerrors.Errorf("confirmEmailAddress.New: %s: %w", err, shared.ErrInputIsInvalid)
 	}
 
 	return confirmEmailAddress, nil
+}
+
+func (confirmEmailAddress *ConfirmEmailAddress) shouldHaveNonEmpty(
+	id *values.ID,
+	emailAddress *values.EmailAddress,
+	confirmationHash *values.ConfirmationHash,
+) error {
+
+	if id == nil {
+		return errors.New("id is nil")
+	}
+
+	if id.Equals(&values.ID{}) {
+		return errors.New("id is empty (not created with factory method)")
+	}
+
+	if emailAddress == nil {
+		return errors.New("emailAddress is nil")
+	}
+
+	if emailAddress.Equals(&values.EmailAddress{}) {
+		return errors.New("emailAddress is empty (not created with factory method)")
+	}
+
+	if confirmationHash == nil {
+		return errors.New("confirmationHash is nil")
+	}
+
+	if confirmationHash.Equals(&values.ConfirmationHash{}) {
+		return errors.New("confirmationHash is empty (not created with factory method)")
+	}
+
+	return nil
 }
 
 /*** Getter Methods ***/
