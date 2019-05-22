@@ -17,11 +17,7 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 		confirmationHash := "secret_hash"
 
 		Convey("When a new ConfirmEmailAddress command is created", func() {
-			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-				id,
-				emailAddress,
-				confirmationHash,
-			)
+			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -53,11 +49,7 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 ) {
 
 	Convey("When a new ConfirmEmailAddress command is created", func() {
-		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-			id,
-			emailAddress,
-			confirmationHash,
-		)
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
@@ -80,11 +72,7 @@ func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 		confirmationHashValue, err := values.NewConfirmationHash(confirmationHash)
 		So(err, ShouldBeNil)
 
-		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-			id,
-			emailAddress,
-			confirmationHash,
-		)
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
