@@ -12,10 +12,9 @@ import (
 
 func TestNewConfirmEmailAddress(t *testing.T) {
 	Convey("Given valid ID, EmailAddress and ConfirmationHash", t, func() {
-		id := values.GenerateID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
-		So(err, ShouldBeNil)
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+		emailAddress := "foo@bar.com"
+		confirmationHash := "secret_hash"
 
 		Convey("When a new ConfirmEmailAddress command is created", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
@@ -26,27 +25,27 @@ func TestNewConfirmEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("Given that ID is nil instead", func() {
-			var id *values.ID
+		Convey("Given that ID is invalid instead", func() {
+			id = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
 		Convey("Given that EmailAddress is nil instead", func() {
-			var emailAddress *values.EmailAddress
+			emailAddress = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 
 		Convey("Given that ConfirmationHash is nil instead", func() {
-			var confirmationHash *values.ConfirmationHash
+			confirmationHash = ""
 			conveyNewConfirmEmailAddressWithInvalidInput(id, emailAddress, confirmationHash)
 		})
 	})
 }
 
 func conveyNewConfirmEmailAddressWithInvalidInput(
-	id *values.ID,
-	emailAddress *values.EmailAddress,
-	confirmationHash *values.ConfirmationHash,
+	id string,
+	emailAddress string,
+	confirmationHash string,
 ) {
 
 	Convey("When a new ConfirmEmailAddress command is created", func() {
@@ -54,7 +53,7 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrNilInput), ShouldBeTrue)
+			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So(confirmEmailAddress, ShouldBeNil)
 		})
 	})
@@ -62,20 +61,26 @@ func conveyNewConfirmEmailAddressWithInvalidInput(
 
 func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 	Convey("Given a ConfirmEmailAddress command", t, func() {
-		id := values.GenerateID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+		emailAddress := "foo@bar.com"
+		confirmationHash := "secret_hash"
+
+		idValue, err := values.NewID(id)
 		So(err, ShouldBeNil)
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		emailAddressValue, err := values.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		confirmationHashValue, err := values.NewConfirmationHash(confirmationHash)
+		So(err, ShouldBeNil)
 
 		confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			So(confirmEmailAddress.ID(), ShouldResemble, id)
-			So(confirmEmailAddress.EmailAddress(), ShouldResemble, emailAddress)
-			So(confirmEmailAddress.ConfirmationHash(), ShouldResemble, confirmationHash)
+			So(idValue.Equals(confirmEmailAddress.ID()), ShouldBeTrue)
+			So(emailAddressValue.Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
+			So(confirmationHashValue.Equals(confirmEmailAddress.ConfirmationHash()), ShouldBeTrue)
 			So(confirmEmailAddress.CommandName(), ShouldEqual, "ConfirmEmailAddress")
-			So(confirmEmailAddress.AggregateIdentifier(), ShouldResemble, id)
+			So(idValue.Equals(confirmEmailAddress.AggregateIdentifier()), ShouldBeTrue)
 		})
 	})
 }

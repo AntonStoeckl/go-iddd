@@ -1,11 +1,8 @@
 package commands
 
 import (
-	"errors"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
-
-	"golang.org/x/xerrors"
 )
 
 type ConfirmEmailAddress struct {
@@ -17,55 +14,33 @@ type ConfirmEmailAddress struct {
 /*** Factory Method ***/
 
 func NewConfirmEmailAddress(
-	id *values.ID,
-	emailAddress *values.EmailAddress,
-	confirmationHash *values.ConfirmationHash,
+	id string,
+	emailAddress string,
+	confirmationHash string,
 ) (*ConfirmEmailAddress, error) {
 
-	confirmEmailAddress := &ConfirmEmailAddress{
-		id:               id,
-		emailAddress:     emailAddress,
-		confirmationHash: confirmationHash,
+	idValue, err := values.NewID(id)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := confirmEmailAddress.shouldHaveNonEmpty(id, emailAddress, confirmationHash); err != nil {
-		return nil, xerrors.Errorf("confirmEmailAddress.New: %s: %w", err, shared.ErrInputIsInvalid)
+	emailAddressValue, err := values.NewEmailAddress(emailAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	confirmationHashValue, err := values.NewConfirmationHash(confirmationHash)
+	if err != nil {
+		return nil, err
+	}
+
+	confirmEmailAddress := &ConfirmEmailAddress{
+		id:               idValue,
+		emailAddress:     emailAddressValue,
+		confirmationHash: confirmationHashValue,
 	}
 
 	return confirmEmailAddress, nil
-}
-
-func (confirmEmailAddress *ConfirmEmailAddress) shouldHaveNonEmpty(
-	id *values.ID,
-	emailAddress *values.EmailAddress,
-	confirmationHash *values.ConfirmationHash,
-) error {
-
-	if id == nil {
-		return errors.New("id is nil")
-	}
-
-	if id.Equals(&values.ID{}) {
-		return errors.New("id is empty (not created with factory method)")
-	}
-
-	if emailAddress == nil {
-		return errors.New("emailAddress is nil")
-	}
-
-	if emailAddress.Equals(&values.EmailAddress{}) {
-		return errors.New("emailAddress is empty (not created with factory method)")
-	}
-
-	if confirmationHash == nil {
-		return errors.New("confirmationHash is nil")
-	}
-
-	if confirmationHash.Equals(&values.ConfirmationHash{}) {
-		return errors.New("confirmationHash is empty (not created with factory method)")
-	}
-
-	return nil
 }
 
 /*** Getter Methods ***/
