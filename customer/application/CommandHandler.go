@@ -1,6 +1,8 @@
 package application
 
 import (
+	"errors"
+	"fmt"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
@@ -26,7 +28,7 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 	var err error
 
 	if err := handler.assertIsValid(command); err != nil {
-		return err
+		return xerrors.Errorf("commandHandler.Handle: %s: %w", err, shared.ErrCommandIsInvalid)
 	}
 
 	switch actualCommand := command.(type) {
@@ -78,27 +80,15 @@ func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command sh
 
 func (handler *CommandHandler) assertIsValid(command shared.Command) error {
 	if command == nil {
-		// command is a nil interface
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command is nil interface: %w",
-			shared.ErrCommandIsInvalid,
-		)
+		return errors.New("command is nil interface")
 	}
 
 	if reflect.ValueOf(command).IsNil() {
-		// value of the command inteface is a nil pointer
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command is nil pointer: %w",
-			shared.ErrCommandIsInvalid,
-		)
+		return fmt.Errorf("[%s]: command value is nil pointer", command.CommandName())
 	}
 
 	if reflect.ValueOf(command.AggregateIdentifier()).IsNil() {
-		// command has no AggregateIdentifier, so it can't have been created with a proper factory method
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command has no AggregateIdentifier: %w",
-			shared.ErrCommandIsInvalid,
-		)
+		return fmt.Errorf("[%s]: command was not properly created", command.CommandName())
 	}
 
 	return nil

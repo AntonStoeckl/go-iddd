@@ -192,6 +192,8 @@ func TestHandleInvalidCommand(t *testing.T) {
 	})
 }
 
+/*** Test Helpers ***/
+
 type unknownCommand struct{}
 
 func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
