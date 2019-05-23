@@ -9,8 +9,6 @@ import (
 	"golang.org/x/xerrors"
 )
 
-//go:generate mockery -name Customer -output ../application/mocks -outpkg mocks -note "Regenerate by running `go generate` in domain/Customer"
-
 type Customer interface {
 	Apply(cmd shared.Command) error
 
