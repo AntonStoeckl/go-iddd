@@ -1,7 +1,8 @@
-package application
+package application_test
 
 import (
 	"errors"
+	"go-iddd/customer/application"
 	"go-iddd/customer/application/mocks"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
@@ -9,64 +10,42 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/xerrors"
 )
 
 func TestHandleRegister(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
-		commandHandler := NewCommandHandler(mockCustomers)
+		commandHandler := application.NewCommandHandler(mockCustomers)
 
 		Convey("And given a Register command", func() {
-			id := values.GenerateID()
-			emailAddress, err := values.NewEmailAddress("foo@bar.com")
-			So(err, ShouldBeNil)
-			personName, err := values.NewPersonName("John", "Doe")
-			So(err, ShouldBeNil)
+			id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+			emailAddress := "john@doe.com"
+			givenName := "John"
+			familyName := "Doe"
 
-			register, err := commands.NewRegister(id, emailAddress, personName)
+			register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
-				mockCustomer := new(mocks.Customer)
-				mockCustomers.On("New").Return(mockCustomer)
-				expectedErr := errors.New("mocked error")
+				Convey("And when saving the Customer succeeds", func() {
+					mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
+					err := commandHandler.Handle(register)
 
-				Convey("And when applying register succeeds", func() {
-					mockCustomer.On("Apply", register).Return(nil)
-
-					Convey("And when saving the Customer succeeds", func() {
-						mockCustomers.On("Save", mockCustomer).Return(nil).Once()
-
-						err := commandHandler.Handle(register)
-
-						Convey("It should register and save a Customer", func() {
-							So(err, ShouldBeNil)
-							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
-							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
-						})
-					})
-
-					Convey("And when saving the Customer fails", func() {
-						expectedErr := errors.New("mocked error")
-						mockCustomers.On("Save", mockCustomer).Return(expectedErr).Once()
-
-						err := commandHandler.Handle(register)
-
-						Convey("It should fail", func() {
-							So(err, ShouldBeError, expectedErr)
-							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
-						})
+					Convey("It should register and save a Customer", func() {
+						So(err, ShouldBeNil)
+						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
 
-				Convey("And when applying register fails", func() {
-					mockCustomer.On("Apply", register).Return(expectedErr)
-
+				Convey("And when saving the Customer fails", func() {
+					expectedErr := errors.New("mocked error")
+					mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
 					err := commandHandler.Handle(register)
 
 					Convey("It should fail", func() {
 						So(err, ShouldBeError, expectedErr)
-						So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
@@ -78,13 +57,12 @@ func TestHandleRegister(t *testing.T) {
 func TestHandleConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
-		commandHandler := NewCommandHandler(mockCustomers)
+		commandHandler := application.NewCommandHandler(mockCustomers)
 
 		Convey("And given a ConfirmEmailAddress command", func() {
-			id := values.GenerateID()
-			emailAddress, err := values.NewEmailAddress("foo@bar.com")
-			So(err, ShouldBeNil)
-			confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+			id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
+			emailAddress := "john@doe.com"
+			confirmationHash := "secret_hash"
 
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 			So(err, ShouldBeNil)
@@ -94,14 +72,13 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 				Convey("And when finding the Customer succeeds", func() {
 					mockCustomer := new(mocks.Customer)
-					mockCustomers.On("FindBy", id).Return(mockCustomer, nil).Once()
+					mockCustomers.On("FindBy", confirmEmailAddress.ID()).Return(mockCustomer, nil).Once()
 
 					Convey("And when applying confirmEmailAddress succeeds", func() {
 						mockCustomer.On("Apply", confirmEmailAddress).Return(nil)
 
 						Convey("And when saving the Customer succeeds", func() {
 							mockCustomers.On("Save", mockCustomer).Return(nil).Once()
-
 							err := commandHandler.Handle(confirmEmailAddress)
 
 							Convey("It should confirmEmailAddress of a Customer and save it", func() {
@@ -113,7 +90,6 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 						Convey("And when saving the Customer fails", func() {
 							mockCustomers.On("Save", mockCustomer).Return(expectedErr).Once()
-
 							err := commandHandler.Handle(confirmEmailAddress)
 
 							Convey("It should fail", func() {
@@ -125,7 +101,6 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 					Convey("And when applying confirmEmailAddress fails", func() {
 						mockCustomer.On("Apply", confirmEmailAddress).Return(expectedErr)
-
 						err := commandHandler.Handle(confirmEmailAddress)
 
 						Convey("It should fail", func() {
@@ -137,7 +112,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 				})
 
 				Convey("And when finding the Customer fails", func() {
-					mockCustomers.On("FindBy", id).Return(nil, expectedErr).Once()
+					mockCustomers.On("FindBy", confirmEmailAddress.ID()).Return(nil, expectedErr).Once()
 					err := commandHandler.Handle(confirmEmailAddress)
 
 					Convey("It should fail", func() {
@@ -153,44 +128,54 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 func TestHandleInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
-		commandHandler := NewCommandHandler(mockCustomers)
+		commandHandler := application.NewCommandHandler(mockCustomers)
 		So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
 
-		Convey("And given an invalid Command", func() {
-			var invalidCommand shared.Command
+		Convey("When a nil interface command is handled", func() {
+			var nilInterfaceCommand shared.Command
+			err := commandHandler.Handle(nilInterfaceCommand)
 
-			Convey("When the command is handled", func() {
-				err := commandHandler.Handle(invalidCommand)
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+			})
+		})
 
-				Convey("It should fail", func() {
-					So(err, ShouldBeError, "commandHandler - nil command handled")
-				})
+		Convey("When a nil pointer command is handled", func() {
+			var nilCommand *commands.ConfirmEmailAddress
+			err := commandHandler.Handle(nilCommand)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+			})
+		})
+
+		Convey("When an empty command is handled", func() {
+			emptyCommand := &commands.ConfirmEmailAddress{}
+			err := commandHandler.Handle(emptyCommand)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+			})
+		})
+
+		Convey("When an unknown command is handled", func() {
+			unknownCommand := &unknownCommand{initialized: true}
+			err := commandHandler.Handle(unknownCommand)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
 			})
 		})
 	})
 }
 
-func TestHandleUnknownCommand(t *testing.T) {
-	Convey("Given a CommandHandler", t, func() {
-		mockCustomers := new(mocks.Customers)
-		commandHandler := NewCommandHandler(mockCustomers)
-		So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
-
-		Convey("And given an unknown Command", func() {
-			unknownCommand := &unknownCommand{}
-
-			Convey("When the command is handled", func() {
-				err := commandHandler.Handle(unknownCommand)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError, "commandHandler - unknown command handled")
-				})
-			})
-		})
-	})
+type unknownCommand struct {
+	initialized bool
 }
-
-type unknownCommand struct{}
 
 func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
 	return values.GenerateID()
