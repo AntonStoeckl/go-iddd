@@ -53,6 +53,14 @@ func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
 	return emailAddress.value == other.value
 }
 
+func (emailAddress *EmailAddress) ShouldEqual(other *EmailAddress) error {
+	if !emailAddress.Equals(other) {
+		return xerrors.Errorf("emailAddress.ShouldEqual: %w", shared.ErrNotEqual)
+	}
+
+	return nil
+}
+
 /*** Conversion Methods ***/
 
 func (emailAddress *EmailAddress) ToConfirmable() *ConfirmableEmailAddress {

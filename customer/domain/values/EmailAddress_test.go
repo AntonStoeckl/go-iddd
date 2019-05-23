@@ -13,10 +13,8 @@ import (
 
 func TestNewEmailAddress(t *testing.T) {
 	Convey("Given a valid emailAddress as input", t, func() {
-		emailAddressValue := "foo@bar.com"
-
 		Convey("When a new EmailAddress is created", func() {
-			emailAddress, err := values.NewEmailAddress(emailAddressValue)
+			emailAddress, err := values.NewEmailAddress("foo@bar.com")
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -27,10 +25,8 @@ func TestNewEmailAddress(t *testing.T) {
 	})
 
 	Convey("Given an invalid emailAddress as input", t, func() {
-		emailAddressValue := "foo@bar.c"
-
 		Convey("When a new EmailAddress is created", func() {
-			emailAddress, err := values.NewEmailAddress(emailAddressValue)
+			emailAddress, err := values.NewEmailAddress("foo@bar.c")
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -70,7 +66,7 @@ func TestEmailAddressEquals(t *testing.T) {
 			Convey("When they are compared", func() {
 				isEqual := emailAddress.Equals(equalEmailAddress)
 
-				Convey("Then they should be equal", func() {
+				Convey("They should be equal", func() {
 					So(isEqual, ShouldBeTrue)
 				})
 			})
@@ -84,8 +80,43 @@ func TestEmailAddressEquals(t *testing.T) {
 			Convey("When they are compared", func() {
 				isEqual := emailAddress.Equals(differentEmailAddress)
 
-				Convey("Then they should not be equal", func() {
+				Convey("They should not be equal", func() {
 					So(isEqual, ShouldBeFalse)
+				})
+			})
+		})
+	})
+}
+
+func TestEmailAddressShouldEqual(t *testing.T) {
+	Convey("Given an EmailAddress", t, func() {
+		emailAddressValue := "foo@bar.com"
+		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		So(err, ShouldBeNil)
+
+		Convey("And given an equal EmailAddress", func() {
+			equalEmailAddress, err := values.NewEmailAddress(emailAddressValue)
+			So(err, ShouldBeNil)
+
+			Convey("When they are compared", func() {
+				err := emailAddress.ShouldEqual(equalEmailAddress)
+
+				Convey("It should succeed", func() {
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("And given a different EmailAddress", func() {
+			differentEmailAddress, err := values.NewEmailAddress("foo+different@bar.com")
+			So(err, ShouldBeNil)
+
+			Convey("When they are compared", func() {
+				err := emailAddress.ShouldEqual(differentEmailAddress)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 				})
 			})
 		})
@@ -96,8 +127,7 @@ func TestEmailAddressEquals(t *testing.T) {
 
 func TestEmailAddressToConfirmable(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
-		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When it is converted to confirmable", func() {
@@ -116,8 +146,7 @@ func TestEmailAddressToConfirmable(t *testing.T) {
 
 func TestEmailAddressMarshalJSON(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
-		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When it is marshaled to json", func() {
@@ -133,8 +162,7 @@ func TestEmailAddressMarshalJSON(t *testing.T) {
 
 func TestEmailAddressUnmarshalJSON(t *testing.T) {
 	Convey("Given an EmailAddress marshaled to json", t, func() {
-		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		data, err := emailAddress.MarshalJSON()
 		So(err, ShouldBeNil)

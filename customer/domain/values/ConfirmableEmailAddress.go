@@ -2,7 +2,6 @@ package values
 
 import (
 	"encoding/json"
-	"errors"
 	"go-iddd/shared"
 
 	"golang.org/x/xerrors"
@@ -44,19 +43,13 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) Equals(other *EmailAddre
 	return confirmableEmailAddress.baseEmailAddress.Equals(other)
 }
 
-/*** Modification Methods ***/
-
-func (confirmableEmailAddress *ConfirmableEmailAddress) Confirm(
-	given *EmailAddress,
-	with *ConfirmationHash,
-) (*ConfirmableEmailAddress, error) {
-
-	if !confirmableEmailAddress.baseEmailAddress.Equals(given) {
-		return nil, errors.New("confirmableEmailAddress.Confirm: emailAddress is not equal")
+func (confirmableEmailAddress *ConfirmableEmailAddress) ShouldConfirm(given *EmailAddress, with *ConfirmationHash) error {
+	if err := confirmableEmailAddress.baseEmailAddress.ShouldEqual(given); err != nil {
+		return xerrors.Errorf("confirmableEmailAddress.ShouldConfirm: %w", err)
 	}
 
 	if err := confirmableEmailAddress.confirmationHash.ShouldEqual(with); err != nil {
-		return nil, xerrors.Errorf("confirmableEmailAddress.Confirm: %w", err)
+		return xerrors.Errorf("confirmableEmailAddress.ShouldConfirm: %w", err)
 	}
 
 	confirmedEmailAddress := buildConfirmableEmailAddress(
@@ -66,7 +59,20 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) Confirm(
 
 	confirmedEmailAddress.isConfirmed = true
 
-	return confirmedEmailAddress, nil
+	return nil
+}
+
+/*** Modification Methods ***/
+
+func (confirmableEmailAddress *ConfirmableEmailAddress) MarkAsConfirmed() *ConfirmableEmailAddress {
+	confirmedEmailAddress := buildConfirmableEmailAddress(
+		confirmableEmailAddress.baseEmailAddress,
+		confirmableEmailAddress.confirmationHash,
+	)
+
+	confirmedEmailAddress.isConfirmed = true
+
+	return confirmedEmailAddress
 }
 
 /*** Implement json.Marshaler ***/

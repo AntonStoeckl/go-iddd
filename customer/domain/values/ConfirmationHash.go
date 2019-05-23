@@ -57,16 +57,16 @@ func (confirmationHash *ConfirmationHash) Hash() string {
 
 /*** Comparison Methods ***/
 
+func (confirmationHash *ConfirmationHash) Equals(other *ConfirmationHash) bool {
+	return confirmationHash.value == other.value
+}
+
 func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) error {
 	if confirmationHash.value != other.value {
 		return xerrors.Errorf("confirmationHash.ShouldEqual: %w", shared.ErrNotEqual)
 	}
 
 	return nil
-}
-
-func (confirmationHash *ConfirmationHash) Equals(other *ConfirmationHash) bool {
-	return confirmationHash.value == other.value
 }
 
 /*** Implement json.Marshaler ***/

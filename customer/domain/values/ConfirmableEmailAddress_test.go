@@ -13,7 +13,7 @@ import (
 /*** Tests for Getter methods ***/
 
 func TestConfirmableEmailAddressExposesExpectedValues(t *testing.T) {
-	Convey("Given a new ConfirmableEmailAddress", t, func() {
+	Convey("Given a ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
 		emailAddress, err := values.NewEmailAddress(emailAddressValue)
 		So(err, ShouldBeNil)
@@ -70,37 +70,54 @@ func TestConfirmableEmailAddressEquals(t *testing.T) {
 	})
 }
 
-/*** Tests for Modification methods ***/
-
-func TestConfirmableEmailAddressConfirm(t *testing.T) {
-	Convey("Given a new ConfirmableEmailAddress", t, func() {
-		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+func TestConfirmableEmailAddressMarkAsConfirmed(t *testing.T) {
+	Convey("Given a ConfirmableEmailAddress", t, func() {
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		unconfirmedEmailAddress := emailAddress.ToConfirmable()
 
-		Convey("When it is confirmed with the right ConfirmationHash", func() {
-			confirmationHash, err := values.RebuildConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
-			So(err, ShouldBeNil)
-			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(emailAddress, confirmationHash)
+		Convey("When it is marked as confirmed", func() {
+			confirmedEmailAddress := unconfirmedEmailAddress.MarkAsConfirmed()
 
 			Convey("It should be confirmed", func() {
-				So(err, ShouldBeNil)
 				So(confirmedEmailAddress.IsConfirmed(), ShouldBeTrue)
 				So(unconfirmedEmailAddress.IsConfirmed(), ShouldBeFalse)
 			})
 		})
+	})
+}
 
-		Convey("When it is confirmed with a wrong ConfirmationHash", func() {
+/*** Tests for Modification methods ***/
+
+func TestConfirmableEmailAddressConfirm(t *testing.T) {
+	Convey("Given a ConfirmableEmailAddress", t, func() {
+		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		So(err, ShouldBeNil)
+		unconfirmedEmailAddress := emailAddress.ToConfirmable()
+
+		Convey("It should confirm with the matching ConfirmationHash", func() {
+			confirmationHash, err := values.RebuildConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			So(err, ShouldBeNil)
+			err = unconfirmedEmailAddress.ShouldConfirm(emailAddress, confirmationHash)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("It should not confirm a changed EmailAddress", func() {
+			confirmationHash, err := values.RebuildConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			So(err, ShouldBeNil)
+			emailAddressValue := "foo+changed@bar.com"
+			emailAddress, err := values.NewEmailAddress(emailAddressValue)
+			err = unconfirmedEmailAddress.ShouldConfirm(emailAddress, confirmationHash)
+			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
+		})
+
+		Convey("It should not confirm with a wrong ConfirmationHash", func() {
 			confirmationHash, err := values.RebuildConfirmationHash("invalid_confirmation_hash")
 			So(err, ShouldBeNil)
-			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(emailAddress, confirmationHash)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
-				So(confirmedEmailAddress, ShouldBeNil)
-			})
+			err = unconfirmedEmailAddress.ShouldConfirm(emailAddress, confirmationHash)
+			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 		})
 	})
 }
@@ -157,7 +174,7 @@ func TestConfirmableEmailAddressUnmarshalJSON(t *testing.T) {
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should fail", func() {
-				So(err, ShouldNotBeNil)
+				So(err, ShouldBeError)
 				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
