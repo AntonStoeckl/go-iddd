@@ -366,6 +366,7 @@ func Test{{.EventFactory}}(t *testing.T) {
 
 			Convey("It should succeed", func() {
 				So({{$eventVar}}, ShouldNotBeNil)
+				So({{$eventVar}}, ShouldImplement, (*shared.DomainEvent)(nil))
 				So({{$eventVar}}, ShouldHaveSameTypeAs, (*events.{{eventName}})(nil))
 			})
 		})
@@ -379,8 +380,6 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 		beforeItOccurred := time.Now()
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
 		afterItOccurred := time.Now()
-		So({{$eventVar}}, ShouldNotBeNil)
-		So({{$eventVar}}, ShouldHaveSameTypeAs, (*events.{{eventName}})(nil))
 
 		Convey("It should expose the expected values", func() {
 			{{range .Fields}}So({{$eventVar}}.{{methodName .DataType}}(), ShouldResemble, {{.FieldName}})
@@ -401,8 +400,6 @@ func Test{{eventName}}MarshalJSON(t *testing.T) {
 		{{end}}
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
-		So({{$eventVar}}, ShouldNotBeNil)
-		So({{$eventVar}}, ShouldHaveSameTypeAs, (*events.{{eventName}})(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := {{$eventVar}}.MarshalJSON()
@@ -422,8 +419,6 @@ func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 		{{end}}
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
-		So({{$eventVar}}, ShouldNotBeNil)
-		So({{$eventVar}}, ShouldHaveSameTypeAs, (*events.{{eventName}})(nil))
 
 		data, err := {{$eventVar}}.MarshalJSON()
 

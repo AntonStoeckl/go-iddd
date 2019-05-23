@@ -22,6 +22,7 @@ func TestEmailAddressWasConfirmed(t *testing.T) {
 
 			Convey("It should succeed", func() {
 				So(emailAddressConfirmed, ShouldNotBeNil)
+				So(emailAddressConfirmed, ShouldImplement, (*shared.DomainEvent)(nil))
 				So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 			})
 		})
@@ -37,8 +38,6 @@ func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
 		beforeItOccurred := time.Now()
 		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
 		afterItOccurred := time.Now()
-		So(emailAddressConfirmed, ShouldNotBeNil)
-		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
 		Convey("It should expose the expected values", func() {
 			So(emailAddressConfirmed.ID(), ShouldResemble, id)
@@ -60,8 +59,6 @@ func TestEmailAddressConfirmedMarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
-		So(emailAddressConfirmed, ShouldNotBeNil)
-		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := emailAddressConfirmed.MarshalJSON()
@@ -82,8 +79,6 @@ func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress)
-		So(emailAddressConfirmed, ShouldNotBeNil)
-		So(emailAddressConfirmed, ShouldHaveSameTypeAs, (*events.EmailAddressConfirmed)(nil))
 
 		data, err := emailAddressConfirmed.MarshalJSON()
 

@@ -25,6 +25,7 @@ func TestItWasRegistered(t *testing.T) {
 
 			Convey("It should succeed", func() {
 				So(registered, ShouldNotBeNil)
+				So(registered, ShouldImplement, (*shared.DomainEvent)(nil))
 				So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
 			})
 		})
@@ -43,8 +44,6 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 		beforeItOccurred := time.Now()
 		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
 		afterItOccurred := time.Now()
-		So(registered, ShouldNotBeNil)
-		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
 
 		Convey("It should expose the expected values", func() {
 			So(registered.ID(), ShouldResemble, id)
@@ -70,8 +69,6 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
-		So(registered, ShouldNotBeNil)
-		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
 
 		Convey("When it is marshaled to json", func() {
 			data, err := registered.MarshalJSON()
@@ -95,8 +92,6 @@ func TestRegisteredUnmarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
-		So(registered, ShouldNotBeNil)
-		So(registered, ShouldHaveSameTypeAs, (*events.Registered)(nil))
 
 		data, err := registered.MarshalJSON()
 
