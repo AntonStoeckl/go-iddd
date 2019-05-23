@@ -14,6 +14,23 @@ import (
 	"golang.org/x/xerrors"
 )
 
+/***** Test factory method *****/
+
+func TestNewCommandHandler(t *testing.T) {
+	Convey("When a new CommandHandler is created", t, func() {
+		mockCustomers := new(mocks.Customers)
+		commandHandler := application.NewCommandHandler(mockCustomers)
+
+		Convey("It should succeed", func() {
+			So(commandHandler, ShouldNotBeNil)
+			So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
+			So(commandHandler, ShouldHaveSameTypeAs, (*application.CommandHandler)(nil))
+		})
+	})
+}
+
+/***** Test business cases *****/
+
 func TestHandleRegister(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		mockCustomers := new(mocks.Customers)
@@ -124,6 +141,8 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 		})
 	})
 }
+
+/***** Test handling invalid commands *****/
 
 func TestHandleInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {

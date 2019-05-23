@@ -10,19 +10,19 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type commandHandler struct {
+type CommandHandler struct {
 	customers domain.Customers
 }
 
 /*** Factory Method ***/
 
-func NewCommandHandler(customers domain.Customers) *commandHandler {
-	return &commandHandler{customers: customers}
+func NewCommandHandler(customers domain.Customers) *CommandHandler {
+	return &CommandHandler{customers: customers}
 }
 
 /*** Implement shared.CommandHandler ***/
 
-func (handler *commandHandler) Handle(command shared.Command) error {
+func (handler *CommandHandler) Handle(command shared.Command) error {
 	var err error
 
 	if err := handler.assertIsValid(command); err != nil {
@@ -45,9 +45,9 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	return err
 }
 
-/*** Business methods ***/
+/*** Business cases ***/
 
-func (handler *commandHandler) register(register *commands.Register) error {
+func (handler *CommandHandler) register(register *commands.Register) error {
 	customer := domain.Register(register)
 
 	if err := handler.customers.Save(customer); err != nil {
@@ -57,7 +57,7 @@ func (handler *commandHandler) register(register *commands.Register) error {
 	return nil
 }
 
-func (handler *commandHandler) applyToExistingCustomer(id *values.ID, command shared.Command) error {
+func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command shared.Command) error {
 	customer, err := handler.customers.FindBy(id)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (handler *commandHandler) applyToExistingCustomer(id *values.ID, command sh
 
 /***** Command Assertions *****/
 
-func (handler *commandHandler) assertIsValid(command shared.Command) error {
+func (handler *CommandHandler) assertIsValid(command shared.Command) error {
 	if command == nil {
 		// command is a nil interface
 		return xerrors.Errorf(
