@@ -45,7 +45,7 @@ var commands = []Command{
 			{
 				FieldName:    "id",
 				DataType:     "*values.ID",
-				ValueFactory: "values.NewID(id)",
+				ValueFactory: "values.RebuildID(id)",
 				Input: []Input{
 					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
@@ -75,7 +75,7 @@ var commands = []Command{
 			{
 				FieldName:    "id",
 				DataType:     "*values.ID",
-				ValueFactory: "values.NewID(id)",
+				ValueFactory: "values.RebuildID(id)",
 				Input: []Input{
 					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
@@ -91,7 +91,7 @@ var commands = []Command{
 			{
 				FieldName:    "confirmationHash",
 				DataType:     "*values.ConfirmationHash",
-				ValueFactory: "values.NewConfirmationHash(confirmationHash)",
+				ValueFactory: "values.RebuildConfirmationHash(confirmationHash)",
 				Input: []Input{
 					{FieldName: "confirmationHash", DataType: "string", Valid: `"secret_hash"`, Invalid: `""`},
 				},

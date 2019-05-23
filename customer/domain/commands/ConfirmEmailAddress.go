@@ -21,7 +21,7 @@ func NewConfirmEmailAddress(
 	confirmationHash string,
 ) (*ConfirmEmailAddress, error) {
 
-	idValue, err := values.NewID(id)
+	idValue, err := values.RebuildID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func NewConfirmEmailAddress(
 		return nil, err
 	}
 
-	confirmationHashValue, err := values.NewConfirmationHash(confirmationHash)
+	confirmationHashValue, err := values.RebuildConfirmationHash(confirmationHash)
 	if err != nil {
 		return nil, err
 	}

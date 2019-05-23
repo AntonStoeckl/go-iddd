@@ -22,7 +22,7 @@ func NewRegister(
 	familyName string,
 ) (*Register, error) {
 
-	idValue, err := values.NewID(id)
+	idValue, err := values.RebuildID(id)
 	if err != nil {
 		return nil, err
 	}
