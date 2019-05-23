@@ -1,4 +1,4 @@
-// +buil generator
+// +build generator
 
 //go:generate go run main.go
 
@@ -249,8 +249,8 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
-
-	"golang.org/x/xerrors"
+	"reflect"
+	"strings"
 )
 
 type {{commandName}} struct {
@@ -297,7 +297,11 @@ func ({{$commandVar}} *{{commandName}}) AggregateIdentifier() shared.AggregateId
 }
 
 func ({{$commandVar}} *{{commandName}}) CommandName() string {
-	return shared.BuildCommandNameFor({{$commandVar}})
+	commandType := reflect.TypeOf({{$commandVar}}).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }
 `
 

@@ -3,6 +3,8 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
 )
 
 type Register struct {
@@ -65,5 +67,9 @@ func (register *Register) AggregateIdentifier() shared.AggregateIdentifier {
 }
 
 func (register *Register) CommandName() string {
-	return shared.BuildCommandNameFor(register)
+	commandType := reflect.TypeOf(register).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }

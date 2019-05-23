@@ -3,6 +3,8 @@ package commands
 import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
 )
 
 type ConfirmEmailAddress struct {
@@ -64,5 +66,9 @@ func (confirmEmailAddress *ConfirmEmailAddress) AggregateIdentifier() shared.Agg
 }
 
 func (confirmEmailAddress *ConfirmEmailAddress) CommandName() string {
-	return shared.BuildCommandNameFor(confirmEmailAddress)
+	commandType := reflect.TypeOf(confirmEmailAddress).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }
