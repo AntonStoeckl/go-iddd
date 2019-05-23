@@ -2,11 +2,11 @@ package values
 
 import (
 	"encoding/json"
+	"errors"
 	"go-iddd/shared"
 
-	"golang.org/x/xerrors"
-
 	"github.com/google/uuid"
+	"golang.org/x/xerrors"
 )
 
 type ID struct {
@@ -19,12 +19,26 @@ func GenerateID() *ID {
 	return buildID(uuid.New().String())
 }
 
-func ReconstituteID(from string) *ID {
-	return buildID(from)
+func RebuildID(from string) (*ID, error) {
+	rebuiltID := buildID(from)
+
+	if err := rebuiltID.shouldBeValid(); err != nil {
+		return nil, xerrors.Errorf("id.New: %s: %w", err, shared.ErrInputIsInvalid)
+	}
+
+	return rebuiltID, nil
 }
 
 func buildID(from string) *ID {
 	return &ID{value: from}
+}
+
+func (id *ID) shouldBeValid() error {
+	if id.value == "" {
+		return errors.New("empty input for id")
+	}
+
+	return nil
 }
 
 /*** Getter Methods (implement shared.AggregateIdentifier) ***/

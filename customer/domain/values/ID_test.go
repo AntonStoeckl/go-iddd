@@ -6,9 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"golang.org/x/xerrors"
-
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
 /*** Tests for Factory methods ***/
@@ -28,11 +27,11 @@ func TestGenerateID(t *testing.T) {
 		mutex := sync.Mutex{}
 		ids := make(map[string]int)
 		amountPerRoutine := 100
-		numRoutines := 1000
+		numRoutines := 500
 		totalAmount := 0
 
 		for i := 0; i < numRoutines; i++ {
-			go generateIDs(ids, &group, &mutex, amountPerRoutine)
+			go generateManyIDs(ids, &group, &mutex, amountPerRoutine)
 			group.Add(1)
 			totalAmount += amountPerRoutine
 		}
@@ -45,7 +44,7 @@ func TestGenerateID(t *testing.T) {
 	})
 }
 
-func generateIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
+func generateManyIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
 	generatedIDs := make(map[string]int)
 
 	for i := 0; i < amountPerRoutine; i++ {
@@ -62,14 +61,32 @@ func generateIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, a
 	group.Done()
 }
 
-func TestReconstituteID(t *testing.T) {
-	Convey("When an ID is reconstituted", t, func() {
+func TestRebuildID(t *testing.T) {
+	Convey("Given that the supplied id is valid", t, func() {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
-		id := values.ReconstituteID(idValue)
 
-		Convey("It should succeed", func() {
-			So(id, ShouldNotBeNil)
-			So(id, ShouldHaveSameTypeAs, (*values.ID)(nil))
+		Convey("When an ID is rebuilt", func() {
+			id, err := values.RebuildID(idValue)
+
+			Convey("It should succeed", func() {
+				So(err, ShouldBeNil)
+				So(id, ShouldNotBeNil)
+				So(id, ShouldHaveSameTypeAs, (*values.ID)(nil))
+			})
+		})
+	})
+
+	Convey("Given that the supplied id is not valid", t, func() {
+		idValue := ""
+
+		Convey("When an ID is rebuilt", func() {
+			id, err := values.RebuildID(idValue)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+				So(id, ShouldBeNil)
+			})
 		})
 	})
 }
@@ -85,9 +102,10 @@ func TestIDExposesExpectedValues(t *testing.T) {
 		})
 	})
 
-	Convey("Given a reconstituted ID", t, func() {
+	Convey("Given a rebuilt ID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		id := values.ReconstituteID(idValue)
+		id, err := values.RebuildID(idValue)
+		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected value", func() {
 			So(id.String(), ShouldEqual, idValue)
@@ -100,10 +118,12 @@ func TestIDExposesExpectedValues(t *testing.T) {
 func TestEqualsOnID(t *testing.T) {
 	Convey("Given an Identifier of type ID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		id := values.ReconstituteID(idValue)
+		id, err := values.RebuildID(idValue)
+		So(err, ShouldBeNil)
 
 		Convey("And given an equal ID", func() {
-			equalId := values.ReconstituteID(idValue)
+			equalId, err := values.RebuildID(idValue)
+			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
 				isEqual := id.Equals(equalId)
@@ -128,7 +148,8 @@ func TestEqualsOnID(t *testing.T) {
 
 		Convey("And given an ID with equal type but different value", func() {
 			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
-			differentId := values.ReconstituteID(differentIdValue)
+			differentId, err := values.RebuildID(differentIdValue)
+			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
 				isEqual := id.Equals(differentId)

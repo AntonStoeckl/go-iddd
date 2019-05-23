@@ -1,44 +1,76 @@
 package values_test
 
 import (
+	"fmt"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
-
-	"golang.org/x/xerrors"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/xerrors"
 )
 
+/*** Tests for Factory methods ***/
+
 func TestGenerateConfirmationHash(t *testing.T) {
-	Convey("Given some input", t, func() {
+	Convey("When a ConfirmationHash is generated", t, func() {
+		confirmationHash := values.GenerateConfirmationHash("john@doe.com")
+
+		Convey("It should succeed", func() {
+			So(confirmationHash, ShouldNotBeNil)
+			So(confirmationHash, ShouldHaveSameTypeAs, (*values.ConfirmationHash)(nil))
+		})
+	})
+
+	Convey("When many ConfirmationHashes are generated with similar input", t, func() {
+		amount := 200
+		hashes := make(map[string]int)
+
+		for i := 0; i < amount; i++ {
+			input := fmt.Sprintf("john+%d@doe.com", i)
+			id := values.GenerateConfirmationHash(input)
+			hashes[id.Hash()] = i
+			time.Sleep(time.Nanosecond)
+		}
+
+		Convey("They should have unique values", func() {
+			So(hashes, ShouldHaveLength, amount)
+		})
+	})
+}
+
+func TestRebuildConfirmationHash(t *testing.T) {
+	Convey("Given that the supplied input is valid", t, func() {
 		confirmationHashValue := "secret_hash"
 
-		Convey("When a ConfirmationHash is generated", func() {
-			confirmationHash := values.GenerateConfirmationHash(confirmationHashValue)
+		Convey("When a ConfirmationHash is rebuilt", func() {
+			confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
 
 			Convey("It should succeed", func() {
+				So(err, ShouldBeNil)
 				So(confirmationHash, ShouldNotBeNil)
 				So(confirmationHash, ShouldHaveSameTypeAs, (*values.ConfirmationHash)(nil))
 			})
 		})
 	})
-}
 
-func TestReconstituteConfirmationHash(t *testing.T) {
-	Convey("Given some input", t, func() {
-		confirmationHashValue := "secret_hash"
+	Convey("Given that the supplied input is not valid", t, func() {
+		confirmationHashValue := ""
 
-		Convey("When a ConfirmationHash is reconstituted", func() {
-			confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
+		Convey("When a ConfirmationHash is rebuilt", func() {
+			confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
 
-			Convey("It should succeed", func() {
-				So(confirmationHash, ShouldNotBeNil)
-				So(confirmationHash, ShouldHaveSameTypeAs, (*values.ConfirmationHash)(nil))
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+				So(confirmationHash, ShouldBeNil)
 			})
 		})
 	})
 }
+
+/*** Tests for Getter methods ***/
 
 func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 	Convey("Given a generated ConfirmationHash", t, func() {
@@ -50,9 +82,10 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 		})
 	})
 
-	Convey("Given a reconstituted ConfirmationHash", t, func() {
+	Convey("Given a rebuilt ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected value", func() {
 			So(confirmationHash.Hash(), ShouldEqual, confirmationHashValue)
@@ -60,13 +93,17 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 	})
 }
 
+/*** Tests for Comparison methods ***/
+
 func TestConfirmationHashShouldEqual(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
+		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		So(err, ShouldBeNil)
 
 		Convey("And given an equal ConfirmationHash", func() {
-			equalConfirmationHash := values.ReconstituteConfirmationHash(confirmationHashValue)
+			equalConfirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
 				err := confirmationHash.ShouldEqual(equalConfirmationHash)
@@ -79,7 +116,8 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 
 		Convey("And given another different ConfirmationHash", func() {
 			differentConfirmationHashValue := "different_hash"
-			differentConfirmationHash := values.ReconstituteConfirmationHash(differentConfirmationHashValue)
+			differentConfirmationHash, err := values.RebuildConfirmationHash(differentConfirmationHashValue)
+			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
 				err := confirmationHash.ShouldEqual(differentConfirmationHash)
@@ -92,6 +130,43 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 		})
 	})
 }
+
+func TestConfirmationHashEquals(t *testing.T) {
+	Convey("Given a ConfirmationHash", t, func() {
+		confirmationHashValue := "secret_hash"
+		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		So(err, ShouldBeNil)
+
+		Convey("And given an equal ConfirmationHash", func() {
+			equalConfirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			So(err, ShouldBeNil)
+
+			Convey("When they are compared", func() {
+				isEqual := confirmationHash.Equals(equalConfirmationHash)
+
+				Convey("They should be equal", func() {
+					So(isEqual, ShouldBeTrue)
+				})
+			})
+		})
+
+		Convey("And given another different ConfirmationHash", func() {
+			differentConfirmationHashValue := "different_hash"
+			differentConfirmationHash, err := values.RebuildConfirmationHash(differentConfirmationHashValue)
+			So(err, ShouldBeNil)
+
+			Convey("When they are compared", func() {
+				isEqual := confirmationHash.Equals(differentConfirmationHash)
+
+				Convey("They should not be equal", func() {
+					So(isEqual, ShouldBeFalse)
+				})
+			})
+		})
+	})
+}
+
+/*** Tests for Marshal/Unmarshal methods ***/
 
 func TestConfirmationHashMarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {

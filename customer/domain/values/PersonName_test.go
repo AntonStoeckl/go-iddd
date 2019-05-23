@@ -13,49 +13,47 @@ import (
 /*** Tests for Factory methods ***/
 
 func TestNewPersonName(t *testing.T) {
-	givenName := "John"
-	familyName := "Doe"
 
 	Convey("Given that the supplied givenName and familyName are valid", t, func() {
-		Convey("When NewPersonName is invoked", func() {
+		givenName := "John"
+		familyName := "Doe"
+
+		Convey("When a PersonName is created", func() {
 			personName, err := values.NewPersonName(givenName, familyName)
 
-			Convey("It should create a PersonName", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(personName, ShouldNotBeNil)
 				So(personName, ShouldHaveSameTypeAs, (*values.PersonName)(nil))
-			})
-
-			Convey("And it should expose the expected values", func() {
-				So(personName.GivenName(), ShouldEqual, givenName)
-				So(personName.FamilyName(), ShouldEqual, familyName)
 			})
 		})
 	})
 
 	Convey("Given that the supplied givenName is not valid", t, func() {
-		givenName = ""
+		givenName := ""
+		familyName := "Doe"
 
-		Convey("When NewPersonName is invoked", func() {
+		Convey("When a PersonName is created", func() {
 			personName, err := values.NewPersonName(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
+				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(personName, ShouldBeNil)
 			})
 		})
 	})
 
 	Convey("Given that the supplied familyName is not valid", t, func() {
-		familyName = ""
+		givenName := "John"
+		familyName := ""
 
-		Convey("When NewPersonName is invoked", func() {
+		Convey("When a PersonName is created", func() {
 			personName, err := values.NewPersonName(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
+				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(personName, ShouldBeNil)
 			})
 		})

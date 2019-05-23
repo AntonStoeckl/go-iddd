@@ -34,7 +34,7 @@ func TestNewEmailAddress(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInvalidInput), ShouldBeTrue)
+				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(emailAddress, ShouldBeNil)
 			})
 		})

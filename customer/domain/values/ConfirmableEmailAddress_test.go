@@ -80,7 +80,8 @@ func TestConfirmableEmailAddressConfirm(t *testing.T) {
 		unconfirmedEmailAddress := emailAddress.ToConfirmable()
 
 		Convey("When it is confirmed with the right ConfirmationHash", func() {
-			confirmationHash := values.ReconstituteConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			confirmationHash, err := values.RebuildConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			So(err, ShouldBeNil)
 			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(emailAddress, confirmationHash)
 
 			Convey("It should be confirmed", func() {
@@ -91,7 +92,8 @@ func TestConfirmableEmailAddressConfirm(t *testing.T) {
 		})
 
 		Convey("When it is confirmed with a wrong ConfirmationHash", func() {
-			confirmationHash := values.ReconstituteConfirmationHash("invalid_confirmation_hash")
+			confirmationHash, err := values.RebuildConfirmationHash("invalid_confirmation_hash")
+			So(err, ShouldBeNil)
 			confirmedEmailAddress, err := unconfirmedEmailAddress.Confirm(emailAddress, confirmationHash)
 
 			Convey("It should fail", func() {

@@ -23,7 +23,7 @@ func NewEmailAddress(from string) (*EmailAddress, error) {
 	newEmailAddress := buildEmailAddress(from)
 
 	if err := newEmailAddress.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("emailAddress.New -> %s: %w", err, shared.ErrInvalidInput)
+		return nil, xerrors.Errorf("emailAddress.New -> %s: %w", err, shared.ErrInputIsInvalid)
 	}
 
 	return newEmailAddress, nil

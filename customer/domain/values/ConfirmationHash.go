@@ -3,6 +3,7 @@ package values
 import (
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-iddd/shared"
 	"math/rand"
@@ -20,14 +21,28 @@ type ConfirmationHash struct {
 
 func GenerateConfirmationHash(using string) *ConfirmationHash {
 	randomInt := rand.New(rand.NewSource(time.Now().UnixNano())).Int()
-	md5Sum := md5.Sum([]byte(strconv.Itoa(randomInt) + using))
+	md5Sum := md5.Sum([]byte(using + strconv.Itoa(randomInt)))
 	value := fmt.Sprintf("%x", md5Sum)
 
 	return buildConfirmationHash(value)
 }
 
-func ReconstituteConfirmationHash(from string) *ConfirmationHash {
-	return buildConfirmationHash(from)
+func RebuildConfirmationHash(from string) (*ConfirmationHash, error) {
+	rebuiltConfirmationHash := buildConfirmationHash(from)
+
+	if err := rebuiltConfirmationHash.shouldBeValid(); err != nil {
+		return nil, xerrors.Errorf("confirmationHash.New: %s: %w", err, shared.ErrInputIsInvalid)
+	}
+
+	return rebuiltConfirmationHash, nil
+}
+
+func (confirmationHash *ConfirmationHash) shouldBeValid() error {
+	if confirmationHash.value == "" {
+		return errors.New("empty input for confirmationHash")
+	}
+
+	return nil
 }
 
 func buildConfirmationHash(from string) *ConfirmationHash {
@@ -48,6 +63,10 @@ func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) e
 	}
 
 	return nil
+}
+
+func (confirmationHash *ConfirmationHash) Equals(other *ConfirmationHash) bool {
+	return confirmationHash.value == other.value
 }
 
 /*** Implement json.Marshaler ***/

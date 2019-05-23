@@ -19,10 +19,17 @@ func NewPersonName(givenName string, familyName string) (*PersonName, error) {
 	newPersonName := buildPersonName(givenName, familyName)
 
 	if err := newPersonName.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("personName.New -> %s: %w", err, shared.ErrInvalidInput)
+		return nil, xerrors.Errorf("personName.New: %s: %w", err, shared.ErrInputIsInvalid)
 	}
 
 	return newPersonName, nil
+}
+
+func buildPersonName(givenName string, familyName string) *PersonName {
+	return &PersonName{
+		givenName:  givenName,
+		familyName: familyName,
+	}
 }
 
 func (personName *PersonName) shouldBeValid() error {
@@ -35,13 +42,6 @@ func (personName *PersonName) shouldBeValid() error {
 	}
 
 	return nil
-}
-
-func buildPersonName(givenName string, familyName string) *PersonName {
-	return &PersonName{
-		givenName:  givenName,
-		familyName: familyName,
-	}
 }
 
 /*** Getter methods ***/
