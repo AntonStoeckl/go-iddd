@@ -5,6 +5,7 @@ import (
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"reflect"
+	"strings"
 
 	"golang.org/x/xerrors"
 )
@@ -94,7 +95,11 @@ func (customer *customer) AggregateIdentifier() shared.AggregateIdentifier {
 }
 
 func (customer *customer) AggregateName() string {
-	return shared.BuildAggregateNameFor(customer)
+	aggregateType := reflect.TypeOf(customer).String()
+	aggregateTypeParts := strings.Split(aggregateType, ".")
+	aggregateName := aggregateTypeParts[len(aggregateTypeParts)-1]
+
+	return strings.Title(aggregateName)
 }
 
 /***** Command Assertions *****/
