@@ -14,7 +14,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-/***** Test factory method *****/
+/*** Test factory method ***/
 
 func TestNewCommandHandler(t *testing.T) {
 	Convey("When a new CommandHandler is created", t, func() {
@@ -29,7 +29,7 @@ func TestNewCommandHandler(t *testing.T) {
 	})
 }
 
-/***** Test business cases *****/
+/*** Test business cases ***/
 
 func TestHandleRegister(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
@@ -142,7 +142,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 	})
 }
 
-/***** Test handling invalid commands *****/
+/*** Test handling invalid commands ***/
 
 func TestHandleInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {

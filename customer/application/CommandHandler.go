@@ -74,7 +74,7 @@ func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command sh
 	return nil
 }
 
-/***** Command Assertions *****/
+/*** Command Assertions ***/
 
 func (handler *CommandHandler) assertIsValid(command shared.Command) error {
 	if command == nil {
