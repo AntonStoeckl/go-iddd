@@ -162,7 +162,7 @@ func TestHandleInvalidCommand(t *testing.T) {
 		})
 
 		Convey("When an unknown command is handled", func() {
-			unknownCommand := &unknownCommand{initialized: true}
+			unknownCommand := &unknownCommand{}
 			err := commandHandler.Handle(unknownCommand)
 
 			Convey("It should fail", func() {
@@ -173,9 +173,7 @@ func TestHandleInvalidCommand(t *testing.T) {
 	})
 }
 
-type unknownCommand struct {
-	initialized bool
-}
+type unknownCommand struct{}
 
 func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
 	return values.GenerateID()
