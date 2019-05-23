@@ -45,34 +45,6 @@ func (handler *commandHandler) Handle(command shared.Command) error {
 	return err
 }
 
-func (handler *commandHandler) assertIsValid(command shared.Command) error {
-	if command == nil {
-		// command is a nil interface
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command is nil interface: %w",
-			shared.ErrCommandIsInvalid,
-		)
-	}
-
-	if reflect.ValueOf(command).IsNil() {
-		// value of the command inteface is a nil pointer
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command is nil pointer: %w",
-			shared.ErrCommandIsInvalid,
-		)
-	}
-
-	if reflect.ValueOf(command.AggregateIdentifier()).IsNil() {
-		// command has no AggregateIdentifier, so it can't have been created with a proper factory method
-		return xerrors.Errorf(
-			"commandHandler.Handle: Command has no AggregateIdentifier: %w",
-			shared.ErrCommandIsInvalid,
-		)
-	}
-
-	return nil
-}
-
 /*** Business methods ***/
 
 func (handler *commandHandler) register(register *commands.Register) error {
@@ -97,6 +69,36 @@ func (handler *commandHandler) applyToExistingCustomer(id *values.ID, command sh
 
 	if err := handler.customers.Save(customer); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+/***** Command Assertions *****/
+
+func (handler *commandHandler) assertIsValid(command shared.Command) error {
+	if command == nil {
+		// command is a nil interface
+		return xerrors.Errorf(
+			"commandHandler.Handle: Command is nil interface: %w",
+			shared.ErrCommandIsInvalid,
+		)
+	}
+
+	if reflect.ValueOf(command).IsNil() {
+		// value of the command inteface is a nil pointer
+		return xerrors.Errorf(
+			"commandHandler.Handle: Command is nil pointer: %w",
+			shared.ErrCommandIsInvalid,
+		)
+	}
+
+	if reflect.ValueOf(command.AggregateIdentifier()).IsNil() {
+		// command has no AggregateIdentifier, so it can't have been created with a proper factory method
+		return xerrors.Errorf(
+			"commandHandler.Handle: Command has no AggregateIdentifier: %w",
+			shared.ErrCommandIsInvalid,
+		)
 	}
 
 	return nil
