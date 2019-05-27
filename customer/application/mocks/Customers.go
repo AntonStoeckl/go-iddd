@@ -11,8 +11,8 @@ type Customers struct {
 	mock.Mock
 }
 
-// FindBy provides a mock function with given fields: id
-func (_m *Customers) FindBy(id *values.ID) (domain.Customer, error) {
+// Of provides a mock function with given fields: id
+func (_m *Customers) Of(id *values.ID) (domain.Customer, error) {
 	ret := _m.Called(id)
 
 	var r0 domain.Customer
@@ -32,6 +32,20 @@ func (_m *Customers) FindBy(id *values.ID) (domain.Customer, error) {
 	}
 
 	return r0, r1
+}
+
+// Register provides a mock function with given fields: _a0
+func (_m *Customers) Register(_a0 domain.Customer) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(domain.Customer) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: _a0

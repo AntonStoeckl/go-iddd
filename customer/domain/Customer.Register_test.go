@@ -11,7 +11,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func TestRegisterCustomer(t *testing.T) {
+func TestNewCustomer(t *testing.T) {
 	Convey("When a Customer is registered", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		emailAddress := "john@doe.com"
@@ -21,7 +21,7 @@ func TestRegisterCustomer(t *testing.T) {
 		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 		So(err, ShouldBeNil)
 
-		customer := domain.Register(register)
+		customer := domain.NewCustomerWith(register)
 
 		Convey("It should succeed", func() {
 			So(customer, ShouldNotBeNil)

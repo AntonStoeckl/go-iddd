@@ -55,7 +55,7 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 		So(err, ShouldBeNil)
 
-		customer := domain.Register(register)
+		customer := domain.NewCustomerWith(register)
 
 		Convey("When a nil interface command is handled", func() {
 			var nilInterfaceCommand shared.Command

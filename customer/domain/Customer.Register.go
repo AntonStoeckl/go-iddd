@@ -5,14 +5,14 @@ import (
 	"go-iddd/customer/domain/events"
 )
 
-func Register(with *commands.Register) Customer {
+func NewCustomerWith(register *commands.Register) Customer {
 	newCustomer := blankCustomer()
 
 	newCustomer.recordThat(
 		events.ItWasRegistered(
-			with.ID(),
-			with.EmailAddress().ToConfirmable(),
-			with.PersonName(),
+			register.ID(),
+			register.EmailAddress().ToConfirmable(),
+			register.PersonName(),
 		),
 	)
 

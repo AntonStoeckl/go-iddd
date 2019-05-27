@@ -50,9 +50,9 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 /*** Business cases ***/
 
 func (handler *CommandHandler) register(register *commands.Register) error {
-	customer := domain.Register(register)
+	newCustomer := domain.NewCustomerWith(register)
 
-	if err := handler.customers.Save(customer); err != nil {
+	if err := handler.customers.Register(newCustomer); err != nil {
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (handler *CommandHandler) register(register *commands.Register) error {
 }
 
 func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command shared.Command) error {
-	customer, err := handler.customers.FindBy(id)
+	customer, err := handler.customers.Of(id)
 	if err != nil {
 		return err
 	}

@@ -47,7 +47,7 @@ func TestHandleRegister(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when saving the Customer succeeds", func() {
-					mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
+					mockCustomers.On("Register", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
 					err := commandHandler.Handle(register)
 
 					Convey("It should register and save a Customer", func() {
@@ -58,7 +58,7 @@ func TestHandleRegister(t *testing.T) {
 
 				Convey("And when saving the Customer fails", func() {
 					expectedErr := errors.New("mocked error")
-					mockCustomers.On("Save", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
+					mockCustomers.On("Register", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
 					err := commandHandler.Handle(register)
 
 					Convey("It should fail", func() {
@@ -89,7 +89,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 				Convey("And when finding the Customer succeeds", func() {
 					mockCustomer := new(mocks.Customer)
-					mockCustomers.On("FindBy", confirmEmailAddress.ID()).Return(mockCustomer, nil).Once()
+					mockCustomers.On("Of", confirmEmailAddress.ID()).Return(mockCustomer, nil).Once()
 
 					Convey("And when applying confirmEmailAddress succeeds", func() {
 						mockCustomer.On("Apply", confirmEmailAddress).Return(nil)
@@ -129,7 +129,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 				})
 
 				Convey("And when finding the Customer fails", func() {
-					mockCustomers.On("FindBy", confirmEmailAddress.ID()).Return(nil, expectedErr).Once()
+					mockCustomers.On("Of", confirmEmailAddress.ID()).Return(nil, expectedErr).Once()
 					err := commandHandler.Handle(confirmEmailAddress)
 
 					Convey("It should fail", func() {
