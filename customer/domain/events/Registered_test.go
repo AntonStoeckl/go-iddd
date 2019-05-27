@@ -19,9 +19,10 @@ func TestItWasRegistered(t *testing.T) {
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
+		streamVersion := uint(0)
 
 		Convey("When a new Registered event is created", func() {
-			registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+			registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
 
 			Convey("It should succeed", func() {
 				So(registered, ShouldNotBeNil)
@@ -40,9 +41,10 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
+		streamVersion := uint(0)
 
 		beforeItOccurred := time.Now()
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
@@ -55,6 +57,7 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(beforeItOccurred, ShouldHappenBefore, itOccurred)
 			So(afterItOccurred, ShouldHappenAfter, itOccurred)
+			So(registered.StreamVersion(), ShouldEqual, streamVersion)
 		})
 	})
 }
@@ -67,8 +70,9 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
+		streamVersion := uint(0)
 
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
 
 		Convey("When it is marshaled to json", func() {
 			data, err := registered.MarshalJSON()
@@ -90,8 +94,9 @@ func TestRegisteredUnmarshalJSON(t *testing.T) {
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
+		streamVersion := uint(0)
 
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName)
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
 
 		data, err := registered.MarshalJSON()
 

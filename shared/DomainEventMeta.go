@@ -9,12 +9,19 @@ import (
 const DomainEventMetaTimestampFormat = time.RFC3339Nano
 
 type DomainEventMeta struct {
-	Identifier string `json:"identifier"`
-	EventName  string `json:"eventName"`
-	OccurredAt string `json:"occurredAt"`
+	Identifier    string `json:"identifier"`
+	EventName     string `json:"eventName"`
+	OccurredAt    string `json:"occurredAt"`
+	StreamVersion uint   `json:"streamVersion"`
 }
 
-func NewDomainEventMeta(aggregateID string, event DomainEvent, aggregateName string) *DomainEventMeta {
+func NewDomainEventMeta(
+	aggregateID string,
+	event DomainEvent,
+	aggregateName string,
+	streamVersion uint,
+) *DomainEventMeta {
+
 	eventType := reflect.TypeOf(event).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
@@ -22,9 +29,10 @@ func NewDomainEventMeta(aggregateID string, event DomainEvent, aggregateName str
 	fullEventName := aggregateName + eventName
 
 	newDomainEventMeta := &DomainEventMeta{
-		Identifier: aggregateID,
-		EventName:  fullEventName,
-		OccurredAt: time.Now().Format(DomainEventMetaTimestampFormat),
+		Identifier:    aggregateID,
+		EventName:     fullEventName,
+		OccurredAt:    time.Now().Format(DomainEventMetaTimestampFormat),
+		StreamVersion: streamVersion,
 	}
 
 	return newDomainEventMeta
