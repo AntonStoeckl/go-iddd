@@ -3,95 +3,50 @@ package domain_test
 import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/xerrors"
 )
 
-/*** Tests for Factory methods ***/
+func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
+	Convey("When a Customer is reconstituted from an empty EventStream", t, func() {
+		var eventStream shared.EventStream
 
-func TestRegisterCustomer(t *testing.T) {
-	Convey("When a Customer is registered", t, func() {
-		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "john@doe.com"
-		givenName := "John"
-		familyName := "Doe"
+		_, err := domain.ReconstituteCustomerFrom(eventStream)
 
-		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
+		Convey("It should fail", func() {
+			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
+		})
+	})
+
+	Convey("When a Customer is reconstituted from an EventStream without a Registered event", t, func() {
+		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
 
-		customer := domain.Register(register)
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
 
-		Convey("It should succeed", func() {
-			So(customer, ShouldNotBeNil)
-			So(customer, ShouldImplement, (*domain.Customer)(nil))
+		eventStream := shared.EventStream{
+			events.EmailAddressWasConfirmed(id, emailAddress),
+		}
 
-			Convey("And it should not apply further Register commands", func() {
-				err = customer.Apply(register)
-				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
-			})
+		_, err = domain.ReconstituteCustomerFrom(eventStream)
+
+		Convey("It should fail", func() {
+			So(err, ShouldBeError)
+			So(xerrors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
 		})
 	})
 }
-
-func TestCustomerExposesExpectedValues(t *testing.T) {
-	Convey("Given a  Customer", t, func() {
-		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "john@doe.com"
-		givenName := "John"
-		familyName := "Doe"
-
-		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
-		So(err, ShouldBeNil)
-
-		customer := domain.Register(register)
-
-		Convey("It should expose the expected AggregateIdentifier", func() {
-			So(customer.AggregateIdentifier().String(), ShouldEqual, id)
-		})
-
-		Convey("It should expose the expected AggregateName", func() {
-			So(customer.AggregateName(), ShouldEqual, "Customer")
-		})
-	})
-}
-
-/***** Test Customer business cases (other than Register) *****/
-
-func TestConfirmEmailAddressOfCustomer(t *testing.T) {
-	Convey("Given a Customer", t, func() {
-		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "john@doe.com"
-		givenName := "John"
-		familyName := "Doe"
-
-		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
-		So(err, ShouldBeNil)
-
-		customer := domain.Register(register)
-
-		Convey("When emailAddress is confirmed with not matching hash", func() {
-			confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, "some_not_matching_hash")
-			So(err, ShouldBeNil)
-
-			err = customer.Apply(confirmEmailAddress)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-			})
-		})
-	})
-}
-
-/***** Test applying invalid commands *****/
 
 func TestCustomerApplyInvalidCommand(t *testing.T) {
-	Convey("Given a  Customer", t, func() {
+	Convey("Given a Customer", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		emailAddress := "john@doe.com"
 		givenName := "John"
@@ -144,6 +99,8 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 	})
 }
 
+/*** Test Helpers ***/
+
 type unknownCommand struct{}
 
 func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
@@ -152,4 +109,14 @@ func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
 
 func (c *unknownCommand) CommandName() string {
 	return "unknown"
+}
+
+func findCustomerEventIn(recordedEvents shared.EventStream, expectedEvent shared.DomainEvent) shared.DomainEvent {
+	for _, event := range recordedEvents {
+		if reflect.TypeOf(event) == reflect.TypeOf(expectedEvent) {
+			return event
+		}
+	}
+
+	return nil
 }

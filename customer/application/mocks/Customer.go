@@ -53,3 +53,19 @@ func (_m *Customer) Apply(cmd shared.Command) error {
 
 	return r0
 }
+
+// RecordedEvents provides a mock function with given fields:
+func (_m *Customer) RecordedEvents() shared.EventStream {
+	ret := _m.Called()
+
+	var r0 shared.EventStream
+	if rf, ok := ret.Get(0).(func() shared.EventStream); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(shared.EventStream)
+		}
+	}
+
+	return r0
+}

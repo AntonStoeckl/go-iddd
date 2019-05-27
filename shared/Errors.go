@@ -10,4 +10,5 @@ var (
 	ErrCommandCanNotBeHandled     = errors.New("command can not be handled")
 	ErrCommandIsInvalid           = errors.New("command is invalid")
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
+	ErrInvalidEventStream         = errors.New("invalid event stream")
 )
