@@ -252,6 +252,7 @@ type {{eventName}} struct {
 func {{.EventFactory}}(
 	{{range .Fields}}{{.FieldName}} {{.DataType}},
 	{{end -}}
+	streamVersion uint,
 ) *{{eventName}} {
 
 	{{$eventVar}} := &{{eventName}}{
@@ -263,6 +264,7 @@ func {{.EventFactory}}(
 		id.String(),
 		{{$eventVar}},
 		{{lcFirst eventName}}AggregateName,
+		streamVersion,
 	)
 
 	return {{$eventVar}}
@@ -288,6 +290,10 @@ func ({{$eventVar}} *{{eventName}}) EventName() string {
 
 func ({{$eventVar}} *{{eventName}}) OccurredAt() string {
 	return {{$eventVar}}.meta.OccurredAt
+}
+
+func ({{$eventVar}} *{{eventName}}) StreamVersion() uint {
+	return {{$eventVar}}.meta.StreamVersion
 }
 
 /*** Implement json.Marshaler ***/
@@ -360,9 +366,10 @@ func Test{{.EventFactory}}(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
 		{{end}}
+		streamVersion := uint(0)
 
 		Convey("When a new {{eventName}} event is created", func() {
-			{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
+			{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
 			Convey("It should succeed", func() {
 				So({{$eventVar}}, ShouldNotBeNil)
@@ -376,9 +383,11 @@ func Test{{.EventFactory}}(t *testing.T) {
 func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end}}
+		{{end -}}
+		streamVersion := uint(0)
+
 		beforeItOccurred := time.Now()
-		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
+		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
@@ -397,9 +406,10 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 func Test{{eventName}}MarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end}}
+		{{end -}}
+		streamVersion := uint(0)
 
-		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
+		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
 		Convey("When it is marshaled to json", func() {
 			data, err := {{$eventVar}}.MarshalJSON()
@@ -416,9 +426,10 @@ func Test{{eventName}}MarshalJSON(t *testing.T) {
 func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event marshaled to json", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
-		{{end}}
+		{{end -}}
+		streamVersion := uint(0)
 
-		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}})
+		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
 		data, err := {{$eventVar}}.MarshalJSON()
 

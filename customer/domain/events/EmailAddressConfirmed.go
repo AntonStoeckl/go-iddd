@@ -24,6 +24,7 @@ type EmailAddressConfirmed struct {
 func EmailAddressWasConfirmed(
 	id *values.ID,
 	emailAddress *values.EmailAddress,
+	streamVersion uint,
 ) *EmailAddressConfirmed {
 
 	emailAddressConfirmed := &EmailAddressConfirmed{
@@ -35,6 +36,7 @@ func EmailAddressWasConfirmed(
 		id.String(),
 		emailAddressConfirmed,
 		emailAddressConfirmedAggregateName,
+		streamVersion,
 	)
 
 	return emailAddressConfirmed
@@ -62,6 +64,10 @@ func (emailAddressConfirmed *EmailAddressConfirmed) EventName() string {
 
 func (emailAddressConfirmed *EmailAddressConfirmed) OccurredAt() string {
 	return emailAddressConfirmed.meta.OccurredAt
+}
+
+func (emailAddressConfirmed *EmailAddressConfirmed) StreamVersion() uint {
+	return emailAddressConfirmed.meta.StreamVersion
 }
 
 /*** Implement json.Marshaler ***/

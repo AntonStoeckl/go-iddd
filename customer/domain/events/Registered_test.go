@@ -19,6 +19,7 @@ func TestItWasRegistered(t *testing.T) {
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
+
 		streamVersion := uint(0)
 
 		Convey("When a new Registered event is created", func() {
@@ -57,7 +58,6 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(beforeItOccurred, ShouldHappenBefore, itOccurred)
 			So(afterItOccurred, ShouldHappenAfter, itOccurred)
-			So(registered.StreamVersion(), ShouldEqual, streamVersion)
 		})
 	})
 }
