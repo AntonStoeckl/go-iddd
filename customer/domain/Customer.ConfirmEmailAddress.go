@@ -26,6 +26,7 @@ func (customer *customer) confirmEmailAddress(with *commands.ConfirmEmailAddress
 		events.EmailAddressWasConfirmed(
 			with.ID(),
 			with.EmailAddress(),
+			customer.currentStreamVersion+1,
 		),
 	)
 

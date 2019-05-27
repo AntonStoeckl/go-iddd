@@ -25,9 +25,11 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
+		currentStreamVersion := uint(1)
+
 		customer, err := domain.ReconstituteCustomerFrom(
 			shared.EventStream{
-				events.ItWasRegistered(id, confirmableEmailAddress, personName),
+				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
 			},
 		)
 		So(err, ShouldBeNil)
@@ -55,6 +57,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 					So(emailAddressConfirmed, ShouldNotBeNil)
 					So(emailAddressConfirmed.ID().Equals(id), ShouldBeTrue)
 					So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
+					So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 					Convey("And it should not record anything else", func() {
 						So(recordedEvents, ShouldHaveLength, 1)

@@ -33,7 +33,7 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		eventStream := shared.EventStream{
-			events.EmailAddressWasConfirmed(id, emailAddress),
+			events.EmailAddressWasConfirmed(id, emailAddress, uint(2)),
 		}
 
 		_, err = domain.ReconstituteCustomerFrom(eventStream)

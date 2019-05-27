@@ -13,6 +13,7 @@ func NewCustomerWith(register *commands.Register) Customer {
 			register.ID(),
 			register.EmailAddress().ToConfirmable(),
 			register.PersonName(),
+			newCustomer.currentStreamVersion+1,
 		),
 	)
 

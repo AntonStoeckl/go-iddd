@@ -24,6 +24,7 @@ type customer struct {
 	id                      *values.ID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
+	currentStreamVersion    uint
 	recordedEvents          shared.EventStream
 }
 
@@ -75,8 +76,8 @@ func (customer *customer) AggregateName() string {
 func ReconstituteCustomerFrom(eventStream shared.EventStream) (Customer, error) {
 	newCustomer := blankCustomer()
 
-	if !eventStream.FirstEventIsOfSameTypeAs(&events.Registered{}) {
-		return nil, xerrors.Errorf("ReconstituteCustomerFrom: %w", shared.ErrInvalidEventStream)
+	if err := eventStream.FirstEventShouldBeOfSameTypeAs(&events.Registered{}); err != nil {
+		return nil, xerrors.Errorf("ReconstituteCustomerFrom: %s: %w", err, shared.ErrInvalidEventStream)
 	}
 
 	for _, event := range eventStream {
@@ -98,6 +99,8 @@ func (customer *customer) when(event shared.DomainEvent) {
 	case *events.EmailAddressConfirmed:
 		customer.whenEmailAddressWasConfirmed(actualEvent)
 	}
+
+	customer.currentStreamVersion = event.StreamVersion()
 }
 
 /*** Implement shared.RecordsEvents ****/
