@@ -211,7 +211,7 @@ func TestIDUnmarshalJSON(t *testing.T) {
 	})
 }
 
-/*** Test helper type implementing shared.AggregateIdentifier ***/
+/*** Test helper type implementing shared.AggregateID ***/
 
 type dummyIdentifier struct {
 	value string
@@ -221,7 +221,7 @@ func (idenfifier *dummyIdentifier) String() string {
 	return idenfifier.value
 }
 
-func (idenfifier *dummyIdentifier) Equals(other shared.AggregateIdentifier) bool {
+func (idenfifier *dummyIdentifier) Equals(other shared.AggregateID) bool {
 	// this method will never be invoked, because we don't test this dummy
 	return false
 }

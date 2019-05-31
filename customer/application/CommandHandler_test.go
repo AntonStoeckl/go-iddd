@@ -196,7 +196,7 @@ func TestHandleInvalidCommand(t *testing.T) {
 
 type unknownCommand struct{}
 
-func (c *unknownCommand) AggregateIdentifier() shared.AggregateIdentifier {
+func (c *unknownCommand) AggregateID() shared.AggregateID {
 	return values.GenerateID()
 }
 

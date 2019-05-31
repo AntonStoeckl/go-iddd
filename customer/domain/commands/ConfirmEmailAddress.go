@@ -61,7 +61,7 @@ func (confirmEmailAddress *ConfirmEmailAddress) ConfirmationHash() *values.Confi
 
 /*** Implement shared.Command ***/
 
-func (confirmEmailAddress *ConfirmEmailAddress) AggregateIdentifier() shared.AggregateIdentifier {
+func (confirmEmailAddress *ConfirmEmailAddress) AggregateID() shared.AggregateID {
 	return confirmEmailAddress.id
 }
 

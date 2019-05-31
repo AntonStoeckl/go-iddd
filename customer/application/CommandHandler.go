@@ -69,10 +69,6 @@ func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command sh
 		return err
 	}
 
-	if err := handler.customers.Save(customer); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -87,7 +83,7 @@ func (handler *CommandHandler) assertIsValid(command shared.Command) error {
 		return fmt.Errorf("[%s]: command value is nil pointer", command.CommandName())
 	}
 
-	if reflect.ValueOf(command.AggregateIdentifier()).IsNil() {
+	if reflect.ValueOf(command.AggregateID()).IsNil() {
 		return fmt.Errorf("[%s]: command was not properly created", command.CommandName())
 	}
 

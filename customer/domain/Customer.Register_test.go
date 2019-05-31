@@ -27,8 +27,8 @@ func TestNewCustomer(t *testing.T) {
 			So(customer, ShouldNotBeNil)
 			So(customer, ShouldImplement, (*domain.Customer)(nil))
 
-			Convey("And it should expose the expected AggregateIdentifier", func() {
-				So(customer.AggregateIdentifier().String(), ShouldEqual, id)
+			Convey("And it should expose the expected AggregateID", func() {
+				So(customer.AggregateID().String(), ShouldEqual, id)
 			})
 
 			Convey("And it should expose the expected AggregateName", func() {
@@ -48,6 +48,7 @@ func TestNewCustomer(t *testing.T) {
 				So(registered.ConfirmableEmailAddress().ConfirmationHash(), ShouldNotBeBlank)
 				So(registered.PersonName().GivenName(), ShouldEqual, givenName)
 				So(registered.PersonName().FamilyName(), ShouldEqual, familyName)
+				So(registered.StreamVersion(), ShouldEqual, uint(1))
 
 				Convey("And it should not record anything else", func() {
 					So(recordedEvents, ShouldHaveLength, 1)

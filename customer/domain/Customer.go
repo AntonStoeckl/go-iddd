@@ -59,7 +59,7 @@ func (customer *customer) Apply(command shared.Command) error {
 
 /*** Implement shared.Aggregate ****/
 
-func (customer *customer) AggregateIdentifier() shared.AggregateIdentifier {
+func (customer *customer) AggregateID() shared.AggregateID {
 	return customer.id
 }
 
@@ -123,7 +123,7 @@ func (customer *customer) assertIsValid(command shared.Command) error {
 		return fmt.Errorf("[%s]: command value is nil pointer", command.CommandName())
 	}
 
-	if reflect.ValueOf(command.AggregateIdentifier()).IsNil() {
+	if reflect.ValueOf(command.AggregateID()).IsNil() {
 		return fmt.Errorf("[%s]: command was not properly created", command.CommandName())
 	}
 

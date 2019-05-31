@@ -1,6 +1,6 @@
 package shared
 
 type Command interface {
-	AggregateIdentifier() AggregateIdentifier
+	AggregateID() AggregateID
 	CommandName() string
 }

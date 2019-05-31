@@ -62,7 +62,7 @@ func (register *Register) PersonName() *values.PersonName {
 
 /*** Implement shared.Command ***/
 
-func (register *Register) AggregateIdentifier() shared.AggregateIdentifier {
+func (register *Register) AggregateID() shared.AggregateID {
 	return register.id
 }
 

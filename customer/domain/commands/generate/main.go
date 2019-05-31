@@ -292,7 +292,7 @@ func ({{$commandVar}} *{{commandName}}) {{methodName .DataType}}() {{.DataType}}
 
 /*** Implement shared.Command ***/
 
-func ({{$commandVar}} *{{commandName}}) AggregateIdentifier() shared.AggregateIdentifier {
+func ({{$commandVar}} *{{commandName}}) AggregateID() shared.AggregateID {
 	return {{$commandVar}}.id
 }
 
@@ -379,7 +379,7 @@ func Test{{commandName}}ExposesExpectedValues(t *testing.T) {
 			{{range .Fields}}So({{.FieldName}}Value.Equals({{$commandVar}}.{{methodName .DataType}}()), ShouldBeTrue)
 			{{end -}}
 			So({{$commandVar}}.CommandName(), ShouldEqual, "{{commandName}}")
-			So(idValue.Equals({{$commandVar}}.AggregateIdentifier()), ShouldBeTrue)
+			So(idValue.Equals({{$commandVar}}.AggregateID()), ShouldBeTrue)
 		})
 	})
 }

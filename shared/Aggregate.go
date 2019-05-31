@@ -1,6 +1,6 @@
 package shared
 
 type Aggregate interface {
-	AggregateIdentifier() AggregateIdentifier
+	AggregateID() AggregateID
 	AggregateName() string
 }

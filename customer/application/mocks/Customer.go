@@ -10,16 +10,16 @@ type Customer struct {
 	mock.Mock
 }
 
-// AggregateIdentifier provides a mock function with given fields:
-func (_m *Customer) AggregateIdentifier() shared.AggregateIdentifier {
+// AggregateID provides a mock function with given fields:
+func (_m *Customer) AggregateID() shared.AggregateID {
 	ret := _m.Called()
 
-	var r0 shared.AggregateIdentifier
-	if rf, ok := ret.Get(0).(func() shared.AggregateIdentifier); ok {
+	var r0 shared.AggregateID
+	if rf, ok := ret.Get(0).(func() shared.AggregateID); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(shared.AggregateIdentifier)
+			r0 = ret.Get(0).(shared.AggregateID)
 		}
 	}
 

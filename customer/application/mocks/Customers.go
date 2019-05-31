@@ -34,27 +34,13 @@ func (_m *Customers) Of(id *values.ID) (domain.Customer, error) {
 	return r0, r1
 }
 
-// Register provides a mock function with given fields: _a0
-func (_m *Customers) Register(_a0 domain.Customer) error {
-	ret := _m.Called(_a0)
+// Register provides a mock function with given fields: customer
+func (_m *Customers) Register(customer domain.Customer) error {
+	ret := _m.Called(customer)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(domain.Customer) error); ok {
-		r0 = rf(_a0)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Save provides a mock function with given fields: _a0
-func (_m *Customers) Save(_a0 domain.Customer) error {
-	ret := _m.Called(_a0)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(domain.Customer) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(customer)
 	} else {
 		r0 = ret.Error(0)
 	}
