@@ -88,7 +88,7 @@ func TestRegisterExposesExpectedValues(t *testing.T) {
 			So(emailAddressValue.Equals(register.EmailAddress()), ShouldBeTrue)
 			So(personNameValue.Equals(register.PersonName()), ShouldBeTrue)
 			So(register.CommandName(), ShouldEqual, "Register")
-			So(idValue.Equals(register.AggregateIdentifier()), ShouldBeTrue)
+			So(idValue.Equals(register.AggregateID()), ShouldBeTrue)
 		})
 	})
 }

@@ -18,7 +18,7 @@ import (
 
 func TestNewCommandHandler(t *testing.T) {
 	Convey("When a new CommandHandler is created", t, func() {
-		mockCustomers := new(mocks.Customers)
+		mockCustomers := new(mocks.CustomersWithPersistance)
 		commandHandler := application.NewCommandHandler(mockCustomers)
 
 		Convey("It should succeed", func() {
@@ -33,7 +33,7 @@ func TestNewCommandHandler(t *testing.T) {
 
 func TestHandleRegister(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		mockCustomers := new(mocks.Customers)
+		mockCustomers := new(mocks.CustomersWithPersistance)
 		commandHandler := application.NewCommandHandler(mockCustomers)
 
 		Convey("And given a Register command", func() {
@@ -62,7 +62,7 @@ func TestHandleRegister(t *testing.T) {
 					err := commandHandler.Handle(register)
 
 					Convey("It should fail", func() {
-						So(err, ShouldBeError, expectedErr)
+						So(xerrors.Is(err, expectedErr), ShouldBeTrue)
 						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
@@ -73,7 +73,7 @@ func TestHandleRegister(t *testing.T) {
 
 func TestHandleConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		mockCustomers := new(mocks.Customers)
+		mockCustomers := new(mocks.CustomersWithPersistance)
 		commandHandler := application.NewCommandHandler(mockCustomers)
 
 		Convey("And given a ConfirmEmailAddress command", func() {
@@ -95,7 +95,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 						mockCustomer.On("Apply", confirmEmailAddress).Return(nil)
 
 						Convey("And when saving the Customer succeeds", func() {
-							mockCustomers.On("Save", mockCustomer).Return(nil).Once()
+							mockCustomers.On("Persist", mockCustomer).Return(nil).Once()
 							err := commandHandler.Handle(confirmEmailAddress)
 
 							Convey("It should confirmEmailAddress of a Customer and save it", func() {
@@ -106,11 +106,11 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 						})
 
 						Convey("And when saving the Customer fails", func() {
-							mockCustomers.On("Save", mockCustomer).Return(expectedErr).Once()
+							mockCustomers.On("Persist", mockCustomer).Return(expectedErr).Once()
 							err := commandHandler.Handle(confirmEmailAddress)
 
 							Convey("It should fail", func() {
-								So(err, ShouldBeError, expectedErr)
+								So(xerrors.Is(err, expectedErr), ShouldBeTrue)
 								So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 							})
 						})
@@ -121,7 +121,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 						err := commandHandler.Handle(confirmEmailAddress)
 
 						Convey("It should fail", func() {
-							So(err, ShouldBeError, expectedErr)
+							So(xerrors.Is(err, expectedErr), ShouldBeTrue)
 							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 						})
@@ -133,7 +133,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 					err := commandHandler.Handle(confirmEmailAddress)
 
 					Convey("It should fail", func() {
-						So(err, ShouldBeError, expectedErr)
+						So(xerrors.Is(err, expectedErr), ShouldBeTrue)
 						So(mockCustomers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
@@ -146,7 +146,7 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 
 func TestHandleInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		mockCustomers := new(mocks.Customers)
+		mockCustomers := new(mocks.CustomersWithPersistance)
 		commandHandler := application.NewCommandHandler(mockCustomers)
 		So(commandHandler, ShouldImplement, (*shared.CommandHandler)(nil))
 

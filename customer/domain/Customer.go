@@ -16,8 +16,7 @@ import (
 type Customer interface {
 	Apply(cmd shared.Command) error
 
-	shared.Aggregate
-	shared.RecordsEvents
+	shared.EventRecordingAggregate
 }
 
 type customer struct {
@@ -25,7 +24,7 @@ type customer struct {
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
 	currentStreamVersion    uint
-	recordedEvents          shared.EventStream
+	recordedEvents          shared.DomainEvents
 }
 
 func blankCustomer() *customer {
@@ -73,7 +72,7 @@ func (customer *customer) AggregateName() string {
 
 /*** EventSourcing ***/
 
-func ReconstituteCustomerFrom(eventStream shared.EventStream) (Customer, error) {
+func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error) {
 	newCustomer := blankCustomer()
 
 	if err := eventStream.FirstEventShouldBeOfSameTypeAs(&events.Registered{}); err != nil {
@@ -105,7 +104,7 @@ func (customer *customer) when(event shared.DomainEvent) {
 
 /*** Implement shared.RecordsEvents ****/
 
-func (customer *customer) RecordedEvents() shared.EventStream {
+func (customer *customer) RecordedEvents() shared.DomainEvents {
 	currentEvents := customer.recordedEvents
 	customer.recordedEvents = nil
 

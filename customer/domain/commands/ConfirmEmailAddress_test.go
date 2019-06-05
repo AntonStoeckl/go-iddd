@@ -80,7 +80,7 @@ func TestConfirmEmailAddressExposesExpectedValues(t *testing.T) {
 			So(emailAddressValue.Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
 			So(confirmationHashValue.Equals(confirmEmailAddress.ConfirmationHash()), ShouldBeTrue)
 			So(confirmEmailAddress.CommandName(), ShouldEqual, "ConfirmEmailAddress")
-			So(idValue.Equals(confirmEmailAddress.AggregateIdentifier()), ShouldBeTrue)
+			So(idValue.Equals(confirmEmailAddress.AggregateID()), ShouldBeTrue)
 		})
 	})
 }

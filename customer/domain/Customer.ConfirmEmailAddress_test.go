@@ -28,7 +28,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 		currentStreamVersion := uint(1)
 
 		customer, err := domain.ReconstituteCustomerFrom(
-			shared.EventStream{
+			shared.DomainEvents{
 				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
 			},
 		)

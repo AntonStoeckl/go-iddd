@@ -6,9 +6,9 @@ import (
 	"reflect"
 )
 
-type EventStream []DomainEvent
+type DomainEvents []DomainEvent
 
-func (eventStream EventStream) FirstEventShouldBeOfSameTypeAs(domainEvent DomainEvent) error {
+func (eventStream DomainEvents) FirstEventShouldBeOfSameTypeAs(domainEvent DomainEvent) error {
 	if len(eventStream) == 0 {
 		return errors.New("eventStream is empty")
 	}

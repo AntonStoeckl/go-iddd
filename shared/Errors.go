@@ -11,4 +11,7 @@ var (
 	ErrCommandIsInvalid           = errors.New("command is invalid")
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
 	ErrInvalidEventStream         = errors.New("invalid event stream")
+	ErrConcurrencyConflict        = errors.New("concurrency conflict")
+	ErrNotFound                   = errors.New("not found")
+	ErrDuplicate                  = errors.New("duplicate")
 )

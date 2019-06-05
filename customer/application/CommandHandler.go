@@ -13,12 +13,12 @@ import (
 )
 
 type CommandHandler struct {
-	customers domain.Customers
+	customers CustomersWithPersistance
 }
 
 /*** Factory Method ***/
 
-func NewCommandHandler(customers domain.Customers) *CommandHandler {
+func NewCommandHandler(customers CustomersWithPersistance) *CommandHandler {
 	return &CommandHandler{customers: customers}
 }
 
@@ -44,7 +44,11 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 		)
 	}
 
-	return err
+	if err != nil {
+		return xerrors.Errorf("commandHandler.Handle: %s: %w", command.CommandName(), err)
+	}
+
+	return nil
 }
 
 /*** Business cases ***/
@@ -66,6 +70,10 @@ func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command sh
 	}
 
 	if err := customer.Apply(command); err != nil {
+		return err
+	}
+
+	if err := handler.customers.Persist(customer); err != nil {
 		return err
 	}
 

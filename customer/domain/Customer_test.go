@@ -15,7 +15,7 @@ import (
 
 func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 	Convey("When a Customer is reconstituted from an empty EventStream", t, func() {
-		var eventStream shared.EventStream
+		var eventStream shared.DomainEvents
 
 		_, err := domain.ReconstituteCustomerFrom(eventStream)
 
@@ -32,7 +32,7 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		eventStream := shared.EventStream{
+		eventStream := shared.DomainEvents{
 			events.EmailAddressWasConfirmed(id, emailAddress, uint(2)),
 		}
 
@@ -111,7 +111,7 @@ func (c *unknownCommand) CommandName() string {
 	return "unknown"
 }
 
-func findCustomerEventIn(recordedEvents shared.EventStream, expectedEvent shared.DomainEvent) shared.DomainEvent {
+func findCustomerEventIn(recordedEvents shared.DomainEvents, expectedEvent shared.DomainEvent) shared.DomainEvent {
 	for _, event := range recordedEvents {
 		if reflect.TypeOf(event) == reflect.TypeOf(expectedEvent) {
 			return event
