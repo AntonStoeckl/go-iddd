@@ -13,11 +13,14 @@ func (eventStream EventStream) FirstEventShouldBeOfSameTypeAs(domainEvent Domain
 		return errors.New("eventStream is empty")
 	}
 
-	if reflect.TypeOf(eventStream[0]) != reflect.TypeOf(domainEvent) {
+	expectedType := reflect.TypeOf(domainEvent)
+	actualType := reflect.TypeOf(eventStream[0])
+
+	if actualType != expectedType {
 		return fmt.Errorf(
-			"first event in eventStream is not of type [%s] but [%s]",
-			domainEvent.EventName(),
-			eventStream[0].EventName(),
+			"first event in eventStream should have type [%s] but has type [%s]",
+			expectedType.String(),
+			actualType.String(),
 		)
 	}
 
