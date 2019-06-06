@@ -20,7 +20,9 @@ func TestInMemoryEventStore(t *testing.T) {
 		Convey("When events are appended", func() {
 			event1 := createSomeEvent(id, 1)
 			event2 := createSomeEvent(id, 2)
-			err := es.AppendToStream(id, shared.DomainEvents{event1, event2})
+
+			// appending in wrong order is intended here, to implicitly test if sorting the stream works
+			err := es.AppendToStream(id, shared.DomainEvents{event2, event1})
 			expectedEventStream = append(expectedEventStream, event1, event2)
 
 			Convey("It should succeed", func() {
@@ -29,7 +31,7 @@ func TestInMemoryEventStore(t *testing.T) {
 				Convey("And when the eventStream is loaded", func() {
 					loadedEventStream, err := es.LoadEventStream(id)
 
-					Convey("It should contain the expected events", func() {
+					Convey("It should contain the expected events with ascending versions", func() {
 						So(err, ShouldBeNil)
 						So(loadedEventStream, ShouldResemble, expectedEventStream)
 					})
@@ -37,7 +39,9 @@ func TestInMemoryEventStore(t *testing.T) {
 					Convey("And when further events are appended", func() {
 						event3 := createSomeEvent(id, 3)
 						event4 := createSomeEvent(id, 4)
-						err := es.AppendToStream(id, shared.DomainEvents{event3, event4})
+
+						// appending in wrong order is intended here, to implicitly test if sorting the stream works
+						err := es.AppendToStream(id, shared.DomainEvents{event4, event3})
 						expectedEventStream = append(expectedEventStream, event3, event4)
 
 						Convey("It should succeed", func() {
@@ -46,9 +50,22 @@ func TestInMemoryEventStore(t *testing.T) {
 							Convey("And when the eventStream is loaded", func() {
 								loadedEventStream, err := es.LoadEventStream(id)
 
-								Convey("It should contain the expected events", func() {
+								Convey("It should contain the expected events with ascending versions", func() {
 									So(err, ShouldBeNil)
 									So(loadedEventStream, ShouldResemble, expectedEventStream)
+								})
+							})
+
+							Convey("And when the partial eventStream is loaded", func() {
+								fromVersion := uint(2)
+								maxEvents := uint(2)
+								loadedEventStream, err := es.LoadPartialEventStream(id, fromVersion, maxEvents)
+
+								Convey("It should contain the expected events", func() {
+									So(err, ShouldBeNil)
+									So(loadedEventStream, ShouldHaveLength, maxEvents)
+									So(loadedEventStream[0], ShouldResemble, expectedEventStream[1])
+									So(loadedEventStream[1], ShouldResemble, expectedEventStream[2])
 								})
 							})
 						})

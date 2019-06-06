@@ -46,3 +46,26 @@ func (_m *EventStore) LoadEventStream(identifier shared.AggregateID) (shared.Dom
 
 	return r0, r1
 }
+
+// LoadPartialEventStream provides a mock function with given fields: identifier, fromVersion, maxEvents
+func (_m *EventStore) LoadPartialEventStream(identifier shared.AggregateID, fromVersion uint, maxEvents uint) (shared.DomainEvents, error) {
+	ret := _m.Called(identifier, fromVersion, maxEvents)
+
+	var r0 shared.DomainEvents
+	if rf, ok := ret.Get(0).(func(shared.AggregateID, uint, uint) shared.DomainEvents); ok {
+		r0 = rf(identifier, fromVersion, maxEvents)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(shared.DomainEvents)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(shared.AggregateID, uint, uint) error); ok {
+		r1 = rf(identifier, fromVersion, maxEvents)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
