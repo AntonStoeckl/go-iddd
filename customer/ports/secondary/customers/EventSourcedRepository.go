@@ -4,6 +4,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"sync"
 
 	"golang.org/x/xerrors"
 )
@@ -14,6 +15,7 @@ type eventSourcedRepository struct {
 	eventStore      shared.EventStore
 	customerFactory customerFactory
 	identityMap     map[string]domain.Customer
+	identityMapMux  sync.Mutex
 }
 
 func NewEventSourcedRepository(
@@ -31,6 +33,10 @@ func NewEventSourcedRepository(
 /***** Implement domain.Customers *****/
 
 func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
+	if _, found := repo.memorizedCustomerOf(customer.AggregateID().(*values.ID)); found {
+		return xerrors.Errorf("customers[eventSourcedRepository].Register: already memorized in identityMap: %w", shared.ErrDuplicate)
+	}
+
 	if err := repo.eventStore.AppendToStream(customer.AggregateID(), customer.RecordedEvents()); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
 			return xerrors.Errorf("customers[eventSourcedRepository].Register: %s: %w", err, shared.ErrDuplicate)
@@ -86,10 +92,16 @@ func (repo *eventSourcedRepository) Persist(aggregate shared.EventRecordingAggre
 /***** Methods for identityMap (local caching) *****/
 
 func (repo *eventSourcedRepository) memorize(customer domain.Customer) {
+	repo.identityMapMux.Lock()
+	defer repo.identityMapMux.Unlock()
+
 	repo.identityMap[customer.AggregateID().String()] = customer
 }
 
 func (repo *eventSourcedRepository) memorizedCustomerOf(id *values.ID) (domain.Customer, bool) {
+	repo.identityMapMux.Lock()
+	defer repo.identityMapMux.Unlock()
+
 	customer, found := repo.identityMap[id.String()]
 
 	if !found {

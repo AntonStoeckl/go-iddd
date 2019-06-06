@@ -8,6 +8,7 @@ import (
 	"go-iddd/customer/ports/secondary/customers"
 	"go-iddd/customer/ports/secondary/customers/mocks"
 	"go-iddd/shared"
+	"sync"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -43,9 +44,19 @@ func TestEventSourcedRepositoryRegister(t *testing.T) {
 			eventStore.On("AppendToStream", id, recordedEvents).Return(nil).Once()
 			err := persistableCustomers.Register(customer)
 
-			Convey("It should register the customer", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(eventStore.AssertExpectations(t), ShouldBeTrue)
+
+				Convey("And when the same Customer is registered again", func() {
+					// eventStore.AppendToStream() is mocked to be called only Once, so it would fail if it's called again
+					err := persistableCustomers.Register(customer)
+
+					Convey("It should fail", func() {
+						So(xerrors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
+						So(eventStore.AssertExpectations(t), ShouldBeTrue)
+					})
+				})
 			})
 
 			Convey("And when the Customer is retrieved", func() {
@@ -233,6 +244,53 @@ func TestEventSourcedRepositoryPersist(t *testing.T) {
 				So(xerrors.Is(err, expectedErr), ShouldBeTrue)
 				So(eventStore.AssertExpectations(t), ShouldBeTrue)
 			})
+		})
+	})
+}
+
+func TestEventSourcedRepositoryIdentityMapRaceConditions(t *testing.T) {
+	Convey("When the identityMap has concurrent read/write requests", t, func() {
+		id := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		currentStreamVersion := uint(1)
+		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion)
+		currentStreamVersion++
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress, currentStreamVersion)
+		recordedEvents := shared.DomainEvents{registered, emailAddressConfirmed}
+
+		customer := new(mocks.Customer)
+		customer.On("AggregateID").Return(id)
+		customer.On("RecordedEvents").Return(recordedEvents)
+
+		eventStore := new(mocks.EventStore)
+		eventStore.On("AppendToStream", id, recordedEvents).Return(nil)
+		eventStore.On("LoadEventStream", id).Return(recordedEvents, nil)
+		customerFactory := func(eventStream shared.DomainEvents) (domain.Customer, error) {
+			return customer, nil
+		}
+		persistableCustomers := customers.NewEventSourcedRepository(eventStore, customerFactory)
+
+		Convey("It should not report race conditions", func() {
+			wg := new(sync.WaitGroup)
+
+			concurrent := func(wg *sync.WaitGroup) {
+				defer wg.Done()
+
+				_ = persistableCustomers.Register(customer)
+				_, _ = persistableCustomers.Of(id)
+			}
+
+			for i := 0; i < 2; i++ {
+				wg.Add(1)
+				go concurrent(wg)
+			}
+
+			wg.Wait()
 		})
 	})
 }
