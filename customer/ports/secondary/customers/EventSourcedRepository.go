@@ -13,6 +13,7 @@ type customerFactory func(eventStream shared.DomainEvents) (domain.Customer, err
 type eventSourcedRepository struct {
 	eventStore      shared.EventStore
 	customerFactory customerFactory
+	identityMap     map[string]domain.Customer
 }
 
 func NewEventSourcedRepository(
@@ -23,6 +24,7 @@ func NewEventSourcedRepository(
 	return &eventSourcedRepository{
 		eventStore:      eventStore,
 		customerFactory: customerFactory,
+		identityMap:     make(map[string]domain.Customer),
 	}
 }
 
@@ -37,10 +39,16 @@ func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
 		return xerrors.Errorf("customers[eventSourcedRepository].Register: %w", err)
 	}
 
+	repo.memorize(customer)
+
 	return nil
 }
 
 func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
+	if memorizedCustomer, found := repo.memorizedCustomerOf(id); found {
+		return memorizedCustomer, nil
+	}
+
 	eventStream, err := repo.eventStore.LoadEventStream(id)
 	if err != nil {
 		return nil, xerrors.Errorf("customers[eventSourcedRepository].Of: %w", err)
@@ -54,6 +62,8 @@ func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
 	if err != nil {
 		return nil, xerrors.Errorf("customers[eventSourcedRepository].Of: %w", err)
 	}
+
+	repo.memorize(customer)
 
 	return customer, nil
 }
@@ -71,4 +81,20 @@ func (repo *eventSourcedRepository) Persist(aggregate shared.EventRecordingAggre
 	}
 
 	return nil
+}
+
+/***** Methods for identityMap (local caching) *****/
+
+func (repo *eventSourcedRepository) memorize(customer domain.Customer) {
+	repo.identityMap[customer.AggregateID().String()] = customer
+}
+
+func (repo *eventSourcedRepository) memorizedCustomerOf(id *values.ID) (domain.Customer, bool) {
+	customer, found := repo.identityMap[id.String()]
+
+	if !found {
+		return nil, false
+	}
+
+	return customer, true
 }

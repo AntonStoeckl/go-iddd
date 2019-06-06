@@ -47,6 +47,17 @@ func TestEventSourcedRepositoryRegister(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(eventStore.AssertExpectations(t), ShouldBeTrue)
 			})
+
+			Convey("And when the Customer is retrieved", func() {
+				// eventStore.LoadEventStream() is not mocked, so it would fail if it's called
+				customer, err := persistableCustomers.Of(id)
+
+				Convey("It should be retrieved from the identity map (cache)", func() {
+					So(err, ShouldBeNil)
+					So(eventStore.AssertExpectations(t), ShouldBeTrue)
+					So(customer.AggregateID().Equals(id), ShouldBeTrue)
+				})
+			})
 		})
 
 		Convey("When appending the recorded events fails", func() {
@@ -103,6 +114,9 @@ func TestEventSourcedRepositoryOf(t *testing.T) {
 		err = persistableCustomers.Register(customer)
 		So(err, ShouldBeNil)
 
+		// recreate the repository to reset the identityMap (cache)
+		persistableCustomers = customers.NewEventSourcedRepository(eventStore, customerFactory)
+
 		Convey("When the Customer is retrieved", func() {
 			Convey("And when loading the event stream succeeds", func() {
 				Convey("And when the customer can be reconstituted", func() {
@@ -113,6 +127,17 @@ func TestEventSourcedRepositoryOf(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(eventStore.AssertExpectations(t), ShouldBeTrue)
 						So(customer.AggregateID().Equals(id), ShouldBeTrue)
+					})
+
+					Convey("And when the Customer is retrieved again", func() {
+						// eventStore.LoadEventStream() is mocked to be called only Once, so it would fail if it's called again
+						customer, err := persistableCustomers.Of(id)
+
+						Convey("It should be retrieved from the identity map (cache)", func() {
+							So(err, ShouldBeNil)
+							So(eventStore.AssertExpectations(t), ShouldBeTrue)
+							So(customer.AggregateID().Equals(id), ShouldBeTrue)
+						})
 					})
 				})
 
