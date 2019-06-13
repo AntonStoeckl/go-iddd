@@ -315,7 +315,7 @@ func ({{$commandVar}} *{{commandName}}) {{methodName .DataType}}() {{.DataType}}
 
 /*** Implement shared.Command ***/
 
-func ({{$commandVar}} *{{commandName}}) AggregateID() shared.AggregateID {
+func ({{$commandVar}} *{{commandName}}) AggregateID() shared.IdentifiesAggregates {
 	return {{$commandVar}}.id
 }
 

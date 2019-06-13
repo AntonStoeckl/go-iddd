@@ -51,7 +51,7 @@ func (changeEmailAddress *ChangeEmailAddress) EmailAddress() *values.EmailAddres
 
 /*** Implement shared.Command ***/
 
-func (changeEmailAddress *ChangeEmailAddress) AggregateID() shared.AggregateID {
+func (changeEmailAddress *ChangeEmailAddress) AggregateID() shared.IdentifiesAggregates {
 	return changeEmailAddress.id
 }
 
