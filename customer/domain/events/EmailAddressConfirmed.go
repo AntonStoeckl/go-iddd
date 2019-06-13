@@ -6,17 +6,30 @@ import (
 	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 )
 
-const emailAddressConfirmedAggregateName = "Customer"
+const (
+	emailAddressConfirmedAggregateName       = "Customer"
+	EmailAddressConfirmedMetaTimestampFormat = time.RFC3339Nano
+)
 
 type EmailAddressConfirmed struct {
 	id           *values.ID
 	emailAddress *values.EmailAddress
 
-	meta *shared.DomainEventMeta
+	meta *emailAddressConfirmedMeta
+}
+
+type emailAddressConfirmedMeta struct {
+	Identifier    string `json:"identifier"`
+	EventName     string `json:"eventName"`
+	OccurredAt    string `json:"occurredAt"`
+	StreamVersion uint   `json:"streamVersion"`
 }
 
 /*** Factory Methods ***/
@@ -32,12 +45,18 @@ func EmailAddressWasConfirmed(
 		emailAddress: emailAddress,
 	}
 
-	emailAddressConfirmed.meta = shared.NewDomainEventMeta(
-		id.String(),
-		emailAddressConfirmed,
-		emailAddressConfirmedAggregateName,
-		streamVersion,
-	)
+	eventType := reflect.TypeOf(emailAddressConfirmed).String()
+	eventTypeParts := strings.Split(eventType, ".")
+	eventName := eventTypeParts[len(eventTypeParts)-1]
+	eventName = strings.Title(eventName)
+	fullEventName := emailAddressConfirmedAggregateName + eventName
+
+	emailAddressConfirmed.meta = &emailAddressConfirmedMeta{
+		Identifier:    id.String(),
+		EventName:     fullEventName,
+		OccurredAt:    time.Now().Format(EmailAddressConfirmedMetaTimestampFormat),
+		StreamVersion: streamVersion,
+	}
 
 	return emailAddressConfirmed
 }
@@ -74,9 +93,9 @@ func (emailAddressConfirmed *EmailAddressConfirmed) StreamVersion() uint {
 
 func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID           *values.ID              `json:"id"`
-		EmailAddress *values.EmailAddress    `json:"emailAddress"`
-		Meta         *shared.DomainEventMeta `json:"meta"`
+		ID           *values.ID                 `json:"id"`
+		EmailAddress *values.EmailAddress       `json:"emailAddress"`
+		Meta         *emailAddressConfirmedMeta `json:"meta"`
 	}{
 		ID:           emailAddressConfirmed.id,
 		EmailAddress: emailAddressConfirmed.emailAddress,
@@ -90,9 +109,9 @@ func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error
 
 func (emailAddressConfirmed *EmailAddressConfirmed) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID           *values.ID              `json:"id"`
-		EmailAddress *values.EmailAddress    `json:"emailAddress"`
-		Meta         *shared.DomainEventMeta `json:"meta"`
+		ID           *values.ID                 `json:"id"`
+		EmailAddress *values.EmailAddress       `json:"emailAddress"`
+		Meta         *emailAddressConfirmedMeta `json:"meta"`
 	}{}
 
 	if err := json.Unmarshal(data, unmarshaledData); err != nil {

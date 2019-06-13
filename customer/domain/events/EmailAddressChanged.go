@@ -6,17 +6,30 @@ import (
 	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 )
 
-const emailAddressChangedAggregateName = "Customer"
+const (
+	emailAddressChangedAggregateName       = "Customer"
+	EmailAddressChangedMetaTimestampFormat = time.RFC3339Nano
+)
 
 type EmailAddressChanged struct {
 	id           *values.ID
 	emailAddress *values.EmailAddress
 
-	meta *shared.DomainEventMeta
+	meta *emailAddressChangedMeta
+}
+
+type emailAddressChangedMeta struct {
+	Identifier    string `json:"identifier"`
+	EventName     string `json:"eventName"`
+	OccurredAt    string `json:"occurredAt"`
+	StreamVersion uint   `json:"streamVersion"`
 }
 
 /*** Factory Methods ***/
@@ -32,12 +45,18 @@ func EmailAddressWasChanged(
 		emailAddress: emailAddress,
 	}
 
-	emailAddressChanged.meta = shared.NewDomainEventMeta(
-		id.String(),
-		emailAddressChanged,
-		emailAddressChangedAggregateName,
-		streamVersion,
-	)
+	eventType := reflect.TypeOf(emailAddressChanged).String()
+	eventTypeParts := strings.Split(eventType, ".")
+	eventName := eventTypeParts[len(eventTypeParts)-1]
+	eventName = strings.Title(eventName)
+	fullEventName := emailAddressChangedAggregateName + eventName
+
+	emailAddressChanged.meta = &emailAddressChangedMeta{
+		Identifier:    id.String(),
+		EventName:     fullEventName,
+		OccurredAt:    time.Now().Format(EmailAddressChangedMetaTimestampFormat),
+		StreamVersion: streamVersion,
+	}
 
 	return emailAddressChanged
 }
@@ -74,9 +93,9 @@ func (emailAddressChanged *EmailAddressChanged) StreamVersion() uint {
 
 func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID           *values.ID              `json:"id"`
-		EmailAddress *values.EmailAddress    `json:"emailAddress"`
-		Meta         *shared.DomainEventMeta `json:"meta"`
+		ID           *values.ID               `json:"id"`
+		EmailAddress *values.EmailAddress     `json:"emailAddress"`
+		Meta         *emailAddressChangedMeta `json:"meta"`
 	}{
 		ID:           emailAddressChanged.id,
 		EmailAddress: emailAddressChanged.emailAddress,
@@ -90,9 +109,9 @@ func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 
 func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID           *values.ID              `json:"id"`
-		EmailAddress *values.EmailAddress    `json:"emailAddress"`
-		Meta         *shared.DomainEventMeta `json:"meta"`
+		ID           *values.ID               `json:"id"`
+		EmailAddress *values.EmailAddress     `json:"emailAddress"`
+		Meta         *emailAddressChangedMeta `json:"meta"`
 	}{}
 
 	if err := json.Unmarshal(data, unmarshaledData); err != nil {

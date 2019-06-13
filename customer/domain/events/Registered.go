@@ -6,18 +6,31 @@ import (
 	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
+	"time"
 
 	"golang.org/x/xerrors"
 )
 
-const registeredAggregateName = "Customer"
+const (
+	registeredAggregateName       = "Customer"
+	RegisteredMetaTimestampFormat = time.RFC3339Nano
+)
 
 type Registered struct {
 	id                      *values.ID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
 
-	meta *shared.DomainEventMeta
+	meta *registeredMeta
+}
+
+type registeredMeta struct {
+	Identifier    string `json:"identifier"`
+	EventName     string `json:"eventName"`
+	OccurredAt    string `json:"occurredAt"`
+	StreamVersion uint   `json:"streamVersion"`
 }
 
 /*** Factory Methods ***/
@@ -35,12 +48,18 @@ func ItWasRegistered(
 		personName:              personName,
 	}
 
-	registered.meta = shared.NewDomainEventMeta(
-		id.String(),
-		registered,
-		registeredAggregateName,
-		streamVersion,
-	)
+	eventType := reflect.TypeOf(registered).String()
+	eventTypeParts := strings.Split(eventType, ".")
+	eventName := eventTypeParts[len(eventTypeParts)-1]
+	eventName = strings.Title(eventName)
+	fullEventName := registeredAggregateName + eventName
+
+	registered.meta = &registeredMeta{
+		Identifier:    id.String(),
+		EventName:     fullEventName,
+		OccurredAt:    time.Now().Format(RegisteredMetaTimestampFormat),
+		StreamVersion: streamVersion,
+	}
 
 	return registered
 }
@@ -84,7 +103,7 @@ func (registered *Registered) MarshalJSON() ([]byte, error) {
 		ID                      *values.ID                      `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		PersonName              *values.PersonName              `json:"personName"`
-		Meta                    *shared.DomainEventMeta         `json:"meta"`
+		Meta                    *registeredMeta                 `json:"meta"`
 	}{
 		ID:                      registered.id,
 		ConfirmableEmailAddress: registered.confirmableEmailAddress,
@@ -102,7 +121,7 @@ func (registered *Registered) UnmarshalJSON(data []byte) error {
 		ID                      *values.ID                      `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		PersonName              *values.PersonName              `json:"personName"`
-		Meta                    *shared.DomainEventMeta         `json:"meta"`
+		Meta                    *registeredMeta                 `json:"meta"`
 	}{}
 
 	if err := json.Unmarshal(data, unmarshaledData); err != nil {
