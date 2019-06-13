@@ -98,6 +98,27 @@ var commands = []Command{
 			},
 		},
 	},
+	{
+		CommandType: "ChangeEmailAddress",
+		Fields: []Field{
+			{
+				FieldName:    "id",
+				DataType:     "*values.ID",
+				ValueFactory: "values.RebuildID(id)",
+				Input: []Input{
+					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+				},
+			},
+			{
+				FieldName:    "emailAddress",
+				DataType:     "*values.EmailAddress",
+				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				Input: []Input{
+					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
+				},
+			},
+		},
+	},
 }
 
 type Config struct {

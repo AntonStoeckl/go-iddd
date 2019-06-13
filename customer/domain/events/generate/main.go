@@ -50,6 +50,14 @@ var events = []Event{
 			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
 		},
 	},
+	{
+		EventType:    "EmailAddressChanged",
+		EventFactory: "EmailAddressWasChanged",
+		Fields: []Field{
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
+		},
+	},
 }
 
 type Config struct {
@@ -366,9 +374,9 @@ func Test{{.EventFactory}}(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
 		{{end}}
-		streamVersion := uint(0)
 
 		Convey("When a new {{eventName}} event is created", func() {
+			streamVersion := uint(1)
 			{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
 			Convey("It should succeed", func() {
@@ -384,7 +392,7 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
 		{{end -}}
-		streamVersion := uint(0)
+		streamVersion := uint(1)
 
 		beforeItOccurred := time.Now()
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
@@ -399,6 +407,7 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(beforeItOccurred, ShouldHappenBefore, itOccurred)
 			So(afterItOccurred, ShouldHappenAfter, itOccurred)
+			So({{$eventVar}}.StreamVersion(), ShouldEqual, streamVersion)
 		})
 	})
 }
@@ -407,7 +416,7 @@ func Test{{eventName}}MarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
 		{{end -}}
-		streamVersion := uint(0)
+		streamVersion := uint(1)
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
@@ -427,7 +436,7 @@ func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 	Convey("Given a {{eventName}} event marshaled to json", t, func() {
 		{{range .Fields}}{{valueFactoryForTest .FieldName}}
 		{{end -}}
-		streamVersion := uint(0)
+		streamVersion := uint(1)
 
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
