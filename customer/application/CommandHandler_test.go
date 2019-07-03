@@ -91,8 +91,8 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 					mockCustomer := new(mocks.Customer)
 					mockCustomers.On("Of", confirmEmailAddress.ID()).Return(mockCustomer, nil).Once()
 
-					Convey("And when applying confirmEmailAddress succeeds", func() {
-						mockCustomer.On("Apply", confirmEmailAddress).Return(nil)
+					Convey("And when executing confirmEmailAddress succeeds", func() {
+						mockCustomer.On("Execute", confirmEmailAddress).Return(nil)
 
 						Convey("And when saving the Customer succeeds", func() {
 							mockCustomers.On("Persist", mockCustomer).Return(nil).Once()
@@ -116,8 +116,8 @@ func TestHandleConfirmEmailAddress(t *testing.T) {
 						})
 					})
 
-					Convey("And when applying confirmEmailAddress fails", func() {
-						mockCustomer.On("Apply", confirmEmailAddress).Return(expectedErr)
+					Convey("And when executing confirmEmailAddress fails", func() {
+						mockCustomer.On("Execute", confirmEmailAddress).Return(expectedErr)
 						err := commandHandler.Handle(confirmEmailAddress)
 
 						Convey("It should fail", func() {
@@ -181,7 +181,10 @@ func TestHandleInvalidCommand(t *testing.T) {
 		})
 
 		Convey("When an unknown command is handled", func() {
-			unknownCommand := &unknownCommand{}
+			unknownCommand := new(mocks.Command)
+			unknownCommand.On("AggregateID").Return(values.GenerateID())
+			unknownCommand.On("CommandName").Return("unknown")
+
 			err := commandHandler.Handle(unknownCommand)
 
 			Convey("It should fail", func() {
@@ -190,16 +193,4 @@ func TestHandleInvalidCommand(t *testing.T) {
 			})
 		})
 	})
-}
-
-/*** Test Helpers ***/
-
-type unknownCommand struct{}
-
-func (c *unknownCommand) AggregateID() shared.AggregateID {
-	return values.GenerateID()
-}
-
-func (c *unknownCommand) CommandName() string {
-	return "unknown"
 }

@@ -4,14 +4,123 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/customer/domain/mocks"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
-	"reflect"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/xerrors"
 )
+
+func TestCustomerClone(t *testing.T) {
+	Convey("Given a Customer", t, func() {
+		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		So(err, ShouldBeNil)
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		currentStreamVersion := uint(1)
+
+		customer, err := domain.ReconstituteCustomerFrom(
+			shared.DomainEvents{
+				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
+			},
+		)
+		So(err, ShouldBeNil)
+
+		Convey("When it is cloned", func() {
+			clonedCustomer := customer.Clone()
+
+			Convey("It should be equal to the original customer", func() {
+				So(clonedCustomer, ShouldResemble, customer)
+			})
+		})
+	})
+}
+
+func TestCustomerStreamVersion(t *testing.T) {
+	Convey("Given a Customer", t, func() {
+		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		So(err, ShouldBeNil)
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+		newEmailAddress, err := values.NewEmailAddress("john+changed@doe.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		currentStreamVersion := uint(2)
+
+		customer, err := domain.ReconstituteCustomerFrom(
+			shared.DomainEvents{
+				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
+				events.EmailAddressWasChanged(id, newEmailAddress, currentStreamVersion),
+			},
+		)
+		So(err, ShouldBeNil)
+
+		Convey("When it's streamVersion is retrieved", func() {
+			streamVersion := customer.StreamVersion()
+
+			Convey("It should expose the expected version", func() {
+				So(streamVersion, ShouldResemble, currentStreamVersion)
+			})
+		})
+	})
+}
+
+func TestCustomerApply(t *testing.T) {
+	Convey("Given a Customer", t, func() {
+		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		So(err, ShouldBeNil)
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+		newEmailAddress, err := values.NewEmailAddress("john+changed@doe.com")
+		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
+		personName, err := values.NewPersonName("John", "Doe")
+		So(err, ShouldBeNil)
+
+		currentStreamVersion := uint(1)
+
+		customer, err := domain.ReconstituteCustomerFrom(
+			shared.DomainEvents{
+				events.ItWasRegistered(id, confirmableEmailAddress, personName, 1),
+			},
+		)
+		So(err, ShouldBeNil)
+
+		Convey("When latestEvents are applied", func() {
+			currentStreamVersion++
+
+			customer.Apply(
+				shared.DomainEvents{
+					events.EmailAddressWasChanged(id, newEmailAddress, currentStreamVersion),
+				},
+			)
+
+			Convey("It should be in the expected state", func() {
+				So(customer.StreamVersion(), ShouldResemble, currentStreamVersion)
+
+				changeEmailAddress, err := commands.NewChangeEmailAddress(
+					id.String(),
+					newEmailAddress.EmailAddress(),
+				)
+				So(err, ShouldBeNil)
+
+				err = customer.Execute(changeEmailAddress)
+				So(err, ShouldBeNil)
+
+				So(customer.RecordedEvents(false), ShouldHaveLength, 0)
+			})
+		})
+	})
+}
 
 func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 	Convey("When a Customer is reconstituted from an empty EventStream", t, func() {
@@ -45,7 +154,7 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 	})
 }
 
-func TestCustomerApplyInvalidCommand(t *testing.T) {
+func TestCustomerExecuteInvalidCommand(t *testing.T) {
 	Convey("Given a Customer", t, func() {
 		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		emailAddress := "john@doe.com"
@@ -59,7 +168,7 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 
 		Convey("When a nil interface command is handled", func() {
 			var nilInterfaceCommand shared.Command
-			err := customer.Apply(nilInterfaceCommand)
+			err := customer.Execute(nilInterfaceCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -69,7 +178,7 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 
 		Convey("When a nil pointer command is handled", func() {
 			var nilCommand *commands.ConfirmEmailAddress
-			err := customer.Apply(nilCommand)
+			err := customer.Execute(nilCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -79,7 +188,7 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 
 		Convey("When an empty command is handled", func() {
 			emptyCommand := &commands.ConfirmEmailAddress{}
-			err := customer.Apply(emptyCommand)
+			err := customer.Execute(emptyCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -88,8 +197,10 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 		})
 
 		Convey("When an unknown command is handled", func() {
-			unknownCommand := &unknownCommand{}
-			err := customer.Apply(unknownCommand)
+			unknownCommand := new(mocks.Command)
+			unknownCommand.On("AggregateID").Return(values.GenerateID())
+			unknownCommand.On("CommandName").Return("unknown")
+			err := customer.Execute(unknownCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -97,26 +208,4 @@ func TestCustomerApplyInvalidCommand(t *testing.T) {
 			})
 		})
 	})
-}
-
-/*** Test Helpers ***/
-
-type unknownCommand struct{}
-
-func (c *unknownCommand) AggregateID() shared.AggregateID {
-	return values.GenerateID()
-}
-
-func (c *unknownCommand) CommandName() string {
-	return "unknown"
-}
-
-func findCustomerEventIn(recordedEvents shared.DomainEvents, expectedEvent shared.DomainEvent) shared.DomainEvent {
-	for _, event := range recordedEvents {
-		if reflect.TypeOf(event) == reflect.TypeOf(expectedEvent) {
-			return event
-		}
-	}
-
-	return nil
 }

@@ -14,9 +14,9 @@ import (
 )
 
 type Customer interface {
-	Apply(cmd shared.Command) error
+	Clone() Customer
 
-	shared.EventRecordingAggregate
+	shared.EventsourcedAggregate
 }
 
 type customer struct {
@@ -33,20 +33,30 @@ func blankCustomer() *customer {
 
 /*** Implement Customer ***/
 
-func (customer *customer) Apply(command shared.Command) error {
+func (customer *customer) Clone() Customer {
+	cloned := *customer
+
+	return &cloned
+}
+
+/*** Implement shared.Aggregate ****/
+
+func (customer *customer) Execute(command shared.Command) error {
 	var err error
 
 	if err := customer.assertIsValid(command); err != nil {
-		return xerrors.Errorf("customer.Apply: %s: %w", err, shared.ErrCommandIsInvalid)
+		return xerrors.Errorf("customer.Execute: %s: %w", err, shared.ErrCommandIsInvalid)
 	}
 
 	switch actualCommand := command.(type) {
 	case *commands.ConfirmEmailAddress:
 		err = customer.confirmEmailAddress(actualCommand)
+	case *commands.ChangeEmailAddress:
+		err = customer.changeEmailAddress(actualCommand)
 	case *commands.Register:
-		return xerrors.Errorf("customer.Apply: customer is already registered: %w", shared.ErrCommandCanNotBeHandled)
+		return xerrors.Errorf("customer.Execute: customer is already registered: %w", shared.ErrCommandCanNotBeHandled)
 	default:
-		return xerrors.Errorf("customer.Apply: [%s]: command is unknown: %w", command.CommandName(), shared.ErrCommandCanNotBeHandled)
+		return xerrors.Errorf("customer.Execute: [%s]: command is unknown: %w", command.CommandName(), shared.ErrCommandCanNotBeHandled)
 	}
 
 	if err != nil {
@@ -56,9 +66,7 @@ func (customer *customer) Apply(command shared.Command) error {
 	return nil
 }
 
-/*** Implement shared.Aggregate ****/
-
-func (customer *customer) AggregateID() shared.AggregateID {
+func (customer *customer) AggregateID() shared.IdentifiesAggregates {
 	return customer.id
 }
 
@@ -79,36 +87,51 @@ func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error)
 		return nil, xerrors.Errorf("ReconstituteCustomerFrom: %s: %w", err, shared.ErrInvalidEventStream)
 	}
 
-	for _, event := range eventStream {
-		newCustomer.when(event)
-	}
+	newCustomer.apply(eventStream...)
 
 	return newCustomer, nil
 }
 
 func (customer *customer) recordThat(event shared.DomainEvent) {
 	customer.recordedEvents = append(customer.recordedEvents, event)
-	customer.when(event)
+	customer.apply(event)
 }
 
-func (customer *customer) when(event shared.DomainEvent) {
-	switch actualEvent := event.(type) {
-	case *events.Registered:
-		customer.whenItWasRegistered(actualEvent)
-	case *events.EmailAddressConfirmed:
-		customer.whenEmailAddressWasConfirmed(actualEvent)
-	}
+func (customer *customer) apply(eventStream ...shared.DomainEvent) {
+	for _, event := range eventStream {
+		switch actualEvent := event.(type) {
+		case *events.Registered:
+			customer.whenItWasRegistered(actualEvent)
+		case *events.EmailAddressConfirmed:
+			customer.whenEmailAddressWasConfirmed(actualEvent)
+		case *events.EmailAddressChanged:
+			customer.whenEmailAddressWasChanged(actualEvent)
+		}
 
-	customer.currentStreamVersion = event.StreamVersion()
+		customer.currentStreamVersion = event.StreamVersion()
+	}
 }
 
 /*** Implement shared.RecordsEvents ****/
 
-func (customer *customer) RecordedEvents() shared.DomainEvents {
-	currentEvents := customer.recordedEvents
-	customer.recordedEvents = nil
+func (customer *customer) RecordedEvents(purge bool) shared.DomainEvents {
+	recordedEvents := customer.recordedEvents
 
-	return currentEvents
+	if purge {
+		customer.recordedEvents = nil
+	}
+
+	return recordedEvents
+}
+
+/*** Implement shared.EventsourcedAggregate ****/
+
+func (customer *customer) StreamVersion() uint {
+	return customer.currentStreamVersion
+}
+
+func (customer *customer) Apply(latestEvents shared.DomainEvents) {
+	customer.apply(latestEvents...)
 }
 
 /*** Command Assertions ***/

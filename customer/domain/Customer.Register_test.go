@@ -4,6 +4,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/customer/domain/mocks"
 	"go-iddd/shared"
 	"testing"
 
@@ -36,8 +37,8 @@ func TestNewCustomer(t *testing.T) {
 			})
 
 			Convey("And it should record that a Customer was registered", func() {
-				recordedEvents := customer.RecordedEvents()
-				registered := findCustomerEventIn(
+				recordedEvents := customer.RecordedEvents(false)
+				registered := mocks.FindCustomerEventIn(
 					recordedEvents,
 					new(events.Registered),
 				).(*events.Registered)
@@ -55,8 +56,8 @@ func TestNewCustomer(t *testing.T) {
 				})
 			})
 
-			Convey("And it should not apply further Register commands", func() {
-				err = customer.Apply(register)
+			Convey("And it should not execute further Register commands", func() {
+				err = customer.Execute(register)
 				So(err, ShouldBeError)
 				So(xerrors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
 			})

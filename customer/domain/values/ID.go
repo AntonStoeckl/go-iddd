@@ -41,15 +41,15 @@ func (id *ID) shouldBeValid() error {
 	return nil
 }
 
-/*** Getter Methods (implement shared.AggregateID) ***/
+/*** Getter Methods (implement shared.IdentifiesAggregates) ***/
 
 func (id *ID) String() string {
 	return id.value
 }
 
-/*** Comparison Methods (implement shared.AggregateID) ***/
+/*** Comparison Methods (implement shared.IdentifiesAggregates) ***/
 
-func (id *ID) Equals(other shared.AggregateID) bool {
+func (id *ID) Equals(other shared.IdentifiesAggregates) bool {
 	if _, ok := other.(*ID); !ok {
 		return false
 	}

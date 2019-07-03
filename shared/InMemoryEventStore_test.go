@@ -1,6 +1,7 @@
 package shared_test
 
 import (
+	"errors"
 	"fmt"
 	"go-iddd/shared"
 	"testing"
@@ -22,7 +23,7 @@ func TestInMemoryEventStore(t *testing.T) {
 			event2 := createSomeEvent(id, 2)
 
 			// appending in wrong order is intended here, to implicitly test if sorting the stream works
-			err := es.AppendToStream(id, shared.DomainEvents{event2, event1})
+			err := es.AppendToStream(shared.DomainEvents{event2, event1})
 			expectedEventStream = append(expectedEventStream, event1, event2)
 
 			Convey("It should succeed", func() {
@@ -41,7 +42,7 @@ func TestInMemoryEventStore(t *testing.T) {
 						event4 := createSomeEvent(id, 4)
 
 						// appending in wrong order is intended here, to implicitly test if sorting the stream works
-						err := es.AppendToStream(id, shared.DomainEvents{event4, event3})
+						err := es.AppendToStream(shared.DomainEvents{event4, event3})
 						expectedEventStream = append(expectedEventStream, event3, event4)
 
 						Convey("It should succeed", func() {
@@ -74,7 +75,7 @@ func TestInMemoryEventStore(t *testing.T) {
 			})
 
 			Convey("And when events with a conflicting version are appended", func() {
-				err := es.AppendToStream(id, shared.DomainEvents{event2})
+				err := es.AppendToStream(shared.DomainEvents{event2})
 
 				Convey("It should not append them", func() {
 					So(xerrors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
@@ -94,6 +95,29 @@ func TestInMemoryEventStore(t *testing.T) {
 			})
 		})
 	})
+
+	Convey("Given it is set to fail once", t, func() {
+		es := shared.NewInMemoryEventStore("test")
+		expectedErr := errors.New("mocked error")
+		es.FailOnceWith(expectedErr)
+		id := &someID{id: uuid.New().String()}
+		var expectedEventStream shared.DomainEvents
+
+		Convey("When an eventStream is loaded", func() {
+			_, err := es.LoadEventStream(id)
+			So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+		})
+
+		Convey("When a partial eventStream is loaded", func() {
+			_, err := es.LoadPartialEventStream(id, 1, 10)
+			So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+		})
+
+		Convey("When events are appended", func() {
+			err := es.AppendToStream(expectedEventStream)
+			So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+		})
+	})
 }
 
 /*** Test Helpers ***/
@@ -106,7 +130,7 @@ func (someID *someID) String() string {
 	return someID.id
 }
 
-func (someID *someID) Equals(other shared.AggregateID) bool {
+func (someID *someID) Equals(other shared.IdentifiesAggregates) bool {
 	return true // not needed in scope of this test
 }
 
@@ -129,7 +153,7 @@ func (someEvent *someEvent) EventName() string {
 }
 
 func (someEvent *someEvent) OccurredAt() string {
-	return time.Now().Format(shared.DomainEventMetaTimestampFormat)
+	return time.Now().Format(time.RFC3339Nano)
 }
 
 func (someEvent *someEvent) StreamVersion() uint {

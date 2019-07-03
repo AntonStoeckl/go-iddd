@@ -10,13 +10,13 @@ type EventStore struct {
 	mock.Mock
 }
 
-// AppendToStream provides a mock function with given fields: identifier, events
-func (_m *EventStore) AppendToStream(identifier shared.AggregateID, events shared.DomainEvents) error {
-	ret := _m.Called(identifier, events)
+// AppendToStream provides a mock function with given fields: events
+func (_m *EventStore) AppendToStream(events shared.DomainEvents) error {
+	ret := _m.Called(events)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(shared.AggregateID, shared.DomainEvents) error); ok {
-		r0 = rf(identifier, events)
+	if rf, ok := ret.Get(0).(func(shared.DomainEvents) error); ok {
+		r0 = rf(events)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -25,11 +25,11 @@ func (_m *EventStore) AppendToStream(identifier shared.AggregateID, events share
 }
 
 // LoadEventStream provides a mock function with given fields: identifier
-func (_m *EventStore) LoadEventStream(identifier shared.AggregateID) (shared.DomainEvents, error) {
+func (_m *EventStore) LoadEventStream(identifier shared.IdentifiesAggregates) (shared.DomainEvents, error) {
 	ret := _m.Called(identifier)
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func(shared.AggregateID) shared.DomainEvents); ok {
+	if rf, ok := ret.Get(0).(func(shared.IdentifiesAggregates) shared.DomainEvents); ok {
 		r0 = rf(identifier)
 	} else {
 		if ret.Get(0) != nil {
@@ -38,7 +38,7 @@ func (_m *EventStore) LoadEventStream(identifier shared.AggregateID) (shared.Dom
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(shared.AggregateID) error); ok {
+	if rf, ok := ret.Get(1).(func(shared.IdentifiesAggregates) error); ok {
 		r1 = rf(identifier)
 	} else {
 		r1 = ret.Error(1)
@@ -48,11 +48,11 @@ func (_m *EventStore) LoadEventStream(identifier shared.AggregateID) (shared.Dom
 }
 
 // LoadPartialEventStream provides a mock function with given fields: identifier, fromVersion, maxEvents
-func (_m *EventStore) LoadPartialEventStream(identifier shared.AggregateID, fromVersion uint, maxEvents uint) (shared.DomainEvents, error) {
+func (_m *EventStore) LoadPartialEventStream(identifier shared.IdentifiesAggregates, fromVersion uint, maxEvents uint) (shared.DomainEvents, error) {
 	ret := _m.Called(identifier, fromVersion, maxEvents)
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func(shared.AggregateID, uint, uint) shared.DomainEvents); ok {
+	if rf, ok := ret.Get(0).(func(shared.IdentifiesAggregates, uint, uint) shared.DomainEvents); ok {
 		r0 = rf(identifier, fromVersion, maxEvents)
 	} else {
 		if ret.Get(0) != nil {
@@ -61,7 +61,7 @@ func (_m *EventStore) LoadPartialEventStream(identifier shared.AggregateID, from
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(shared.AggregateID, uint, uint) error); ok {
+	if rf, ok := ret.Get(1).(func(shared.IdentifiesAggregates, uint, uint) error); ok {
 		r1 = rf(identifier, fromVersion, maxEvents)
 	} else {
 		r1 = ret.Error(1)

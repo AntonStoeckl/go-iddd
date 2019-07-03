@@ -2,6 +2,7 @@
 
 package mocks
 
+import domain "go-iddd/customer/domain"
 import mock "github.com/stretchr/testify/mock"
 import shared "go-iddd/shared"
 
@@ -11,15 +12,15 @@ type Customer struct {
 }
 
 // AggregateID provides a mock function with given fields:
-func (_m *Customer) AggregateID() shared.AggregateID {
+func (_m *Customer) AggregateID() shared.IdentifiesAggregates {
 	ret := _m.Called()
 
-	var r0 shared.AggregateID
-	if rf, ok := ret.Get(0).(func() shared.AggregateID); ok {
+	var r0 shared.IdentifiesAggregates
+	if rf, ok := ret.Get(0).(func() shared.IdentifiesAggregates); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(shared.AggregateID)
+			r0 = ret.Get(0).(shared.IdentifiesAggregates)
 		}
 	}
 
@@ -40,8 +41,29 @@ func (_m *Customer) AggregateName() string {
 	return r0
 }
 
-// Apply provides a mock function with given fields: cmd
-func (_m *Customer) Apply(cmd shared.Command) error {
+// Apply provides a mock function with given fields: latestEvents
+func (_m *Customer) Apply(latestEvents shared.DomainEvents) {
+	_m.Called(latestEvents)
+}
+
+// Clone provides a mock function with given fields:
+func (_m *Customer) Clone() domain.Customer {
+	ret := _m.Called()
+
+	var r0 domain.Customer
+	if rf, ok := ret.Get(0).(func() domain.Customer); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(domain.Customer)
+		}
+	}
+
+	return r0
+}
+
+// Execute provides a mock function with given fields: cmd
+func (_m *Customer) Execute(cmd shared.Command) error {
 	ret := _m.Called(cmd)
 
 	var r0 error
@@ -54,17 +76,31 @@ func (_m *Customer) Apply(cmd shared.Command) error {
 	return r0
 }
 
-// RecordedEvents provides a mock function with given fields:
-func (_m *Customer) RecordedEvents() shared.DomainEvents {
-	ret := _m.Called()
+// RecordedEvents provides a mock function with given fields: purge
+func (_m *Customer) RecordedEvents(purge bool) shared.DomainEvents {
+	ret := _m.Called(purge)
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func() shared.DomainEvents); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(bool) shared.DomainEvents); ok {
+		r0 = rf(purge)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(shared.DomainEvents)
 		}
+	}
+
+	return r0
+}
+
+// StreamVersion provides a mock function with given fields:
+func (_m *Customer) StreamVersion() uint {
+	ret := _m.Called()
+
+	var r0 uint
+	if rf, ok := ret.Get(0).(func() uint); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(uint)
 	}
 
 	return r0

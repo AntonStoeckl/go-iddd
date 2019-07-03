@@ -1,5 +1,5 @@
 package shared
 
 type RecordsEvents interface {
-	RecordedEvents() DomainEvents
+	RecordedEvents(purge bool) DomainEvents
 }

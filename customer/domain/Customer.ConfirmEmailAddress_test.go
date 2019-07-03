@@ -4,6 +4,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/customer/domain/mocks"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -16,12 +17,9 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 	Convey("Given a Customer", t, func() {
 		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
-
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
-
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
@@ -42,14 +40,14 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Apply(confirmEmailAddress)
+			err = customer.Execute(confirmEmailAddress)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 
-				Convey("And it should record that a Customer was registered", func() {
-					recordedEvents := customer.RecordedEvents()
-					emailAddressConfirmed := findCustomerEventIn(
+				Convey("And it should record that a Customer's emailAddress was confirmed", func() {
+					recordedEvents := customer.RecordedEvents(true)
+					emailAddressConfirmed := mocks.FindCustomerEventIn(
 						recordedEvents,
 						new(events.EmailAddressConfirmed),
 					).(*events.EmailAddressConfirmed)
@@ -64,11 +62,11 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 					})
 
 					Convey("And when it is confirmed again", func() {
-						err = customer.Apply(confirmEmailAddress)
+						err = customer.Execute(confirmEmailAddress)
 
 						Convey("It should be ignored", func() {
 							So(err, ShouldBeNil)
-							recordedEvents := customer.RecordedEvents()
+							recordedEvents := customer.RecordedEvents(false)
 							So(recordedEvents, ShouldBeEmpty)
 						})
 					})
@@ -84,7 +82,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Apply(confirmEmailAddress)
+			err = customer.Execute(confirmEmailAddress)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -100,7 +98,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Apply(confirmEmailAddress)
+			err = customer.Execute(confirmEmailAddress)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)

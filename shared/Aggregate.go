@@ -1,6 +1,7 @@
 package shared
 
 type Aggregate interface {
-	AggregateID() AggregateID
+	Execute(cmd Command) error
+	AggregateID() IdentifiesAggregates
 	AggregateName() string
 }

@@ -35,7 +35,7 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 	case *commands.Register:
 		err = handler.register(actualCommand)
 	case *commands.ConfirmEmailAddress:
-		err = handler.applyToExistingCustomer(actualCommand.ID(), actualCommand)
+		err = handler.dispatchToExistingCustomer(actualCommand.ID(), actualCommand)
 	default:
 		return xerrors.Errorf(
 			"commandHandler.Handle: Command [%s] is unknown: %w",
@@ -63,13 +63,13 @@ func (handler *CommandHandler) register(register *commands.Register) error {
 	return nil
 }
 
-func (handler *CommandHandler) applyToExistingCustomer(id *values.ID, command shared.Command) error {
+func (handler *CommandHandler) dispatchToExistingCustomer(id *values.ID, command shared.Command) error {
 	customer, err := handler.customers.Of(id)
 	if err != nil {
 		return err
 	}
 
-	if err := customer.Apply(command); err != nil {
+	if err := customer.Execute(command); err != nil {
 		return err
 	}
 

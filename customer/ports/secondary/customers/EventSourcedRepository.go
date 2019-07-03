@@ -4,6 +4,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"math"
 	"sync"
 
 	"golang.org/x/xerrors"
@@ -14,8 +15,8 @@ type customerFactory func(eventStream shared.DomainEvents) (domain.Customer, err
 type eventSourcedRepository struct {
 	eventStore      shared.EventStore
 	customerFactory customerFactory
-	identityMap     map[string]domain.Customer
-	identityMapMux  sync.Mutex
+	cache           map[string]shared.EventsourcedAggregate
+	cacheMux        sync.Mutex
 }
 
 func NewEventSourcedRepository(
@@ -26,7 +27,7 @@ func NewEventSourcedRepository(
 	return &eventSourcedRepository{
 		eventStore:      eventStore,
 		customerFactory: customerFactory,
-		identityMap:     make(map[string]domain.Customer),
+		cache:           make(map[string]shared.EventsourcedAggregate),
 	}
 }
 
@@ -34,10 +35,10 @@ func NewEventSourcedRepository(
 
 func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
 	if _, found := repo.memorizedCustomerOf(customer.AggregateID().(*values.ID)); found {
-		return xerrors.Errorf("customers[eventSourcedRepository].Register: already memorized in identityMap: %w", shared.ErrDuplicate)
+		return xerrors.Errorf("customers[eventSourcedRepository].Register: already memorized in cache: %w", shared.ErrDuplicate)
 	}
 
-	if err := repo.eventStore.AppendToStream(customer.AggregateID(), customer.RecordedEvents()); err != nil {
+	if err := repo.eventStore.AppendToStream(customer.RecordedEvents(true)); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
 			return xerrors.Errorf("customers[eventSourcedRepository].Register: %s: %w", err, shared.ErrDuplicate)
 		}
@@ -52,7 +53,14 @@ func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
 
 func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
 	if memorizedCustomer, found := repo.memorizedCustomerOf(id); found {
-		return memorizedCustomer, nil
+		latestEvents, err := repo.eventStore.LoadPartialEventStream(id, memorizedCustomer.StreamVersion(), uint(math.MaxUint32))
+		if err != nil {
+			return nil, xerrors.Errorf("customers[eventSourcedRepository].Of: %w", err)
+		}
+
+		memorizedCustomer.Apply(latestEvents)
+
+		return memorizedCustomer.(domain.Customer).Clone(), nil
 	}
 
 	eventStream, err := repo.eventStore.LoadEventStream(id)
@@ -71,42 +79,41 @@ func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
 
 	repo.memorize(customer)
 
-	return customer, nil
+	return customer.Clone(), nil
 }
 
-/***** Implement shared.PersistsEventRecordingAggregates *****/
+/***** Implement shared.PersistsEventsourcedAggregates *****/
 
-func (repo *eventSourcedRepository) Persist(aggregate shared.EventRecordingAggregate) error {
-	err := repo.eventStore.AppendToStream(
-		aggregate.AggregateID(),
-		aggregate.RecordedEvents(),
-	)
+func (repo *eventSourcedRepository) Persist(aggregate shared.EventsourcedAggregate) error {
+	err := repo.eventStore.AppendToStream(aggregate.RecordedEvents(true))
 
 	if err != nil {
 		return xerrors.Errorf("customers[eventSourcedRepository].Persist: %w", err)
 	}
 
+	repo.memorize(aggregate)
+
 	return nil
 }
 
-/***** Methods for identityMap (local caching) *****/
+/***** Methods for local caching *****/
 
-func (repo *eventSourcedRepository) memorize(customer domain.Customer) {
-	repo.identityMapMux.Lock()
-	defer repo.identityMapMux.Unlock()
+func (repo *eventSourcedRepository) memorize(aggregate shared.EventsourcedAggregate) {
+	repo.cacheMux.Lock()
+	defer repo.cacheMux.Unlock()
 
-	repo.identityMap[customer.AggregateID().String()] = customer
+	repo.cache[aggregate.AggregateID().String()] = aggregate
 }
 
-func (repo *eventSourcedRepository) memorizedCustomerOf(id *values.ID) (domain.Customer, bool) {
-	repo.identityMapMux.Lock()
-	defer repo.identityMapMux.Unlock()
+func (repo *eventSourcedRepository) memorizedCustomerOf(id *values.ID) (shared.EventsourcedAggregate, bool) {
+	repo.cacheMux.Lock()
+	defer repo.cacheMux.Unlock()
 
-	customer, found := repo.identityMap[id.String()]
+	aggregate, found := repo.cache[id.String()]
 
 	if !found {
 		return nil, false
 	}
 
-	return customer, true
+	return aggregate, true
 }

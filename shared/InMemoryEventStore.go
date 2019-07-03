@@ -8,9 +8,10 @@ import (
 )
 
 type inMemoryEventStore struct {
-	streamName string
-	events     map[string]map[string]map[uint]DomainEvent
-	eventsMux  sync.Mutex
+	streamName   string
+	events       map[string]map[string]map[uint]DomainEvent
+	eventsMux    sync.Mutex
+	failOnceWith error
 }
 
 func NewInMemoryEventStore(streamName string) *inMemoryEventStore {
@@ -22,20 +23,17 @@ func NewInMemoryEventStore(streamName string) *inMemoryEventStore {
 
 /***** Implement shared.EventStore *****/
 
-func (store *inMemoryEventStore) AppendToStream(
-	identifier AggregateID,
-	events DomainEvents,
-) error {
-
+func (store *inMemoryEventStore) AppendToStream(events DomainEvents) error {
 	store.eventsMux.Lock()
 	defer store.eventsMux.Unlock()
 
+	if store.failOnceWith != nil {
+		return store.failedOnceWith()
+	}
+
 	// fist pass - assert that we have no concurrency conflict
 	for _, event := range events {
-		id := identifier.String()
-		version := event.StreamVersion()
-
-		if _, found := store.events[store.streamName][id][version]; found {
+		if _, found := store.events[store.streamName][event.Identifier()][event.StreamVersion()]; found {
 			return xerrors.Errorf("inMemoryEventStore.AppendToStream: %w", ErrConcurrencyConflict)
 		}
 	}
@@ -45,20 +43,27 @@ func (store *inMemoryEventStore) AppendToStream(
 		store.events[store.streamName] = make(map[string]map[uint]DomainEvent)
 	}
 
-	if store.events[store.streamName][identifier.String()] == nil {
-		store.events[store.streamName][identifier.String()] = make(map[uint]DomainEvent)
-	}
-
 	for _, event := range events {
-		store.events[store.streamName][identifier.String()][event.StreamVersion()] = event
+		store.ensureIndex(event.Identifier())
+		store.events[store.streamName][event.Identifier()][event.StreamVersion()] = event
 	}
 
 	return nil
 }
 
-func (store *inMemoryEventStore) LoadEventStream(identifier AggregateID) (DomainEvents, error) {
+func (store *inMemoryEventStore) ensureIndex(id string) {
+	if store.events[store.streamName][id] == nil {
+		store.events[store.streamName][id] = make(map[uint]DomainEvent)
+	}
+}
+
+func (store *inMemoryEventStore) LoadEventStream(identifier IdentifiesAggregates) (DomainEvents, error) {
 	store.eventsMux.Lock()
 	defer store.eventsMux.Unlock()
+
+	if store.failOnceWith != nil {
+		return nil, store.failedOnceWith()
+	}
 
 	var eventStream DomainEvents
 
@@ -83,7 +88,7 @@ func (store *inMemoryEventStore) LoadEventStream(identifier AggregateID) (Domain
 }
 
 func (store *inMemoryEventStore) LoadPartialEventStream(
-	identifier AggregateID,
+	identifier IdentifiesAggregates,
 	fromVersion uint,
 	maxEvents uint,
 ) (DomainEvents, error) {
@@ -91,8 +96,10 @@ func (store *inMemoryEventStore) LoadPartialEventStream(
 	var eventStream DomainEvents
 	var numEvents uint
 
-	// err ignored: because this inMemory implementation of EventStore.LoadEventStream() can't return any error
-	events, _ := store.LoadEventStream(identifier)
+	events, err := store.LoadEventStream(identifier)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, event := range events {
 		// skip versions smaller than fromVersion
@@ -110,4 +117,17 @@ func (store *inMemoryEventStore) LoadPartialEventStream(
 	}
 
 	return eventStream, nil
+}
+
+/***** For mocking errors in tests *****/
+
+func (store *inMemoryEventStore) FailOnceWith(err error) {
+	store.failOnceWith = err
+}
+
+func (store *inMemoryEventStore) failedOnceWith() error {
+	err := store.failOnceWith
+	store.failOnceWith = nil
+
+	return err
 }

@@ -7,5 +7,5 @@ import (
 
 type CustomersWithPersistance interface {
 	domain.Customers
-	shared.PersistsEventRecordingAggregates
+	shared.PersistsEventsourcedAggregates
 }

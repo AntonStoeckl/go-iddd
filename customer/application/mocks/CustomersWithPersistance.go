@@ -36,11 +36,11 @@ func (_m *CustomersWithPersistance) Of(id *values.ID) (domain.Customer, error) {
 }
 
 // Persist provides a mock function with given fields: aggregate
-func (_m *CustomersWithPersistance) Persist(aggregate shared.EventRecordingAggregate) error {
+func (_m *CustomersWithPersistance) Persist(aggregate shared.EventsourcedAggregate) error {
 	ret := _m.Called(aggregate)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(shared.EventRecordingAggregate) error); ok {
+	if rf, ok := ret.Get(0).(func(shared.EventsourcedAggregate) error); ok {
 		r0 = rf(aggregate)
 	} else {
 		r0 = ret.Error(0)
