@@ -88,8 +88,9 @@ func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
 		emailAddressConfirmed := events.EmailAddressWasConfirmed(id, emailAddress, streamVersion)
 
 		data, err := emailAddressConfirmed.MarshalJSON()
+		So(err, ShouldBeNil)
 
-		Convey("And when it is unmarshaled", func() {
+		Convey("When it is unmarshaled", func() {
 			unmarshaled := &events.EmailAddressConfirmed{}
 			err := unmarshaled.UnmarshalJSON(data)
 

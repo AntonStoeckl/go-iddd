@@ -458,8 +458,9 @@ func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 		{{$eventVar}} := events.{{.EventFactory}}({{range .Fields}}{{.FieldName}}, {{end}} streamVersion)
 
 		data, err := {{$eventVar}}.MarshalJSON()
+		So(err, ShouldBeNil)
 
-		Convey("And when it is unmarshaled", func() {
+		Convey("When it is unmarshaled", func() {
 			unmarshaled := &events.{{eventName}}{}
 			err := unmarshaled.UnmarshalJSON(data)
 
