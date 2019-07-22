@@ -101,8 +101,9 @@ func TestRegisteredUnmarshalJSON(t *testing.T) {
 		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
 
 		data, err := registered.MarshalJSON()
+		So(err, ShouldBeNil)
 
-		Convey("And when it is unmarshaled", func() {
+		Convey("When it is unmarshaled", func() {
 			unmarshaled := &events.Registered{}
 			err := unmarshaled.UnmarshalJSON(data)
 

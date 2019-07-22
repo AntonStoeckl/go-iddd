@@ -88,8 +88,9 @@ func TestEmailAddressChangedUnmarshalJSON(t *testing.T) {
 		emailAddressChanged := events.EmailAddressWasChanged(id, emailAddress, streamVersion)
 
 		data, err := emailAddressChanged.MarshalJSON()
+		So(err, ShouldBeNil)
 
-		Convey("And when it is unmarshaled", func() {
+		Convey("When it is unmarshaled", func() {
 			unmarshaled := &events.EmailAddressChanged{}
 			err := unmarshaled.UnmarshalJSON(data)
 
