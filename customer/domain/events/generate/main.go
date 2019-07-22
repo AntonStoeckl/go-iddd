@@ -240,10 +240,13 @@ var eventTemplate = `
 package events
 
 import (
-	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
+	"reflect"
+	"strings"
+	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -333,7 +336,7 @@ func ({{$eventVar}} *{{eventName}}) MarshalJSON() ([]byte, error) {
 		Meta: {{$eventVar}}.meta,
 	}
 
-	return json.Marshal(data)
+	return jsoniter.Marshal(data)
 }
 
 /*** Implement json.Unmarshaler ***/
@@ -345,7 +348,7 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 		Meta *{{lcFirst eventName}}Meta {{tick}}json:"meta"{{tick}}
 	}{}
 
-	if err := json.Unmarshal(data, unmarshaledData); err != nil {
+	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
 		return xerrors.Errorf("{{$eventVar}}.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 

@@ -3,13 +3,13 @@
 package events
 
 import (
-	"encoding/json"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"reflect"
 	"strings"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -102,7 +102,7 @@ func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 		Meta:         emailAddressChanged.meta,
 	}
 
-	return json.Marshal(data)
+	return jsoniter.Marshal(data)
 }
 
 /*** Implement json.Unmarshaler ***/
@@ -114,7 +114,7 @@ func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error
 		Meta         *emailAddressChangedMeta `json:"meta"`
 	}{}
 
-	if err := json.Unmarshal(data, unmarshaledData); err != nil {
+	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
 		return xerrors.Errorf("emailAddressChanged.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 

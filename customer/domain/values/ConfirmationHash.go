@@ -2,7 +2,6 @@ package values
 
 import (
 	"crypto/md5"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"go-iddd/shared"
@@ -10,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -72,7 +72,7 @@ func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) e
 /*** Implement json.Marshaler ***/
 
 func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(confirmationHash.value)
+	bytes, err := jsoniter.Marshal(confirmationHash.value)
 	if err != nil {
 		return bytes, xerrors.Errorf("confirmationHash.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
@@ -85,7 +85,7 @@ func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
 func (confirmationHash *ConfirmationHash) UnmarshalJSON(data []byte) error {
 	var value string
 
-	if err := json.Unmarshal(data, &value); err != nil {
+	if err := jsoniter.Unmarshal(data, &value); err != nil {
 		return xerrors.Errorf("confirmationHash.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 

@@ -11,6 +11,29 @@ import (
 	"golang.org/x/xerrors"
 )
 
+func BenchmarkUnmarshalDomainEvent(b *testing.B) {
+	id := values.GenerateID()
+	emailAddress, _ := values.NewEmailAddress("foo@bar.com")
+	confirmableEmailAddress := emailAddress.ToConfirmable()
+	personName, _ := values.NewPersonName("John", "Doe")
+	streamVersion := uint(1)
+
+	event1 := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
+	data1, _ := event1.MarshalJSON()
+
+	event2 := events.EmailAddressWasConfirmed(id, emailAddress, streamVersion)
+	data2, _ := event2.MarshalJSON()
+
+	event3 := events.EmailAddressWasChanged(id, emailAddress, streamVersion)
+	data3, _ := event3.MarshalJSON()
+
+	for n := 0; n < b.N; n++ {
+		_, _ = domain.UnmarshalDomainEvent("CustomerRegistered", data1)
+		_, _ = domain.UnmarshalDomainEvent("CustomerEmailAddressConfirmed", data2)
+		_, _ = domain.UnmarshalDomainEvent("CustomerEmailAddressChanged", data3)
+	}
+}
+
 func TestUnmarshalDomainEvent(t *testing.T) {
 	Convey("Given valid input data for events", t, func() {
 		id := values.GenerateID()

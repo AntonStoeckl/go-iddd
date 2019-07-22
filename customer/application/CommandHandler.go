@@ -28,14 +28,20 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 	var err error
 
 	if err := handler.assertIsValid(command); err != nil {
-		return xerrors.Errorf("commandHandler.Handle: %s: %w", err, shared.ErrCommandIsInvalid)
+		return xerrors.Errorf(
+			"commandHandler.Handle: %s: %w",
+			err,
+			shared.ErrCommandIsInvalid,
+		)
 	}
 
 	switch actualCommand := command.(type) {
 	case *commands.Register:
 		err = handler.register(actualCommand)
 	case *commands.ConfirmEmailAddress:
-		err = handler.dispatchToExistingCustomer(actualCommand.ID(), actualCommand)
+		err = handler.confirmEmailAddress(actualCommand)
+	case *commands.ChangeEmailAddress:
+		err = handler.changeEmailAddress(actualCommand)
 	default:
 		return xerrors.Errorf(
 			"commandHandler.Handle: Command [%s] is unknown: %w",
@@ -45,7 +51,11 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 	}
 
 	if err != nil {
-		return xerrors.Errorf("commandHandler.Handle: %s: %w", command.CommandName(), err)
+		return xerrors.Errorf(
+			"commandHandler.Handle: %s: %w",
+			command.CommandName(),
+			err,
+		)
 	}
 
 	return nil
@@ -63,13 +73,43 @@ func (handler *CommandHandler) register(register *commands.Register) error {
 	return nil
 }
 
-func (handler *CommandHandler) dispatchToExistingCustomer(id *values.ID, command shared.Command) error {
+func (handler *CommandHandler) confirmEmailAddress(confirmEmailAddress *commands.ConfirmEmailAddress) error {
+	err := handler.applyToCustomer(
+		confirmEmailAddress.ID(),
+		func(customer domain.Customer) error {
+			return customer.Execute(confirmEmailAddress)
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (handler *CommandHandler) changeEmailAddress(changeEmailAddress *commands.ChangeEmailAddress) error {
+	err := handler.applyToCustomer(
+		changeEmailAddress.ID(),
+		func(customer domain.Customer) error {
+			return customer.Execute(changeEmailAddress)
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (handler *CommandHandler) applyToCustomer(id *values.ID, callback func(customer domain.Customer) error) error {
 	customer, err := handler.customers.Of(id)
 	if err != nil {
 		return err
 	}
 
-	if err := customer.Execute(command); err != nil {
+	if err := callback(customer); err != nil {
 		return err
 	}
 

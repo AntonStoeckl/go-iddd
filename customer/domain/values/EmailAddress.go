@@ -1,11 +1,11 @@
 package values
 
 import (
-	"encoding/json"
 	"errors"
 	"go-iddd/shared"
 	"regexp"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -70,7 +70,7 @@ func (emailAddress *EmailAddress) ToConfirmable() *ConfirmableEmailAddress {
 /*** Implement json.Marshaler ***/
 
 func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(emailAddress.value)
+	bytes, err := jsoniter.Marshal(emailAddress.value)
 	if err != nil {
 		return nil, xerrors.Errorf("emailAddress.MarshalJSON -> %s: %w", err, shared.ErrMarshalingFailed)
 	}
@@ -83,7 +83,7 @@ func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
 func (emailAddress *EmailAddress) UnmarshalJSON(data []byte) error {
 	var value string
 
-	if err := json.Unmarshal(data, &value); err != nil {
+	if err := jsoniter.Unmarshal(data, &value); err != nil {
 		return xerrors.Errorf("emailAddress.UnmarshalJSON -> %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 

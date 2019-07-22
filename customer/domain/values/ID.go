@@ -1,11 +1,11 @@
 package values
 
 import (
-	"encoding/json"
 	"errors"
 	"go-iddd/shared"
 
 	"github.com/google/uuid"
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -60,7 +60,7 @@ func (id *ID) Equals(other shared.IdentifiesAggregates) bool {
 /*** Implement json.Marshaler ***/
 
 func (id *ID) MarshalJSON() ([]byte, error) {
-	bytes, err := json.Marshal(id.value)
+	bytes, err := jsoniter.Marshal(id.value)
 	if err != nil {
 		return bytes, xerrors.Errorf("id.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
@@ -73,7 +73,7 @@ func (id *ID) MarshalJSON() ([]byte, error) {
 func (id *ID) UnmarshalJSON(data []byte) error {
 	var value string
 
-	if err := json.Unmarshal(data, &value); err != nil {
+	if err := jsoniter.Unmarshal(data, &value); err != nil {
 		return xerrors.Errorf("id.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 

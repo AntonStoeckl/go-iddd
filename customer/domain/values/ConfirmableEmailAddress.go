@@ -1,9 +1,9 @@
 package values
 
 import (
-	"encoding/json"
 	"go-iddd/shared"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/xerrors"
 )
 
@@ -86,7 +86,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) MarshalJSON() ([]byte, e
 		ConfirmationHash: confirmableEmailAddress.confirmationHash,
 	}
 
-	bytes, err := json.Marshal(data)
+	bytes, err := jsoniter.Marshal(data)
 	if err != nil {
 		return bytes, xerrors.Errorf("confirmableEmailAddress.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
 	}
@@ -102,7 +102,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) UnmarshalJSON(data []byt
 		ConfirmationHash *ConfirmationHash `json:"confirmationHash"`
 	}{}
 
-	if err := json.Unmarshal(data, values); err != nil {
+	if err := jsoniter.Unmarshal(data, values); err != nil {
 		return xerrors.Errorf("confirmableEmailAddress.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
 	}
 
