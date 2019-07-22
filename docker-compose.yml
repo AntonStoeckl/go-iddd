@@ -1,0 +1,16 @@
+version: "2"
+
+services:
+
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      GOIDDD_USERNAME: goiddd
+      GOIDDD_PASSWORD: password123
+      GOIDDD_DATABASE: goiddd
+    volumes:
+      - ./setup/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"

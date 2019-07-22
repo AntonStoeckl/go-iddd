@@ -1,7 +1,11 @@
 package shared
 
 type EventStore interface {
-	AppendToStream(events DomainEvents) error
-	LoadEventStream(identifier IdentifiesAggregates) (DomainEvents, error)
-	LoadPartialEventStream(identifier IdentifiesAggregates, fromVersion uint, maxEvents uint) (DomainEvents, error)
+	AppendToStream(streamID *StreamID, events DomainEvents) error
+	LoadEventStream(streamID *StreamID) (DomainEvents, error)
+	LoadPartialEventStream(
+		streamID *StreamID,
+		fromVersion uint,
+		maxEvents uint,
+	) (DomainEvents, error)
 }

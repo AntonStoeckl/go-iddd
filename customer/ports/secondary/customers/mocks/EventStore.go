@@ -10,13 +10,13 @@ type EventStore struct {
 	mock.Mock
 }
 
-// AppendToStream provides a mock function with given fields: events
-func (_m *EventStore) AppendToStream(events shared.DomainEvents) error {
-	ret := _m.Called(events)
+// AppendToStream provides a mock function with given fields: streamID, events
+func (_m *EventStore) AppendToStream(streamID *shared.StreamID, events shared.DomainEvents) error {
+	ret := _m.Called(streamID, events)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(shared.DomainEvents) error); ok {
-		r0 = rf(events)
+	if rf, ok := ret.Get(0).(func(*shared.StreamID, shared.DomainEvents) error); ok {
+		r0 = rf(streamID, events)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -24,13 +24,13 @@ func (_m *EventStore) AppendToStream(events shared.DomainEvents) error {
 	return r0
 }
 
-// LoadEventStream provides a mock function with given fields: identifier
-func (_m *EventStore) LoadEventStream(identifier shared.IdentifiesAggregates) (shared.DomainEvents, error) {
-	ret := _m.Called(identifier)
+// LoadEventStream provides a mock function with given fields: streamID
+func (_m *EventStore) LoadEventStream(streamID *shared.StreamID) (shared.DomainEvents, error) {
+	ret := _m.Called(streamID)
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func(shared.IdentifiesAggregates) shared.DomainEvents); ok {
-		r0 = rf(identifier)
+	if rf, ok := ret.Get(0).(func(*shared.StreamID) shared.DomainEvents); ok {
+		r0 = rf(streamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(shared.DomainEvents)
@@ -38,8 +38,8 @@ func (_m *EventStore) LoadEventStream(identifier shared.IdentifiesAggregates) (s
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(shared.IdentifiesAggregates) error); ok {
-		r1 = rf(identifier)
+	if rf, ok := ret.Get(1).(func(*shared.StreamID) error); ok {
+		r1 = rf(streamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -47,13 +47,13 @@ func (_m *EventStore) LoadEventStream(identifier shared.IdentifiesAggregates) (s
 	return r0, r1
 }
 
-// LoadPartialEventStream provides a mock function with given fields: identifier, fromVersion, maxEvents
-func (_m *EventStore) LoadPartialEventStream(identifier shared.IdentifiesAggregates, fromVersion uint, maxEvents uint) (shared.DomainEvents, error) {
-	ret := _m.Called(identifier, fromVersion, maxEvents)
+// LoadPartialEventStream provides a mock function with given fields: streamID, fromVersion, maxEvents
+func (_m *EventStore) LoadPartialEventStream(streamID *shared.StreamID, fromVersion uint, maxEvents uint) (shared.DomainEvents, error) {
+	ret := _m.Called(streamID, fromVersion, maxEvents)
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func(shared.IdentifiesAggregates, uint, uint) shared.DomainEvents); ok {
-		r0 = rf(identifier, fromVersion, maxEvents)
+	if rf, ok := ret.Get(0).(func(*shared.StreamID, uint, uint) shared.DomainEvents); ok {
+		r0 = rf(streamID, fromVersion, maxEvents)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(shared.DomainEvents)
@@ -61,8 +61,8 @@ func (_m *EventStore) LoadPartialEventStream(identifier shared.IdentifiesAggrega
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(shared.IdentifiesAggregates, uint, uint) error); ok {
-		r1 = rf(identifier, fromVersion, maxEvents)
+	if rf, ok := ret.Get(1).(func(*shared.StreamID, uint, uint) error); ok {
+		r1 = rf(streamID, fromVersion, maxEvents)
 	} else {
 		r1 = ret.Error(1)
 	}

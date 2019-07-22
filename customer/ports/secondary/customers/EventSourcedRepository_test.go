@@ -178,17 +178,14 @@ func TestEventSourcedRepositoryOf(t *testing.T) {
 	Convey("Given a not existing Customer", t, func() {
 		id := values.GenerateID()
 
-		eventStore := new(mocks.EventStore)
+		eventStore := shared.NewInMemoryEventStore("customer")
 		persistableCustomers := customers.NewEventSourcedRepository(eventStore, domain.ReconstituteCustomerFrom)
 
 		Convey("When the event stream is loaded", func() {
-			eventStream := shared.DomainEvents{}
-			eventStore.On("LoadEventStream", id).Return(eventStream, nil).Once()
 			customer, err := persistableCustomers.Of(id)
 
 			Convey("It should fail", func() {
 				So(xerrors.Is(err, shared.ErrNotFound), ShouldBeTrue)
-				So(eventStore.AssertExpectations(t), ShouldBeTrue)
 				So(customer, ShouldBeNil)
 			})
 		})
@@ -198,6 +195,7 @@ func TestEventSourcedRepositoryOf(t *testing.T) {
 func TestEventSourcedRepositoryPersist(t *testing.T) {
 	Convey("When a Customer is persisted", t, func() {
 		id := values.GenerateID()
+		streamID, err := shared.NewStreamID("customer" + "-" + id.String())
 
 		customer, err := buildRegisteredCustomerWith(id)
 		So(err, ShouldBeNil)
@@ -206,7 +204,7 @@ func TestEventSourcedRepositoryPersist(t *testing.T) {
 
 		eventStore := new(mocks.EventStore)
 		eventStore.
-			On("AppendToStream", customer.RecordedEvents(false)).
+			On("AppendToStream", streamID, customer.RecordedEvents(false)).
 			Return(nil).
 			Once()
 
@@ -227,9 +225,10 @@ func TestEventSourcedRepositoryPersist(t *testing.T) {
 
 		Convey("And when appending the recorded events succeed", func() {
 			eventStore.
-				On("AppendToStream", customer.RecordedEvents(false)).
+				On("AppendToStream", streamID, customer.RecordedEvents(false)).
 				Return(nil).
 				Once()
+
 			err := persistableCustomers.Persist(customer)
 
 			Convey("It should succeed", func() {
@@ -241,7 +240,7 @@ func TestEventSourcedRepositoryPersist(t *testing.T) {
 		Convey("And when appending the recorded events fails", func() {
 			expectedErr := errors.New("mocked error")
 			eventStore.
-				On("AppendToStream", customer.RecordedEvents(false)).
+				On("AppendToStream", streamID, customer.RecordedEvents(false)).
 				Return(expectedErr).
 				Once()
 

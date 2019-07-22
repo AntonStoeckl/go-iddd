@@ -23,7 +23,7 @@ func NewInMemoryEventStore(streamName string) *inMemoryEventStore {
 
 /***** Implement shared.EventStore *****/
 
-func (store *inMemoryEventStore) AppendToStream(events DomainEvents) error {
+func (store *inMemoryEventStore) AppendToStream(streamID *StreamID, events DomainEvents) error {
 	store.eventsMux.Lock()
 	defer store.eventsMux.Unlock()
 
@@ -33,7 +33,7 @@ func (store *inMemoryEventStore) AppendToStream(events DomainEvents) error {
 
 	// fist pass - assert that we have no concurrency conflict
 	for _, event := range events {
-		if _, found := store.events[store.streamName][event.Identifier()][event.StreamVersion()]; found {
+		if _, found := store.events[store.streamName][streamID.String()][event.StreamVersion()]; found {
 			return xerrors.Errorf("inMemoryEventStore.AppendToStream: %w", ErrConcurrencyConflict)
 		}
 	}
@@ -44,8 +44,8 @@ func (store *inMemoryEventStore) AppendToStream(events DomainEvents) error {
 	}
 
 	for _, event := range events {
-		store.ensureIndex(event.Identifier())
-		store.events[store.streamName][event.Identifier()][event.StreamVersion()] = event
+		store.ensureIndex(streamID.String())
+		store.events[store.streamName][streamID.String()][event.StreamVersion()] = event
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (store *inMemoryEventStore) ensureIndex(id string) {
 	}
 }
 
-func (store *inMemoryEventStore) LoadEventStream(identifier IdentifiesAggregates) (DomainEvents, error) {
+func (store *inMemoryEventStore) LoadEventStream(streamID *StreamID) (DomainEvents, error) {
 	store.eventsMux.Lock()
 	defer store.eventsMux.Unlock()
 
@@ -67,7 +67,7 @@ func (store *inMemoryEventStore) LoadEventStream(identifier IdentifiesAggregates
 
 	var eventStream DomainEvents
 
-	events, found := store.events[store.streamName][identifier.String()]
+	events, found := store.events[store.streamName][streamID.String()]
 	if !found {
 		return eventStream, nil
 	}
@@ -88,7 +88,7 @@ func (store *inMemoryEventStore) LoadEventStream(identifier IdentifiesAggregates
 }
 
 func (store *inMemoryEventStore) LoadPartialEventStream(
-	identifier IdentifiesAggregates,
+	streamID *StreamID,
 	fromVersion uint,
 	maxEvents uint,
 ) (DomainEvents, error) {
@@ -96,7 +96,7 @@ func (store *inMemoryEventStore) LoadPartialEventStream(
 	var eventStream DomainEvents
 	var numEvents uint
 
-	events, err := store.LoadEventStream(identifier)
+	events, err := store.LoadEventStream(streamID)
 	if err != nil {
 		return nil, err
 	}

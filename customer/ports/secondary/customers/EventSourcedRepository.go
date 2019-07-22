@@ -10,6 +10,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
+const streamPrefix = "customer"
+
 type customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error)
 
 type eventSourcedRepository struct {
@@ -38,7 +40,12 @@ func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
 		return xerrors.Errorf("customers[eventSourcedRepository].Register: already memorized in cache: %w", shared.ErrDuplicate)
 	}
 
-	if err := repo.eventStore.AppendToStream(customer.RecordedEvents(true)); err != nil {
+	streamID, err := shared.NewStreamID(streamPrefix + "-" + customer.AggregateID().String())
+	if err != nil {
+		return xerrors.Errorf("eventSourcedRepository.Register: %s: %w", err, shared.ErrInputIsInvalid)
+	}
+
+	if err := repo.eventStore.AppendToStream(streamID, customer.RecordedEvents(true)); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
 			return xerrors.Errorf("customers[eventSourcedRepository].Register: %s: %w", err, shared.ErrDuplicate)
 		}
@@ -52,8 +59,13 @@ func (repo *eventSourcedRepository) Register(customer domain.Customer) error {
 }
 
 func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
+	streamID, err := shared.NewStreamID(streamPrefix + "-" + id.String())
+	if err != nil {
+		return nil, xerrors.Errorf("eventSourcedRepository.Register: %s: %w", err, shared.ErrInputIsInvalid)
+	}
+
 	if memorizedCustomer, found := repo.memorizedCustomerOf(id); found {
-		latestEvents, err := repo.eventStore.LoadPartialEventStream(id, memorizedCustomer.StreamVersion(), uint(math.MaxUint32))
+		latestEvents, err := repo.eventStore.LoadPartialEventStream(streamID, memorizedCustomer.StreamVersion(), uint(math.MaxUint32))
 		if err != nil {
 			return nil, xerrors.Errorf("customers[eventSourcedRepository].Of: %w", err)
 		}
@@ -63,7 +75,7 @@ func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
 		return memorizedCustomer.(domain.Customer).Clone(), nil
 	}
 
-	eventStream, err := repo.eventStore.LoadEventStream(id)
+	eventStream, err := repo.eventStore.LoadEventStream(streamID)
 	if err != nil {
 		return nil, xerrors.Errorf("customers[eventSourcedRepository].Of: %w", err)
 	}
@@ -85,9 +97,12 @@ func (repo *eventSourcedRepository) Of(id *values.ID) (domain.Customer, error) {
 /***** Implement shared.PersistsEventsourcedAggregates *****/
 
 func (repo *eventSourcedRepository) Persist(aggregate shared.EventsourcedAggregate) error {
-	err := repo.eventStore.AppendToStream(aggregate.RecordedEvents(true))
-
+	streamID, err := shared.NewStreamID(streamPrefix + "-" + aggregate.AggregateID().String())
 	if err != nil {
+		return xerrors.Errorf("eventSourcedRepository.Register: %s: %w", err, shared.ErrInputIsInvalid)
+	}
+
+	if err := repo.eventStore.AppendToStream(streamID, aggregate.RecordedEvents(true)); err != nil {
 		return xerrors.Errorf("customers[eventSourcedRepository].Persist: %w", err)
 	}
 
