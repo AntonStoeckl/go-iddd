@@ -2,58 +2,62 @@ package eventstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"go-iddd/shared"
 	"strings"
+
+	"golang.org/x/xerrors"
 )
 
-type postgresEventStore struct {
-	tx        *sql.Tx
+type PostgresEventStore struct {
+	db        *sql.DB
 	tableName string
+	unmarshal shared.UnmarshalDomainEvent
 }
 
-func NewPostgresEventStoreSession(tx *sql.Tx, tableName string) shared.EventStore {
-	return &postgresEventStore{
-		tx:        tx,
+func NewPostgresEventStore(
+	db *sql.DB,
+	tableName string,
+	unmarshal shared.UnmarshalDomainEvent,
+) *PostgresEventStore {
+
+	return &PostgresEventStore{
+		db:        db,
 		tableName: tableName,
+		unmarshal: unmarshal,
 	}
 }
 
-func (es *postgresEventStore) AppendToStream(streamID *shared.StreamID, events shared.DomainEvents) error {
-	queryTemplate := `INSERT INTO eventstore (stream_id, stream_version, event_name, payload, occurred_at) VALUES ($1, $2, $3, $4, $5)`
-	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
-
-	for _, event := range events {
-		eventJson, err := json.Marshal(event)
-		if err != nil {
-			return err // TODO: map error
-		}
-
-		_, err = es.tx.Exec(
-			query,
-			streamID.String(),
-			event.StreamVersion(),
-			event.EventName(),
-			eventJson,
-			event.OccurredAt(),
+func (store *PostgresEventStore) StartSession() (shared.EventStoreSession, error) {
+	tx, err := store.db.Begin()
+	if err != nil {
+		return nil, xerrors.Errorf(
+			"postgresEventStore.StartSession: %s: %w",
+			err,
+			shared.ErrTechnical,
 		)
+	}
 
-		if err != nil {
-			return err // TODO: map error (concurrency, generic)
-		}
+	session := &PostgresEventStoreSession{
+		tx:         tx,
+		eventStore: store,
+	}
+
+	return session, nil
+}
+
+func (store *PostgresEventStore) PurgeEventStream(streamID *shared.StreamID) error {
+	queryTemplate := `DELETE FROM %name% WHERE stream_id = $1`
+	query := strings.Replace(queryTemplate, "%name%", store.tableName, 1)
+
+	_, err := store.db.Exec(query, streamID.String())
+
+	if err != nil {
+		return xerrors.Errorf(
+			"postgresEventStore.PurgeEventStream: %s: %w",
+			err,
+			shared.ErrTechnical,
+		)
 	}
 
 	return nil
-}
-
-func (es *postgresEventStore) LoadEventStream(streamID *shared.StreamID) (shared.DomainEvents, error) {
-	panic("implement me")
-}
-
-func (es *postgresEventStore) LoadPartialEventStream(
-	streamID *shared.StreamID,
-	fromVersion uint,
-	maxEvents uint,
-) (shared.DomainEvents, error) {
-	panic("implement me")
 }

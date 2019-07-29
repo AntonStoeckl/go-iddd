@@ -14,4 +14,5 @@ var (
 	ErrConcurrencyConflict        = errors.New("concurrency conflict")
 	ErrNotFound                   = errors.New("not found")
 	ErrDuplicate                  = errors.New("duplicate")
+	ErrTechnical                  = errors.New("technical")
 )

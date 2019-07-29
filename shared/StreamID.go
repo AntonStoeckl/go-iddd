@@ -1,31 +1,15 @@
 package shared
 
-import (
-	"errors"
-
-	"golang.org/x/xerrors"
-)
-
 type StreamID struct {
 	value string
 }
 
-func NewStreamID(from string) (*StreamID, error) {
-	newStreamID := &StreamID{value: from}
-
-	if err := newStreamID.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("streamID.New: %s: %w", err, ErrInputIsInvalid)
+func NewStreamID(from string) *StreamID {
+	if from == "" {
+		panic("newStreamID: empty input given")
 	}
 
-	return newStreamID, nil
-}
-
-func (streamID *StreamID) shouldBeValid() error {
-	if streamID.value == "" {
-		return errors.New("empty input for streamID")
-	}
-
-	return nil
+	return &StreamID{value: from}
 }
 
 func (streamID *StreamID) String() string {
