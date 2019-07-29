@@ -12,13 +12,13 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type CommandHandler struct {
-	customers CustomersWithPersistance
-}
-
 type CustomersWithPersistance interface {
 	domain.Customers
 	shared.PersistsEventsourcedAggregates
+}
+
+type CommandHandler struct {
+	customers CustomersWithPersistance
 }
 
 /*** Factory Method ***/
