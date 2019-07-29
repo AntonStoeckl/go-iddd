@@ -16,6 +16,11 @@ type CommandHandler struct {
 	customers CustomersWithPersistance
 }
 
+type CustomersWithPersistance interface {
+	domain.Customers
+	shared.PersistsEventsourcedAggregates
+}
+
 /*** Factory Method ***/
 
 func NewCommandHandler(customers CustomersWithPersistance) *CommandHandler {
