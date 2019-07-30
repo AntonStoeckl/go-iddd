@@ -9,6 +9,7 @@ var (
 	ErrUnmarshalingFailed         = errors.New("unmarshaling failed")
 	ErrCommandCanNotBeHandled     = errors.New("command can not be handled")
 	ErrCommandIsInvalid           = errors.New("command is invalid")
+	ErrCommandIsUnknown           = errors.New("command is unknown")
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
 	ErrInvalidEventStream         = errors.New("invalid event stream")
 	ErrConcurrencyConflict        = errors.New("concurrency conflict")
