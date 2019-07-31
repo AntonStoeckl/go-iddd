@@ -6,7 +6,7 @@ import (
 	"go-iddd/shared"
 	"reflect"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 const maxCommandHandlerRetries = 10
@@ -40,19 +40,15 @@ func NewCommandHandler(repo StartsRepositorySessions) *CommandHandler {
 
 func (handler *CommandHandler) Handle(command shared.Command) error {
 	if err := handler.assertIsValid(command); err != nil {
-		return xerrors.Errorf("commandHandler.Handle: %w", err)
+		return errors.Wrap(errors.Mark(err, shared.ErrCommandIsInvalid), "commandHandler.Handle")
 	}
 
 	if err := handler.assertIsKnown(command); err != nil {
-		return xerrors.Errorf("commandHandler.Handle: %w", err)
+		return errors.Wrap(errors.Mark(err, shared.ErrCommandIsUnknown), "commandHandler.Handle")
 	}
 
 	if err := handler.handleRetry(command); err != nil {
-		return xerrors.Errorf(
-			"commandHandler.Handle: [%s]: %w",
-			command.CommandName(),
-			err,
-		)
+		return errors.Wrapf(err, "commandHandler.Handle: [%s]", command.CommandName())
 	}
 
 	return nil
@@ -62,14 +58,15 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 
 func (handler *CommandHandler) handleRetry(command shared.Command) error {
 	var err error
+	var retries uint
 
-	for retries := 0; retries < maxCommandHandlerRetries; retries++ {
+	for retries = 0; retries < maxCommandHandlerRetries; retries++ {
 		// call next method in chain
 		if err = handler.handleSession(command); err == nil {
 			break // no need to retry, handling was successful
 		}
 
-		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
+		if errors.Is(err, shared.ErrConcurrencyConflict) {
 			continue // retry to resolve the concurrency conflict
 		} else {
 			break // don't retry for different errors
@@ -77,6 +74,10 @@ func (handler *CommandHandler) handleRetry(command shared.Command) error {
 	}
 
 	if err != nil {
+		if retries == maxCommandHandlerRetries {
+			return errors.Wrap(err, shared.ErrMaxRetriesExceeded.Error())
+		}
+
 		return err // either to many retries or a different error
 	}
 
@@ -92,7 +93,7 @@ func (handler *CommandHandler) handleSession(command shared.Command) error {
 	// call next method in chain
 	if err := handler.handleCommand(session, command); err != nil {
 		if errTx := session.Rollback(); errTx != nil {
-			return xerrors.Errorf("rollback failed: %s: %w", errTx, err)
+			return errors.Wrap(err, errTx.Error())
 		}
 
 		return err
@@ -190,15 +191,15 @@ func (handler *CommandHandler) changeEmailAddress(
 
 func (handler *CommandHandler) assertIsValid(command shared.Command) error {
 	if command == nil {
-		return xerrors.Errorf("command is nil interface: %w", shared.ErrCommandIsInvalid)
+		return errors.New("command is nil interface")
 	}
 
 	if reflect.ValueOf(command).IsNil() {
-		return xerrors.Errorf("[%s] command value is nil pointer: %w", command.CommandName(), shared.ErrCommandIsInvalid)
+		return errors.Newf("[%s]: command value is nil pointer", command.CommandName())
 	}
 
 	if reflect.ValueOf(command.AggregateID()).IsNil() {
-		return xerrors.Errorf("[%s] command was not properly created: %w", command.CommandName(), shared.ErrCommandIsInvalid)
+		return errors.Newf("[%s]: command was not properly created", command.CommandName())
 	}
 
 	return nil
@@ -209,6 +210,6 @@ func (handler *CommandHandler) assertIsKnown(command shared.Command) error {
 	case *commands.Register, *commands.ConfirmEmailAddress, *commands.ChangeEmailAddress:
 		return nil
 	default:
-		return xerrors.Errorf("[%s]: %w", command.CommandName(), shared.ErrCommandIsUnknown)
+		return errors.Newf("[%s] command is unknown", command.CommandName())
 	}
 }

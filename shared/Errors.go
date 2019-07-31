@@ -13,6 +13,7 @@ var (
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
 	ErrInvalidEventStream         = errors.New("invalid event stream")
 	ErrConcurrencyConflict        = errors.New("concurrency conflict")
+	ErrMaxRetriesExceeded         = errors.New("max retries exceeded")
 	ErrNotFound                   = errors.New("not found")
 	ErrDuplicate                  = errors.New("duplicate")
 	ErrTechnical                  = errors.New("technical")

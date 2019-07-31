@@ -1,7 +1,6 @@
 package application_test
 
 import (
-	"errors"
 	"fmt"
 	"go-iddd/customer/application"
 	"go-iddd/customer/application/mocks"
@@ -10,9 +9,9 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/xerrors"
 )
 
 /*** Test factory method ***/
@@ -62,14 +61,13 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 				})
 
 				Convey("And when saving the Customer fails", func() {
-					expectedErr := errors.New("mocked error")
-					customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
+					customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(shared.ErrTechnical).Once()
 					customers.On("Rollback").Return(nil).Once()
 
 					err := commandHandler.Handle(register)
 
 					Convey("It should fail", func() {
-						So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						So(customers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
@@ -127,8 +125,6 @@ func conveyWhenTheCommandIsHandled(
 ) {
 
 	Convey("When the command is handled", func() {
-		expectedErr := errors.New("mocked error")
-
 		Convey("And when finding the Customer succeeds", func() {
 			mockCustomer := new(mocks.Customer)
 			customers.On("Of", command.AggregateID()).Return(mockCustomer, nil).Once()
@@ -150,26 +146,26 @@ func conveyWhenTheCommandIsHandled(
 				})
 
 				Convey("And when saving the Customer fails", func() {
-					customers.On("Persist", mockCustomer).Return(expectedErr).Once()
+					customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
 					customers.On("Rollback").Return(nil).Once()
 
 					err := commandHandler.Handle(command)
 
 					Convey("It should fail", func() {
-						So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						So(customers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
 			})
 
 			Convey("And when executing the command fails", func() {
-				mockCustomer.On("Execute", command).Return(expectedErr)
+				mockCustomer.On("Execute", command).Return(shared.ErrDomainConstraintsViolation)
 				customers.On("Rollback").Return(nil).Once()
 
 				err := commandHandler.Handle(command)
 
 				Convey("It should fail", func() {
-					So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
 					So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 					So(customers.AssertExpectations(t), ShouldBeTrue)
 				})
@@ -177,13 +173,13 @@ func conveyWhenTheCommandIsHandled(
 		})
 
 		Convey("And when finding the Customer fails", func() {
-			customers.On("Of", command.AggregateID()).Return(nil, expectedErr).Once()
+			customers.On("Of", command.AggregateID()).Return(nil, shared.ErrTechnical).Once()
 			customers.On("Rollback").Return(nil).Once()
 
 			err := commandHandler.Handle(command)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 				So(customers.AssertExpectations(t), ShouldBeTrue)
 			})
 		})
@@ -211,7 +207,6 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 					mockCustomer := new(mocks.Customer)
 
 					Convey("And when executing the command succeeds", func() {
-
 						mockCustomer.On("Execute", changeEmailAddress).Return(nil)
 
 						Convey("And when saving the Customer has a concurrency conflict once", func() {
@@ -247,7 +242,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 							Convey("It should fail", func() {
 								So(err, ShouldNotBeNil)
-								So(xerrors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
+								So(errors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
 								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 								So(customers.AssertExpectations(t), ShouldBeTrue)
 							})
@@ -272,7 +267,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 				fmt.Println(err)
 			})
 		})
@@ -283,7 +278,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 				fmt.Println(err)
 			})
 		})
@@ -294,7 +289,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 				fmt.Println(err)
 			})
 		})
@@ -308,7 +303,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
 				fmt.Println(err)
 			})
 		})
@@ -339,8 +334,7 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-				fmt.Println(err)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 			})
 		})
 
@@ -356,14 +350,13 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
 			repo := new(mocks.StartsRepositorySessions)
 			repo.On("StartSession").Return(customers, nil)
-			expectedErr := errors.New("mocked error")
-			customers.On("Commit").Return(expectedErr).Once()
+			customers.On("Commit").Return(shared.ErrTechnical).Once()
 			commandHandler = application.NewCommandHandler(repo)
 
 			err = commandHandler.Handle(register)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 				So(customers.AssertExpectations(t), ShouldBeTrue)
 			})
 		})
@@ -377,19 +370,18 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			expectedErr := errors.New("mocked register error")
-			customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(expectedErr).Once()
+			customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(shared.ErrDomainConstraintsViolation).Once()
 			repo := new(mocks.StartsRepositorySessions)
 			repo.On("StartSession").Return(customers, nil)
-			expectedRollbackErr := errors.New("mocked rollback error")
-			customers.On("Rollback").Return(expectedRollbackErr).Once()
+			customers.On("Rollback").Return(shared.ErrTechnical).Once()
 			commandHandler = application.NewCommandHandler(repo)
 
 			err = commandHandler.Handle(register)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, expectedErr), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
 				So(customers.AssertExpectations(t), ShouldBeTrue)
+				fmt.Println(err)
 			})
 		})
 	})

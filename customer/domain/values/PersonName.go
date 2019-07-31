@@ -2,10 +2,9 @@ package values
 
 import (
 	"encoding/json"
-	"errors"
 	"go-iddd/shared"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 type PersonName struct {
@@ -19,7 +18,7 @@ func NewPersonName(givenName string, familyName string) (*PersonName, error) {
 	newPersonName := buildPersonName(givenName, familyName)
 
 	if err := newPersonName.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("personName.New: %s: %w", err, shared.ErrInputIsInvalid)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "personName.New")
 	}
 
 	return newPersonName, nil
@@ -81,7 +80,7 @@ func (personName *PersonName) MarshalJSON() ([]byte, error) {
 
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		return bytes, xerrors.Errorf("personName.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
+		return bytes, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "personName.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -96,7 +95,7 @@ func (personName *PersonName) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := json.Unmarshal(data, values); err != nil {
-		return xerrors.Errorf("personName.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "personName.UnmarshalJSON")
 	}
 
 	personName.givenName = values.GivenName
