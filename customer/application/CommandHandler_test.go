@@ -192,6 +192,73 @@ func conveyWhenTheCommandIsHandled(
 
 /*** Test generic error cases ***/
 
+func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
+	Convey("Given a CommandHandler", t, func() {
+		repo := new(mocks.StartsRepositorySessions)
+		customers := new(mocks.PersistableCustomersSession)
+		repo.On("StartSession").Return(customers, nil)
+		commandHandler := application.NewCommandHandler(repo)
+
+		Convey("And given a ChangeEmailAddress command", func() {
+			changeEmailAddress, err := commands.NewChangeEmailAddress(
+				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
+				"john@doe.com",
+			)
+			So(err, ShouldBeNil)
+
+			Convey("When the command is handled", func() {
+				Convey("And when finding the Customer succeeds", func() {
+					mockCustomer := new(mocks.Customer)
+
+					Convey("And when executing the command succeeds", func() {
+
+						mockCustomer.On("Execute", changeEmailAddress).Return(nil)
+
+						Convey("And when saving the Customer has a concurrency conflict once", func() {
+							// should be called twice due to retry
+							customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Twice()
+
+							// fist attempt runs into a concurrency conflict
+							customers.On("Persist", mockCustomer).Return(shared.ErrConcurrencyConflict).Once()
+							customers.On("Rollback").Return(nil).Once()
+
+							// second attempt works
+							customers.On("Persist", mockCustomer).Return(nil).Once()
+							customers.On("Commit").Return(nil).Once()
+
+							err := commandHandler.Handle(changeEmailAddress)
+
+							Convey("It should modify the Customer and save it", func() {
+								So(err, ShouldBeNil)
+								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
+
+						Convey("And when saving the Customer has too many concurrency conflicts", func() {
+							// should be called 10 times due to retries
+							customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Times(10)
+
+							// all attempts run into a concurrency conflict
+							customers.On("Persist", mockCustomer).Return(shared.ErrConcurrencyConflict).Times(10)
+							customers.On("Rollback").Return(nil).Times(10)
+
+							err := commandHandler.Handle(changeEmailAddress)
+
+							Convey("It should fail", func() {
+								So(err, ShouldNotBeNil)
+								So(xerrors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
+								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
 func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		repo := new(mocks.StartsRepositorySessions)

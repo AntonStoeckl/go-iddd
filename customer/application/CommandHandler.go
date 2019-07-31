@@ -9,6 +9,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
+const maxCommandHandlerRetries = 10
+
 type PersistableCustomers interface {
 	domain.Customers
 	Persist(customer domain.Customer) error
@@ -61,23 +63,21 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 func (handler *CommandHandler) handleRetry(command shared.Command) error {
 	var err error
 
-	maxRetries := 10
-
-	for retries := 0; retries < maxRetries; retries++ {
+	for retries := 0; retries < maxCommandHandlerRetries; retries++ {
 		// call next method in chain
-		err = handler.handleSession(command)
-
-		if err == nil {
-			break
+		if err = handler.handleSession(command); err == nil {
+			break // no need to retry, handling was successful
 		}
 
-		if !xerrors.Is(err, shared.ErrConcurrencyConflict) {
-			break
+		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
+			continue // retry to resolve the concurrency conflict
+		} else {
+			break // don't retry for different errors
 		}
 	}
 
 	if err != nil {
-		return err
+		return err // either to many retries or a different error
 	}
 
 	return nil
