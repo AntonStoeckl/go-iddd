@@ -116,26 +116,26 @@ func (session *PostgresEventStoreSession) AppendEventsToStream(streamID *shared.
 	return nil
 }
 
-func (session *PostgresEventStoreSession) Commit() error {
-	if err := session.tx.Commit(); err != nil {
-		return xerrors.Errorf(
-			"postgresEventStoreSession.Commit: %s: %w",
-			err,
-			shared.ErrTechnical,
-		)
-	}
-
-	return nil
-}
-
-func (session *PostgresEventStoreSession) Rollback() error {
-	if err := session.tx.Rollback(); err != nil {
-		return xerrors.Errorf(
-			"postgresEventStoreSession.Rollback: %s: %w",
-			err,
-			shared.ErrTechnical,
-		)
-	}
-
-	return nil
-}
+//func (session *PostgresEventStoreSession) Commit() error {
+//	if err := session.tx.Commit(); err != nil {
+//		return xerrors.Errorf(
+//			"postgresEventStoreSession.Commit: %s: %w",
+//			err,
+//			shared.ErrTechnical,
+//		)
+//	}
+//
+//	return nil
+//}
+//
+//func (session *PostgresEventStoreSession) Rollback() error {
+//	if err := session.tx.Rollback(); err != nil {
+//		return xerrors.Errorf(
+//			"postgresEventStoreSession.Rollback: %s: %w",
+//			err,
+//			shared.ErrTechnical,
+//		)
+//	}
+//
+//	return nil
+//}

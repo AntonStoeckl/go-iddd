@@ -27,22 +27,11 @@ func NewPostgresEventStore(
 	}
 }
 
-func (store *PostgresEventStore) StartSession() (shared.EventStoreSession, error) {
-	tx, err := store.db.Begin()
-	if err != nil {
-		return nil, xerrors.Errorf(
-			"postgresEventStore.StartSession: %s: %w",
-			err,
-			shared.ErrTechnical,
-		)
-	}
-
-	session := &PostgresEventStoreSession{
+func (store *PostgresEventStore) StartSession(tx *sql.Tx) shared.EventStore {
+	return &PostgresEventStoreSession{
 		tx:         tx,
 		eventStore: store,
 	}
-
-	return session, nil
 }
 
 func (store *PostgresEventStore) PurgeEventStream(streamID *shared.StreamID) error {

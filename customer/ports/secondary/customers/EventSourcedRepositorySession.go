@@ -10,7 +10,7 @@ import (
 )
 
 type EventSourcedRepositorySession struct {
-	eventStoreSession shared.EventStoreSession
+	eventStoreSession shared.EventStore
 	customerFactory   func(eventStream shared.DomainEvents) (domain.Customer, error)
 	identityMap       *IdentityMap
 }
@@ -75,22 +75,6 @@ func (session *EventSourcedRepositorySession) Persist(customer domain.Customer) 
 
 	if err := session.eventStoreSession.AppendEventsToStream(streamID, customer.RecordedEvents(true)); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)
-	}
-
-	return nil
-}
-
-func (session *EventSourcedRepositorySession) Commit() error {
-	if err := session.eventStoreSession.Commit(); err != nil {
-		return xerrors.Errorf("eventSourcedRepositorySession.Commit: %w", err)
-	}
-
-	return nil
-}
-
-func (session *EventSourcedRepositorySession) Rollback() error {
-	if err := session.eventStoreSession.Rollback(); err != nil {
-		return xerrors.Errorf("eventSourcedRepositorySession.Rollback: %w", err)
 	}
 
 	return nil

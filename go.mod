@@ -3,6 +3,7 @@ module go-iddd
 go 1.12
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/certifi/gocertifi v0.0.0-20190506164543-d2eda7129713 // indirect
 	github.com/cockroachdb/errors v1.2.3
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect

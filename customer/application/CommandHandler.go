@@ -1,6 +1,7 @@
 package application
 
 import (
+	"database/sql"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/shared"
@@ -16,24 +17,22 @@ type PersistableCustomers interface {
 	Persist(customer domain.Customer) error
 }
 
-type PersistableCustomersSession interface {
-	PersistableCustomers
-	Commit() error
-	Rollback() error
-}
-
 type StartsRepositorySessions interface {
-	StartSession() (PersistableCustomersSession, error)
+	StartSession(tx *sql.Tx) PersistableCustomers
 }
 
 type CommandHandler struct {
 	repo StartsRepositorySessions
+	db   *sql.DB
 }
 
 /*** Factory Method ***/
 
-func NewCommandHandler(repo StartsRepositorySessions) *CommandHandler {
-	return &CommandHandler{repo: repo}
+func NewCommandHandler(repo StartsRepositorySessions, db *sql.DB) *CommandHandler {
+	return &CommandHandler{
+		repo: repo,
+		db:   db,
+	}
 }
 
 /*** Implement shared.CommandHandler ***/
@@ -85,22 +84,24 @@ func (handler *CommandHandler) handleRetry(command shared.Command) error {
 }
 
 func (handler *CommandHandler) handleSession(command shared.Command) error {
-	session, errTx := handler.repo.StartSession()
+	tx, errTx := handler.db.Begin()
 	if errTx != nil {
-		return errTx
+		return errors.Mark(errTx, shared.ErrTechnical)
 	}
+
+	session := handler.repo.StartSession(tx)
 
 	// call next method in chain
 	if err := handler.handleCommand(session, command); err != nil {
-		if errTx := session.Rollback(); errTx != nil {
+		if errTx := tx.Rollback(); errTx != nil {
 			return errors.Wrap(err, errTx.Error())
 		}
 
 		return err
 	}
 
-	if errTx := session.Commit(); errTx != nil {
-		return errTx
+	if errTx := tx.Commit(); errTx != nil {
+		return errors.Mark(errTx, shared.ErrTechnical)
 	}
 
 	return nil

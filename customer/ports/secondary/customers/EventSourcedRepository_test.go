@@ -4,12 +4,10 @@ import (
 	"database/sql"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/ports/secondary/customers"
-	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestEventSourcedRepository_StartSession(t *testing.T) {
@@ -21,26 +19,14 @@ func TestEventSourcedRepository_StartSession(t *testing.T) {
 		repository := customers.NewEventSourcedRepository(eventStore, domain.ReconstituteCustomerFrom, identityMap)
 
 		Convey("When a Session is started", func() {
-			session, err := repository.StartSession()
-
-			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
-				So(session, ShouldNotBeNil)
-				So(session, ShouldHaveSameTypeAs, &customers.EventSourcedRepositorySession{})
-			})
-		})
-
-		Convey("And given the DB connection was closed", func() {
-			err := db.Close()
+			tx, err := db.Begin()
 			So(err, ShouldBeNil)
 
-			Convey("When a Session is started", func() {
-				session, err := repository.StartSession()
+			session := repository.StartSession(tx)
 
-				Convey("It should fail", func() {
-					So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-					So(session, ShouldBeNil)
-				})
+			Convey("It should succeed", func() {
+				So(session, ShouldNotBeNil)
+				So(session, ShouldHaveSameTypeAs, &customers.EventSourcedRepositorySession{})
 			})
 		})
 	})
