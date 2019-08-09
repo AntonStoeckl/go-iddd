@@ -246,8 +246,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -349,7 +349,7 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
-		return xerrors.Errorf("{{$eventVar}}.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "{{$eventVar}}.UnmarshalJSON")
 	}
 
 	{{range .Fields}}{{$eventVar}}.{{.FieldName}} = unmarshaledData.{{methodName .DataType}}
@@ -386,8 +386,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func Test{{.EventFactory}}(t *testing.T) {
@@ -483,7 +483,7 @@ func Test{{eventName}}UnmarshalJSON(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldNotBeNil)
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

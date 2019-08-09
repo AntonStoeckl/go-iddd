@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestEmailAddressWasConfirmed(t *testing.T) {
@@ -110,7 +110,7 @@ func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldNotBeNil)
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

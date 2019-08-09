@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -115,7 +115,7 @@ func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
-		return xerrors.Errorf("emailAddressChanged.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "emailAddressChanged.UnmarshalJSON")
 	}
 
 	emailAddressChanged.id = unmarshaledData.ID
