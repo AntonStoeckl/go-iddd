@@ -8,8 +8,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestNewChangeEmailAddress(t *testing.T) {
@@ -48,7 +48,7 @@ func conveyNewChangeEmailAddressWithInvalidInput(
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So(changeEmailAddress, ShouldBeNil)
 		})
 	})

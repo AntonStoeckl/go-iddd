@@ -341,8 +341,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestNew{{commandName}}(t *testing.T) {
@@ -382,7 +382,7 @@ func conveyNew{{commandName}}WithInvalidInput(
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So({{$commandVar}}, ShouldBeNil)
 		})
 	})

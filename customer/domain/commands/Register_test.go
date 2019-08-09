@@ -8,8 +8,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestNewRegister(t *testing.T) {
@@ -62,7 +62,7 @@ func conveyNewRegisterWithInvalidInput(
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 			So(register, ShouldBeNil)
 		})
 	})
