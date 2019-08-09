@@ -39,7 +39,6 @@ func TestNewPersonName(t *testing.T) {
 				So(err, ShouldBeError)
 				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(personName, ShouldBeNil)
-				fmt.Printf("\n%s\n", err)
 			})
 		})
 	})
@@ -55,7 +54,6 @@ func TestNewPersonName(t *testing.T) {
 				So(err, ShouldBeError)
 				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(personName, ShouldBeNil)
-				fmt.Printf("\n%s\n", err)
 			})
 		})
 	})
@@ -184,7 +182,6 @@ func TestPersonNameUnmarshalJSON(t *testing.T) {
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
-				fmt.Printf("\n%s\n", err)
 			})
 		})
 	})
