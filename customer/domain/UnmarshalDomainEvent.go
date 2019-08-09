@@ -4,20 +4,20 @@ import (
 	"go-iddd/customer/domain/events"
 	"go-iddd/shared"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 const unmarshalEventNamePrefix = "Customer"
 
 func UnmarshalDomainEvent(name string, payload []byte) (shared.DomainEvent, error) {
-	defaultErrFormat := "unmarshalDomainEvent [%s] failed: %w"
+	defaultErrFormat := "unmarshalDomainEvent [%s] failed"
 
 	switch name {
 	case unmarshalEventNamePrefix + "Registered":
 		event := &events.Registered{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Wrapf(err, defaultErrFormat, name)
 		}
 
 		return event, nil
@@ -25,7 +25,7 @@ func UnmarshalDomainEvent(name string, payload []byte) (shared.DomainEvent, erro
 		event := &events.EmailAddressConfirmed{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Wrapf(err, defaultErrFormat, name)
 		}
 
 		return event, nil
@@ -33,14 +33,13 @@ func UnmarshalDomainEvent(name string, payload []byte) (shared.DomainEvent, erro
 		event := &events.EmailAddressChanged{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Wrapf(err, defaultErrFormat, name)
 		}
 
 		return event, nil
 	default:
-		return nil, xerrors.Errorf(
-			"unmarshalDomainEvent [%s] failed - event is unknown: %w",
-			name,
+		return nil, errors.Mark(
+			errors.Newf("unmarshalDomainEvent [%s] failed - event is unknown", name),
 			shared.ErrUnmarshalingFailed,
 		)
 	}
