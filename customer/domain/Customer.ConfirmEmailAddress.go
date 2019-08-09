@@ -5,7 +5,7 @@ import (
 	"go-iddd/customer/domain/events"
 	"go-iddd/shared"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 func (customer *customer) confirmEmailAddress(with *commands.ConfirmEmailAddress) error {
@@ -19,7 +19,7 @@ func (customer *customer) confirmEmailAddress(with *commands.ConfirmEmailAddress
 	)
 
 	if err != nil {
-		return xerrors.Errorf("customer.confirmEmailAddress -> %s: %w", err, shared.ErrDomainConstraintsViolation)
+		return errors.Wrap(errors.Mark(err, shared.ErrDomainConstraintsViolation), "customer.confirmEmailAddress")
 	}
 
 	customer.recordThat(

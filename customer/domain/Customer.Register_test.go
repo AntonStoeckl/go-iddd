@@ -8,8 +8,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestNewCustomer(t *testing.T) {
@@ -59,7 +59,7 @@ func TestNewCustomer(t *testing.T) {
 			Convey("And it should not execute further Register commands", func() {
 				err = customer.Execute(register)
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
 			})
 		})
 	})

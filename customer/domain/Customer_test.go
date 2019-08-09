@@ -9,8 +9,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestCustomerClone(t *testing.T) {
@@ -130,7 +130,7 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
 		})
 	})
 
@@ -149,7 +149,7 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
 		})
 	})
 }
@@ -172,7 +172,7 @@ func TestCustomerExecuteInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 			})
 		})
 
@@ -182,7 +182,7 @@ func TestCustomerExecuteInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 			})
 		})
 
@@ -192,7 +192,7 @@ func TestCustomerExecuteInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 			})
 		})
 
@@ -204,7 +204,7 @@ func TestCustomerExecuteInvalidCommand(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
 			})
 		})
 	})

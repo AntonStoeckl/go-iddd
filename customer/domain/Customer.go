@@ -1,8 +1,6 @@
 package domain
 
 import (
-	"errors"
-	"fmt"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
@@ -10,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 type Customer interface {
@@ -45,7 +43,7 @@ func (customer *customer) Execute(command shared.Command) error {
 	var err error
 
 	if err := customer.assertIsValid(command); err != nil {
-		return xerrors.Errorf("customer.Execute: %s: %w", err, shared.ErrCommandIsInvalid)
+		return errors.Wrap(errors.Mark(err, shared.ErrCommandIsInvalid), "customer.Execute")
 	}
 
 	switch actualCommand := command.(type) {
@@ -54,9 +52,9 @@ func (customer *customer) Execute(command shared.Command) error {
 	case *commands.ChangeEmailAddress:
 		err = customer.changeEmailAddress(actualCommand)
 	case *commands.Register:
-		return xerrors.Errorf("customer.Execute: customer is already registered: %w", shared.ErrCommandCanNotBeHandled)
+		err = errors.Mark(errors.New("customer.Execute: customer is already registered"), shared.ErrCommandCanNotBeHandled)
 	default:
-		return xerrors.Errorf("customer.Execute: [%s]: command is unknown: %w", command.CommandName(), shared.ErrCommandCanNotBeHandled)
+		err = errors.Mark(errors.Newf("customer.Execute: [%s]: command is unknown", command.CommandName()), shared.ErrCommandCanNotBeHandled)
 	}
 
 	if err != nil {
@@ -84,7 +82,7 @@ func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error)
 	newCustomer := blankCustomer()
 
 	if err := eventStream.FirstEventShouldBeOfSameTypeAs(&events.Registered{}); err != nil {
-		return nil, xerrors.Errorf("ReconstituteCustomerFrom: %s: %w", err, shared.ErrInvalidEventStream)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInvalidEventStream), "shared.ErrInvalidEventStream")
 	}
 
 	newCustomer.apply(eventStream...)
@@ -142,11 +140,11 @@ func (customer *customer) assertIsValid(command shared.Command) error {
 	}
 
 	if reflect.ValueOf(command).IsNil() {
-		return fmt.Errorf("[%s]: command value is nil pointer", command.CommandName())
+		return errors.Newf("[%s]: command value is nil pointer", command.CommandName())
 	}
 
 	if reflect.ValueOf(command.AggregateID()).IsNil() {
-		return fmt.Errorf("[%s]: command was not properly created", command.CommandName())
+		return errors.Newf("[%s]: command was not properly created", command.CommandName())
 	}
 
 	return nil
