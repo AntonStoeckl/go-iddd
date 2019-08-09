@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 /*** Tests for Factory methods ***/
@@ -63,7 +63,7 @@ func TestRebuildConfirmationHash(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(confirmationHash, ShouldBeNil)
 			})
 		})
@@ -124,7 +124,7 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
-					So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 				})
 			})
 		})
@@ -209,7 +209,7 @@ func TestConfirmationHashUnmarshalJSON(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldNotBeNil)
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

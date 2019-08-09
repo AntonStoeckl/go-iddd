@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 /*** Tests for Factory methods ***/
@@ -84,7 +84,7 @@ func TestRebuildID(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				So(id, ShouldBeNil)
 			})
 		})
@@ -205,7 +205,7 @@ func TestIDUnmarshalJSON(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldNotBeNil)
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

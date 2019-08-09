@@ -6,8 +6,8 @@ import (
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 /*** Tests for Getter methods ***/
@@ -109,7 +109,7 @@ func TestConfirmableEmailAddressConfirm(t *testing.T) {
 			emailAddress, err := values.NewEmailAddress(emailAddressValue)
 			err = unconfirmedEmailAddress.ShouldConfirm(emailAddress, confirmationHash)
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 		})
 
 		Convey("It should not confirm with a wrong ConfirmationHash", func() {
@@ -117,7 +117,7 @@ func TestConfirmableEmailAddressConfirm(t *testing.T) {
 			So(err, ShouldBeNil)
 			err = unconfirmedEmailAddress.ShouldConfirm(emailAddress, confirmationHash)
 			So(err, ShouldBeError)
-			So(xerrors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
 		})
 	})
 }
@@ -175,7 +175,7 @@ func TestConfirmableEmailAddressUnmarshalJSON(t *testing.T) {
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

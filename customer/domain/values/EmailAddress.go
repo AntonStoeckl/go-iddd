@@ -1,12 +1,11 @@
 package values
 
 import (
-	"errors"
 	"go-iddd/shared"
 	"regexp"
 
+	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 var (
@@ -23,7 +22,7 @@ func NewEmailAddress(from string) (*EmailAddress, error) {
 	newEmailAddress := buildEmailAddress(from)
 
 	if err := newEmailAddress.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("emailAddress.New -> %s: %w", err, shared.ErrInputIsInvalid)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "emailAddress.New")
 	}
 
 	return newEmailAddress, nil
@@ -55,7 +54,7 @@ func (emailAddress *EmailAddress) Equals(other *EmailAddress) bool {
 
 func (emailAddress *EmailAddress) ShouldEqual(other *EmailAddress) error {
 	if !emailAddress.Equals(other) {
-		return xerrors.Errorf("emailAddress.ShouldEqual: %w", shared.ErrNotEqual)
+		return errors.Mark(errors.New("emailAddress.ShouldEqual"), shared.ErrNotEqual)
 	}
 
 	return nil
@@ -72,7 +71,7 @@ func (emailAddress *EmailAddress) ToConfirmable() *ConfirmableEmailAddress {
 func (emailAddress *EmailAddress) MarshalJSON() ([]byte, error) {
 	bytes, err := jsoniter.Marshal(emailAddress.value)
 	if err != nil {
-		return nil, xerrors.Errorf("emailAddress.MarshalJSON -> %s: %w", err, shared.ErrMarshalingFailed)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "emailAddress.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -84,7 +83,7 @@ func (emailAddress *EmailAddress) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := jsoniter.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("emailAddress.UnmarshalJSON -> %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "emailAddress.UnmarshalJSON")
 	}
 
 	emailAddress.value = value

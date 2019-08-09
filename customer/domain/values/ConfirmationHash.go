@@ -2,15 +2,14 @@ package values
 
 import (
 	"crypto/md5"
-	"errors"
 	"fmt"
 	"go-iddd/shared"
 	"math/rand"
 	"strconv"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 type ConfirmationHash struct {
@@ -31,7 +30,7 @@ func RebuildConfirmationHash(from string) (*ConfirmationHash, error) {
 	rebuiltConfirmationHash := buildConfirmationHash(from)
 
 	if err := rebuiltConfirmationHash.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("confirmationHash.New: %s: %w", err, shared.ErrInputIsInvalid)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "confirmationHash.RebuildConfirmationHash")
 	}
 
 	return rebuiltConfirmationHash, nil
@@ -63,7 +62,7 @@ func (confirmationHash *ConfirmationHash) Equals(other *ConfirmationHash) bool {
 
 func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) error {
 	if confirmationHash.value != other.value {
-		return xerrors.Errorf("confirmationHash.ShouldEqual: %w", shared.ErrNotEqual)
+		return errors.Mark(errors.New("confirmationHash.ShouldEqual"), shared.ErrNotEqual)
 	}
 
 	return nil
@@ -74,7 +73,7 @@ func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) e
 func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {
 	bytes, err := jsoniter.Marshal(confirmationHash.value)
 	if err != nil {
-		return bytes, xerrors.Errorf("confirmationHash.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "confirmationHash.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -86,7 +85,7 @@ func (confirmationHash *ConfirmationHash) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := jsoniter.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("confirmationHash.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "confirmationHash.UnmarshalJSON")
 	}
 
 	confirmationHash.value = value

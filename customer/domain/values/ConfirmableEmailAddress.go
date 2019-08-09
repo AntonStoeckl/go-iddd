@@ -3,8 +3,8 @@ package values
 import (
 	"go-iddd/shared"
 
+	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 type ConfirmableEmailAddress struct {
@@ -45,11 +45,11 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) Equals(other *EmailAddre
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) ShouldConfirm(given *EmailAddress, with *ConfirmationHash) error {
 	if err := confirmableEmailAddress.baseEmailAddress.ShouldEqual(given); err != nil {
-		return xerrors.Errorf("confirmableEmailAddress.ShouldConfirm: %w", err)
+		return errors.Wrap(err, "confirmableEmailAddress.ShouldConfirm")
 	}
 
 	if err := confirmableEmailAddress.confirmationHash.ShouldEqual(with); err != nil {
-		return xerrors.Errorf("confirmableEmailAddress.ShouldConfirm: %w", err)
+		return errors.Wrap(err, "confirmableEmailAddress.ShouldConfirm")
 	}
 
 	confirmedEmailAddress := buildConfirmableEmailAddress(
@@ -88,7 +88,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) MarshalJSON() ([]byte, e
 
 	bytes, err := jsoniter.Marshal(data)
 	if err != nil {
-		return bytes, xerrors.Errorf("confirmableEmailAddress.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "confirmableEmailAddress.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -103,7 +103,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) UnmarshalJSON(data []byt
 	}{}
 
 	if err := jsoniter.Unmarshal(data, values); err != nil {
-		return xerrors.Errorf("confirmableEmailAddress.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "confirmableEmailAddress.UnmarshalJSON")
 	}
 
 	confirmableEmailAddress.baseEmailAddress = values.EmailAddress

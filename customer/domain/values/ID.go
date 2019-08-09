@@ -1,12 +1,11 @@
 package values
 
 import (
-	"errors"
 	"go-iddd/shared"
 
+	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/xerrors"
 )
 
 type ID struct {
@@ -23,7 +22,7 @@ func RebuildID(from string) (*ID, error) {
 	rebuiltID := buildID(from)
 
 	if err := rebuiltID.shouldBeValid(); err != nil {
-		return nil, xerrors.Errorf("id.New: %s: %w", err, shared.ErrInputIsInvalid)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "id.New")
 	}
 
 	return rebuiltID, nil
@@ -62,7 +61,7 @@ func (id *ID) Equals(other shared.IdentifiesAggregates) bool {
 func (id *ID) MarshalJSON() ([]byte, error) {
 	bytes, err := jsoniter.Marshal(id.value)
 	if err != nil {
-		return bytes, xerrors.Errorf("id.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "id.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -74,7 +73,7 @@ func (id *ID) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := jsoniter.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("id.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "id.UnmarshalJSON")
 	}
 
 	id.value = value

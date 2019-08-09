@@ -80,7 +80,7 @@ func (personName *PersonName) MarshalJSON() ([]byte, error) {
 
 	bytes, err := jsoniter.Marshal(data)
 	if err != nil {
-		return bytes, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "personName.MarshalJSON")
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "personName.MarshalJSON")
 	}
 
 	return bytes, nil
