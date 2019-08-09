@@ -1,10 +1,10 @@
 package values
 
 import (
-	"encoding/json"
 	"go-iddd/shared"
 
 	"github.com/cockroachdb/errors"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type PersonName struct {
@@ -78,7 +78,7 @@ func (personName *PersonName) MarshalJSON() ([]byte, error) {
 		FamilyName: personName.familyName,
 	}
 
-	bytes, err := json.Marshal(data)
+	bytes, err := jsoniter.Marshal(data)
 	if err != nil {
 		return bytes, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "personName.MarshalJSON")
 	}
@@ -94,7 +94,7 @@ func (personName *PersonName) UnmarshalJSON(data []byte) error {
 		FamilyName string `json:"familyName"`
 	}{}
 
-	if err := json.Unmarshal(data, values); err != nil {
+	if err := jsoniter.Unmarshal(data, values); err != nil {
 		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "personName.UnmarshalJSON")
 	}
 
