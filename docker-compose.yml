@@ -10,6 +10,7 @@ services:
       GOIDDD_USERNAME: goiddd
       GOIDDD_PASSWORD: password123
       GOIDDD_DATABASE: goiddd
+      GOIDDD_DATABASE_TEST: goidddtest
     volumes:
       - ./setup/postgres:/docker-entrypoint-initdb.d
     ports:
