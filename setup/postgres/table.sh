@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" $GOIDDD_DATABASE <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" "$GOIDDD_DATABASE" <<-EOSQL
 create table if not exists eventstore
 (
 	id serial not null,
