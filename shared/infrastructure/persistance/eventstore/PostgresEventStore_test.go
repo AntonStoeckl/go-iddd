@@ -97,7 +97,7 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 /*** Test Helper Methods ***/
 
 func setUpForPostgresEventStore() (*eventstore.PostgresEventStore, *sql.DB, *mocks.SomeID, *shared.StreamID) {
-	db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
 	So(err, ShouldBeNil)
 	es := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
 	id := &mocks.SomeID{ID: uuid.New().String()}
