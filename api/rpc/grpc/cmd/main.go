@@ -29,7 +29,6 @@ func startGRPC() {
 	if err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-
 }
 
 func main() {
