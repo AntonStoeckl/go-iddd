@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" $GOIDDD_LOCAL_DATABASE <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" "$GOIDDD_LOCAL_DATABASE" <<-EOSQL
 create table if not exists eventstore
 (
 	id serial not null,
@@ -25,7 +25,7 @@ create index if not exists occurred_at_idx
 	on eventstore (occurred_at);
 EOSQL
 
-psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" $GOIDDD_TEST_DATABASE <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$GOIDDD_USERNAME" "$GOIDDD_TEST_DATABASE" <<-EOSQL
 create table if not exists eventstore
 (
 	id serial not null,
