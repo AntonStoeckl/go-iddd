@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+service Customer {
+    rpc Register (RegisterRequest) returns (RegisterResponse) {}
+}
+
+message RegisterRequest {
+    string emailAddress = 1;
+    string givenName = 2;
+    string familyName = 3;
+}
+
+message RegisterResponse {
+    string id = 1;
+}
+
