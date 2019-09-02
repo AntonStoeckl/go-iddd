@@ -332,7 +332,7 @@ func setUpForEventSourcedRepositorySession() (
 	*sql.DB,
 ) {
 
-	db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd?sslmode=disable")
+	db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
 	So(err, ShouldBeNil)
 	eventStore := eventstore.NewPostgresEventStore(db, "eventstore", domain.UnmarshalDomainEvent)
 	identityMap := customers.NewIdentityMap()
