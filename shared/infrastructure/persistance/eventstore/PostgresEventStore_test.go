@@ -15,7 +15,7 @@ import (
 
 func TestPostgresEventStore_StartSession(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd?sslmode=disable")
+		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
 		So(err, ShouldBeNil)
 		store := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
 
@@ -37,7 +37,7 @@ func TestPostgresEventStore_StartSession(t *testing.T) {
 
 func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd?sslmode=disable")
+		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
 		So(err, ShouldBeNil)
 		store := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
 		id := &mocks.SomeID{ID: uuid.New().String()}
