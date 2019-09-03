@@ -1,4 +1,7 @@
 syntax = "proto3";
+package customer;
+
+import "google/api/annotations.proto";
 
 service Customer {
     rpc Register (RegisterRequest) returns (RegisterResponse) {}
