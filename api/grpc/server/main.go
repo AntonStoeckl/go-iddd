@@ -1,14 +1,27 @@
 package main
 
 import (
-	"go-iddd/api/rpc/grpc/customer"
+	"go-iddd/api/grpc/customer"
 	"log"
 	"net"
-	"sync"
+	"os"
+	"os/signal"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
+
+var (
+	signalChan chan os.Signal
+)
+
+func main() {
+	createSignalChan()
+
+	go startGRPC()
+
+	waitUntilStopped()
+}
 
 func startGRPC() {
 	lis, err := net.Listen("tcp", "localhost:5566")
@@ -25,17 +38,17 @@ func startGRPC() {
 
 	log.Println("gRPC server ready...")
 
-	err = grpcServer.Serve(lis)
-	if err != nil {
+	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
-func main() {
-	go startGRPC()
+func createSignalChan() {
+	signalChan = make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+}
 
-	// Block forever
-	var wg sync.WaitGroup
-	wg.Add(1)
-	wg.Wait()
+func waitUntilStopped() {
+	<-signalChan
+	log.Println("service stopped")
 }

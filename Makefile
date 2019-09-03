@@ -1,6 +1,6 @@
 generate:
 	@protoc \
-		-I api/rpc/grpc/customer \
+		-I api/grpc/customer \
 		-I /usr/local/include/google/protobuf/ \
-		--go_out=plugins=grpc:api/rpc/grpc/customer \
-		api/rpc/grpc/customer/customer.proto
+		--go_out=plugins=grpc:api/grpc/customer \
+		api/grpc/customer/customer.proto

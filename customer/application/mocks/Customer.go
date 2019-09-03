@@ -62,7 +62,7 @@ func (_m *Customer) Clone() domain.Customer {
 	return r0
 }
 
-// Execute provides a mock function with given fields: cmd
+// Execute provides a mock function with given fields: server
 func (_m *Customer) Execute(cmd shared.Command) error {
 	ret := _m.Called(cmd)
 
