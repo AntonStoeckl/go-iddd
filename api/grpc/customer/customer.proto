@@ -4,7 +4,12 @@ package customer;
 import "google/api/annotations.proto";
 
 service Customer {
-    rpc Register (RegisterRequest) returns (RegisterResponse) {}
+    rpc Register (RegisterRequest) returns (RegisterResponse) {
+        option (google.api.http) = {
+            post: "/v1/register"
+            body: "*"
+        };
+    }
 }
 
 message RegisterRequest {

@@ -6,4 +6,6 @@ generate:
 		-I /usr/local/include/google/protobuf/ \
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
 		--go_out=plugins=grpc:api/grpc/customer \
+		--grpc-gateway_out=logtostderr=true:api/grpc/customer \
+		--swagger_out=logtostderr=true:api/grpc/customer \
 		api/grpc/customer/customer.proto

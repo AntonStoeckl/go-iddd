@@ -14,7 +14,7 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/grpc-ecosystem/grpc-gateway v1.11.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.11.1
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/joncalhoun/pipe v0.0.0-20170510025636-72505674a733
 	github.com/json-iterator/go v1.1.6
@@ -25,6 +25,7 @@ require (
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.3.1 // indirect
+	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472 // indirect
@@ -37,7 +38,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
 	google.golang.org/api v0.9.0 // indirect
 	google.golang.org/appengine v1.6.2 // indirect
-	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.23.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect

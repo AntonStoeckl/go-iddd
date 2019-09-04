@@ -1,0 +1,11 @@
+POST http://localhost:8080/v1/register
+Accept: */*
+Cache-Control: no-cache
+
+{
+  "emailAddress": "anton@stoeckl.de",
+  "familyName": "Stöckl",
+  "givenName": "Anton"
+}
+
+###
