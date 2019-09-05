@@ -76,16 +76,29 @@ func startHTTP() {
 	client := customer.NewCustomerClient(grpcClientConn)
 
 	if err = customer.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
-		logger.Errorf("failed to register customerHandlerClient", err)
+		logger.Errorf("failed to register customerHandlerClient: %s", err)
 		signalChan <- os.Interrupt
 	}
 
-	logger.Info("REST server ready ...")
+	// Serve the swagger-ui and swagger file
+	mux := http.NewServeMux()
+	mux.Handle("/", rmux)
 
-	if err = http.ListenAndServe("localhost:8080", rmux); err != nil {
+	mux.HandleFunc("/swagger.json", serveSwagger)
+	fs := http.FileServer(http.Dir("www/swagger-ui"))
+	mux.Handle("/swagger-ui/", http.StripPrefix("/swagger-ui", fs))
+
+	logger.Info("REST server ready ...")
+	logger.Info("Serving Swagger at: http://localhost:8080/swagger-ui/")
+
+	if err = http.ListenAndServe("localhost:8080", mux); err != nil {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
 		signalChan <- os.Interrupt
 	}
+}
+
+func serveSwagger(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "www/swagger.json")
 }
 
 func createSignalChan() {
