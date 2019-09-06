@@ -40,9 +40,98 @@
           "Customer"
         ]
       }
+    },
+    "/v1/customer/{id}/emailaddress": {
+      "put": {
+        "operationId": "ChangeEmailAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customerChangeEmailAddressRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Customer"
+        ]
+      }
+    },
+    "/v1/customer/{id}/emailaddress/confirm": {
+      "put": {
+        "operationId": "ConfirmEmailAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customerConfirmEmailAddressRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Customer"
+        ]
+      }
     }
   },
   "definitions": {
+    "customerChangeEmailAddressRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        }
+      }
+    },
+    "customerConfirmEmailAddressRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        },
+        "confirmationHash": {
+          "type": "string"
+        }
+      }
+    },
     "customerRegisterRequest": {
       "type": "object",
       "properties": {

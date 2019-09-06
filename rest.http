@@ -10,6 +10,27 @@ Cache-Control: no-cache
 
 ###
 
+PUT http://localhost:8080/v1/customer/83845c44-fd07-489f-b936-38a9f6721072/emailaddress/confirm
+Accept: */*
+Cache-Control: no-cache
+
+{
+  "emailAddress": "anton@stoeckl.de",
+  "confirmationHash": "30dfece0ffc90e4f402fbfec1b1b7d85"
+}
+
+###
+
+PUT http://localhost:8080/v1/customer/83845c44-fd07-489f-b936-38a9f6721072/emailaddress
+Accept: */*
+Cache-Control: no-cache
+
+{
+  "emailAddress": "anton+changed@stoeckl.de"
+}
+
+###
+
 GET http://localhost:8080/v1/customer/swagger.json
 
 ###

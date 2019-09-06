@@ -1,6 +1,7 @@
 syntax = "proto3";
 package customer;
 
+import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
 service Customer {
@@ -10,7 +11,23 @@ service Customer {
             body: "*"
         };
     }
+
+    rpc ConfirmEmailAddress (ConfirmEmailAddressRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/customer/{id}/emailaddress/confirm"
+            body: "*"
+        };
+    }
+
+    rpc ChangeEmailAddress (ChangeEmailAddressRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/customer/{id}/emailaddress"
+            body: "*"
+        };
+    }
 }
+
+// Register
 
 message RegisterRequest {
     string emailAddress = 1;
@@ -20,4 +37,19 @@ message RegisterRequest {
 
 message RegisterResponse {
     string id = 1;
+}
+
+// ConfirmEmailAddress
+
+message ConfirmEmailAddressRequest {
+    string id = 1;
+    string emailAddress = 2;
+    string confirmationHash = 3;
+}
+
+// ChangeEmailAddress
+
+message ChangeEmailAddressRequest {
+    string id = 1;
+    string emailAddress = 2;
 }
