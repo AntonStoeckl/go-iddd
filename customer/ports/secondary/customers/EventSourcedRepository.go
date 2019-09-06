@@ -2,6 +2,7 @@ package customers
 
 import (
 	"database/sql"
+	"go-iddd/customer/application"
 	"go-iddd/customer/domain"
 	"go-iddd/shared"
 )
@@ -22,7 +23,7 @@ func NewEventSourcedRepository(
 	eventStoreSessionFactory StartsEventStoreSessions,
 	customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error),
 	identityMap *IdentityMap,
-) *EventSourcedRepository {
+) application.StartsRepositorySessions {
 
 	return &EventSourcedRepository{
 		eventStoreSessionFactory: eventStoreSessionFactory,
@@ -31,7 +32,9 @@ func NewEventSourcedRepository(
 	}
 }
 
-func (repo *EventSourcedRepository) StartSession(tx *sql.Tx) *EventSourcedRepositorySession {
+/***** Implement application.StartsRepositorySessions *****/
+
+func (repo *EventSourcedRepository) StartSession(tx *sql.Tx) application.PersistableCustomers {
 	return &EventSourcedRepositorySession{
 		eventStoreSession: repo.eventStoreSessionFactory.StartSession(tx),
 		customerFactory:   repo.customerFactory,

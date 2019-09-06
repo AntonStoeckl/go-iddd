@@ -4,6 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"go-iddd/api/grpc/customer"
+	"go-iddd/customer/application"
+	"go-iddd/customer/domain"
+	"go-iddd/customer/ports/secondary/customers"
+	"go-iddd/shared"
+	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"net"
 	"net/http"
 	"os"
@@ -71,13 +76,6 @@ func mustOpenPostgresDBConnection() {
 	}
 }
 
-//func foobar() {
-//	es := eventstore.NewPostgresEventStore(postgresDBConn, "eventstore", domain.UnmarshalDomainEvent)
-//	identityMap := customers.NewIdentityMap()
-//	repo := customers.NewEventSourcedRepository(es, domain.ReconstituteCustomerFrom, identityMap)
-//	application.NewCommandHandler(repo, postgresDBConn)
-//}
-
 func startGRPC() {
 	logger.Info("starting gRPC server ...")
 
@@ -88,7 +86,7 @@ func startGRPC() {
 	}
 
 	grpcServer = grpc.NewServer()
-	customerServer := customer.NewCustomerServer()
+	customerServer := customer.NewCustomerServer(buildCommandHandler())
 
 	customer.RegisterCustomerServer(grpcServer, customerServer)
 	reflection.Register(grpcServer)
@@ -140,6 +138,15 @@ func startHTTP() {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
 		stopSignalChannel <- os.Interrupt
 	}
+}
+
+func buildCommandHandler() shared.CommandHandler {
+	es := eventstore.NewPostgresEventStore(postgresDBConn, "eventstore", domain.UnmarshalDomainEvent)
+	identityMap := customers.NewIdentityMap()
+	repo := customers.NewEventSourcedRepository(es, domain.ReconstituteCustomerFrom, identityMap)
+	commandHandler := application.NewCommandHandler(repo, postgresDBConn)
+
+	return commandHandler
 }
 
 func waitForStopSignal() {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go-iddd/customer/application"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
@@ -326,7 +327,7 @@ func buildRegisteredCustomerWith(id *values.ID) domain.Customer {
 }
 
 func setUpForEventSourcedRepositorySession() (
-	*customers.EventSourcedRepository,
+	application.StartsRepositorySessions,
 	*eventstore.PostgresEventStore,
 	*customers.IdentityMap,
 	*sql.DB,

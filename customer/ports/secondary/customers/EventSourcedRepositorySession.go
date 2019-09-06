@@ -70,6 +70,8 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer
 	return customer, nil
 }
 
+/***** Implement application.PersistsCustomers *****/
+
 func (session *EventSourcedRepositorySession) Persist(customer domain.Customer) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + customer.AggregateID().String())
 
