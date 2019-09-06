@@ -1,4 +1,4 @@
-POST http://localhost:8080/v1/register
+POST http://localhost:8080/v1/customer
 Accept: */*
 Cache-Control: no-cache
 
@@ -7,5 +7,9 @@ Cache-Control: no-cache
   "familyName": "Stöckl",
   "givenName": "Anton"
 }
+
+###
+
+GET http://localhost:8080/v1/customer/swagger.json
 
 ###

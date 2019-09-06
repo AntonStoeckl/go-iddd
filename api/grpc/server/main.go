@@ -127,15 +127,14 @@ func startHTTP() {
 	mux := http.NewServeMux()
 	mux.Handle("/", rmux)
 
-	serveSwagger := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "www/swagger.json")
-	}
+	mux.HandleFunc(
+		"/v1/customer/swagger.json",
+		func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "api/grpc/customer/customer.swagger.json")
+		},
+	)
 
-	mux.HandleFunc("/swagger.json", serveSwagger)
-	fs := http.FileServer(http.Dir("www/swagger-ui"))
-	mux.Handle("/swagger-ui/", http.StripPrefix("/swagger-ui", fs))
-
-	logger.Info("REST server ready - serving Swagger at: http://localhost:8080/swagger-ui/")
+	logger.Info("REST server ready - serving Swagger file at: http://localhost:8080/v1/customer/swagger.json")
 
 	if err = http.ListenAndServe("localhost:8080", mux); err != nil {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)

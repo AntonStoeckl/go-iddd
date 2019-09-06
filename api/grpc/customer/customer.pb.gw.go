@@ -152,7 +152,7 @@ func RegisterCustomerHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_Customer_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "register"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Customer_Register_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "customer"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

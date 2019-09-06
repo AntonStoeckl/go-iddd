@@ -3,7 +3,7 @@ GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem
 generate:
 	@protoc \
 		-I api/grpc/customer \
-		-I /usr/local/include/google/protobuf/ \
+		-I /usr/local/include \
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
 		--go_out=plugins=grpc:api/grpc/customer \
 		--grpc-gateway_out=logtostderr=true:api/grpc/customer \

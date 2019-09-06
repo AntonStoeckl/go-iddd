@@ -15,7 +15,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/register": {
+    "/v1/customer": {
       "post": {
         "operationId": "Register",
         "responses": {
