@@ -27,6 +27,7 @@ var (
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
 	grpcServer        *grpc.Server
+	restServer        *http.Server
 	postgresDBConn    *sql.DB
 )
 
@@ -132,9 +133,14 @@ func startHTTP() {
 		},
 	)
 
+	restServer = &http.Server{
+		Addr:    "localhost:8080",
+		Handler: mux,
+	}
+
 	logger.Info("REST server ready - serving Swagger file at: http://localhost:8080/v1/customer/swagger.json")
 
-	if err = http.ListenAndServe("localhost:8080", mux); err != nil {
+	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
 		stopSignalChannel <- os.Interrupt
 	}
@@ -157,6 +163,13 @@ func waitForStopSignal() {
 	if cancelCtx != nil {
 		logger.Info("canceling context ...")
 		cancelCtx()
+	}
+
+	if restServer != nil {
+		logger.Info("stopping rest server gracefully ...")
+		if err := restServer.Shutdown(context.Background()); err != nil {
+			logger.Warnf("failed to stop the rest server: %s", err)
+		}
 	}
 
 	if grpcClientConn != nil {
