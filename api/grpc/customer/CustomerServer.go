@@ -13,8 +13,8 @@ type customerServer struct {
 	commandHandler shared.CommandHandler
 }
 
-func NewCustomerServer(commandHandeler shared.CommandHandler) *customerServer {
-	return &customerServer{commandHandler: commandHandeler}
+func NewCustomerServer(commandHandler shared.CommandHandler) *customerServer {
+	return &customerServer{commandHandler: commandHandler}
 }
 
 func (customerServer *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
