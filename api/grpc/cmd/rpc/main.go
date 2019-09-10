@@ -4,11 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-iddd/api/grpc/customer"
-	"go-iddd/customer/application"
-	"go-iddd/customer/domain"
-	"go-iddd/customer/ports/secondary/customers"
-	"go-iddd/shared"
-	"go-iddd/shared/infrastructure/persistance/eventstore"
+	"go-iddd/di"
 	"net"
 	"os"
 	"os/signal"
@@ -29,12 +25,14 @@ var (
 	logger            *logrus.Logger
 	grpcServer        *grpc.Server
 	postgresDBConn    *sql.DB
+	diContainer       *di.Container
 )
 
 func main() {
 	buildLogger()
 	buildStopSignalChan()
 	mustOpenPostgresDBConnection()
+	mustBuildDIContainer()
 
 	go mustStartGRPC()
 
@@ -78,6 +76,17 @@ func mustOpenPostgresDBConnection() {
 	}
 }
 
+func mustBuildDIContainer() {
+	var err error
+
+	if diContainer == nil {
+		if diContainer, err = di.NewContainer(postgresDBConn); err != nil {
+			logger.Errorf("failed to build the DI container: %s", err)
+			shutdown()
+		}
+	}
+}
+
 func mustStartGRPC() {
 	logger.Info("starting gRPC server ...")
 
@@ -90,7 +99,7 @@ func mustStartGRPC() {
 	}
 
 	grpcServer = grpc.NewServer()
-	customerServer := customer.NewCustomerServer(buildCommandHandler())
+	customerServer := customer.NewCustomerServer(diContainer.GetCustomerCommandHandler())
 
 	customer.RegisterCustomerServer(grpcServer, customerServer)
 	reflection.Register(grpcServer)
@@ -101,15 +110,6 @@ func mustStartGRPC() {
 		logger.Errorf("gRPC server failed to serve: %s", err)
 		shutdown()
 	}
-}
-
-func buildCommandHandler() shared.CommandHandler {
-	es := eventstore.NewPostgresEventStore(postgresDBConn, "eventstore", domain.UnmarshalDomainEvent)
-	identityMap := customers.NewIdentityMap()
-	repo := customers.NewEventSourcedRepository(es, domain.ReconstituteCustomerFrom, identityMap)
-	commandHandler := application.NewCommandHandler(repo, postgresDBConn)
-
-	return commandHandler
 }
 
 func waitForStopSignal() {
