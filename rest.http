@@ -10,7 +10,7 @@ Cache-Control: no-cache
 
 ###
 
-PUT http://localhost:8080/v1/customer/83845c44-fd07-489f-b936-38a9f6721072/emailaddress/confirm
+PUT http://localhost:8080/v1/customer/37823c13-e357-43d6-a7a3-e90ad08cb899/emailaddress/confirm
 Accept: */*
 Cache-Control: no-cache
 
@@ -21,7 +21,7 @@ Cache-Control: no-cache
 
 ###
 
-PUT http://localhost:8080/v1/customer/83845c44-fd07-489f-b936-38a9f6721072/emailaddress
+PUT http://localhost:8080/v1/customer/37823c13-e357-43d6-a7a3-e90ad08cb899/emailaddress
 Accept: */*
 Cache-Control: no-cache
 

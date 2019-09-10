@@ -2,23 +2,24 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"fmt"
 	"go-iddd/api/grpc/customer"
-	"go-iddd/customer/application"
-	"go-iddd/customer/domain"
-	"go-iddd/customer/ports/secondary/customers"
-	"go-iddd/shared"
-	"go-iddd/shared/infrastructure/persistance/eventstore"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+)
+
+const (
+	ctxTimeout   = 3 * time.Second
+	rpcHostname  = "localhost"
+	rpcPort      = "5566"
+	restHostname = "localhost"
+	restPort     = "8080"
 )
 
 var (
@@ -26,18 +27,14 @@ var (
 	logger            *logrus.Logger
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
-	grpcServer        *grpc.Server
 	restServer        *http.Server
-	postgresDBConn    *sql.DB
 )
 
 func main() {
 	buildLogger()
 	buildStopSignalChan()
-	mustOpenPostgresDBConnection()
 
-	go startGRPC()
-	go startREST()
+	go mustStartREST()
 
 	waitForStopSignal()
 }
@@ -59,58 +56,17 @@ func buildStopSignalChan() {
 	}
 }
 
-func mustOpenPostgresDBConnection() {
-	var err error
-
-	if postgresDBConn == nil {
-		logger.Info("opening Postgres DB handle ...")
-
-		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
-
-		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
-			logger.Errorf("failed to open Postgres DB handle: %s", err)
-			shutdown()
-		}
-
-		if err := postgresDBConn.Ping(); err != nil {
-			logger.Errorf("failed to connect to Postgres DB: %s", err)
-			shutdown()
-		}
-	}
-}
-
-func startGRPC() {
-	logger.Info("starting gRPC server ...")
-
-	listener, err := net.Listen("tcp", "localhost:5566")
-	if err != nil {
-		logger.Errorf("failed to listen: %v", err)
-		shutdown()
-	}
-
-	grpcServer = grpc.NewServer()
-	customerServer := customer.NewCustomerServer(buildCommandHandler())
-
-	customer.RegisterCustomerServer(grpcServer, customerServer)
-	reflection.Register(grpcServer)
-
-	logger.Info("gRPC server ready ...")
-
-	if err := grpcServer.Serve(listener); err != nil {
-		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown()
-	}
-}
-
-func startREST() {
+func mustStartREST() {
 	var err error
 	var ctx context.Context
 
 	logger.Info("starting REST server ...")
 
-	ctx, cancelCtx = context.WithCancel(context.Background())
+	ctx, cancelCtx = context.WithTimeout(context.Background(), ctxTimeout)
 
-	grpcClientConn, err = grpc.Dial("localhost:5566", grpc.WithInsecure())
+	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
+
+	grpcClientConn, err = grpc.DialContext(ctx, rpcHostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		logger.Errorf("fail to dial: %s", err)
 		shutdown()
@@ -135,26 +91,20 @@ func startREST() {
 		},
 	)
 
+	restHostAndPort := fmt.Sprintf("%s:%s", restHostname, restPort)
+
 	restServer = &http.Server{
-		Addr:    "localhost:8080",
+		Addr:    restHostAndPort,
 		Handler: mux,
 	}
 
-	logger.Info("REST server ready - serving Swagger file at: http://localhost:8080/v1/customer/swagger.json")
+	logger.Info("REST server ready")
+	logger.Infof("Serving Swagger file at: http://%s/v1/customer/swagger.json", restHostAndPort)
 
 	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
 		shutdown()
 	}
-}
-
-func buildCommandHandler() shared.CommandHandler {
-	es := eventstore.NewPostgresEventStore(postgresDBConn, "eventstore", domain.UnmarshalDomainEvent)
-	identityMap := customers.NewIdentityMap()
-	repo := customers.NewEventSourcedRepository(es, domain.ReconstituteCustomerFrom, identityMap)
-	commandHandler := application.NewCommandHandler(repo, postgresDBConn)
-
-	return commandHandler
 }
 
 func waitForStopSignal() {
@@ -190,19 +140,9 @@ func shutdown() {
 		}
 	}
 
-	if grpcServer != nil {
-		logger.Info("stopping grpc server gracefully ...")
-		grpcServer.GracefulStop()
-	}
-
-	if postgresDBConn != nil {
-		logger.Info("closing Postgres DB connection ...")
-		if err := postgresDBConn.Close(); err != nil {
-			logger.Warnf("failed to close the Postgres DB connection: %s", err)
-		}
-	}
-
 	close(stopSignalChannel)
 
 	logger.Info("all services stopped - exiting")
+
+	os.Exit(0)
 }

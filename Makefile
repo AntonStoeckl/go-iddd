@@ -1,6 +1,6 @@
 GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem/grpc-gateway 2> /dev/null)
 
-generate:
+generate_proto:
 	@protoc \
 		-I api/grpc/customer \
 		-I /usr/local/include \
