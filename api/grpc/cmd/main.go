@@ -37,7 +37,7 @@ func main() {
 	mustOpenPostgresDBConnection()
 
 	go startGRPC()
-	go startHTTP()
+	go startREST()
 
 	waitForStopSignal()
 }
@@ -63,16 +63,18 @@ func mustOpenPostgresDBConnection() {
 	var err error
 
 	if postgresDBConn == nil {
-		logger.Info("opening Postgres DB connection ...")
+		logger.Info("opening Postgres DB handle ...")
 
 		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
 
 		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
-			logger.Fatalf("failed to create Postgres DB connection: %s", err)
+			logger.Errorf("failed to open Postgres DB handle: %s", err)
+			shutdown()
 		}
 
 		if err := postgresDBConn.Ping(); err != nil {
-			logger.Fatalf("failed to connect to Postgres DB: %s", err)
+			logger.Errorf("failed to connect to Postgres DB: %s", err)
+			shutdown()
 		}
 	}
 }
@@ -83,7 +85,7 @@ func startGRPC() {
 	listener, err := net.Listen("tcp", "localhost:5566")
 	if err != nil {
 		logger.Errorf("failed to listen: %v", err)
-		stopSignalChannel <- os.Interrupt
+		shutdown()
 	}
 
 	grpcServer = grpc.NewServer()
@@ -96,11 +98,11 @@ func startGRPC() {
 
 	if err := grpcServer.Serve(listener); err != nil {
 		logger.Errorf("gRPC server failed to serve: %s", err)
-		stopSignalChannel <- os.Interrupt
+		shutdown()
 	}
 }
 
-func startHTTP() {
+func startREST() {
 	var err error
 	var ctx context.Context
 
@@ -111,7 +113,7 @@ func startHTTP() {
 	grpcClientConn, err = grpc.Dial("localhost:5566", grpc.WithInsecure())
 	if err != nil {
 		logger.Errorf("fail to dial: %s", err)
-		stopSignalChannel <- os.Interrupt
+		shutdown()
 	}
 
 	rmux := runtime.NewServeMux()
@@ -119,7 +121,7 @@ func startHTTP() {
 
 	if err = customer.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
 		logger.Errorf("failed to register customerHandlerClient: %s", err)
-		stopSignalChannel <- os.Interrupt
+		shutdown()
 	}
 
 	// Serve the swagger-ui and swagger file
@@ -142,7 +144,7 @@ func startHTTP() {
 
 	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
-		stopSignalChannel <- os.Interrupt
+		shutdown()
 	}
 }
 
@@ -156,9 +158,17 @@ func buildCommandHandler() shared.CommandHandler {
 }
 
 func waitForStopSignal() {
-	s := <-stopSignalChannel
+	s, _ := <-stopSignalChannel
 
-	logger.Infof("received '%s' - stopping services ...", s)
+	switch s.(type) {
+	case os.Signal:
+		logger.Infof("received '%s'", s)
+		shutdown()
+	}
+}
+
+func shutdown() {
+	logger.Info("stopping services ...")
 
 	if cancelCtx != nil {
 		logger.Info("canceling context ...")
