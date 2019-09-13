@@ -35,6 +35,20 @@ func mustRunCLIApp() {
 			Action:    registerCustomer,
 			ArgsUsage: "emailAddress givenName familyName",
 		},
+		{
+			Name:      "ConfirmCustomerEmailAddress",
+			Aliases:   []string{"cocea"},
+			Usage:     "Confirm a Customer's emailAddress",
+			Action:    confirmCustomerEmailAddress,
+			ArgsUsage: "id emailAddress confirmationHash",
+		},
+		{
+			Name:      "ChangeCustomerEmailAddress",
+			Aliases:   []string{"chcea"},
+			Usage:     "Change a Customer's emailAddress",
+			Action:    changeCustomerEmailAddress,
+			ArgsUsage: "id emailAddress",
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -59,7 +73,61 @@ func registerCustomer(ctx *cli.Context) error {
 		return err
 	}
 
-	_, _ = fmt.Fprintf(ctx.App.Writer, "customer registered with id: %s\n", id.String())
+	_, _ = fmt.Fprintf(
+		ctx.App.Writer,
+		"Customer registered with id '%s'\n",
+		id.String(),
+	)
+
+	return nil
+}
+
+func confirmCustomerEmailAddress(ctx *cli.Context) error {
+	id := ctx.Args().Get(0)
+	emailAddress := ctx.Args().Get(1)
+	confirmationHash := ctx.Args().Get(2)
+
+	commandHandler := diContainer.GetCustomerCommandHandler()
+
+	confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+	if err != nil {
+		return err
+	}
+
+	if err := commandHandler.Handle(confirmEmailAddress); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(
+		ctx.App.Writer,
+		"successfully confirmed the emailAddress of Customer with id '%s'\n",
+		confirmEmailAddress.ID().String(),
+	)
+
+	return nil
+}
+
+func changeCustomerEmailAddress(ctx *cli.Context) error {
+	id := ctx.Args().Get(0)
+	emailAddress := ctx.Args().Get(1)
+
+	commandHandler := diContainer.GetCustomerCommandHandler()
+
+	changeEmailAddress, err := commands.NewChangeEmailAddress(id, emailAddress)
+	if err != nil {
+		return err
+	}
+
+	if err := commandHandler.Handle(changeEmailAddress); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(
+		ctx.App.Writer,
+		"successfully changed the emailAddress of Customer with id '%s' to '%s\n",
+		changeEmailAddress.ID().String(),
+		changeEmailAddress.EmailAddress().EmailAddress(),
+	)
 
 	return nil
 }
