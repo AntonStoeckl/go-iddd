@@ -31,29 +31,9 @@ var (
 )
 
 func main() {
-	buildLogger()
-	buildStopSignalChan()
-
+	bootstrap()
 	go mustStartREST()
-
 	waitForStopSignal()
-}
-
-func buildLogger() {
-	if logger == nil {
-		logger = logrus.New()
-		formatter := &logrus.TextFormatter{
-			FullTimestamp: true,
-		}
-		logger.SetFormatter(formatter)
-	}
-}
-
-func buildStopSignalChan() {
-	if stopSignalChannel == nil {
-		stopSignalChannel = make(chan os.Signal, 1)
-		signal.Notify(stopSignalChannel, os.Interrupt)
-	}
 }
 
 func mustStartREST() {
@@ -104,6 +84,28 @@ func mustStartREST() {
 	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
 		shutdown()
+	}
+}
+
+func bootstrap() {
+	buildLogger()
+	buildStopSignalChan()
+}
+
+func buildLogger() {
+	if logger == nil {
+		logger = logrus.New()
+		formatter := &logrus.TextFormatter{
+			FullTimestamp: true,
+		}
+		logger.SetFormatter(formatter)
+	}
+}
+
+func buildStopSignalChan() {
+	if stopSignalChannel == nil {
+		stopSignalChannel = make(chan os.Signal, 1)
+		signal.Notify(stopSignalChannel, os.Interrupt)
 	}
 }
 

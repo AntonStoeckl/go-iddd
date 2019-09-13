@@ -20,10 +20,11 @@ var (
 )
 
 func main() {
-	buildLogger()
-	mustOpenPostgresDBConnection()
-	mustBuildDIContainer()
+	bootstrap()
+	mustRunCLIApp()
+}
 
+func mustRunCLIApp() {
 	app := cli.NewApp()
 
 	app.Commands = []cli.Command{
@@ -61,6 +62,12 @@ func registerCustomer(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(ctx.App.Writer, "customer registered with id: %s\n", id.String())
 
 	return nil
+}
+
+func bootstrap() {
+	buildLogger()
+	mustOpenPostgresDBConnection()
+	mustBuildDIContainer()
 }
 
 func buildLogger() {
