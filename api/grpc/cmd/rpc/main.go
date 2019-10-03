@@ -34,31 +34,6 @@ func main() {
 	waitForStopSignal()
 }
 
-func mustStartGRPC() {
-	logger.Info("starting gRPC server ...")
-
-	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
-
-	listener, err := net.Listen("tcp", rpcHostAndPort)
-	if err != nil {
-		logger.Errorf("failed to listen: %v", err)
-		shutdown()
-	}
-
-	grpcServer = grpc.NewServer()
-	customerServer := customer.NewCustomerServer(diContainer.GetCustomerCommandHandler())
-
-	customer.RegisterCustomerServer(grpcServer, customerServer)
-	reflection.Register(grpcServer)
-
-	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)
-
-	if err := grpcServer.Serve(listener); err != nil {
-		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown()
-	}
-}
-
 func bootstrap() {
 	buildLogger()
 	buildStopSignalChan()
@@ -111,6 +86,31 @@ func mustBuildDIContainer() {
 			logger.Errorf("failed to build the DI container: %s", err)
 			shutdown()
 		}
+	}
+}
+
+func mustStartGRPC() {
+	logger.Info("starting gRPC server ...")
+
+	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
+
+	listener, err := net.Listen("tcp", rpcHostAndPort)
+	if err != nil {
+		logger.Errorf("failed to listen: %v", err)
+		shutdown()
+	}
+
+	grpcServer = grpc.NewServer()
+	customerServer := customer.NewCustomerServer(diContainer.GetCustomerCommandHandler())
+
+	customer.RegisterCustomerServer(grpcServer, customerServer)
+	reflection.Register(grpcServer)
+
+	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)
+
+	if err := grpcServer.Serve(listener); err != nil {
+		logger.Errorf("gRPC server failed to serve: %s", err)
+		shutdown()
 	}
 }
 
