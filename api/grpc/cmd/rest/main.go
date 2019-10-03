@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ctxTimeout   = 3 * time.Second
+	ctxTimeout   = 10 * time.Second
 	rpcHostname  = "localhost"
 	rpcPort      = "5566"
 	restHostname = "localhost"
