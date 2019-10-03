@@ -12,6 +12,6 @@ services:
       GOIDDD_LOCAL_DATABASE: goiddd_local
       GOIDDD_TEST_DATABASE: goiddd_test
     volumes:
-      - ./setup/postgres:/docker-entrypoint-initdb.d
+      - ./development/setup/postgres:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
