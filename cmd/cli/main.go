@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"go-iddd/cmd/dependencies"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
-	"go-iddd/di"
 	"log"
 	"os"
 
@@ -16,12 +16,59 @@ import (
 var (
 	logger         *logrus.Logger
 	postgresDBConn *sql.DB
-	diContainer    *di.Container
+	diContainer    *dependencies.Container
 )
 
 func main() {
 	bootstrap()
 	mustRunCLIApp()
+}
+
+func bootstrap() {
+	buildLogger()
+	mustOpenPostgresDBConnection()
+	mustBuildDIContainer()
+}
+
+func buildLogger() {
+	if logger == nil {
+		logger = logrus.New()
+		formatter := &logrus.TextFormatter{
+			FullTimestamp: true,
+		}
+		logger.SetFormatter(formatter)
+	}
+}
+
+func mustOpenPostgresDBConnection() {
+	var err error
+
+	if postgresDBConn == nil {
+		//logger.Info("opening Postgres DB handle ...")
+
+		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
+
+		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
+			logger.Errorf("failed to open Postgres DB handle: %s", err)
+			shutdown()
+		}
+
+		if err := postgresDBConn.Ping(); err != nil {
+			logger.Errorf("failed to connect to Postgres DB: %s", err)
+			shutdown()
+		}
+	}
+}
+
+func mustBuildDIContainer() {
+	var err error
+
+	if diContainer == nil {
+		if diContainer, err = dependencies.NewContainer(postgresDBConn); err != nil {
+			logger.Errorf("failed to build the DI container: %s", err)
+			shutdown()
+		}
+	}
 }
 
 func mustRunCLIApp() {
@@ -130,53 +177,6 @@ func changeCustomerEmailAddress(ctx *cli.Context) error {
 	)
 
 	return nil
-}
-
-func bootstrap() {
-	buildLogger()
-	mustOpenPostgresDBConnection()
-	mustBuildDIContainer()
-}
-
-func buildLogger() {
-	if logger == nil {
-		logger = logrus.New()
-		formatter := &logrus.TextFormatter{
-			FullTimestamp: true,
-		}
-		logger.SetFormatter(formatter)
-	}
-}
-
-func mustOpenPostgresDBConnection() {
-	var err error
-
-	if postgresDBConn == nil {
-		//logger.Info("opening Postgres DB handle ...")
-
-		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
-
-		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
-			logger.Errorf("failed to open Postgres DB handle: %s", err)
-			shutdown()
-		}
-
-		if err := postgresDBConn.Ping(); err != nil {
-			logger.Errorf("failed to connect to Postgres DB: %s", err)
-			shutdown()
-		}
-	}
-}
-
-func mustBuildDIContainer() {
-	var err error
-
-	if diContainer == nil {
-		if diContainer, err = di.NewContainer(postgresDBConn); err != nil {
-			logger.Errorf("failed to build the DI container: %s", err)
-			shutdown()
-		}
-	}
 }
 
 func shutdown() {

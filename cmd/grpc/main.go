@@ -2,22 +2,27 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"go-iddd/api/grpc/customer"
+	"go-iddd/cmd/dependencies"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
-	ctxTimeout   = 10 * time.Second
 	rpcHostname  = "localhost"
 	rpcPort      = "5566"
+	ctxTimeout   = 10 * time.Second
 	restHostname = "localhost"
 	restPort     = "8080"
 )
@@ -25,6 +30,9 @@ const (
 var (
 	stopSignalChannel chan os.Signal
 	logger            *logrus.Logger
+	postgresDBConn    *sql.DB
+	diContainer       *dependencies.Container
+	grpcServer        *grpc.Server
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
 	restServer        *http.Server
@@ -32,6 +40,7 @@ var (
 
 func main() {
 	bootstrap()
+	go mustStartGRPC()
 	go mustStartREST()
 	waitForStopSignal()
 }
@@ -39,6 +48,8 @@ func main() {
 func bootstrap() {
 	buildLogger()
 	buildStopSignalChan()
+	mustOpenPostgresDBConnection()
+	mustBuildDIContainer()
 }
 
 func buildLogger() {
@@ -55,6 +66,62 @@ func buildStopSignalChan() {
 	if stopSignalChannel == nil {
 		stopSignalChannel = make(chan os.Signal, 1)
 		signal.Notify(stopSignalChannel, os.Interrupt)
+	}
+}
+
+func mustOpenPostgresDBConnection() {
+	var err error
+
+	if postgresDBConn == nil {
+		logger.Info("opening Postgres DB handle ...")
+
+		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
+
+		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
+			logger.Errorf("failed to open Postgres DB handle: %s", err)
+			shutdown()
+		}
+
+		if err := postgresDBConn.Ping(); err != nil {
+			logger.Errorf("failed to connect to Postgres DB: %s", err)
+			shutdown()
+		}
+	}
+}
+
+func mustBuildDIContainer() {
+	var err error
+
+	if diContainer == nil {
+		if diContainer, err = dependencies.NewContainer(postgresDBConn); err != nil {
+			logger.Errorf("failed to build the DI container: %s", err)
+			shutdown()
+		}
+	}
+}
+
+func mustStartGRPC() {
+	logger.Info("starting gRPC server ...")
+
+	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
+
+	listener, err := net.Listen("tcp", rpcHostAndPort)
+	if err != nil {
+		logger.Errorf("failed to listen: %v", err)
+		shutdown()
+	}
+
+	grpcServer = grpc.NewServer()
+	customerServer := customer.NewCustomerServer(diContainer.GetCustomerCommandHandler())
+
+	customer.RegisterCustomerServer(grpcServer, customerServer)
+	reflection.Register(grpcServer)
+
+	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)
+
+	if err := grpcServer.Serve(listener); err != nil {
+		logger.Errorf("gRPC server failed to serve: %s", err)
+		shutdown()
 	}
 }
 
@@ -139,6 +206,18 @@ func shutdown() {
 
 		if err := grpcClientConn.Close(); err != nil {
 			logger.Warnf("failed to close the grpc client connection: %s", err)
+		}
+	}
+
+	if grpcServer != nil {
+		logger.Info("stopping grpc server gracefully ...")
+		grpcServer.GracefulStop()
+	}
+
+	if postgresDBConn != nil {
+		logger.Info("closing Postgres DB connection ...")
+		if err := postgresDBConn.Close(); err != nil {
+			logger.Warnf("failed to close the Postgres DB connection: %s", err)
 		}
 	}
 

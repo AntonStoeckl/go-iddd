@@ -1,4 +1,4 @@
-package di
+package dependencies
 
 import (
 	"database/sql"
