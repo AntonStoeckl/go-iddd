@@ -13,7 +13,7 @@ func (customer *customer) changeEmailAddress(with *commands.ChangeEmailAddress) 
 	customer.recordThat(
 		events.EmailAddressWasChanged(
 			with.ID(),
-			with.EmailAddress(),
+			with.EmailAddress().ToConfirmable(),
 			customer.currentStreamVersion+1,
 		),
 	)
@@ -22,5 +22,5 @@ func (customer *customer) changeEmailAddress(with *commands.ChangeEmailAddress) 
 }
 
 func (customer *customer) whenEmailAddressWasChanged(actualEvent *events.EmailAddressChanged) {
-	customer.confirmableEmailAddress = actualEvent.EmailAddress().ToConfirmable()
+	customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
 }

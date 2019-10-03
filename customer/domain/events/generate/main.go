@@ -55,7 +55,7 @@ var events = []Event{
 		EventFactory: "EmailAddressWasChanged",
 		Fields: []Field{
 			{FieldName: "id", DataType: "*values.ID"},
-			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
+			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
 		},
 	},
 }

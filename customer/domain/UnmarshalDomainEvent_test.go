@@ -24,7 +24,7 @@ func BenchmarkUnmarshalDomainEvent(b *testing.B) {
 	event2 := events.EmailAddressWasConfirmed(id, emailAddress, streamVersion)
 	data2, _ := event2.MarshalJSON()
 
-	event3 := events.EmailAddressWasChanged(id, emailAddress, streamVersion)
+	event3 := events.EmailAddressWasChanged(id, confirmableEmailAddress, streamVersion)
 	data3, _ := event3.MarshalJSON()
 
 	for n := 0; n < b.N; n++ {
@@ -96,7 +96,7 @@ func TestUnmarshalDomainEvent(t *testing.T) {
 
 		Convey("When a CustomerEmailAddressChanged event is unmarshaled", func() {
 			Convey("And when the input is valid json", func() {
-				event := events.EmailAddressWasChanged(id, emailAddress, streamVersion)
+				event := events.EmailAddressWasChanged(id, confirmableEmailAddress, streamVersion)
 				data, err := event.MarshalJSON()
 				So(err, ShouldBeNil)
 

@@ -54,7 +54,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 
 					So(emailAddressChanged, ShouldNotBeNil)
 					So(emailAddressChanged.ID().Equals(id), ShouldBeTrue)
-					So(emailAddressChanged.EmailAddress().Equals(newEmailAddress), ShouldBeTrue)
+					So(emailAddressChanged.ConfirmableEmailAddress().Equals(newEmailAddress), ShouldBeTrue)
 					So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 					Convey("And it should not record anything else", func() {

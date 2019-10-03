@@ -48,9 +48,10 @@ func TestCustomerStreamVersion(t *testing.T) {
 		So(err, ShouldBeNil)
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
 		newEmailAddress, err := values.NewEmailAddress("john+changed@doe.com")
 		So(err, ShouldBeNil)
-		confirmableEmailAddress := emailAddress.ToConfirmable()
+		newConfirmableEmailAddress := newEmailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
@@ -59,7 +60,7 @@ func TestCustomerStreamVersion(t *testing.T) {
 		customer, err := domain.ReconstituteCustomerFrom(
 			shared.DomainEvents{
 				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
-				events.EmailAddressWasChanged(id, newEmailAddress, currentStreamVersion),
+				events.EmailAddressWasChanged(id, newConfirmableEmailAddress, currentStreamVersion),
 			},
 		)
 		So(err, ShouldBeNil)
@@ -80,9 +81,10 @@ func TestCustomerApply(t *testing.T) {
 		So(err, ShouldBeNil)
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
+		confirmableEmailAddress := emailAddress.ToConfirmable()
 		newEmailAddress, err := values.NewEmailAddress("john+changed@doe.com")
 		So(err, ShouldBeNil)
-		confirmableEmailAddress := emailAddress.ToConfirmable()
+		newConfirmableEmailAddress := newEmailAddress.ToConfirmable()
 		personName, err := values.NewPersonName("John", "Doe")
 		So(err, ShouldBeNil)
 
@@ -100,7 +102,7 @@ func TestCustomerApply(t *testing.T) {
 
 			customer.Apply(
 				shared.DomainEvents{
-					events.EmailAddressWasChanged(id, newEmailAddress, currentStreamVersion),
+					events.EmailAddressWasChanged(id, newConfirmableEmailAddress, currentStreamVersion),
 				},
 			)
 

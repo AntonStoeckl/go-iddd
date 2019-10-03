@@ -19,8 +19,8 @@ const (
 )
 
 type EmailAddressChanged struct {
-	id           *values.ID
-	emailAddress *values.EmailAddress
+	id                      *values.ID
+	confirmableEmailAddress *values.ConfirmableEmailAddress
 
 	meta *emailAddressChangedMeta
 }
@@ -36,13 +36,13 @@ type emailAddressChangedMeta struct {
 
 func EmailAddressWasChanged(
 	id *values.ID,
-	emailAddress *values.EmailAddress,
+	confirmableEmailAddress *values.ConfirmableEmailAddress,
 	streamVersion uint,
 ) *EmailAddressChanged {
 
 	emailAddressChanged := &EmailAddressChanged{
-		id:           id,
-		emailAddress: emailAddress,
+		id:                      id,
+		confirmableEmailAddress: confirmableEmailAddress,
 	}
 
 	eventType := reflect.TypeOf(emailAddressChanged).String()
@@ -67,8 +67,8 @@ func (emailAddressChanged *EmailAddressChanged) ID() *values.ID {
 	return emailAddressChanged.id
 }
 
-func (emailAddressChanged *EmailAddressChanged) EmailAddress() *values.EmailAddress {
-	return emailAddressChanged.emailAddress
+func (emailAddressChanged *EmailAddressChanged) ConfirmableEmailAddress() *values.ConfirmableEmailAddress {
+	return emailAddressChanged.confirmableEmailAddress
 }
 
 /*** Implement shared.DomainEvent ***/
@@ -93,13 +93,13 @@ func (emailAddressChanged *EmailAddressChanged) StreamVersion() uint {
 
 func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID           *values.ID               `json:"id"`
-		EmailAddress *values.EmailAddress     `json:"emailAddress"`
-		Meta         *emailAddressChangedMeta `json:"meta"`
+		ID                      *values.ID                      `json:"id"`
+		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
+		Meta                    *emailAddressChangedMeta        `json:"meta"`
 	}{
-		ID:           emailAddressChanged.id,
-		EmailAddress: emailAddressChanged.emailAddress,
-		Meta:         emailAddressChanged.meta,
+		ID:                      emailAddressChanged.id,
+		ConfirmableEmailAddress: emailAddressChanged.confirmableEmailAddress,
+		Meta:                    emailAddressChanged.meta,
 	}
 
 	return jsoniter.Marshal(data)
@@ -109,9 +109,9 @@ func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 
 func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID           *values.ID               `json:"id"`
-		EmailAddress *values.EmailAddress     `json:"emailAddress"`
-		Meta         *emailAddressChangedMeta `json:"meta"`
+		ID                      *values.ID                      `json:"id"`
+		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
+		Meta                    *emailAddressChangedMeta        `json:"meta"`
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
@@ -119,7 +119,7 @@ func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error
 	}
 
 	emailAddressChanged.id = unmarshaledData.ID
-	emailAddressChanged.emailAddress = unmarshaledData.EmailAddress
+	emailAddressChanged.confirmableEmailAddress = unmarshaledData.ConfirmableEmailAddress
 	emailAddressChanged.meta = unmarshaledData.Meta
 
 	return nil
