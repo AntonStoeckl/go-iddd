@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"go-iddd/cmd/dependencies"
+	"go-iddd/cmd"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"log"
@@ -16,7 +16,7 @@ import (
 var (
 	logger         *logrus.Logger
 	postgresDBConn *sql.DB
-	diContainer    *dependencies.Container
+	diContainer    *cmd.DIContainer
 )
 
 func main() {
@@ -64,7 +64,7 @@ func mustBuildDIContainer() {
 	var err error
 
 	if diContainer == nil {
-		if diContainer, err = dependencies.NewContainer(postgresDBConn); err != nil {
+		if diContainer, err = cmd.NewDIContainer(postgresDBConn); err != nil {
 			logger.Errorf("failed to build the DI container: %s", err)
 			shutdown()
 		}

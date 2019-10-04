@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-iddd/api/grpc/customer"
-	"go-iddd/cmd/dependencies"
+	"go-iddd/cmd"
 	"net"
 	"net/http"
 	"os"
@@ -31,7 +31,7 @@ var (
 	stopSignalChannel chan os.Signal
 	logger            *logrus.Logger
 	postgresDBConn    *sql.DB
-	diContainer       *dependencies.Container
+	diContainer       *cmd.DIContainer
 	grpcServer        *grpc.Server
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
@@ -93,7 +93,7 @@ func mustBuildDIContainer() {
 	var err error
 
 	if diContainer == nil {
-		if diContainer, err = dependencies.NewContainer(postgresDBConn); err != nil {
+		if diContainer, err = cmd.NewDIContainer(postgresDBConn); err != nil {
 			logger.Errorf("failed to build the DI container: %s", err)
 			shutdown()
 		}
