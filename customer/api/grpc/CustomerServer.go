@@ -1,4 +1,4 @@
-package customer
+package customergrpc
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func NewCustomerServer(commandHandler shared.CommandHandler) *customerServer {
 	return &customerServer{commandHandler: commandHandler}
 }
 
-func (customerServer *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+func (server *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	id := values.GenerateID()
 
 	register, err := commands.NewRegister(id.String(), req.EmailAddress, req.GivenName, req.FamilyName)
@@ -25,33 +25,33 @@ func (customerServer *customerServer) Register(ctx context.Context, req *Registe
 		return nil, err
 	}
 
-	if err := customerServer.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.Handle(register); err != nil {
 		return nil, err
 	}
 
 	return &RegisterResponse{Id: id.String()}, nil
 }
 
-func (customerServer *customerServer) ConfirmEmailAddress(ctx context.Context, req *ConfirmEmailAddressRequest) (*empty.Empty, error) {
+func (server *customerServer) ConfirmEmailAddress(ctx context.Context, req *ConfirmEmailAddressRequest) (*empty.Empty, error) {
 	register, err := commands.NewConfirmEmailAddress(req.Id, req.EmailAddress, req.ConfirmationHash)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := customerServer.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.Handle(register); err != nil {
 		return nil, err
 	}
 
 	return &empty.Empty{}, nil
 }
 
-func (customerServer *customerServer) ChangeEmailAddress(ctx context.Context, req *ChangeEmailAddressRequest) (*empty.Empty, error) {
+func (server *customerServer) ChangeEmailAddress(ctx context.Context, req *ChangeEmailAddressRequest) (*empty.Empty, error) {
 	register, err := commands.NewChangeEmailAddress(req.Id, req.EmailAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := customerServer.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.Handle(register); err != nil {
 		return nil, err
 	}
 

@@ -4,17 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go-iddd/cmd"
 	customer "go-iddd/customer/api/grpc"
+	"go-iddd/service"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -29,9 +30,9 @@ const (
 
 var (
 	stopSignalChannel chan os.Signal
-	logger            *logrus.Logger
+	logger            *service.Logger
 	postgresDBConn    *sql.DB
-	diContainer       *cmd.DIContainer
+	diContainer       *service.DIContainer
 	grpcServer        *grpc.Server
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
@@ -49,16 +50,13 @@ func bootstrap() {
 	buildLogger()
 	buildStopSignalChan()
 	mustOpenPostgresDBConnection()
+	mustRunPostgresDBMigrations()
 	mustBuildDIContainer()
 }
 
 func buildLogger() {
 	if logger == nil {
-		logger = logrus.New()
-		formatter := &logrus.TextFormatter{
-			FullTimestamp: true,
-		}
-		logger.SetFormatter(formatter)
+		logger = service.NewStandardLogger()
 	}
 }
 
@@ -89,11 +87,34 @@ func mustOpenPostgresDBConnection() {
 	}
 }
 
+func mustRunPostgresDBMigrations() {
+	driver, err := postgres.WithInstance(postgresDBConn, &postgres.Config{})
+	if err != nil {
+		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
+		shutdown()
+	}
+
+	migrator, err := migrate.NewWithDatabaseInstance("file://./service/dbmigrations", "postgres", driver)
+	if err != nil {
+		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
+		shutdown()
+	}
+
+	migrator.Log = logger
+
+	if err := migrator.Up(); err != nil {
+		if err != migrate.ErrNoChange {
+			logger.Errorf("failed to run migrations for Postgres DB: %s", err)
+			shutdown()
+		}
+	}
+}
+
 func mustBuildDIContainer() {
 	var err error
 
 	if diContainer == nil {
-		if diContainer, err = cmd.NewDIContainer(postgresDBConn); err != nil {
+		if diContainer, err = service.NewDIContainer(postgresDBConn); err != nil {
 			logger.Errorf("failed to build the DI container: %s", err)
 			shutdown()
 		}

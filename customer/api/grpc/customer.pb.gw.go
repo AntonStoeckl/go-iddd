@@ -2,11 +2,11 @@
 // source: customer.proto
 
 /*
-Package customer is a reverse proxy.
+Package customergrpc is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package customer
+package customergrpc
 
 import (
 	"context"

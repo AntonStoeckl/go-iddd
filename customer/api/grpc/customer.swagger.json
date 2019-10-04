@@ -22,7 +22,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/customerRegisterResponse"
+              "$ref": "#/definitions/customergrpcRegisterResponse"
             }
           }
         },
@@ -32,7 +32,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customerRegisterRequest"
+              "$ref": "#/definitions/customergrpcRegisterRequest"
             }
           }
         ],
@@ -64,7 +64,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customerChangeEmailAddressRequest"
+              "$ref": "#/definitions/customergrpcChangeEmailAddressRequest"
             }
           }
         ],
@@ -96,7 +96,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customerConfirmEmailAddressRequest"
+              "$ref": "#/definitions/customergrpcConfirmEmailAddressRequest"
             }
           }
         ],
@@ -107,7 +107,7 @@
     }
   },
   "definitions": {
-    "customerChangeEmailAddressRequest": {
+    "customergrpcChangeEmailAddressRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -118,7 +118,7 @@
         }
       }
     },
-    "customerConfirmEmailAddressRequest": {
+    "customergrpcConfirmEmailAddressRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -132,7 +132,7 @@
         }
       }
     },
-    "customerRegisterRequest": {
+    "customergrpcRegisterRequest": {
       "type": "object",
       "properties": {
         "emailAddress": {
@@ -146,7 +146,7 @@
         }
       }
     },
-    "customerRegisterResponse": {
+    "customergrpcRegisterResponse": {
       "type": "object",
       "properties": {
         "id": {
