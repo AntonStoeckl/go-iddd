@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go-iddd/api/grpc/customer"
 	"go-iddd/cmd"
+	customer "go-iddd/customer/api/grpc"
 	"net"
 	"net/http"
 	"os"
@@ -156,7 +156,7 @@ func mustStartREST() {
 	mux.HandleFunc(
 		"/v1/customer/swagger.json",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "api/grpc/customer/customer.swagger.json")
+			http.ServeFile(w, r, "customer/api/grpc/customer.swagger.json")
 		},
 	)
 
