@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/customer/application"
 	"go-iddd/customer/domain"
-	"go-iddd/customer/ports/secondary/customers"
+	"go-iddd/customer/infrastructure/customers"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 

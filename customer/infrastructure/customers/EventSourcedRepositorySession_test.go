@@ -8,7 +8,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
-	"go-iddd/customer/ports/secondary/customers"
+	"go-iddd/customer/infrastructure/customers"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"testing"

@@ -3,7 +3,7 @@ package customers_test
 import (
 	"database/sql"
 	"go-iddd/customer/domain"
-	"go-iddd/customer/ports/secondary/customers"
+	"go-iddd/customer/infrastructure/customers"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"testing"
 
