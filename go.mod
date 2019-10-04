@@ -1,6 +1,6 @@
 module go-iddd
 
-go 1.12
+go 1.13
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
@@ -30,7 +30,6 @@ require (
 	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
-	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20190905072037-92dd089d5514
 	google.golang.org/grpc v1.23.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
