@@ -2,6 +2,8 @@ package eventstore_test
 
 import (
 	"database/sql"
+	"go-iddd/customer/domain"
+	"go-iddd/service"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"go-iddd/shared/infrastructure/persistance/eventstore/mocks"
@@ -15,9 +17,9 @@ import (
 
 func TestPostgresEventStore_StartSession(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
-		So(err, ShouldBeNil)
-		store := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
+		diContainer := setUpForPostgresEventStore()
+		db := diContainer.GetPostgresDBConn()
+		store := eventstore.NewPostgresEventStore(db, "unknown_table", mocks.Unmarshal)
 
 		Convey("When a session is started", func() {
 			tx, err := db.Begin()
@@ -37,11 +39,11 @@ func TestPostgresEventStore_StartSession(t *testing.T) {
 
 func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
-		So(err, ShouldBeNil)
-		store := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
 		id := &mocks.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStore()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 
 		Convey("And given an event stream with 5 events", func() {
 			event1 := mocks.CreateSomeEvent(id, 1)
@@ -94,4 +96,21 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 			})
 		})
 	})
+}
+
+func setUpForPostgresEventStore() *service.DIContainer {
+	config, err := service.NewConfigFromEnv()
+	So(err, ShouldBeNil)
+
+	db, err := sql.Open("postgres", config.Postgres.DSN)
+	So(err, ShouldBeNil)
+
+	diContainer, err := service.NewDIContainer(
+		db,
+		mocks.Unmarshal,
+		domain.ReconstituteCustomerFrom,
+	)
+	So(err, ShouldBeNil)
+
+	return diContainer
 }

@@ -2,6 +2,8 @@ package eventstore_test
 
 import (
 	"database/sql"
+	"go-iddd/customer/domain"
+	"go-iddd/service"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/persistance/eventstore"
 	"go-iddd/shared/infrastructure/persistance/eventstore/mocks"
@@ -9,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+
 	_ "github.com/lib/pq"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/xerrors"
@@ -16,7 +19,11 @@ import (
 
 func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		store, db, _, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 
 		Convey("When the event stream is loaded", func() {
 			tx := startTxForPostgresEventStoreSession(db)
@@ -37,7 +44,11 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event stream with 5 events", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 		event1 := mocks.CreateSomeEvent(id, 1)
 		event2 := mocks.CreateSomeEvent(id, 2)
 		event3 := mocks.CreateSomeEvent(id, 3)
@@ -96,7 +107,11 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event in the stream can not be unmarshaled", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 		event1 := mocks.CreateSomeEvent(id, 1)
 		event2 := mocks.CreateBrokenUnmarshalingEvent(id, 2)
 		tx := startTxForPostgresEventStoreSession(db)
@@ -129,7 +144,11 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given the DB connection is already closed", t, func() {
-		store, db, _, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 		tx := startTxForPostgresEventStoreSession(db)
 		session := store.StartSession(tx)
 
@@ -147,7 +166,11 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 
 func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 
 		event1 := mocks.CreateSomeEvent(id, 1)
 		event2 := mocks.CreateSomeEvent(id, 2)
@@ -243,7 +266,11 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given an event which can not be marshaled", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 
 		event1 := mocks.CreateSomeEvent(id, 1)
 		event2 := mocks.CreateBrokenMarshalingEvent(id, 2)
@@ -269,7 +296,11 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the session was already committed", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := diContainer.GetPostgresEventStore()
 		tx := startTxForPostgresEventStoreSession(db)
 		session := store.StartSession(tx)
 		errTx := tx.Commit()
@@ -294,8 +325,11 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the DB table does not exist", t, func() {
-		store, db, id, streamID := setUpForPostgresEventStoreSession()
-		store = eventstore.NewPostgresEventStore(db, "unknown_table", mocks.Unmarshal)
+		id := &mocks.SomeID{ID: uuid.New().String()}
+		streamID := shared.NewStreamID("customer" + "-" + id.String())
+		diContainer := setUpForPostgresEventStoreSession()
+		db := diContainer.GetPostgresDBConn()
+		store := eventstore.NewPostgresEventStore(db, "unknown_table", mocks.Unmarshal)
 
 		event1 := mocks.CreateSomeEvent(id, 1)
 		event2 := mocks.CreateSomeEvent(id, 2)
@@ -323,14 +357,21 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func setUpForPostgresEventStoreSession() (*eventstore.PostgresEventStore, *sql.DB, *mocks.SomeID, *shared.StreamID) {
-	db, err := sql.Open("postgres", "postgresql://goiddd:password123@localhost:5432/goiddd_test?sslmode=disable")
+func setUpForPostgresEventStoreSession() *service.DIContainer {
+	config, err := service.NewConfigFromEnv()
 	So(err, ShouldBeNil)
-	es := eventstore.NewPostgresEventStore(db, "eventstore", mocks.Unmarshal)
-	id := &mocks.SomeID{ID: uuid.New().String()}
-	streamID := shared.NewStreamID("customer" + "-" + id.String())
 
-	return es, db, id, streamID
+	db, err := sql.Open("postgres", config.Postgres.DSN)
+	So(err, ShouldBeNil)
+
+	diContainer, err := service.NewDIContainer(
+		db,
+		mocks.Unmarshal,
+		domain.ReconstituteCustomerFrom,
+	)
+	So(err, ShouldBeNil)
+
+	return diContainer
 }
 
 func startTxForPostgresEventStoreSession(db *sql.DB) *sql.Tx {

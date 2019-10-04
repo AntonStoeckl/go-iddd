@@ -11,25 +11,50 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
+const (
+	eventStoreTableName = "eventstore"
+)
+
 type DIContainer struct {
 	postgresDBConn         *sql.DB
+	unmarshalDomainEvent   shared.UnmarshalDomainEvent
+	customerFactory        func(eventStream shared.DomainEvents) (domain.Customer, error)
 	postgresEventStore     *eventstore.PostgresEventStore
 	customerIdentityMap    *customers.IdentityMap
 	customerRepository     application.StartsRepositorySessions
 	customerCommandHandler *application.CommandHandler
 }
 
-func NewDIContainer(postgresDBConn *sql.DB) (*DIContainer, error) {
+func NewDIContainer(
+	postgresDBConn *sql.DB,
+	unmarshalDomainEvent shared.UnmarshalDomainEvent,
+	customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error),
+) (*DIContainer, error) {
+
 	if postgresDBConn == nil {
 		return nil, errors.Mark(errors.New("newContainer: postgres DB connection must not be nil"), shared.ErrTechnical)
 	}
 
-	return &DIContainer{postgresDBConn: postgresDBConn}, nil
+	container := &DIContainer{
+		postgresDBConn:       postgresDBConn,
+		unmarshalDomainEvent: unmarshalDomainEvent,
+		customerFactory:      customerFactory,
+	}
+
+	return container, nil
+}
+
+func (container DIContainer) GetPostgresDBConn() *sql.DB {
+	return container.postgresDBConn
 }
 
 func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventStore {
 	if container.postgresEventStore == nil {
-		container.postgresEventStore = eventstore.NewPostgresEventStore(container.postgresDBConn, "eventstore", domain.UnmarshalDomainEvent)
+		container.postgresEventStore = eventstore.NewPostgresEventStore(
+			container.postgresDBConn,
+			eventStoreTableName,
+			container.unmarshalDomainEvent,
+		)
 	}
 
 	return container.postgresEventStore
@@ -47,7 +72,7 @@ func (container DIContainer) GetCustomerRepository() application.StartsRepositor
 	if container.customerRepository == nil {
 		container.customerRepository = customers.NewEventSourcedRepository(
 			container.GetPostgresEventStore(),
-			domain.ReconstituteCustomerFrom,
+			container.customerFactory,
 			container.GetCustomerIdentityMap(),
 		)
 	}

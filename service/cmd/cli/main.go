@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	customercli "go-iddd/customer/api/cli"
+	"go-iddd/customer/domain"
 	"go-iddd/service"
 	"os"
 
@@ -95,7 +96,13 @@ func mustBuildDIContainer() {
 	var err error
 
 	if diContainer == nil {
-		if diContainer, err = service.NewDIContainer(postgresDBConn); err != nil {
+		diContainer, err = service.NewDIContainer(
+			postgresDBConn,
+			domain.UnmarshalDomainEvent,
+			domain.ReconstituteCustomerFrom,
+		)
+
+		if err != nil {
 			logger.Errorf("failed to build the DI container: %s", err)
 			shutdown()
 		}
