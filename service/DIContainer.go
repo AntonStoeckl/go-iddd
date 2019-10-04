@@ -6,7 +6,7 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/infrastructure/customers"
 	"go-iddd/shared"
-	"go-iddd/shared/infrastructure/persistance/eventstore"
+	"go-iddd/shared/infrastructure/eventstore"
 
 	"github.com/cockroachdb/errors"
 )

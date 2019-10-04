@@ -5,8 +5,8 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/service"
 	"go-iddd/shared"
-	"go-iddd/shared/infrastructure/persistance/eventstore"
-	"go-iddd/shared/infrastructure/persistance/eventstore/mocks"
+	"go-iddd/shared/infrastructure/eventstore"
+	"go-iddd/shared/infrastructure/eventstore/mocks"
 	"math"
 	"testing"
 
