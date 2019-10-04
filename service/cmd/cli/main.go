@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	customercli "go-iddd/customer/api/cli"
 	"go-iddd/service"
 	"os"
@@ -13,6 +14,7 @@ import (
 )
 
 var (
+	config         *service.Config
 	logger         *service.Logger
 	postgresDBConn *sql.DB
 	diContainer    *service.DIContainer
@@ -24,10 +26,23 @@ func main() {
 }
 
 func bootstrap() {
+	mustBuildConfig()
 	buildLogger()
 	mustOpenPostgresDBConnection()
 	mustRunPostgresDBMigrations()
 	mustBuildDIContainer()
+}
+
+func mustBuildConfig() {
+	if config == nil {
+		var err error
+
+		config, err = service.NewConfigFromEnv()
+		if err != nil {
+			logger.Errorf("failed to get config from env: %s", err)
+			shutdown()
+		}
+	}
 }
 
 func buildLogger() {
@@ -40,10 +55,8 @@ func mustOpenPostgresDBConnection() {
 	var err error
 
 	if postgresDBConn == nil {
-		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
-
-		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
-			logger.Errorf("failed to open Postgres DB handle: %s", err)
+		if postgresDBConn, err = sql.Open("postgres", config.Postgres.DSN); err != nil {
+			logger.Errorf("failed to open Postgres DB connection: %s", err)
 			shutdown()
 		}
 
@@ -61,7 +74,8 @@ func mustRunPostgresDBMigrations() {
 		shutdown()
 	}
 
-	migrator, err := migrate.NewWithDatabaseInstance("file://./service/dbmigrations", "postgres", driver)
+	sourceURL := fmt.Sprintf("file://%s", config.Postgres.MigrationsPath)
+	migrator, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
 	if err != nil {
 		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
 		shutdown()

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	customer "go-iddd/customer/api/grpc"
+	customergrpc "go-iddd/customer/api/grpc"
 	"go-iddd/service"
 	"net"
 	"net/http"
@@ -16,6 +16,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -29,7 +30,7 @@ const (
 )
 
 var (
-	stopSignalChannel chan os.Signal
+	config            *service.Config
 	logger            *service.Logger
 	postgresDBConn    *sql.DB
 	diContainer       *service.DIContainer
@@ -37,6 +38,7 @@ var (
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
 	restServer        *http.Server
+	stopSignalChannel chan os.Signal
 )
 
 func main() {
@@ -47,11 +49,23 @@ func main() {
 }
 
 func bootstrap() {
+	mustBuildConfig()
 	buildLogger()
-	buildStopSignalChan()
 	mustOpenPostgresDBConnection()
 	mustRunPostgresDBMigrations()
 	mustBuildDIContainer()
+	buildStopSignalChan()
+}
+
+func mustBuildConfig() {
+	if config == nil {
+		var err error
+
+		config, err = service.NewConfigFromEnv()
+		if err != nil {
+			logrus.Fatalf("failed to get config from env - exiting: %s", err)
+		}
+	}
 }
 
 func buildLogger() {
@@ -60,23 +74,14 @@ func buildLogger() {
 	}
 }
 
-func buildStopSignalChan() {
-	if stopSignalChannel == nil {
-		stopSignalChannel = make(chan os.Signal, 1)
-		signal.Notify(stopSignalChannel, os.Interrupt)
-	}
-}
-
 func mustOpenPostgresDBConnection() {
 	var err error
 
 	if postgresDBConn == nil {
-		logger.Info("opening Postgres DB handle ...")
+		logger.Info("opening Postgres DB connection ...")
 
-		dsn := "postgresql://goiddd:password123@localhost:5432/goiddd_local?sslmode=disable"
-
-		if postgresDBConn, err = sql.Open("postgres", dsn); err != nil {
-			logger.Errorf("failed to open Postgres DB handle: %s", err)
+		if postgresDBConn, err = sql.Open("postgres", config.Postgres.DSN); err != nil {
+			logger.Errorf("failed to open Postgres DB connection: %s", err)
 			shutdown()
 		}
 
@@ -94,7 +99,8 @@ func mustRunPostgresDBMigrations() {
 		shutdown()
 	}
 
-	migrator, err := migrate.NewWithDatabaseInstance("file://./service/dbmigrations", "postgres", driver)
+	sourceURL := fmt.Sprintf("file://%s", config.Postgres.MigrationsPath)
+	migrator, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
 	if err != nil {
 		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
 		shutdown()
@@ -121,6 +127,13 @@ func mustBuildDIContainer() {
 	}
 }
 
+func buildStopSignalChan() {
+	if stopSignalChannel == nil {
+		stopSignalChannel = make(chan os.Signal, 1)
+		signal.Notify(stopSignalChannel, os.Interrupt)
+	}
+}
+
 func mustStartGRPC() {
 	logger.Info("starting gRPC server ...")
 
@@ -133,9 +146,9 @@ func mustStartGRPC() {
 	}
 
 	grpcServer = grpc.NewServer()
-	customerServer := customer.NewCustomerServer(diContainer.GetCustomerCommandHandler())
+	customerServer := customergrpc.NewCustomerServer(diContainer.GetCustomerCommandHandler())
 
-	customer.RegisterCustomerServer(grpcServer, customerServer)
+	customergrpc.RegisterCustomerServer(grpcServer, customerServer)
 	reflection.Register(grpcServer)
 
 	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)
@@ -163,9 +176,9 @@ func mustStartREST() {
 	}
 
 	rmux := runtime.NewServeMux()
-	client := customer.NewCustomerClient(grpcClientConn)
+	client := customergrpc.NewCustomerClient(grpcClientConn)
 
-	if err = customer.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
+	if err = customergrpc.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
 		logger.Errorf("failed to register customerHandlerClient: %s", err)
 		shutdown()
 	}
