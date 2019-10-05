@@ -11,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
@@ -40,8 +41,7 @@ func mustBuildConfig() {
 
 		config, err = service.NewConfigFromEnv()
 		if err != nil {
-			logger.Errorf("failed to get config from env: %s", err)
-			shutdown()
+			logrus.Fatalf("failed to get config from env - exiting: %s", err)
 		}
 	}
 }
