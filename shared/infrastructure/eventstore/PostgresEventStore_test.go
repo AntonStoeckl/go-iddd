@@ -2,9 +2,8 @@ package eventstore_test
 
 import (
 	"database/sql"
-	"go-iddd/customer/domain"
-	"go-iddd/service"
 	"go-iddd/shared"
+	"go-iddd/shared/infrastructure"
 	"go-iddd/shared/infrastructure/eventstore"
 	"go-iddd/shared/infrastructure/eventstore/mocks"
 	"math"
@@ -98,18 +97,14 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	})
 }
 
-func setUpForPostgresEventStore() *service.DIContainer {
-	config, err := service.NewConfigFromEnv()
+func setUpForPostgresEventStore() *infrastructure.DIContainer {
+	config, err := infrastructure.NewConfigFromEnv()
 	So(err, ShouldBeNil)
 
 	db, err := sql.Open("postgres", config.Postgres.DSN)
 	So(err, ShouldBeNil)
 
-	diContainer, err := service.NewDIContainer(
-		db,
-		mocks.Unmarshal,
-		domain.ReconstituteCustomerFrom,
-	)
+	diContainer, err := infrastructure.NewDIContainer(db, mocks.Unmarshal)
 	So(err, ShouldBeNil)
 
 	return diContainer
