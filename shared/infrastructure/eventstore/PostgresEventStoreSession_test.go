@@ -362,7 +362,16 @@ func setUpForPostgresEventStoreSession() *infrastructure.DIContainer {
 	db, err := sql.Open("postgres", config.Postgres.DSN)
 	So(err, ShouldBeNil)
 
+	err = db.Ping()
+	So(err, ShouldBeNil)
+
 	diContainer, err := infrastructure.NewDIContainer(db, mocks.Unmarshal)
+	So(err, ShouldBeNil)
+
+	migrator, err := infrastructure.NewMigratorFromEnv(db, config.Postgres.MigrationsPath)
+	So(err, ShouldBeNil)
+
+	err = migrator.Up()
 	So(err, ShouldBeNil)
 
 	return diContainer
