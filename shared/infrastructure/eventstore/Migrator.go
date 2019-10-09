@@ -1,4 +1,4 @@
-package infrastructure
+package eventstore
 
 import (
 	"database/sql"
@@ -15,10 +15,10 @@ type Migrator struct {
 	postgresMigrator *migrate.Migrate
 }
 
-func NewMigratorFromEnv(postgresDBConn *sql.DB, migrationsPath string) (*Migrator, error) {
+func NewMigrator(postgresDBConn *sql.DB, migrationsPath string) (*Migrator, error) {
 	migrator := &Migrator{}
 	if err := migrator.configure(postgresDBConn, migrationsPath); err != nil {
-		return nil, errors.Wrap(err, "NewMigratorFromEnv")
+		return nil, errors.Wrap(err, "NewMigrator")
 	}
 
 	return migrator, nil
@@ -34,8 +34,16 @@ func (migrator *Migrator) Up() error {
 	return nil
 }
 
+func (migrator *Migrator) WithLogger(logger migrate.Logger) *Migrator {
+	migrator.postgresMigrator.Log = logger
+
+	return migrator
+}
+
 func (migrator *Migrator) configure(postgresDBConn *sql.DB, migrationsPath string) error {
-	driver, err := postgres.WithInstance(postgresDBConn, &postgres.Config{})
+	config := &postgres.Config{MigrationsTable: "eventstore_migrations"}
+
+	driver, err := postgres.WithInstance(postgresDBConn, config)
 	if err != nil {
 		return errors.Wrap(errors.Mark(err, shared.ErrTechnical), "failed to create Postgres driver for migrator")
 	}

@@ -1,4 +1,6 @@
-package infrastructure
+// +build test
+
+package test
 
 import (
 	"go-iddd/shared"

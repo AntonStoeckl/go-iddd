@@ -3,9 +3,9 @@ package eventstore_test
 import (
 	"database/sql"
 	"go-iddd/shared"
-	"go-iddd/shared/infrastructure"
 	"go-iddd/shared/infrastructure/eventstore"
-	"go-iddd/shared/infrastructure/eventstore/mocks"
+	"go-iddd/shared/infrastructure/eventstore/test"
+	"go-iddd/shared/infrastructure/eventstore/test/mocks"
 	"math"
 	"testing"
 
@@ -355,23 +355,8 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func setUpForPostgresEventStoreSession() *infrastructure.DIContainer {
-	config, err := infrastructure.NewConfigFromEnv()
-	So(err, ShouldBeNil)
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
-
-	err = db.Ping()
-	So(err, ShouldBeNil)
-
-	diContainer, err := infrastructure.NewDIContainer(db, mocks.Unmarshal)
-	So(err, ShouldBeNil)
-
-	migrator, err := infrastructure.NewMigratorFromEnv(db, config.Postgres.MigrationsPath)
-	So(err, ShouldBeNil)
-
-	err = migrator.Up()
+func setUpForPostgresEventStoreSession() *test.DIContainer {
+	diContainer, err := test.SetUpDIContainer()
 	So(err, ShouldBeNil)
 
 	return diContainer

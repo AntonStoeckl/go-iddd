@@ -7,14 +7,13 @@ import (
 	customergrpc "go-iddd/customer/api/grpc"
 	"go-iddd/customer/domain"
 	"go-iddd/service"
+	"go-iddd/shared/infrastructure/eventstore"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/sirupsen/logrus"
@@ -53,7 +52,7 @@ func bootstrap() {
 	mustBuildConfig()
 	buildLogger()
 	mustOpenPostgresDBConnection()
-	mustRunPostgresDBMigrations()
+	mustRunDBMigrations()
 	mustBuildDIContainer()
 	buildStopSignalChan()
 }
@@ -93,27 +92,18 @@ func mustOpenPostgresDBConnection() {
 	}
 }
 
-func mustRunPostgresDBMigrations() {
-	driver, err := postgres.WithInstance(postgresDBConn, &postgres.Config{})
+func mustRunDBMigrations() {
+	migrator, err := eventstore.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
 	if err != nil {
-		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
+		logger.Errorf("failed to create DB migrator: %s", err)
 		shutdown()
+		return
 	}
 
-	sourceURL := fmt.Sprintf("file://%s", config.Postgres.MigrationsPath)
-	migrator, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
+	err = migrator.WithLogger(logger).Up()
 	if err != nil {
-		logger.Errorf("failed to run migrations for Postgres DB: %s", err)
+		logger.Errorf("failed to run DB migrator: %s", err)
 		shutdown()
-	}
-
-	migrator.Log = logger
-
-	if err := migrator.Up(); err != nil {
-		if err != migrate.ErrNoChange {
-			logger.Errorf("failed to run migrations for Postgres DB: %s", err)
-			shutdown()
-		}
 	}
 }
 

@@ -3,9 +3,9 @@ package eventstore_test
 import (
 	"database/sql"
 	"go-iddd/shared"
-	"go-iddd/shared/infrastructure"
 	"go-iddd/shared/infrastructure/eventstore"
-	"go-iddd/shared/infrastructure/eventstore/mocks"
+	"go-iddd/shared/infrastructure/eventstore/test"
+	"go-iddd/shared/infrastructure/eventstore/test/mocks"
 	"math"
 	"testing"
 
@@ -21,13 +21,10 @@ func TestPostgresEventStore_StartSession(t *testing.T) {
 		store := diContainer.GetPostgresEventStore()
 
 		Convey("When a session is started", func() {
-			tx, err := db.Begin()
-			So(err, ShouldBeNil)
-
+			tx := startTxForPostgresEventStore(db)
 			session := store.StartSession(tx)
 
 			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
 				So(session, ShouldNotBeNil)
 				So(session, ShouldHaveSameTypeAs, &eventstore.PostgresEventStoreSession{})
 				So(session, ShouldImplement, (*shared.EventStore)(nil))
@@ -51,12 +48,10 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 			event4 := mocks.CreateSomeEvent(id, 4)
 			event5 := mocks.CreateSomeEvent(id, 5)
 
-			tx, err := db.Begin()
-			So(err, ShouldBeNil)
-
+			tx := startTxForPostgresEventStore(db)
 			session := store.StartSession(tx)
 
-			err = session.AppendEventsToStream(
+			err := session.AppendEventsToStream(
 				streamID,
 				shared.DomainEvents{event1, event2, event3, event4, event5},
 			)
@@ -97,24 +92,16 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	})
 }
 
-func setUpForPostgresEventStore() *infrastructure.DIContainer {
-	config, err := infrastructure.NewConfigFromEnv()
-	So(err, ShouldBeNil)
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
-
-	err = db.Ping()
-	So(err, ShouldBeNil)
-
-	diContainer, err := infrastructure.NewDIContainer(db, mocks.Unmarshal)
-	So(err, ShouldBeNil)
-
-	migrator, err := infrastructure.NewMigratorFromEnv(db, config.Postgres.MigrationsPath)
-	So(err, ShouldBeNil)
-
-	err = migrator.Up()
+func setUpForPostgresEventStore() *test.DIContainer {
+	diContainer, err := test.SetUpDIContainer()
 	So(err, ShouldBeNil)
 
 	return diContainer
+}
+
+func startTxForPostgresEventStore(db *sql.DB) *sql.Tx {
+	tx, err := db.Begin()
+	So(err, ShouldBeNil)
+
+	return tx
 }
