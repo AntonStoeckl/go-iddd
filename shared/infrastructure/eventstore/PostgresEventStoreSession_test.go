@@ -5,7 +5,6 @@ import (
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/eventstore"
 	"go-iddd/shared/infrastructure/eventstore/test"
-	"go-iddd/shared/infrastructure/eventstore/test/mocks"
 	"math"
 	"testing"
 
@@ -17,7 +16,7 @@ import (
 
 func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -42,16 +41,16 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event stream with 5 events", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateSomeEvent(id, 2)
-		event3 := mocks.CreateSomeEvent(id, 3)
-		event4 := mocks.CreateSomeEvent(id, 4)
-		event5 := mocks.CreateSomeEvent(id, 5)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateSomeEvent(id, 2)
+		event3 := test.CreateSomeEvent(id, 3)
+		event4 := test.CreateSomeEvent(id, 4)
+		event5 := test.CreateSomeEvent(id, 5)
 		tx := test.BeginTx(db)
 		session := store.StartSession(tx)
 		err := session.AppendEventsToStream(
@@ -105,13 +104,13 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event in the stream can not be unmarshaled", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateBrokenUnmarshalingEvent(id, 2)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateBrokenUnmarshalingEvent(id, 2)
 		tx := test.BeginTx(db)
 		session := store.StartSession(tx)
 		err := session.AppendEventsToStream(
@@ -142,7 +141,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given the DB connection is already closed", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -164,18 +163,18 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 
 func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
 
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateSomeEvent(id, 2)
-		event3 := mocks.CreateSomeEvent(id, 3)
-		event4 := mocks.CreateSomeEvent(id, 4)
-		event5 := mocks.CreateSomeEvent(id, 5)
-		event6 := mocks.CreateSomeEvent(id, 6)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateSomeEvent(id, 2)
+		event3 := test.CreateSomeEvent(id, 3)
+		event4 := test.CreateSomeEvent(id, 4)
+		event5 := test.CreateSomeEvent(id, 5)
+		event6 := test.CreateSomeEvent(id, 6)
 
 		Convey("When 3 events are appended", func() {
 			tx := test.BeginTx(db)
@@ -264,14 +263,14 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given an event which can not be marshaled", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
 
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateBrokenMarshalingEvent(id, 2)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateBrokenMarshalingEvent(id, 2)
 
 		Convey("When it is appended", func() {
 			tx := test.BeginTx(db)
@@ -294,7 +293,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the session was already committed", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -304,8 +303,8 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 		errTx := tx.Commit()
 		So(errTx, ShouldBeNil)
 
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateSomeEvent(id, 2)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateSomeEvent(id, 2)
 
 		Convey("When events are appended", func() {
 			err := session.AppendEventsToStream(
@@ -323,14 +322,14 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the DB table does not exist", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
-		store := eventstore.NewPostgresEventStore(db, "unknown_table", mocks.Unmarshal)
+		store := eventstore.NewPostgresEventStore(db, "unknown_table", test.Unmarshal)
 
-		event1 := mocks.CreateSomeEvent(id, 1)
-		event2 := mocks.CreateSomeEvent(id, 2)
+		event1 := test.CreateSomeEvent(id, 1)
+		event2 := test.CreateSomeEvent(id, 2)
 
 		Convey("When events are appended", func() {
 			tx := test.BeginTx(db)

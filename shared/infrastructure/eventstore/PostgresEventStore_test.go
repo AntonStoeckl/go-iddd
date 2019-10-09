@@ -4,7 +4,6 @@ import (
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/eventstore"
 	"go-iddd/shared/infrastructure/eventstore/test"
-	"go-iddd/shared/infrastructure/eventstore/test/mocks"
 	"math"
 	"testing"
 
@@ -34,18 +33,18 @@ func TestPostgresEventStore_StartSession(t *testing.T) {
 
 func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		id := &mocks.SomeID{ID: uuid.New().String()}
+		id := &test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
 
 		Convey("And given an event stream with 5 events", func() {
-			event1 := mocks.CreateSomeEvent(id, 1)
-			event2 := mocks.CreateSomeEvent(id, 2)
-			event3 := mocks.CreateSomeEvent(id, 3)
-			event4 := mocks.CreateSomeEvent(id, 4)
-			event5 := mocks.CreateSomeEvent(id, 5)
+			event1 := test.CreateSomeEvent(id, 1)
+			event2 := test.CreateSomeEvent(id, 2)
+			event3 := test.CreateSomeEvent(id, 3)
+			event4 := test.CreateSomeEvent(id, 4)
+			event5 := test.CreateSomeEvent(id, 5)
 
 			tx := test.BeginTx(db)
 			session := store.StartSession(tx)
