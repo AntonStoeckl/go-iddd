@@ -7,32 +7,22 @@ import (
 )
 
 type IdentityMap struct {
-	customers map[string]domain.Customer
-	mux       sync.Mutex
+	customers sync.Map
 }
 
 func NewIdentityMap() *IdentityMap {
-	return &IdentityMap{
-		customers: make(map[string]domain.Customer),
-	}
+	return &IdentityMap{}
 }
 
 func (identityMap *IdentityMap) Memoize(customer domain.Customer) {
-	identityMap.mux.Lock()
-	defer identityMap.mux.Unlock()
-
-	identityMap.customers[customer.AggregateID().String()] = customer.Clone()
+	identityMap.customers.Store(customer.AggregateID().String(), customer.Clone())
 }
 
 func (identityMap *IdentityMap) MemoizedCustomerOf(id *values.ID) (domain.Customer, bool) {
-	identityMap.mux.Lock()
-	defer identityMap.mux.Unlock()
-
-	customer, found := identityMap.customers[id.String()]
-
+	customer, found := identityMap.customers.Load(id.String())
 	if !found {
 		return nil, false
 	}
 
-	return customer, true
+	return customer.(domain.Customer), true
 }
