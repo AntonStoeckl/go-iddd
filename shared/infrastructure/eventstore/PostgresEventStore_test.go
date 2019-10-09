@@ -1,7 +1,6 @@
 package eventstore_test
 
 import (
-	"database/sql"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/eventstore"
 	"go-iddd/shared/infrastructure/eventstore/test"
@@ -16,12 +15,12 @@ import (
 
 func TestPostgresEventStore_StartSession(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		diContainer := setUpForPostgresEventStore()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
 
 		Convey("When a session is started", func() {
-			tx := startTxForPostgresEventStore(db)
+			tx := test.BeginTx(db)
 			session := store.StartSession(tx)
 
 			Convey("It should succeed", func() {
@@ -37,7 +36,7 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
 		id := &mocks.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
-		diContainer := setUpForPostgresEventStore()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
 
@@ -48,7 +47,7 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 			event4 := mocks.CreateSomeEvent(id, 4)
 			event5 := mocks.CreateSomeEvent(id, 5)
 
-			tx := startTxForPostgresEventStore(db)
+			tx := test.BeginTx(db)
 			session := store.StartSession(tx)
 
 			err := session.AppendEventsToStream(
@@ -90,18 +89,4 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 			})
 		})
 	})
-}
-
-func setUpForPostgresEventStore() *test.DIContainer {
-	diContainer, err := test.SetUpDIContainer()
-	So(err, ShouldBeNil)
-
-	return diContainer
-}
-
-func startTxForPostgresEventStore(db *sql.DB) *sql.Tx {
-	tx, err := db.Begin()
-	So(err, ShouldBeNil)
-
-	return tx
 }

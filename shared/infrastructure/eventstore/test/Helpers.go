@@ -6,38 +6,35 @@ import (
 	"database/sql"
 	"go-iddd/shared/infrastructure/eventstore"
 	"go-iddd/shared/infrastructure/eventstore/test/mocks"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func SetUpDIContainer() (*DIContainer, error) {
+func SetUpDIContainer() *DIContainer {
 	config, err := NewConfigFromEnv()
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
 	db, err := sql.Open("postgres", config.Postgres.DSN)
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
 	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
 	migrator, err := eventstore.NewMigrator(db, config.Postgres.MigrationsPath)
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
 	err = migrator.Up()
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
 	diContainer, err := NewDIContainer(db, mocks.Unmarshal)
-	if err != nil {
-		return nil, err
-	}
+	So(err, ShouldBeNil)
 
-	return diContainer, nil
+	return diContainer
+}
+
+func BeginTx(db *sql.DB) *sql.Tx {
+	tx, err := db.Begin()
+	So(err, ShouldBeNil)
+
+	return tx
 }

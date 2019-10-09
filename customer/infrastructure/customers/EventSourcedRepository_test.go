@@ -1,10 +1,8 @@
 package customers_test
 
 import (
-	"database/sql"
-	"go-iddd/customer/domain"
 	"go-iddd/customer/infrastructure/customers"
-	"go-iddd/service"
+	"go-iddd/customer/infrastructure/customers/test"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -12,13 +10,12 @@ import (
 
 func TestEventSourcedRepository_StartSession(t *testing.T) {
 	Convey("Given a Respository", t, func() {
-		diContainer := setUpForEventSourcedRepository()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
 		Convey("When a Session is started", func() {
-			tx, err := db.Begin()
-			So(err, ShouldBeNil)
+			tx := test.BeginTx(db)
 
 			session := repo.StartSession(tx)
 
@@ -28,21 +25,4 @@ func TestEventSourcedRepository_StartSession(t *testing.T) {
 			})
 		})
 	})
-}
-
-func setUpForEventSourcedRepository() *service.DIContainer {
-	config, err := service.NewConfigFromEnv()
-	So(err, ShouldBeNil)
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
-
-	diContainer, err := service.NewDIContainer(
-		db,
-		domain.UnmarshalDomainEvent,
-		domain.ReconstituteCustomerFrom,
-	)
-	So(err, ShouldBeNil)
-
-	return diContainer
 }

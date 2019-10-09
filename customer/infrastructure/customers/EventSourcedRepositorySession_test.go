@@ -1,14 +1,13 @@
 package customers_test
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
 	"go-iddd/customer/infrastructure/customers"
-	"go-iddd/service"
+	"go-iddd/customer/infrastructure/customers/test"
 	"go-iddd/shared"
 	"testing"
 
@@ -18,7 +17,7 @@ import (
 
 func TestEventSourcedRepositorySession_Register(t *testing.T) {
 	Convey("Given a Repository", t, func() {
-		diContainer := setUpForEventSourcedRepositorySession()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
@@ -27,7 +26,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 			customer := buildRegisteredCustomerWith(id)
 
 			Convey("When the Customer is registered", func() {
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 
 				err := session.Register(customer)
@@ -39,7 +38,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 
 					Convey("And when the same Customer is registered again", func() {
 						customer := buildRegisteredCustomerWith(id)
-						tx := startTxForPostgresEventSourcedRepositorySession(db)
+						tx := test.BeginTx(db)
 						session := repo.StartSession(tx)
 
 						err = session.Register(customer)
@@ -53,7 +52,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 
 			Convey("And given the session was already committed", func() {
 				customer := buildRegisteredCustomerWith(id)
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 				err := tx.Commit()
 				So(err, ShouldBeNil)
@@ -73,7 +72,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 		Convey("And given an existing Customer", func() {
 			id := values.GenerateID()
 			customer := buildRegisteredCustomerWith(id)
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 			err := session.Register(customer)
 			So(err, ShouldBeNil)
@@ -82,7 +81,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 
 			Convey("When the same Customer is registered again", func() {
 				customer := buildRegisteredCustomerWith(id)
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 
 				err = session.Register(customer)
@@ -101,10 +100,10 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
 		id := values.GenerateID()
 		customer := buildRegisteredCustomerWith(id)
-		diContainer := setUpForEventSourcedRepositorySession()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
-		tx := startTxForPostgresEventSourcedRepositorySession(db)
+		tx := test.BeginTx(db)
 		session := repo.StartSession(tx)
 		err := session.Register(customer)
 		So(err, ShouldBeNil)
@@ -112,12 +111,12 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("And given the Customer is not cached", func() {
-			diContainer := setUpForEventSourcedRepositorySession() // recreate the repository to reset the cache
+			diContainer := test.SetUpDIContainer() // recreate the repository to reset the cache
 			db := diContainer.GetPostgresDBConn()
 			store := diContainer.GetPostgresEventStore()
 			repo := diContainer.GetCustomerRepository()
 
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 
 			Convey("When the Customer is retrieved", func() {
 				session := repo.StartSession(tx)
@@ -140,7 +139,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 					}
 
 					repo := customers.NewEventSourcedRepository(store, customerFactory, customers.NewIdentityMap())
-					tx := startTxForPostgresEventSourcedRepositorySession(db)
+					tx := test.BeginTx(db)
 
 					session := repo.StartSession(tx)
 
@@ -158,7 +157,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 			})
 
 			Convey("And given the DB connection was closed", func() {
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 
 				err = db.Close()
@@ -176,19 +175,19 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 		})
 
 		Convey("And given the Customer is cached", func() {
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			_, err = session.Of(id)
 			So(err, ShouldBeNil)
 
 			Convey("And given the Customer was concurrently modified", func() {
-				//otherRepo, _, _ := setUpForEventSourcedRepositorySession()
+				//otherRepo, _, _ := test.SetUpDIContainer()
 
-				diContainer := setUpForEventSourcedRepositorySession()
+				diContainer := test.SetUpDIContainer()
 				otherRepo := diContainer.GetCustomerRepository()
 
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 
 				session := otherRepo.StartSession(tx)
 
@@ -208,7 +207,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("When the Customer is retrieved", func() {
-					tx := startTxForPostgresEventSourcedRepositorySession(db)
+					tx := test.BeginTx(db)
 					session := repo.StartSession(tx)
 
 					customer, err := session.Of(id)
@@ -223,7 +222,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("And when the DB connection was closed", func() {
-						tx := startTxForPostgresEventSourcedRepositorySession(db)
+						tx := test.BeginTx(db)
 						session := repo.StartSession(tx)
 
 						err = db.Close()
@@ -245,12 +244,12 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 
 	Convey("Given a not existing Customer", t, func() {
 		id := values.GenerateID()
-		diContainer := setUpForEventSourcedRepositorySession()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
 		Convey("When the Customer is retrieved", func() {
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			customer, err := session.Of(id)
@@ -267,10 +266,10 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 	Convey("Given a changed Customer", t, func() {
 		id := values.GenerateID()
 		customer := buildRegisteredCustomerWith(id)
-		diContainer := setUpForEventSourcedRepositorySession()
+		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
-		tx := startTxForPostgresEventSourcedRepositorySession(db)
+		tx := test.BeginTx(db)
 		session := repo.StartSession(tx)
 		err := session.Register(customer)
 		So(err, ShouldBeNil)
@@ -286,7 +285,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("When the Customer is persisted", func() {
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			err = session.Persist(customer)
@@ -296,7 +295,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 				err = tx.Commit()
 				So(err, ShouldBeNil)
 
-				tx := startTxForPostgresEventSourcedRepositorySession(db)
+				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 				customer, err := session.Of(id)
 				So(err, ShouldBeNil)
@@ -308,7 +307,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 		})
 
 		Convey("And given the session was already committed", func() {
-			tx := startTxForPostgresEventSourcedRepositorySession(db)
+			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 			So(err, ShouldBeNil)
 
@@ -341,32 +340,15 @@ func buildRegisteredCustomerWith(id *values.ID) domain.Customer {
 	return customer
 }
 
-func setUpForEventSourcedRepositorySession() *service.DIContainer {
-	config, err := service.NewConfigFromEnv()
-	So(err, ShouldBeNil)
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
-
-	diContainer, err := service.NewDIContainer(
-		db,
-		domain.UnmarshalDomainEvent,
-		domain.ReconstituteCustomerFrom,
-	)
-	So(err, ShouldBeNil)
-
-	return diContainer
-}
-
-func startTxForPostgresEventSourcedRepositorySession(db *sql.DB) *sql.Tx {
-	tx, err := db.Begin()
-	So(err, ShouldBeNil)
-
-	return tx
-}
+//func startTxForPostgresEventSourcedRepositorySession(db *sql.DB) *sql.Tx {
+//	tx, err := db.Begin()
+//	So(err, ShouldBeNil)
+//
+//	return tx
+//}
 
 func cleanUpArtefactsForEventSourcedRepositorySession(id *values.ID) {
-	diContainer := setUpForEventSourcedRepositorySession()
+	diContainer := test.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 
 	streamID := shared.NewStreamID("customer" + "-" + id.String())
