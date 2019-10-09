@@ -24,17 +24,17 @@ func SetUpDIContainer() (*DIContainer, error) {
 		return nil, err
 	}
 
-	diContainer, err := NewDIContainer(db, mocks.Unmarshal)
-	if err != nil {
-		return nil, err
-	}
-
 	migrator, err := eventstore.NewMigrator(db, config.Postgres.MigrationsPath)
 	if err != nil {
 		return nil, err
 	}
 
 	err = migrator.Up()
+	if err != nil {
+		return nil, err
+	}
+
+	diContainer, err := NewDIContainer(db, mocks.Unmarshal)
 	if err != nil {
 		return nil, err
 	}
