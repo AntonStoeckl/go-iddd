@@ -2,8 +2,8 @@ package main
 
 import (
 	"database/sql"
-	customercli "go-iddd/customer/api/cli"
 	"go-iddd/customer/domain"
+	customercli "go-iddd/customer/infrastructure/cli"
 	"go-iddd/service"
 	"go-iddd/shared/infrastructure/eventstore"
 	"os"

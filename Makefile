@@ -2,10 +2,10 @@ GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem
 
 generate_proto:
 	@protoc \
-		-I customer/api/grpc \
+		-I customer/infrastructure/grpc \
 		-I /usr/local/include \
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
-		--go_out=plugins=grpc:customer/api/grpc \
-		--grpc-gateway_out=logtostderr=true:customer/api/grpc \
-		--swagger_out=logtostderr=true:customer/api/grpc \
-		customer/api/grpc/customer.proto
+		--go_out=plugins=grpc:customer/infrastructure/grpc \
+		--grpc-gateway_out=logtostderr=true:customer/infrastructure/grpc \
+		--swagger_out=logtostderr=true:customer/infrastructure/grpc \
+		customer/infrastructure/grpc/customer.proto
