@@ -14,11 +14,6 @@ type Customer struct {
 	mock.Mock
 }
 
-// Apply provides a mock function with given fields: latestEvents
-func (_m *Customer) Apply(latestEvents shared.DomainEvents) {
-	_m.Called(latestEvents)
-}
-
 // ChangeEmailAddress provides a mock function with given fields: with
 func (_m *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) error {
 	ret := _m.Called(with)

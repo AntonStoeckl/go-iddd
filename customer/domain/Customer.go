@@ -15,7 +15,6 @@ type Customer interface {
 	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
 	StreamVersion() uint
 	RecordedEvents(purge bool) shared.DomainEvents
-	Apply(latestEvents shared.DomainEvents)
 }
 
 type customer struct {
@@ -78,8 +77,4 @@ func (customer *customer) RecordedEvents(purge bool) shared.DomainEvents {
 
 func (customer *customer) StreamVersion() uint {
 	return customer.currentStreamVersion
-}
-
-func (customer *customer) Apply(latestEvents shared.DomainEvents) {
-	customer.apply(latestEvents...)
 }
