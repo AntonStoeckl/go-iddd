@@ -16,19 +16,16 @@ type StartsEventStoreSessions interface {
 type EventSourcedRepository struct {
 	eventStoreSessionFactory StartsEventStoreSessions
 	customerFactory          func(eventStream shared.DomainEvents) (domain.Customer, error)
-	identityMap              *IdentityMap
 }
 
 func NewEventSourcedRepository(
 	eventStoreSessionFactory StartsEventStoreSessions,
 	customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error),
-	identityMap *IdentityMap,
 ) application.StartsRepositorySessions {
 
 	return &EventSourcedRepository{
 		eventStoreSessionFactory: eventStoreSessionFactory,
 		customerFactory:          customerFactory,
-		identityMap:              identityMap,
 	}
 }
 
@@ -38,6 +35,5 @@ func (repo *EventSourcedRepository) StartSession(tx *sql.Tx) application.Persist
 	return &EventSourcedRepositorySession{
 		eventStoreSession: repo.eventStoreSessionFactory.StartSession(tx),
 		customerFactory:   repo.customerFactory,
-		identityMap:       repo.identityMap,
 	}
 }

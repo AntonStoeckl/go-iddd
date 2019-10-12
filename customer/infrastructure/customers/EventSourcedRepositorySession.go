@@ -12,7 +12,6 @@ import (
 type EventSourcedRepositorySession struct {
 	eventStoreSession shared.EventStore
 	customerFactory   func(eventStream shared.DomainEvents) (domain.Customer, error)
-	identityMap       *IdentityMap
 }
 
 /***** Implement domain.Customers *****/
@@ -34,23 +33,6 @@ func (session *EventSourcedRepositorySession) Register(customer domain.Customer)
 func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer, error) {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
-	if memoizedCustomer, found := session.identityMap.MemoizedCustomerOf(id); found {
-		latestEvents, err := session.eventStoreSession.LoadEventStream(
-			streamID,
-			memoizedCustomer.StreamVersion(),
-			math.MaxUint32,
-		)
-		if err != nil {
-			return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
-		}
-
-		memoizedCustomer.Apply(latestEvents)
-
-		session.identityMap.Memoize(memoizedCustomer)
-
-		return memoizedCustomer, nil
-	}
-
 	eventStream, err := session.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
 	if err != nil {
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
@@ -64,8 +46,6 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer
 	if err != nil {
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
 	}
-
-	session.identityMap.Memoize(customer)
 
 	return customer, nil
 }

@@ -20,7 +20,6 @@ type DIContainer struct {
 	unmarshalDomainEvent   shared.UnmarshalDomainEvent
 	customerFactory        func(eventStream shared.DomainEvents) (domain.Customer, error)
 	postgresEventStore     *eventstore.PostgresEventStore
-	customerIdentityMap    *customers.IdentityMap
 	customerRepository     application.StartsRepositorySessions
 	customerCommandHandler *application.CommandHandler
 }
@@ -60,20 +59,11 @@ func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventSt
 	return container.postgresEventStore
 }
 
-func (container DIContainer) GetCustomerIdentityMap() *customers.IdentityMap {
-	if container.customerIdentityMap == nil {
-		container.customerIdentityMap = customers.NewIdentityMap()
-	}
-
-	return container.customerIdentityMap
-}
-
 func (container DIContainer) GetCustomerRepository() application.StartsRepositorySessions {
 	if container.customerRepository == nil {
 		container.customerRepository = customers.NewEventSourcedRepository(
 			container.GetPostgresEventStore(),
 			container.customerFactory,
-			container.GetCustomerIdentityMap(),
 		)
 	}
 

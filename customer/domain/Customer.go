@@ -5,8 +5,6 @@ import (
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
-	"reflect"
-	"strings"
 
 	"github.com/cockroachdb/errors"
 )
@@ -17,7 +15,6 @@ type Customer interface {
 	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
 	StreamVersion() uint
 	RecordedEvents(purge bool) shared.DomainEvents
-	Clone() Customer
 	Apply(latestEvents shared.DomainEvents)
 }
 
@@ -33,29 +30,9 @@ func blankCustomer() *customer {
 	return &customer{}
 }
 
-/*** Implement Customer ***/
-
-func (customer *customer) Clone() Customer {
-	cloned := *customer
-
-	return &cloned
-}
-
-/*** Implement shared.Aggregate ****/
-
 func (customer *customer) ID() shared.IdentifiesAggregates {
 	return customer.id
 }
-
-func (customer *customer) AggregateName() string {
-	aggregateType := reflect.TypeOf(customer).String()
-	aggregateTypeParts := strings.Split(aggregateType, ".")
-	aggregateName := aggregateTypeParts[len(aggregateTypeParts)-1]
-
-	return strings.Title(aggregateName)
-}
-
-/*** EventSourcing ***/
 
 func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error) {
 	newCustomer := blankCustomer()
@@ -89,8 +66,6 @@ func (customer *customer) apply(eventStream ...shared.DomainEvent) {
 	}
 }
 
-/*** Implement shared.RecordsEvents ****/
-
 func (customer *customer) RecordedEvents(purge bool) shared.DomainEvents {
 	recordedEvents := customer.recordedEvents
 
@@ -100,8 +75,6 @@ func (customer *customer) RecordedEvents(purge bool) shared.DomainEvents {
 
 	return recordedEvents
 }
-
-/*** Implement shared.EventsourcedAggregate ****/
 
 func (customer *customer) StreamVersion() uint {
 	return customer.currentStreamVersion

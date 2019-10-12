@@ -5,7 +5,7 @@
 package mocks
 
 import commands "go-iddd/customer/domain/commands"
-import domain "go-iddd/customer/domain"
+
 import mock "github.com/stretchr/testify/mock"
 import shared "go-iddd/shared"
 
@@ -28,22 +28,6 @@ func (_m *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) error 
 		r0 = rf(with)
 	} else {
 		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Clone provides a mock function with given fields:
-func (_m *Customer) Clone() domain.Customer {
-	ret := _m.Called()
-
-	var r0 domain.Customer
-	if rf, ok := ret.Get(0).(func() domain.Customer); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(domain.Customer)
-		}
 	}
 
 	return r0

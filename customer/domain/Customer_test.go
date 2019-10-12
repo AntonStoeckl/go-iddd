@@ -12,35 +12,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCustomerClone(t *testing.T) {
-	Convey("Given a Customer", t, func() {
-		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
-		So(err, ShouldBeNil)
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
-		So(err, ShouldBeNil)
-		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
-		So(err, ShouldBeNil)
-
-		currentStreamVersion := uint(1)
-
-		customer, err := domain.ReconstituteCustomerFrom(
-			shared.DomainEvents{
-				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
-			},
-		)
-		So(err, ShouldBeNil)
-
-		Convey("When it is cloned", func() {
-			clonedCustomer := customer.Clone()
-
-			Convey("It should be equal to the original customer", func() {
-				So(clonedCustomer, ShouldResemble, customer)
-			})
-		})
-	})
-}
-
 func TestCustomerStreamVersion(t *testing.T) {
 	Convey("Given a Customer", t, func() {
 		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
