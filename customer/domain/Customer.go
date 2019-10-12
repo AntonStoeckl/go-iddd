@@ -12,6 +12,8 @@ import (
 )
 
 type Customer interface {
+	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
+	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
 	Clone() Customer
 
 	shared.EventsourcedAggregate
@@ -38,31 +40,6 @@ func (customer *customer) Clone() Customer {
 }
 
 /*** Implement shared.Aggregate ****/
-
-func (customer *customer) Execute(command shared.Command) error {
-	var err error
-
-	if err := customer.assertIsValid(command); err != nil {
-		return errors.Wrap(errors.Mark(err, shared.ErrCommandIsInvalid), "customer.Execute")
-	}
-
-	switch actualCommand := command.(type) {
-	case *commands.ConfirmEmailAddress:
-		err = customer.confirmEmailAddress(actualCommand)
-	case *commands.ChangeEmailAddress:
-		err = customer.changeEmailAddress(actualCommand)
-	case *commands.Register:
-		err = errors.Mark(errors.New("customer.Execute: customer is already registered"), shared.ErrCommandCanNotBeHandled)
-	default:
-		err = errors.Mark(errors.Newf("customer.Execute: [%s]: command is unknown", command.CommandName()), shared.ErrCommandCanNotBeHandled)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func (customer *customer) AggregateID() shared.IdentifiesAggregates {
 	return customer.id
@@ -130,22 +107,4 @@ func (customer *customer) StreamVersion() uint {
 
 func (customer *customer) Apply(latestEvents shared.DomainEvents) {
 	customer.apply(latestEvents...)
-}
-
-/*** Command Assertions ***/
-
-func (customer *customer) assertIsValid(command shared.Command) error {
-	if command == nil {
-		return errors.New("command is nil interface")
-	}
-
-	if reflect.ValueOf(command).IsNil() {
-		return errors.Newf("[%s]: command value is nil pointer", command.CommandName())
-	}
-
-	if reflect.ValueOf(command.AggregateID()).IsNil() {
-		return errors.Newf("[%s]: command was not properly created", command.CommandName())
-	}
-
-	return nil
 }

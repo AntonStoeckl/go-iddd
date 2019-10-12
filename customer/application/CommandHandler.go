@@ -160,7 +160,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 		return nil, err
 	}
 
-	if err := customer.Execute(confirmEmailAddress); err != nil {
+	if err := customer.ConfirmEmailAddress(confirmEmailAddress); err != nil {
 		return nil, err
 	}
 
@@ -177,7 +177,7 @@ func (handler *CommandHandler) changeEmailAddress(
 		return nil, err
 	}
 
-	if err := customer.Execute(changeEmailAddress); err != nil {
+	if err := customer.ChangeEmailAddress(changeEmailAddress); err != nil {
 		return nil, err
 	}
 

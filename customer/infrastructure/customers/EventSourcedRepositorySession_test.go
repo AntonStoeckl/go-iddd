@@ -197,7 +197,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 				newEmailAddress := fmt.Sprintf("john+changed+%s@doe.com", id.String())
 				changeEmailAddress, err := commands.NewChangeEmailAddress(id.String(), newEmailAddress)
 
-				err = sameCustomer.Execute(changeEmailAddress)
+				err = sameCustomer.ChangeEmailAddress(changeEmailAddress)
 				So(err, ShouldBeNil)
 
 				err = session.Persist(sameCustomer)
@@ -281,7 +281,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		err = customer.Execute(changeEmailAddress)
+		err = customer.ChangeEmailAddress(changeEmailAddress)
 		So(err, ShouldBeNil)
 
 		Convey("When the Customer is persisted", func() {

@@ -5,10 +5,8 @@ import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/mocks"
-	"go-iddd/shared"
 	"testing"
 
-	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -54,12 +52,6 @@ func TestNewCustomer(t *testing.T) {
 				Convey("And it should not record anything else", func() {
 					So(recordedEvents, ShouldHaveLength, 1)
 				})
-			})
-
-			Convey("And it should not execute further Register commands", func() {
-				err = customer.Execute(register)
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
 			})
 		})
 	})

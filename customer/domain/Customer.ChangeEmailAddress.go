@@ -5,7 +5,7 @@ import (
 	"go-iddd/customer/domain/events"
 )
 
-func (customer *customer) changeEmailAddress(with *commands.ChangeEmailAddress) error {
+func (customer *customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) error {
 	if customer.confirmableEmailAddress.Equals(with.EmailAddress()) {
 		return nil
 	}

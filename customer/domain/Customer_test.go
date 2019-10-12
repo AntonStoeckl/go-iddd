@@ -4,7 +4,6 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
-	"go-iddd/customer/domain/mocks"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -115,7 +114,7 @@ func TestCustomerApply(t *testing.T) {
 				)
 				So(err, ShouldBeNil)
 
-				err = customer.Execute(changeEmailAddress)
+				err = customer.ChangeEmailAddress(changeEmailAddress)
 				So(err, ShouldBeNil)
 
 				So(customer.RecordedEvents(false), ShouldHaveLength, 0)
@@ -152,62 +151,6 @@ func TestReconstituteCustomerFromWithInvalidEventStream(t *testing.T) {
 		Convey("It should fail", func() {
 			So(err, ShouldBeError)
 			So(errors.Is(err, shared.ErrInvalidEventStream), ShouldBeTrue)
-		})
-	})
-}
-
-func TestCustomerExecuteInvalidCommand(t *testing.T) {
-	Convey("Given a Customer", t, func() {
-		id := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		emailAddress := "john@doe.com"
-		givenName := "John"
-		familyName := "Doe"
-
-		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
-		So(err, ShouldBeNil)
-
-		customer := domain.NewCustomerWith(register)
-
-		Convey("When a nil interface command is handled", func() {
-			var nilInterfaceCommand shared.Command
-			err := customer.Execute(nilInterfaceCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-			})
-		})
-
-		Convey("When a nil pointer command is handled", func() {
-			var nilCommand *commands.ConfirmEmailAddress
-			err := customer.Execute(nilCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-			})
-		})
-
-		Convey("When an empty command is handled", func() {
-			emptyCommand := &commands.ConfirmEmailAddress{}
-			err := customer.Execute(emptyCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-			})
-		})
-
-		Convey("When an unknown command is handled", func() {
-			unknownCommand := new(mocks.Command)
-			unknownCommand.On("AggregateID").Return(values.GenerateID())
-			unknownCommand.On("CommandName").Return("unknown")
-			err := customer.Execute(unknownCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandCanNotBeHandled), ShouldBeTrue)
-			})
 		})
 	})
 }

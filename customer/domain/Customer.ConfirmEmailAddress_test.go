@@ -40,7 +40,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Execute(confirmEmailAddress)
+			err = customer.ConfirmEmailAddress(confirmEmailAddress)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -62,7 +62,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 					})
 
 					Convey("And when it is confirmed again", func() {
-						err = customer.Execute(confirmEmailAddress)
+						err = customer.ConfirmEmailAddress(confirmEmailAddress)
 
 						Convey("It should be ignored", func() {
 							So(err, ShouldBeNil)
@@ -82,7 +82,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Execute(confirmEmailAddress)
+			err = customer.ConfirmEmailAddress(confirmEmailAddress)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -98,7 +98,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Execute(confirmEmailAddress)
+			err = customer.ConfirmEmailAddress(confirmEmailAddress)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)

@@ -8,7 +8,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func (customer *customer) confirmEmailAddress(with *commands.ConfirmEmailAddress) error {
+func (customer *customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error {
 	if customer.confirmableEmailAddress.IsConfirmed() {
 		return nil
 	}
@@ -19,7 +19,7 @@ func (customer *customer) confirmEmailAddress(with *commands.ConfirmEmailAddress
 	)
 
 	if err != nil {
-		return errors.Wrap(errors.Mark(err, shared.ErrDomainConstraintsViolation), "customer.confirmEmailAddress")
+		return errors.Wrap(errors.Mark(err, shared.ErrDomainConstraintsViolation), "customer.ConfirmEmailAddress")
 	}
 
 	customer.recordThat(

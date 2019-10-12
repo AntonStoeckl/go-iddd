@@ -40,7 +40,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.Execute(changeEmailAddress)
+			err = customer.ChangeEmailAddress(changeEmailAddress)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -62,7 +62,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 					})
 
 					Convey("And when it is changed to the same value again", func() {
-						err = customer.Execute(changeEmailAddress)
+						err = customer.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should be ignored", func() {
 							So(err, ShouldBeNil)

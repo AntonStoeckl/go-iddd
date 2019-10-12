@@ -107,7 +107,66 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			conveyWhenTheCommandIsHandled(customers, confirmEmailAddress, commandHandler, dbMock, t)
+			Convey("When the command is handled", func() {
+				Convey("And when finding the Customer succeeds", func() {
+					mockCustomer := new(mocks.Customer)
+					customers.On("Of", confirmEmailAddress.AggregateID()).Return(mockCustomer, nil).Once()
+
+					Convey("And when executing the command succeeds", func() {
+						mockCustomer.On("ConfirmEmailAddress", confirmEmailAddress).Return(nil)
+
+						Convey("And when saving the Customer succeeds", func() {
+							customers.On("Persist", mockCustomer).Return(nil).Once()
+							dbMock.ExpectCommit()
+
+							err := commandHandler.Handle(confirmEmailAddress)
+
+							Convey("It should modify the Customer and save it", func() {
+								So(err, ShouldBeNil)
+								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
+
+						Convey("And when saving the Customer fails", func() {
+							customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
+							dbMock.ExpectRollback()
+
+							err := commandHandler.Handle(confirmEmailAddress)
+
+							Convey("It should fail", func() {
+								So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
+					})
+
+					Convey("And when executing the command fails", func() {
+						mockCustomer.On("ConfirmEmailAddress", confirmEmailAddress).Return(shared.ErrDomainConstraintsViolation)
+						dbMock.ExpectRollback()
+
+						err := commandHandler.Handle(confirmEmailAddress)
+
+						Convey("It should fail", func() {
+							So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
+							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+							So(customers.AssertExpectations(t), ShouldBeTrue)
+						})
+					})
+				})
+
+				Convey("And when finding the Customer fails", func() {
+					customers.On("Of", confirmEmailAddress.AggregateID()).Return(nil, shared.ErrTechnical).Once()
+					dbMock.ExpectRollback()
+
+					err := commandHandler.Handle(confirmEmailAddress)
+
+					Convey("It should fail", func() {
+						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+						So(customers.AssertExpectations(t), ShouldBeTrue)
+					})
+				})
+			})
 		})
 	})
 }
@@ -132,78 +191,65 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			conveyWhenTheCommandIsHandled(customers, changeEmailAddress, commandHandler, dbMock, t)
-		})
-	})
-}
+			Convey("When the command is handled", func() {
+				Convey("And when finding the Customer succeeds", func() {
+					mockCustomer := new(mocks.Customer)
+					customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Once()
 
-/*** Shared Convey for standard "modify" commands ***/
+					Convey("And when executing the command succeeds", func() {
+						mockCustomer.On("ChangeEmailAddress", changeEmailAddress).Return(nil)
 
-func conveyWhenTheCommandIsHandled(
-	customers *mocks.PersistableCustomers,
-	command shared.Command,
-	commandHandler shared.CommandHandler,
-	dbMock sqlmock.Sqlmock,
-	t *testing.T,
-) {
+						Convey("And when saving the Customer succeeds", func() {
+							customers.On("Persist", mockCustomer).Return(nil).Once()
+							dbMock.ExpectCommit()
 
-	Convey("When the command is handled", func() {
-		Convey("And when finding the Customer succeeds", func() {
-			mockCustomer := new(mocks.Customer)
-			customers.On("Of", command.AggregateID()).Return(mockCustomer, nil).Once()
+							err := commandHandler.Handle(changeEmailAddress)
 
-			Convey("And when executing the command succeeds", func() {
-				mockCustomer.On("Execute", command).Return(nil)
+							Convey("It should modify the Customer and save it", func() {
+								So(err, ShouldBeNil)
+								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
 
-				Convey("And when saving the Customer succeeds", func() {
-					customers.On("Persist", mockCustomer).Return(nil).Once()
-					dbMock.ExpectCommit()
+						Convey("And when saving the Customer fails", func() {
+							customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
+							dbMock.ExpectRollback()
 
-					err := commandHandler.Handle(command)
+							err := commandHandler.Handle(changeEmailAddress)
 
-					Convey("It should modify the Customer and save it", func() {
-						So(err, ShouldBeNil)
-						So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
-						So(customers.AssertExpectations(t), ShouldBeTrue)
+							Convey("It should fail", func() {
+								So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+								So(customers.AssertExpectations(t), ShouldBeTrue)
+							})
+						})
+					})
+
+					Convey("And when executing the command fails", func() {
+						mockCustomer.On("ChangeEmailAddress", changeEmailAddress).Return(shared.ErrDomainConstraintsViolation)
+						dbMock.ExpectRollback()
+
+						err := commandHandler.Handle(changeEmailAddress)
+
+						Convey("It should fail", func() {
+							So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
+							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
+							So(customers.AssertExpectations(t), ShouldBeTrue)
+						})
 					})
 				})
 
-				Convey("And when saving the Customer fails", func() {
-					customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
+				Convey("And when finding the Customer fails", func() {
+					customers.On("Of", changeEmailAddress.AggregateID()).Return(nil, shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
-					err := commandHandler.Handle(command)
+					err := commandHandler.Handle(changeEmailAddress)
 
 					Convey("It should fail", func() {
 						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						So(customers.AssertExpectations(t), ShouldBeTrue)
 					})
 				})
-			})
-
-			Convey("And when executing the command fails", func() {
-				mockCustomer.On("Execute", command).Return(shared.ErrDomainConstraintsViolation)
-				dbMock.ExpectRollback()
-
-				err := commandHandler.Handle(command)
-
-				Convey("It should fail", func() {
-					So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-					So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
-					So(customers.AssertExpectations(t), ShouldBeTrue)
-				})
-			})
-		})
-
-		Convey("And when finding the Customer fails", func() {
-			customers.On("Of", command.AggregateID()).Return(nil, shared.ErrTechnical).Once()
-			dbMock.ExpectRollback()
-
-			err := commandHandler.Handle(command)
-
-			Convey("It should fail", func() {
-				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-				So(customers.AssertExpectations(t), ShouldBeTrue)
 			})
 		})
 	})
@@ -235,7 +281,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 					mockCustomer := new(mocks.Customer)
 
 					Convey("And when executing the command succeeds", func() {
-						mockCustomer.On("Execute", changeEmailAddress).Return(nil)
+						mockCustomer.On("ChangeEmailAddress", changeEmailAddress).Return(nil)
 
 						Convey("And when saving the Customer has a concurrency conflict once", func() {
 							// should be called twice due to retry
