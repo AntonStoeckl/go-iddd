@@ -15,7 +15,7 @@ func NewIdentityMap() *IdentityMap {
 }
 
 func (identityMap *IdentityMap) Memoize(customer domain.Customer) {
-	identityMap.customers.Store(customer.AggregateID().String(), customer.Clone())
+	identityMap.customers.Store(customer.ID().String(), customer.Clone())
 }
 
 func (identityMap *IdentityMap) MemoizedCustomerOf(id *values.ID) (domain.Customer, bool) {

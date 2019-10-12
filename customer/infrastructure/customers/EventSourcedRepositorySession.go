@@ -18,7 +18,7 @@ type EventSourcedRepositorySession struct {
 /***** Implement domain.Customers *****/
 
 func (session *EventSourcedRepositorySession) Register(customer domain.Customer) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + customer.AggregateID().String())
+	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
 	if err := session.eventStoreSession.AppendEventsToStream(streamID, customer.RecordedEvents(true)); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
@@ -73,7 +73,7 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer
 /***** Implement application.PersistsCustomers *****/
 
 func (session *EventSourcedRepositorySession) Persist(customer domain.Customer) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + customer.AggregateID().String())
+	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
 	if err := session.eventStoreSession.AppendEventsToStream(streamID, customer.RecordedEvents(true)); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)

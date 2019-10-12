@@ -26,8 +26,8 @@ func TestNewCustomer(t *testing.T) {
 			So(customer, ShouldNotBeNil)
 			So(customer, ShouldImplement, (*domain.Customer)(nil))
 
-			Convey("And it should expose the expected AggregateID", func() {
-				So(customer.AggregateID().String(), ShouldEqual, id)
+			Convey("And it should expose the expected ID", func() {
+				So(customer.ID().String(), ShouldEqual, id)
 			})
 
 			Convey("And it should record that a Customer was registered", func() {

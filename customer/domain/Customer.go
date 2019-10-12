@@ -12,6 +12,7 @@ import (
 )
 
 type Customer interface {
+	ID() shared.IdentifiesAggregates
 	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
 	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
 	Clone() Customer
@@ -41,7 +42,7 @@ func (customer *customer) Clone() Customer {
 
 /*** Implement shared.Aggregate ****/
 
-func (customer *customer) AggregateID() shared.IdentifiesAggregates {
+func (customer *customer) ID() shared.IdentifiesAggregates {
 	return customer.id
 }
 

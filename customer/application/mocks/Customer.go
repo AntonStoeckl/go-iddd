@@ -14,22 +14,6 @@ type Customer struct {
 	mock.Mock
 }
 
-// AggregateID provides a mock function with given fields:
-func (_m *Customer) AggregateID() shared.IdentifiesAggregates {
-	ret := _m.Called()
-
-	var r0 shared.IdentifiesAggregates
-	if rf, ok := ret.Get(0).(func() shared.IdentifiesAggregates); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(shared.IdentifiesAggregates)
-		}
-	}
-
-	return r0
-}
-
 // Apply provides a mock function with given fields: latestEvents
 func (_m *Customer) Apply(latestEvents shared.DomainEvents) {
 	_m.Called(latestEvents)
@@ -74,6 +58,22 @@ func (_m *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress) erro
 		r0 = rf(with)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ID provides a mock function with given fields:
+func (_m *Customer) ID() shared.IdentifiesAggregates {
+	ret := _m.Called()
+
+	var r0 shared.IdentifiesAggregates
+	if rf, ok := ret.Get(0).(func() shared.IdentifiesAggregates); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(shared.IdentifiesAggregates)
+		}
 	}
 
 	return r0

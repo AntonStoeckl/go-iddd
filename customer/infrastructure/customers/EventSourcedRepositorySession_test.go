@@ -125,7 +125,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 
 				Convey("It should succeed", func() {
 					So(err, ShouldBeNil)
-					So(customer.AggregateID().Equals(id), ShouldBeTrue)
+					So(customer.ID().Equals(id), ShouldBeTrue)
 					So(customer.StreamVersion(), ShouldEqual, uint(1))
 				})
 
@@ -214,7 +214,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 
 					Convey("It should retrieve the up-to-date Customer", func() {
 						So(err, ShouldBeNil)
-						So(customer.AggregateID().Equals(id), ShouldBeTrue)
+						So(customer.ID().Equals(id), ShouldBeTrue)
 						So(customer.StreamVersion(), ShouldEqual, uint(2))
 					})
 
@@ -299,7 +299,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 				session := repo.StartSession(tx)
 				customer, err := session.Of(id)
 				So(err, ShouldBeNil)
-				So(customer.AggregateID().Equals(id), ShouldBeTrue)
+				So(customer.ID().Equals(id), ShouldBeTrue)
 				So(customer.StreamVersion(), ShouldEqual, uint(2))
 				err = tx.Commit()
 				So(err, ShouldBeNil)
