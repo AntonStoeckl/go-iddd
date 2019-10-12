@@ -15,9 +15,10 @@ type Customer interface {
 	ID() shared.IdentifiesAggregates
 	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
 	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
+	StreamVersion() uint
+	RecordedEvents(purge bool) shared.DomainEvents
 	Clone() Customer
-
-	shared.EventsourcedAggregate
+	Apply(latestEvents shared.DomainEvents)
 }
 
 type customer struct {
