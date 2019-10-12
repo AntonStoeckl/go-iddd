@@ -30,10 +30,6 @@ func TestNewCustomer(t *testing.T) {
 				So(customer.AggregateID().String(), ShouldEqual, id)
 			})
 
-			Convey("And it should expose the expected AggregateName", func() {
-				So(customer.AggregateName(), ShouldEqual, "Customer")
-			})
-
 			Convey("And it should record that a Customer was registered", func() {
 				recordedEvents := customer.RecordedEvents(false)
 				registered := mocks.FindCustomerEventIn(
