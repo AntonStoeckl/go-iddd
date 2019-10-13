@@ -5,9 +5,9 @@ import (
 	"go-iddd/customer/domain/events"
 )
 
-func (customer *customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) error {
+func (customer *customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) {
 	if customer.confirmableEmailAddress.Equals(with.EmailAddress()) {
-		return nil
+		return
 	}
 
 	customer.recordThat(
@@ -17,8 +17,6 @@ func (customer *customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) 
 			customer.currentStreamVersion+1,
 		),
 	)
-
-	return nil
 }
 
 func (customer *customer) whenEmailAddressWasChanged(actualEvent *events.EmailAddressChanged) {

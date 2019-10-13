@@ -40,35 +40,30 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.ChangeEmailAddress(changeEmailAddress)
+			customer.ChangeEmailAddress(changeEmailAddress)
 
-			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
+			Convey("It should record that a Customer's emailAddress was changed", func() {
+				recordedEvents := customer.RecordedEvents(true)
+				emailAddressChanged := mocks.FindCustomerEventIn(
+					recordedEvents,
+					new(events.EmailAddressChanged),
+				).(*events.EmailAddressChanged)
 
-				Convey("And it should record that a Customer's emailAddress was changed", func() {
-					recordedEvents := customer.RecordedEvents(true)
-					emailAddressChanged := mocks.FindCustomerEventIn(
-						recordedEvents,
-						new(events.EmailAddressChanged),
-					).(*events.EmailAddressChanged)
+				So(emailAddressChanged, ShouldNotBeNil)
+				So(emailAddressChanged.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressChanged.ConfirmableEmailAddress().Equals(newEmailAddress), ShouldBeTrue)
+				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
-					So(emailAddressChanged, ShouldNotBeNil)
-					So(emailAddressChanged.ID().Equals(id), ShouldBeTrue)
-					So(emailAddressChanged.ConfirmableEmailAddress().Equals(newEmailAddress), ShouldBeTrue)
-					So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
+				Convey("And it should not record anything else", func() {
+					So(recordedEvents, ShouldHaveLength, 1)
+				})
 
-					Convey("And it should not record anything else", func() {
-						So(recordedEvents, ShouldHaveLength, 1)
-					})
+				Convey("And when it is changed to the same value again", func() {
+					customer.ChangeEmailAddress(changeEmailAddress)
 
-					Convey("And when it is changed to the same value again", func() {
-						err = customer.ChangeEmailAddress(changeEmailAddress)
-
-						Convey("It should be ignored", func() {
-							So(err, ShouldBeNil)
-							recordedEvents := customer.RecordedEvents(false)
-							So(recordedEvents, ShouldBeEmpty)
-						})
+					Convey("It should be ignored", func() {
+						recordedEvents := customer.RecordedEvents(false)
+						So(recordedEvents, ShouldBeEmpty)
 					})
 				})
 			})

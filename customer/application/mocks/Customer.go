@@ -15,17 +15,8 @@ type Customer struct {
 }
 
 // ChangeEmailAddress provides a mock function with given fields: with
-func (_m *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) error {
-	ret := _m.Called(with)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*commands.ChangeEmailAddress) error); ok {
-		r0 = rf(with)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
+func (_m *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) {
+	_m.Called(with)
 }
 
 // ConfirmEmailAddress provides a mock function with given fields: with

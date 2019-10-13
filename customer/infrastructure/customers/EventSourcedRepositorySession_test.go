@@ -205,8 +205,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		err = customer.ChangeEmailAddress(changeEmailAddress)
-		So(err, ShouldBeNil)
+		customer.ChangeEmailAddress(changeEmailAddress)
 
 		Convey("When the Customer is persisted", func() {
 			tx := test.BeginTx(db)

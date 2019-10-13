@@ -177,9 +177,7 @@ func (handler *CommandHandler) changeEmailAddress(
 		return nil, err
 	}
 
-	if err := customer.ChangeEmailAddress(changeEmailAddress); err != nil {
-		return nil, err
-	}
+	customer.ChangeEmailAddress(changeEmailAddress)
 
 	return customer, nil
 }

@@ -12,7 +12,7 @@ import (
 type Customer interface {
 	ID() shared.IdentifiesAggregates
 	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
-	ChangeEmailAddress(with *commands.ChangeEmailAddress) error
+	ChangeEmailAddress(with *commands.ChangeEmailAddress)
 	StreamVersion() uint
 	RecordedEvents(purge bool) shared.DomainEvents
 }
