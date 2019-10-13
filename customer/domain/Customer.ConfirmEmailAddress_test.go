@@ -46,7 +46,8 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("And it should record that a Customer's emailAddress was confirmed", func() {
-					recordedEvents := customer.RecordedEvents(true)
+					recordedEvents := customer.RecordedEvents()
+					customer.PurgeRecordedEvents()
 					emailAddressConfirmed := mocks.FindCustomerEventIn(
 						recordedEvents,
 						new(events.EmailAddressConfirmed),
@@ -66,7 +67,8 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 
 						Convey("It should be ignored", func() {
 							So(err, ShouldBeNil)
-							recordedEvents := customer.RecordedEvents(false)
+							recordedEvents := customer.RecordedEvents()
+							customer.PurgeRecordedEvents()
 							So(recordedEvents, ShouldBeEmpty)
 						})
 					})

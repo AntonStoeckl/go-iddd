@@ -14,7 +14,8 @@ type Customer interface {
 	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
 	ChangeEmailAddress(with *commands.ChangeEmailAddress)
 	StreamVersion() uint
-	RecordedEvents(purge bool) shared.DomainEvents
+	RecordedEvents() shared.DomainEvents
+	PurgeRecordedEvents()
 }
 
 type customer struct {
@@ -65,14 +66,12 @@ func (customer *customer) apply(eventStream ...shared.DomainEvent) {
 	}
 }
 
-func (customer *customer) RecordedEvents(purge bool) shared.DomainEvents {
-	recordedEvents := customer.recordedEvents
+func (customer *customer) RecordedEvents() shared.DomainEvents {
+	return customer.recordedEvents
+}
 
-	if purge {
-		customer.recordedEvents = nil
-	}
-
-	return recordedEvents
+func (customer *customer) PurgeRecordedEvents() {
+	customer.recordedEvents = nil
 }
 
 func (customer *customer) StreamVersion() uint {

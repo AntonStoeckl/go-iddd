@@ -31,7 +31,8 @@ func TestNewCustomer(t *testing.T) {
 			})
 
 			Convey("And it should record that a Customer was registered", func() {
-				recordedEvents := customer.RecordedEvents(false)
+				recordedEvents := customer.RecordedEvents()
+				customer.PurgeRecordedEvents()
 				registered := mocks.FindCustomerEventIn(
 					recordedEvents,
 					new(events.Registered),

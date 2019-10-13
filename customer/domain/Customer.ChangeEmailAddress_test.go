@@ -43,7 +43,8 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 			customer.ChangeEmailAddress(changeEmailAddress)
 
 			Convey("It should record that a Customer's emailAddress was changed", func() {
-				recordedEvents := customer.RecordedEvents(true)
+				recordedEvents := customer.RecordedEvents()
+				customer.PurgeRecordedEvents()
 				emailAddressChanged := mocks.FindCustomerEventIn(
 					recordedEvents,
 					new(events.EmailAddressChanged),
@@ -62,7 +63,8 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 					customer.ChangeEmailAddress(changeEmailAddress)
 
 					Convey("It should be ignored", func() {
-						recordedEvents := customer.RecordedEvents(false)
+						recordedEvents := customer.RecordedEvents()
+						customer.PurgeRecordedEvents()
 						So(recordedEvents, ShouldBeEmpty)
 					})
 				})

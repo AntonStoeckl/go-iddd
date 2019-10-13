@@ -19,7 +19,10 @@ type EventSourcedRepositorySession struct {
 func (session *EventSourcedRepositorySession) Register(customer domain.Customer) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
-	if err := session.eventStoreSession.AppendEventsToStream(streamID, customer.RecordedEvents(true)); err != nil {
+	recordedEvents := customer.RecordedEvents()
+	customer.PurgeRecordedEvents()
+
+	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
 			return xerrors.Errorf("eventSourcedRepositorySession.Register: %s: %w", err, shared.ErrDuplicate)
 		}
@@ -55,7 +58,10 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer
 func (session *EventSourcedRepositorySession) Persist(customer domain.Customer) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
-	if err := session.eventStoreSession.AppendEventsToStream(streamID, customer.RecordedEvents(true)); err != nil {
+	recordedEvents := customer.RecordedEvents()
+	customer.PurgeRecordedEvents()
+
+	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)
 	}
 

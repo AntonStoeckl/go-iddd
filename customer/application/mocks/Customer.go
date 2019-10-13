@@ -49,13 +49,18 @@ func (_m *Customer) ID() shared.IdentifiesAggregates {
 	return r0
 }
 
-// RecordedEvents provides a mock function with given fields: purge
-func (_m *Customer) RecordedEvents(purge bool) shared.DomainEvents {
-	ret := _m.Called(purge)
+// PurgeRecordedEvents provides a mock function with given fields:
+func (_m *Customer) PurgeRecordedEvents() {
+	_m.Called()
+}
+
+// RecordedEvents provides a mock function with given fields:
+func (_m *Customer) RecordedEvents() shared.DomainEvents {
+	ret := _m.Called()
 
 	var r0 shared.DomainEvents
-	if rf, ok := ret.Get(0).(func(bool) shared.DomainEvents); ok {
-		r0 = rf(purge)
+	if rf, ok := ret.Get(0).(func() shared.DomainEvents); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(shared.DomainEvents)
