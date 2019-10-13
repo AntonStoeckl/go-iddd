@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"go-iddd/customer/application"
 	"go-iddd/customer/application/mocks"
+	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -37,6 +39,10 @@ func TestNewCommandHandler(t *testing.T) {
 
 func TestCommandHandler_Handle_Register(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
+		customerID := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+
 		customers := new(mocks.PersistableCustomers)
 
 		repo := new(mocks.StartsRepositorySessions)
@@ -50,8 +56,8 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 		Convey("And given a Register command", func() {
 			register, err := commands.NewRegister(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-				"john@doe.com",
+				customerID.String(),
+				emailAddress.EmailAddress(),
 				"John",
 				"Doe",
 			)
@@ -88,6 +94,15 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
+		customerID := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+
+		customer := registerCustomerForCommandHandlerTest(customerID, emailAddress)
+		recordedEvents := customer.RecordedEvents()
+		confirmationHash := recordedEvents[0].(*events.Registered).ConfirmableEmailAddress().ConfirmationHash()
+		customer.PurgeRecordedEvents()
+
 		customers := new(mocks.PersistableCustomers)
 
 		repo := new(mocks.StartsRepositorySessions)
@@ -101,35 +116,31 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 
 		Convey("And given a ConfirmEmailAddress command", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-				"john@doe.com",
-				"secret_hash",
+				customerID.String(),
+				emailAddress.EmailAddress(),
+				confirmationHash,
 			)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					mockCustomer := new(mocks.Customer)
-					customers.On("Of", confirmEmailAddress.AggregateID()).Return(mockCustomer, nil).Once()
+					customers.On("Of", confirmEmailAddress.AggregateID()).Return(customer, nil).Once()
 
 					Convey("And when executing the command succeeds", func() {
-						mockCustomer.On("ConfirmEmailAddress", confirmEmailAddress).Return(nil)
-
 						Convey("And when saving the Customer succeeds", func() {
-							customers.On("Persist", mockCustomer).Return(nil).Once()
+							customers.On("Persist", customer).Return(nil).Once()
 							dbMock.ExpectCommit()
 
 							err := commandHandler.Handle(confirmEmailAddress)
 
 							Convey("It should modify the Customer and save it", func() {
 								So(err, ShouldBeNil)
-								So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 								So(customers.AssertExpectations(t), ShouldBeTrue)
 							})
 						})
 
 						Convey("And when saving the Customer fails", func() {
-							customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
+							customers.On("Persist", customer).Return(shared.ErrTechnical).Once()
 							dbMock.ExpectRollback()
 
 							err := commandHandler.Handle(confirmEmailAddress)
@@ -142,14 +153,19 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 					})
 
 					Convey("And when executing the command fails", func() {
-						mockCustomer.On("ConfirmEmailAddress", confirmEmailAddress).Return(shared.ErrDomainConstraintsViolation)
 						dbMock.ExpectRollback()
 
-						err := commandHandler.Handle(confirmEmailAddress)
+						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+							customerID.String(),
+							emailAddress.EmailAddress(),
+							"invalid_hash",
+						)
+						So(err, ShouldBeNil)
+
+						err = commandHandler.Handle(confirmEmailAddress)
 
 						Convey("It should fail", func() {
 							So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(customers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})
@@ -173,6 +189,10 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 
 func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
+		customerID := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+
 		customers := new(mocks.PersistableCustomers)
 
 		repo := new(mocks.StartsRepositorySessions)
@@ -186,33 +206,30 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 
 		Convey("And given a ChangeEmailAddress command", func() {
 			changeEmailAddress, err := commands.NewChangeEmailAddress(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-				"john@doe.com",
+				customerID.String(),
+				emailAddress.EmailAddress(),
 			)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					mockCustomer := new(mocks.Customer)
-					customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Once()
-
-					mockCustomer.On("ChangeEmailAddress", changeEmailAddress)
+					customer := registerCustomerForCommandHandlerTest(customerID, emailAddress)
+					customers.On("Of", changeEmailAddress.AggregateID()).Return(customer, nil).Once()
 
 					Convey("And when saving the Customer succeeds", func() {
-						customers.On("Persist", mockCustomer).Return(nil).Once()
+						customers.On("Persist", customer).Return(nil).Once()
 						dbMock.ExpectCommit()
 
 						err := commandHandler.Handle(changeEmailAddress)
 
 						Convey("It should modify the Customer and save it", func() {
 							So(err, ShouldBeNil)
-							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(customers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})
 
 					Convey("And when saving the Customer fails", func() {
-						customers.On("Persist", mockCustomer).Return(shared.ErrTechnical).Once()
+						customers.On("Persist", customer).Return(shared.ErrTechnical).Once()
 						dbMock.ExpectRollback()
 
 						err := commandHandler.Handle(changeEmailAddress)
@@ -244,6 +261,10 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 
 func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
+		customerID := values.GenerateID()
+		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		So(err, ShouldBeNil)
+
 		customers := new(mocks.PersistableCustomers)
 
 		repo := new(mocks.StartsRepositorySessions)
@@ -256,27 +277,26 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 		Convey("And given a ChangeEmailAddress command", func() {
 			changeEmailAddress, err := commands.NewChangeEmailAddress(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-				"john@doe.com",
+				customerID.String(),
+				emailAddress.EmailAddress(),
 			)
 			So(err, ShouldBeNil)
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					mockCustomer := new(mocks.Customer)
-					mockCustomer.On("ChangeEmailAddress", changeEmailAddress)
+					customer := registerCustomerForCommandHandlerTest(customerID, emailAddress)
 
 					Convey("And when saving the Customer has a concurrency conflict once", func() {
 						// should be called twice due to retry
-						customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Twice()
+						customers.On("Of", changeEmailAddress.AggregateID()).Return(customer, nil).Twice()
 
 						// fist attempt runs into a concurrency conflict
-						customers.On("Persist", mockCustomer).Return(shared.ErrConcurrencyConflict).Once()
+						customers.On("Persist", customer).Return(shared.ErrConcurrencyConflict).Once()
 						dbMock.ExpectBegin()
 						dbMock.ExpectRollback()
 
 						// second attempt works
-						customers.On("Persist", mockCustomer).Return(nil).Once()
+						customers.On("Persist", customer).Return(nil).Once()
 						dbMock.ExpectBegin()
 						dbMock.ExpectCommit()
 
@@ -284,17 +304,16 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 						Convey("It should modify the Customer and save it", func() {
 							So(err, ShouldBeNil)
-							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(customers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})
 
 					Convey("And when saving the Customer has too many concurrency conflicts", func() {
 						// should be called 10 times due to retries
-						customers.On("Of", changeEmailAddress.AggregateID()).Return(mockCustomer, nil).Times(10)
+						customers.On("Of", changeEmailAddress.AggregateID()).Return(customer, nil).Times(10)
 
 						// all attempts run into a concurrency conflict
-						customers.On("Persist", mockCustomer).Return(shared.ErrConcurrencyConflict).Times(10)
+						customers.On("Persist", customer).Return(shared.ErrConcurrencyConflict).Times(10)
 
 						// we expect this 10 time - no simpler way with Sqlmock
 						for i := 1; i <= 10; i++ {
@@ -307,7 +326,6 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 						Convey("It should fail", func() {
 							So(err, ShouldNotBeNil)
 							So(errors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
-							So(mockCustomer.AssertExpectations(t), ShouldBeTrue)
 							So(customers.AssertExpectations(t), ShouldBeTrue)
 						})
 					})
@@ -466,3 +484,17 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //		})
 //	})
 //}
+
+func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) domain.Customer {
+	register, err := commands.NewRegister(
+		id.String(),
+		emailAddress.EmailAddress(),
+		"John",
+		"Doe",
+	)
+	So(err, ShouldBeNil)
+
+	customer := domain.RegisterCustomer(register)
+
+	return customer
+}
