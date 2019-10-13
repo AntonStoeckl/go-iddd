@@ -258,7 +258,7 @@ func buildRegisteredCustomerWith(id *values.ID) domain.Customer {
 	familyName := "Doe"
 	register, err := commands.NewRegister(id.String(), emailAddress, givenName, familyName)
 	So(err, ShouldBeNil)
-	customer := domain.NewCustomerWith(register)
+	customer := domain.RegisterCustomer(register)
 
 	return customer
 }

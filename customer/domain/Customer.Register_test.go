@@ -20,7 +20,7 @@ func TestNewCustomer(t *testing.T) {
 		register, err := commands.NewRegister(id, emailAddress, givenName, familyName)
 		So(err, ShouldBeNil)
 
-		customer := domain.NewCustomerWith(register)
+		customer := domain.RegisterCustomer(register)
 
 		Convey("It should succeed", func() {
 			So(customer, ShouldNotBeNil)

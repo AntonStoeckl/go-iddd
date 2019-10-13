@@ -141,7 +141,7 @@ func (handler *CommandHandler) register(
 	register *commands.Register,
 ) error {
 
-	newCustomer := domain.NewCustomerWith(register)
+	newCustomer := domain.RegisterCustomer(register)
 
 	if err := customers.Register(newCustomer); err != nil {
 		return err
