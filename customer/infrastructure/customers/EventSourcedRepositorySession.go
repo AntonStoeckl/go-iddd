@@ -11,12 +11,12 @@ import (
 
 type EventSourcedRepositorySession struct {
 	eventStoreSession shared.EventStore
-	customerFactory   func(eventStream shared.DomainEvents) (domain.Customer, error)
+	customerFactory   func(eventStream shared.DomainEvents) (*domain.Customer, error)
 }
 
 /***** Implement domain.Customers *****/
 
-func (session *EventSourcedRepositorySession) Register(customer domain.Customer) error {
+func (session *EventSourcedRepositorySession) Register(customer *domain.Customer) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
 	recordedEvents := customer.RecordedEvents()
@@ -33,7 +33,7 @@ func (session *EventSourcedRepositorySession) Register(customer domain.Customer)
 	return nil
 }
 
-func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer, error) {
+func (session *EventSourcedRepositorySession) Of(id *values.ID) (*domain.Customer, error) {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
 	eventStream, err := session.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
@@ -55,7 +55,7 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (domain.Customer
 
 /***** Implement application.PersistsCustomers *****/
 
-func (session *EventSourcedRepositorySession) Persist(customer domain.Customer) error {
+func (session *EventSourcedRepositorySession) Persist(customer *domain.Customer) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
 
 	recordedEvents := customer.RecordedEvents()

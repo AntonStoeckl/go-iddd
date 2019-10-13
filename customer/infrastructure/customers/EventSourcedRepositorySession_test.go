@@ -124,7 +124,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 
 			Convey("And when the customer can not be reconstituted", func() {
 				expectedErr := errors.New("mocked error")
-				customerFactory := func(eventStream shared.DomainEvents) (domain.Customer, error) {
+				customerFactory := func(eventStream shared.DomainEvents) (*domain.Customer, error) {
 					return nil, expectedErr
 				}
 
@@ -252,7 +252,7 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func buildRegisteredCustomerWith(id *values.ID) domain.Customer {
+func buildRegisteredCustomerWith(id *values.ID) *domain.Customer {
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.String())
 	givenName := "John"
 	familyName := "Doe"

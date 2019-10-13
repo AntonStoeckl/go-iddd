@@ -18,7 +18,7 @@ const (
 type DIContainer struct {
 	postgresDBConn         *sql.DB
 	unmarshalDomainEvent   shared.UnmarshalDomainEvent
-	customerFactory        func(eventStream shared.DomainEvents) (domain.Customer, error)
+	customerFactory        func(eventStream shared.DomainEvents) (*domain.Customer, error)
 	postgresEventStore     *eventstore.PostgresEventStore
 	customerRepository     application.StartsRepositorySessions
 	customerCommandHandler *application.CommandHandler
@@ -27,7 +27,7 @@ type DIContainer struct {
 func NewDIContainer(
 	postgresDBConn *sql.DB,
 	unmarshalDomainEvent shared.UnmarshalDomainEvent,
-	customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error),
+	customerFactory func(eventStream shared.DomainEvents) (*domain.Customer, error),
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {

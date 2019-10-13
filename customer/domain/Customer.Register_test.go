@@ -24,7 +24,7 @@ func TestNewCustomer(t *testing.T) {
 
 		Convey("It should succeed", func() {
 			So(customer, ShouldNotBeNil)
-			So(customer, ShouldImplement, (*domain.Customer)(nil))
+			So(customer, ShouldHaveSameTypeAs, (*domain.Customer)(nil))
 
 			Convey("And it should expose the expected ID", func() {
 				So(customer.ID().String(), ShouldEqual, id)

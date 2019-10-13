@@ -14,15 +14,15 @@ type PersistableCustomers struct {
 }
 
 // Of provides a mock function with given fields: id
-func (_m *PersistableCustomers) Of(id *values.ID) (domain.Customer, error) {
+func (_m *PersistableCustomers) Of(id *values.ID) (*domain.Customer, error) {
 	ret := _m.Called(id)
 
-	var r0 domain.Customer
-	if rf, ok := ret.Get(0).(func(*values.ID) domain.Customer); ok {
+	var r0 *domain.Customer
+	if rf, ok := ret.Get(0).(func(*values.ID) *domain.Customer); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(domain.Customer)
+			r0 = ret.Get(0).(*domain.Customer)
 		}
 	}
 
@@ -37,11 +37,11 @@ func (_m *PersistableCustomers) Of(id *values.ID) (domain.Customer, error) {
 }
 
 // Persist provides a mock function with given fields: customer
-func (_m *PersistableCustomers) Persist(customer domain.Customer) error {
+func (_m *PersistableCustomers) Persist(customer *domain.Customer) error {
 	ret := _m.Called(customer)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(domain.Customer) error); ok {
+	if rf, ok := ret.Get(0).(func(*domain.Customer) error); ok {
 		r0 = rf(customer)
 	} else {
 		r0 = ret.Error(0)
@@ -51,11 +51,11 @@ func (_m *PersistableCustomers) Persist(customer domain.Customer) error {
 }
 
 // Register provides a mock function with given fields: customer
-func (_m *PersistableCustomers) Register(customer domain.Customer) error {
+func (_m *PersistableCustomers) Register(customer *domain.Customer) error {
 	ret := _m.Called(customer)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(domain.Customer) error); ok {
+	if rf, ok := ret.Get(0).(func(*domain.Customer) error); ok {
 		r0 = rf(customer)
 	} else {
 		r0 = ret.Error(0)

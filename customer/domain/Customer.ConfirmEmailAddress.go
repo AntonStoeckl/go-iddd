@@ -8,7 +8,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func (customer *customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error {
+func (customer *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error {
 	if customer.confirmableEmailAddress.IsConfirmed() {
 		return nil
 	}
@@ -33,6 +33,6 @@ func (customer *customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress
 	return nil
 }
 
-func (customer *customer) whenEmailAddressWasConfirmed(actualEvent *events.EmailAddressConfirmed) {
+func (customer *Customer) whenEmailAddressWasConfirmed(actualEvent *events.EmailAddressConfirmed) {
 	customer.confirmableEmailAddress = customer.confirmableEmailAddress.MarkAsConfirmed()
 }

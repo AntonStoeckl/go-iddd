@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
@@ -9,16 +8,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-type Customer interface {
-	ID() shared.IdentifiesAggregates
-	ConfirmEmailAddress(with *commands.ConfirmEmailAddress) error
-	ChangeEmailAddress(with *commands.ChangeEmailAddress)
-	StreamVersion() uint
-	RecordedEvents() shared.DomainEvents
-	PurgeRecordedEvents()
-}
-
-type customer struct {
+type Customer struct {
 	id                      *values.ID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
@@ -26,15 +16,15 @@ type customer struct {
 	recordedEvents          shared.DomainEvents
 }
 
-func blankCustomer() *customer {
-	return &customer{}
+func blankCustomer() *Customer {
+	return &Customer{}
 }
 
-func (customer *customer) ID() shared.IdentifiesAggregates {
+func (customer *Customer) ID() shared.IdentifiesAggregates {
 	return customer.id
 }
 
-func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error) {
+func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (*Customer, error) {
 	newCustomer := blankCustomer()
 
 	if err := eventStream.FirstEventShouldBeOfSameTypeAs(&events.Registered{}); err != nil {
@@ -46,12 +36,12 @@ func ReconstituteCustomerFrom(eventStream shared.DomainEvents) (Customer, error)
 	return newCustomer, nil
 }
 
-func (customer *customer) recordThat(event shared.DomainEvent) {
+func (customer *Customer) recordThat(event shared.DomainEvent) {
 	customer.recordedEvents = append(customer.recordedEvents, event)
 	customer.apply(event)
 }
 
-func (customer *customer) apply(eventStream ...shared.DomainEvent) {
+func (customer *Customer) apply(eventStream ...shared.DomainEvent) {
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case *events.Registered:
@@ -66,14 +56,14 @@ func (customer *customer) apply(eventStream ...shared.DomainEvent) {
 	}
 }
 
-func (customer *customer) RecordedEvents() shared.DomainEvents {
+func (customer *Customer) RecordedEvents() shared.DomainEvents {
 	return customer.recordedEvents
 }
 
-func (customer *customer) PurgeRecordedEvents() {
+func (customer *Customer) PurgeRecordedEvents() {
 	customer.recordedEvents = nil
 }
 
-func (customer *customer) StreamVersion() uint {
+func (customer *Customer) StreamVersion() uint {
 	return customer.currentStreamVersion
 }

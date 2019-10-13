@@ -104,7 +104,7 @@ func (handler *CommandHandler) handleCommand(
 ) error {
 
 	var err error
-	var customer domain.Customer
+	var customer *domain.Customer
 
 	switch actualCommand := command.(type) {
 	case *commands.Register:
@@ -126,7 +126,7 @@ func (handler *CommandHandler) handleCommand(
 	return nil
 }
 
-func (handler *CommandHandler) persist(customers PersistsCustomers, customer domain.Customer) error {
+func (handler *CommandHandler) persist(customers PersistsCustomers, customer *domain.Customer) error {
 	if err := customers.Persist(customer); err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (handler *CommandHandler) register(
 func (handler *CommandHandler) confirmEmailAddress(
 	customers PersistableCustomers,
 	confirmEmailAddress *commands.ConfirmEmailAddress,
-) (domain.Customer, error) {
+) (*domain.Customer, error) {
 
 	customer, err := customers.Of(confirmEmailAddress.ID())
 	if err != nil {
@@ -170,7 +170,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 func (handler *CommandHandler) changeEmailAddress(
 	customers PersistableCustomers,
 	changeEmailAddress *commands.ChangeEmailAddress,
-) (domain.Customer, error) {
+) (*domain.Customer, error) {
 
 	customer, err := customers.Of(changeEmailAddress.ID())
 	if err != nil {

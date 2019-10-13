@@ -15,12 +15,12 @@ type StartsEventStoreSessions interface {
 
 type EventSourcedRepository struct {
 	eventStoreSessionFactory StartsEventStoreSessions
-	customerFactory          func(eventStream shared.DomainEvents) (domain.Customer, error)
+	customerFactory          func(eventStream shared.DomainEvents) (*domain.Customer, error)
 }
 
 func NewEventSourcedRepository(
 	eventStoreSessionFactory StartsEventStoreSessions,
-	customerFactory func(eventStream shared.DomainEvents) (domain.Customer, error),
+	customerFactory func(eventStream shared.DomainEvents) (*domain.Customer, error),
 ) application.StartsRepositorySessions {
 
 	return &EventSourcedRepository{

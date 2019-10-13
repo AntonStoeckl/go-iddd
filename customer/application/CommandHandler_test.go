@@ -65,7 +65,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when saving the Customer succeeds", func() {
-					customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
+					customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(nil).Once()
 					dbMock.ExpectCommit()
 
 					err := commandHandler.Handle(register)
@@ -77,7 +77,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 				})
 
 				Convey("And when saving the Customer fails", func() {
-					customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(shared.ErrTechnical).Once()
+					customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
 					err := commandHandler.Handle(register)
@@ -441,7 +441,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //			)
 //			So(err, ShouldBeNil)
 //
-//			customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(nil).Once()
+//			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(nil).Once()
 //			repo := new(mocks.StartsRepositorySessions)
 //			repo.On("StartSession").Return(customers, nil)
 //			db, _, err := sqlmock.New()
@@ -466,7 +466,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //			)
 //			So(err, ShouldBeNil)
 //
-//			customers.On("Register", mock.AnythingOfType("*domain.customer")).Return(shared.ErrDomainConstraintsViolation).Once()
+//			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(shared.ErrDomainConstraintsViolation).Once()
 //			repo := new(mocks.StartsRepositorySessions)
 //			repo.On("StartSession").Return(customers, nil)
 //			db, _, err := sqlmock.New()
@@ -485,7 +485,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //	})
 //}
 
-func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) domain.Customer {
+func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) *domain.Customer {
 	register, err := commands.NewRegister(
 		id.String(),
 		emailAddress.EmailAddress(),
