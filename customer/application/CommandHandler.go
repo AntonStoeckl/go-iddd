@@ -10,7 +10,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-const maxCommandHandlerRetries = 10
+const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
 	repositorySessionFactory StartsRepositorySessions
@@ -48,7 +48,7 @@ func (handler *CommandHandler) Handle(command shared.Command) error {
 
 func (handler *CommandHandler) handleRetry(command shared.Command) error {
 	var err error
-	var retries uint
+	var retries uint8
 
 	for retries = 0; retries < maxCommandHandlerRetries; retries++ {
 		// call next method in chain
