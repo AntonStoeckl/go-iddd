@@ -7,7 +7,6 @@ var (
 	ErrNotEqual                   = errors.New("not equal")
 	ErrMarshalingFailed           = errors.New("marshaling failed")
 	ErrUnmarshalingFailed         = errors.New("unmarshaling failed")
-	ErrCommandCanNotBeHandled     = errors.New("command can not be handled")
 	ErrCommandIsInvalid           = errors.New("command is invalid")
 	ErrCommandIsUnknown           = errors.New("command is unknown")
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
