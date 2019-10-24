@@ -4,7 +4,6 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
-	"go-iddd/customer/domain/mocks"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -34,37 +33,28 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 		Convey("When an emailAddress is changed", func() {
 			newEmailAddress, err := values.NewEmailAddress("john+changed@doe.com")
 			So(err, ShouldBeNil)
+
 			changeEmailAddress, err := commands.NewChangeEmailAddress(
 				id.String(),
 				newEmailAddress.EmailAddress(),
 			)
 			So(err, ShouldBeNil)
 
-			customer.ChangeEmailAddress(changeEmailAddress)
+			recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
 
-			Convey("It should record that a Customer's emailAddress was changed", func() {
-				recordedEvents := customer.RecordedEvents()
-				customer.PurgeRecordedEvents()
-				emailAddressChanged := mocks.FindCustomerEventIn(
-					recordedEvents,
-					new(events.EmailAddressChanged),
-				).(*events.EmailAddressChanged)
-
+			Convey("It should record EmailAddressChanged", func() {
+				So(recordedEvents, ShouldHaveLength, 1)
+				emailAddressChanged, ok := recordedEvents[0].(*events.EmailAddressChanged)
+				So(ok, ShouldBeTrue)
 				So(emailAddressChanged, ShouldNotBeNil)
 				So(emailAddressChanged.ID().Equals(id), ShouldBeTrue)
 				So(emailAddressChanged.ConfirmableEmailAddress().Equals(newEmailAddress), ShouldBeTrue)
 				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
-				Convey("And it should not record anything else", func() {
-					So(recordedEvents, ShouldHaveLength, 1)
-				})
-
 				Convey("And when it is changed to the same value again", func() {
-					customer.ChangeEmailAddress(changeEmailAddress)
+					recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
 
 					Convey("It should be ignored", func() {
-						recordedEvents := customer.RecordedEvents()
-						customer.PurgeRecordedEvents()
 						So(recordedEvents, ShouldBeEmpty)
 					})
 				})

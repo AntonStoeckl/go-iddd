@@ -60,14 +60,6 @@ func (confirmationHash *ConfirmationHash) Equals(other *ConfirmationHash) bool {
 	return confirmationHash.value == other.value
 }
 
-func (confirmationHash *ConfirmationHash) ShouldEqual(other *ConfirmationHash) error {
-	if confirmationHash.value != other.value {
-		return errors.Mark(errors.New("confirmationHash.ShouldEqual"), shared.ErrNotEqual)
-	}
-
-	return nil
-}
-
 /*** Implement json.Marshaler ***/
 
 func (confirmationHash *ConfirmationHash) MarshalJSON() ([]byte, error) {

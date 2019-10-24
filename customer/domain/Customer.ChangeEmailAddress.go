@@ -3,22 +3,21 @@ package domain
 import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/shared"
 )
 
-func (customer *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) {
+func (customer *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) shared.DomainEvents {
 	if customer.confirmableEmailAddress.Equals(with.EmailAddress()) {
-		return
+		return nil
 	}
 
-	customer.recordThat(
-		events.EmailAddressWasChanged(
-			with.ID(),
-			with.EmailAddress().ToConfirmable(),
-			customer.currentStreamVersion+1,
-		),
+	event := events.EmailAddressWasChanged(
+		with.ID(),
+		with.EmailAddress().ToConfirmable(),
+		customer.currentStreamVersion+1,
 	)
-}
 
-func (customer *Customer) whenEmailAddressWasChanged(actualEvent *events.EmailAddressChanged) {
-	customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
+	customer.apply(event)
+
+	return shared.DomainEvents{event}
 }

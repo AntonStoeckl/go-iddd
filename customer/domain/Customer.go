@@ -15,7 +15,6 @@ type Customer struct {
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
 	currentStreamVersion    uint
-	recordedEvents          shared.DomainEvents
 }
 
 func blankCustomer() *Customer {
@@ -57,32 +56,21 @@ func (customer *Customer) shouldBeRegistered(eventStream shared.DomainEvents) er
 	return nil
 }
 
-func (customer *Customer) recordThat(event shared.DomainEvent) {
-	customer.recordedEvents = append(customer.recordedEvents, event)
-	customer.apply(event)
-}
-
 func (customer *Customer) apply(eventStream ...shared.DomainEvent) {
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case *events.Registered:
-			customer.whenItWasRegistered(actualEvent)
+			customer.id = actualEvent.ID()
+			customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
+			customer.personName = actualEvent.PersonName()
 		case *events.EmailAddressConfirmed:
-			customer.whenEmailAddressWasConfirmed(actualEvent)
+			customer.confirmableEmailAddress = customer.confirmableEmailAddress.MarkAsConfirmed()
 		case *events.EmailAddressChanged:
-			customer.whenEmailAddressWasChanged(actualEvent)
+			customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
 		}
 
 		customer.currentStreamVersion = event.StreamVersion()
 	}
-}
-
-func (customer *Customer) RecordedEvents() shared.DomainEvents {
-	return customer.recordedEvents
-}
-
-func (customer *Customer) PurgeRecordedEvents() {
-	customer.recordedEvents = nil
 }
 
 func (customer *Customer) StreamVersion() uint {

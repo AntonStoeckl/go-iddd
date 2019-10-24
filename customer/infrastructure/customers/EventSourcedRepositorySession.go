@@ -16,11 +16,8 @@ type EventSourcedRepositorySession struct {
 
 /***** Implement domain.Customers *****/
 
-func (session *EventSourcedRepositorySession) Register(customer *domain.Customer) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
-
-	recordedEvents := customer.RecordedEvents()
-	customer.PurgeRecordedEvents()
+func (session *EventSourcedRepositorySession) Register(id *values.ID, recordedEvents shared.DomainEvents) error {
+	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
 	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
@@ -55,11 +52,8 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (*domain.Custome
 
 /***** Implement application.PersistsCustomers *****/
 
-func (session *EventSourcedRepositorySession) Persist(customer *domain.Customer) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + customer.ID().String())
-
-	recordedEvents := customer.RecordedEvents()
-	customer.PurgeRecordedEvents()
+func (session *EventSourcedRepositorySession) Persist(id *values.ID, recordedEvents shared.DomainEvents) error {
+	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
 	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)

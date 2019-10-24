@@ -1,7 +1,10 @@
 package application
 
-import "go-iddd/customer/domain"
+import (
+	"go-iddd/customer/domain/values"
+	"go-iddd/shared"
+)
 
 type PersistsCustomers interface {
-	Persist(customer *domain.Customer) error
+	Persist(id *values.ID, recordedEvents shared.DomainEvents) error
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/events"
 	customercli "go-iddd/customer/infrastructure/cli"
 	"go-iddd/service"
 	"go-iddd/shared/infrastructure/eventstore"
@@ -87,7 +88,7 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = service.NewDIContainer(
 			postgresDBConn,
-			domain.UnmarshalDomainEvent,
+			events.UnmarshalDomainEvent,
 			domain.ReconstituteCustomerFrom,
 		)
 

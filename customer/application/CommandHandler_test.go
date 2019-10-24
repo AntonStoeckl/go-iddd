@@ -65,7 +65,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when saving the Customer succeeds", func() {
-					customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(nil).Once()
+					customers.On("Register", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(nil).Once()
 					dbMock.ExpectCommit()
 
 					err := commandHandler.Handle(register)
@@ -77,7 +77,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 				})
 
 				Convey("And when saving the Customer fails", func() {
-					customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(shared.ErrTechnical).Once()
+					customers.On("Register", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
 					err := commandHandler.Handle(register)
@@ -98,10 +98,8 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		customer := registerCustomerForCommandHandlerTest(customerID, emailAddress)
-		recordedEvents := customer.RecordedEvents()
+		recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
 		confirmationHash := recordedEvents[0].(*events.Registered).ConfirmableEmailAddress().ConfirmationHash()
-		customer.PurgeRecordedEvents()
 
 		customers := new(mocks.PersistableCustomers)
 
@@ -124,11 +122,14 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
+					customer, err := domain.ReconstituteCustomerFrom(recordedEvents)
+					So(err, ShouldBeNil)
+
 					customers.On("Of", confirmEmailAddress.AggregateID()).Return(customer, nil).Once()
 
 					Convey("And when executing the command succeeds", func() {
 						Convey("And when saving the Customer succeeds", func() {
-							customers.On("Persist", customer).Return(nil).Once()
+							customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(nil).Once()
 							dbMock.ExpectCommit()
 
 							err := commandHandler.Handle(confirmEmailAddress)
@@ -140,7 +141,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 						})
 
 						Convey("And when saving the Customer fails", func() {
-							customers.On("Persist", customer).Return(shared.ErrTechnical).Once()
+							customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(shared.ErrTechnical).Once()
 							dbMock.ExpectRollback()
 
 							err := commandHandler.Handle(confirmEmailAddress)
@@ -485,7 +486,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //	})
 //}
 
-func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) *domain.Customer {
+func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) shared.DomainEvents {
 	register, err := commands.NewRegister(
 		id.String(),
 		emailAddress.EmailAddress(),
@@ -494,7 +495,7 @@ func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.E
 	)
 	So(err, ShouldBeNil)
 
-	customer := domain.RegisterCustomer(register)
+	recordedEvents := domain.RegisterCustomer(register)
 
-	return customer
+	return recordedEvents
 }

@@ -3,25 +3,16 @@ package domain
 import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/shared"
 )
 
-func RegisterCustomer(with *commands.Register) *Customer {
-	newCustomer := blankCustomer()
-
-	newCustomer.recordThat(
+func RegisterCustomer(with *commands.Register) shared.DomainEvents {
+	return shared.DomainEvents{
 		events.ItWasRegistered(
 			with.ID(),
 			with.EmailAddress().ToConfirmable(),
 			with.PersonName(),
-			newCustomer.currentStreamVersion+1,
+			1,
 		),
-	)
-
-	return newCustomer
-}
-
-func (customer *Customer) whenItWasRegistered(actualEvent *events.Registered) {
-	customer.id = actualEvent.ID()
-	customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
-	customer.personName = actualEvent.PersonName()
+	}
 }
