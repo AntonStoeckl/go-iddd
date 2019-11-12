@@ -1,4 +1,4 @@
-package customers_test
+package eventsourced_test
 
 import (
 	"errors"
@@ -7,8 +7,8 @@ import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
-	"go-iddd/customer/infrastructure/customers"
-	"go-iddd/customer/infrastructure/customers/test"
+	"go-iddd/customer/infrastructure/eventsourced"
+	"go-iddd/customer/infrastructure/eventsourced/test"
 	"go-iddd/shared"
 	"testing"
 
@@ -16,7 +16,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func TestEventSourcedRepositorySession_Register(t *testing.T) {
+func TestCustomers_Register(t *testing.T) {
 	Convey("Given a Repository", t, func() {
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -24,7 +24,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 
 		Convey("And given a new Customer", func() {
 			id := values.GenerateID()
-			recordedEvents := registerCustomerForEventSourcedRepositorySessionTest(id)
+			recordedEvents := registerCustomerForCustomersTest(id)
 
 			Convey("When the Customer is registered", func() {
 				tx := test.BeginTx(db)
@@ -38,7 +38,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("And when the same Customer is registered again", func() {
-						customer := registerCustomerForEventSourcedRepositorySessionTest(id)
+						customer := registerCustomerForCustomersTest(id)
 						tx := test.BeginTx(db)
 						session := repo.StartSession(tx)
 
@@ -52,7 +52,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 			})
 
 			Convey("And given the session was already committed", func() {
-				recordedEvents := registerCustomerForEventSourcedRepositorySessionTest(id)
+				recordedEvents := registerCustomerForCustomersTest(id)
 				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 				err := tx.Commit()
@@ -67,12 +67,12 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 				})
 			})
 
-			cleanUpArtefactsForEventSourcedRepositorySession(id)
+			cleanUpArtefactsForCustomers(id)
 		})
 
 		Convey("And given an existing Customer", func() {
 			id := values.GenerateID()
-			recordedEvents := registerCustomerForEventSourcedRepositorySessionTest(id)
+			recordedEvents := registerCustomerForCustomersTest(id)
 			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 			err := session.Register(id, recordedEvents)
@@ -81,7 +81,7 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When the same Customer is registered again", func() {
-				recordedEvents := registerCustomerForEventSourcedRepositorySessionTest(id)
+				recordedEvents := registerCustomerForCustomersTest(id)
 				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 
@@ -92,15 +92,15 @@ func TestEventSourcedRepositorySession_Register(t *testing.T) {
 				})
 			})
 
-			cleanUpArtefactsForEventSourcedRepositorySession(id)
+			cleanUpArtefactsForCustomers(id)
 		})
 	})
 }
 
-func TestEventSourcedRepositorySession_Of(t *testing.T) {
+func TestCustomers_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
 		id := values.GenerateID()
-		customer := registerCustomerForEventSourcedRepositorySessionTest(id)
+		customer := registerCustomerForCustomersTest(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
@@ -129,7 +129,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 					return nil, expectedErr
 				}
 
-				repo := customers.NewEventSourcedRepository(store, customerFactory)
+				repo := eventsourced.NewCustomersSessionStarter(store, customerFactory)
 				tx := test.BeginTx(db)
 
 				session := repo.StartSession(tx)
@@ -164,7 +164,7 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 			})
 		})
 
-		cleanUpArtefactsForEventSourcedRepositorySession(id)
+		cleanUpArtefactsForCustomers(id)
 	})
 
 	Convey("Given a not existing Customer", t, func() {
@@ -187,10 +187,10 @@ func TestEventSourcedRepositorySession_Of(t *testing.T) {
 	})
 }
 
-func TestEventSourcedRepositorySession_Persist(t *testing.T) {
+func TestCustomers_Persist(t *testing.T) {
 	Convey("Given a changed Customer", t, func() {
 		id := values.GenerateID()
-		recordedEvents := registerCustomerForEventSourcedRepositorySessionTest(id)
+		recordedEvents := registerCustomerForCustomersTest(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
@@ -249,13 +249,13 @@ func TestEventSourcedRepositorySession_Persist(t *testing.T) {
 			})
 		})
 
-		cleanUpArtefactsForEventSourcedRepositorySession(id)
+		cleanUpArtefactsForCustomers(id)
 	})
 }
 
 /*** Test Helper Methods ***/
 
-func registerCustomerForEventSourcedRepositorySessionTest(id *values.ID) shared.DomainEvents {
+func registerCustomerForCustomersTest(id *values.ID) shared.DomainEvents {
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.String())
 	givenName := "John"
 	familyName := "Doe"
@@ -269,7 +269,7 @@ func registerCustomerForEventSourcedRepositorySessionTest(id *values.ID) shared.
 	return recordedEvents
 }
 
-func cleanUpArtefactsForEventSourcedRepositorySession(id *values.ID) {
+func cleanUpArtefactsForCustomers(id *values.ID) {
 	diContainer := test.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 

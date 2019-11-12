@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/customer/application"
 	"go-iddd/customer/domain"
-	"go-iddd/customer/infrastructure/customers"
+	"go-iddd/customer/infrastructure/eventsourced"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/eventstore"
 
@@ -16,12 +16,12 @@ const (
 )
 
 type DIContainer struct {
-	postgresDBConn         *sql.DB
-	unmarshalDomainEvent   shared.UnmarshalDomainEvent
-	customerFactory        func(eventStream shared.DomainEvents) (*domain.Customer, error)
-	postgresEventStore     *eventstore.PostgresEventStore
-	customerSessionStarter *customers.EventSourcedRepository
-	customerCommandHandler *application.CommandHandler
+	postgresDBConn          *sql.DB
+	unmarshalDomainEvent    shared.UnmarshalDomainEvent
+	customerFactory         func(eventStream shared.DomainEvents) (*domain.Customer, error)
+	postgresEventStore      *eventstore.PostgresEventStore
+	customersSessionStarter *eventsourced.CustomersSessionStarter
+	customerCommandHandler  *application.CommandHandler
 }
 
 func NewDIContainer(
@@ -59,15 +59,15 @@ func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventSt
 	return container.postgresEventStore
 }
 
-func (container DIContainer) GetCustomerRepository() *customers.EventSourcedRepository {
-	if container.customerSessionStarter == nil {
-		container.customerSessionStarter = customers.NewEventSourcedRepository(
+func (container DIContainer) GetCustomerRepository() *eventsourced.CustomersSessionStarter {
+	if container.customersSessionStarter == nil {
+		container.customersSessionStarter = eventsourced.NewCustomersSessionStarter(
 			container.GetPostgresEventStore(),
 			container.customerFactory,
 		)
 	}
 
-	return container.customerSessionStarter
+	return container.customersSessionStarter
 }
 
 func (container DIContainer) GetCustomerCommandHandler() *application.CommandHandler {

@@ -1,4 +1,4 @@
-package customers
+package eventsourced
 
 import (
 	"go-iddd/customer/domain"
@@ -9,17 +9,15 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type EventSourcedRepositorySession struct {
+type Customers struct {
 	eventStoreSession shared.EventStore
 	customerFactory   func(eventStream shared.DomainEvents) (*domain.Customer, error)
 }
 
-/***** Implement domain.Customers *****/
-
-func (session *EventSourcedRepositorySession) Register(id *values.ID, recordedEvents shared.DomainEvents) error {
+func (customers *Customers) Register(id *values.ID, recordedEvents shared.DomainEvents) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
-	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
+	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
 			return xerrors.Errorf("eventSourcedRepositorySession.Register: %s: %w", err, shared.ErrDuplicate)
 		}
@@ -30,10 +28,10 @@ func (session *EventSourcedRepositorySession) Register(id *values.ID, recordedEv
 	return nil
 }
 
-func (session *EventSourcedRepositorySession) Of(id *values.ID) (*domain.Customer, error) {
+func (customers *Customers) Of(id *values.ID) (*domain.Customer, error) {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
-	eventStream, err := session.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
+	eventStream, err := customers.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
 	if err != nil {
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
 	}
@@ -42,7 +40,7 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (*domain.Custome
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: event stream is empty: %w", shared.ErrNotFound)
 	}
 
-	customer, err := session.customerFactory(eventStream)
+	customer, err := customers.customerFactory(eventStream)
 	if err != nil {
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
 	}
@@ -50,12 +48,10 @@ func (session *EventSourcedRepositorySession) Of(id *values.ID) (*domain.Custome
 	return customer, nil
 }
 
-/***** Implement application.PersistsCustomers *****/
-
-func (session *EventSourcedRepositorySession) Persist(id *values.ID, recordedEvents shared.DomainEvents) error {
+func (customers *Customers) Persist(id *values.ID, recordedEvents shared.DomainEvents) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
 
-	if err := session.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
+	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)
 	}
 
