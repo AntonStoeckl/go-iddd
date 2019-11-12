@@ -11,7 +11,7 @@ func (customer *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress
 		return nil
 	}
 
-	if !customer.confirmableEmailAddress.IsConfirmedBy(with.ConfirmationHash()) {
+	if !customer.confirmableEmailAddress.CanBeConfirmed(with.ConfirmationHash()) {
 		event := events.EmailAddressConfirmationHasFailed(
 			with.ID(),
 			with.ConfirmationHash(),
