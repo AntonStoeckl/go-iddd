@@ -104,7 +104,6 @@ func TestConfirmableEmailAddressIsConfirmedBy(t *testing.T) {
 		Convey("It should not confirm with a wrong ConfirmationHash", func() {
 			confirmationHash, err := values.RebuildConfirmationHash("invalid_confirmation_hash")
 			So(err, ShouldBeNil)
-			So(err, ShouldBeNil)
 			So(unconfirmedEmailAddress.IsConfirmedBy(confirmationHash), ShouldBeFalse)
 		})
 	})
