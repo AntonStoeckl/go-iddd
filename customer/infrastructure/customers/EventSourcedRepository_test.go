@@ -21,7 +21,7 @@ func TestEventSourcedRepository_StartSession(t *testing.T) {
 
 			Convey("It should succeed", func() {
 				So(session, ShouldNotBeNil)
-				So(session, ShouldHaveSameTypeAs, &customers.EventSourcedRepositorySession{})
+				So(session, ShouldHaveSameTypeAs, (*customers.EventSourcedRepositorySession)(nil))
 			})
 		})
 	})

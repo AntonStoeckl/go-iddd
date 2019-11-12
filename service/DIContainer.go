@@ -20,7 +20,7 @@ type DIContainer struct {
 	unmarshalDomainEvent   shared.UnmarshalDomainEvent
 	customerFactory        func(eventStream shared.DomainEvents) (*domain.Customer, error)
 	postgresEventStore     *eventstore.PostgresEventStore
-	customerRepository     application.StartsRepositorySessions
+	customerSessionStarter *customers.EventSourcedRepository
 	customerCommandHandler *application.CommandHandler
 }
 
@@ -59,15 +59,15 @@ func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventSt
 	return container.postgresEventStore
 }
 
-func (container DIContainer) GetCustomerRepository() application.StartsRepositorySessions {
-	if container.customerRepository == nil {
-		container.customerRepository = customers.NewEventSourcedRepository(
+func (container DIContainer) GetCustomerRepository() *customers.EventSourcedRepository {
+	if container.customerSessionStarter == nil {
+		container.customerSessionStarter = customers.NewEventSourcedRepository(
 			container.GetPostgresEventStore(),
 			container.customerFactory,
 		)
 	}
 
-	return container.customerRepository
+	return container.customerSessionStarter
 }
 
 func (container DIContainer) GetCustomerCommandHandler() *application.CommandHandler {

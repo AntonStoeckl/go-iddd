@@ -21,11 +21,11 @@ import (
 
 func TestNewCommandHandler(t *testing.T) {
 	Convey("When a new CommandHandler is created", t, func() {
-		repo := new(mocks.StartsRepositorySessions)
+		sessionStarter := new(mocks.StartsCustomersSession)
 		db, _, err := sqlmock.New()
 		So(err, ShouldBeNil)
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("It should succeed", func() {
 			So(commandHandler, ShouldNotBeNil)
@@ -42,16 +42,16 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		customers := new(mocks.PersistableCustomers)
+		customers := new(mocks.Customers)
 
-		repo := new(mocks.StartsRepositorySessions)
-		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
 		dbMock.ExpectBegin()
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("And given a Register command", func() {
 			register, err := commands.NewRegister(
@@ -100,16 +100,16 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 		recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
 		confirmationHash := recordedEvents[0].(*events.Registered).ConfirmableEmailAddress().ConfirmationHash()
 
-		customers := new(mocks.PersistableCustomers)
+		customers := new(mocks.Customers)
 
-		repo := new(mocks.StartsRepositorySessions)
-		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
 		dbMock.ExpectBegin()
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("And given a ConfirmEmailAddress command", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
@@ -198,16 +198,16 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		customers := new(mocks.PersistableCustomers)
+		customers := new(mocks.Customers)
 
-		repo := new(mocks.StartsRepositorySessions)
-		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
 		dbMock.ExpectBegin()
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("And given a ChangeEmailAddress command", func() {
 			changeEmailAddress, err := commands.NewChangeEmailAddress(
@@ -276,15 +276,15 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		customers := new(mocks.PersistableCustomers)
+		customers := new(mocks.Customers)
 
-		repo := new(mocks.StartsRepositorySessions)
-		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("And given a ChangeEmailAddress command", func() {
 			changeEmailAddress, err := commands.NewChangeEmailAddress(
@@ -352,16 +352,16 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customers := new(mocks.PersistableCustomers)
+		customers := new(mocks.Customers)
 
-		repo := new(mocks.StartsRepositorySessions)
-		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
 		dbMock.ExpectBegin()
 
-		commandHandler := application.NewCommandHandler(repo, db)
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
 		Convey("When a nil interface command is handled", func() {
 			var nilInterfaceCommand shared.Command
@@ -414,9 +414,9 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 //func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 //	Convey("Given a CommandHandler", t, func() {
-//		customers := new(mocks.PersistableCustomers)
+//		customers := new(mocks.Customers)
 //
-//		repo := new(mocks.StartsRepositorySessions)
+//		repo := new(mocks.StartsCustomersSession)
 //		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
 //
 //		db, _, err := sqlmock.New()
@@ -433,7 +433,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //			)
 //			So(err, ShouldBeNil)
 //
-//			repo := new(mocks.StartsRepositorySessions)
+//			repo := new(mocks.StartsCustomersSession)
 //			db, _, err := sqlmock.New()
 //			So(err, ShouldBeNil)
 //			repo.On("StartSession").Return(nil, shared.ErrTechnical)
@@ -457,7 +457,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //			So(err, ShouldBeNil)
 //
 //			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(nil).Once()
-//			repo := new(mocks.StartsRepositorySessions)
+//			repo := new(mocks.StartsCustomersSession)
 //			repo.On("StartSession").Return(customers, nil)
 //			db, _, err := sqlmock.New()
 //			So(err, ShouldBeNil)
@@ -482,7 +482,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //			So(err, ShouldBeNil)
 //
 //			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(shared.ErrDomainConstraintsViolation).Once()
-//			repo := new(mocks.StartsRepositorySessions)
+//			repo := new(mocks.StartsCustomersSession)
 //			repo.On("StartSession").Return(customers, nil)
 //			db, _, err := sqlmock.New()
 //			So(err, ShouldBeNil)

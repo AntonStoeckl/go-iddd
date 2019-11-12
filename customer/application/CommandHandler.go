@@ -14,16 +14,16 @@ import (
 const maxCommandHandlerRetries = 10
 
 type CommandHandler struct {
-	repositorySessionFactory StartsRepositorySessions
-	db                       *sql.DB
+	sessionStarter StartsCustomersSession
+	db             *sql.DB
 }
 
 /*** Factory Method ***/
 
-func NewCommandHandler(repositorySessionFactory StartsRepositorySessions, db *sql.DB) *CommandHandler {
+func NewCommandHandler(sessionStarter StartsCustomersSession, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
-		repositorySessionFactory: repositorySessionFactory,
-		db:                       db,
+		sessionStarter: sessionStarter,
+		db:             db,
 	}
 }
 
@@ -81,10 +81,10 @@ func (handler *CommandHandler) handleSession(command shared.Command) error {
 		return errors.Mark(errTx, shared.ErrTechnical)
 	}
 
-	persistableCustomers := handler.repositorySessionFactory.StartSession(tx)
+	customers := handler.sessionStarter.StartSession(tx)
 
 	// call next method in chain
-	err := handler.handleCommand(persistableCustomers, command)
+	err := handler.handleCommand(customers, command)
 
 	if err != nil && !errors.Is(err, shared.ErrDomainConstraintsViolation) {
 		_ = tx.Rollback()
@@ -104,7 +104,7 @@ func (handler *CommandHandler) handleSession(command shared.Command) error {
 }
 
 func (handler *CommandHandler) handleCommand(
-	persistableCustomers PersistableCustomers,
+	customers Customers,
 	command shared.Command,
 ) error {
 
@@ -112,11 +112,11 @@ func (handler *CommandHandler) handleCommand(
 
 	switch actualCommand := command.(type) {
 	case *commands.Register:
-		err = handler.register(persistableCustomers, actualCommand)
+		err = handler.register(customers, actualCommand)
 	case *commands.ConfirmEmailAddress:
-		err = handler.confirmEmailAddress(persistableCustomers, actualCommand)
+		err = handler.confirmEmailAddress(customers, actualCommand)
 	case *commands.ChangeEmailAddress:
-		err = handler.changeEmailAddress(persistableCustomers, actualCommand)
+		err = handler.changeEmailAddress(customers, actualCommand)
 	}
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (handler *CommandHandler) handleCommand(
 /*** Business cases ***/
 
 func (handler *CommandHandler) register(
-	customers domain.Customers,
+	customers Customers,
 	register *commands.Register,
 ) error {
 
@@ -143,7 +143,7 @@ func (handler *CommandHandler) register(
 }
 
 func (handler *CommandHandler) confirmEmailAddress(
-	customers PersistableCustomers,
+	customers Customers,
 	confirmEmailAddress *commands.ConfirmEmailAddress,
 ) error {
 
@@ -169,7 +169,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 }
 
 func (handler *CommandHandler) changeEmailAddress(
-	customers PersistableCustomers,
+	customers Customers,
 	changeEmailAddress *commands.ChangeEmailAddress,
 ) error {
 

@@ -14,26 +14,26 @@ type StartsEventStoreSessions interface {
 }
 
 type EventSourcedRepository struct {
-	eventStoreSessionFactory StartsEventStoreSessions
+	eventStoreSessionStarter StartsEventStoreSessions
 	customerFactory          func(eventStream shared.DomainEvents) (*domain.Customer, error)
 }
 
 func NewEventSourcedRepository(
-	eventStoreSessionFactory StartsEventStoreSessions,
+	eventStoreSessionStarter StartsEventStoreSessions,
 	customerFactory func(eventStream shared.DomainEvents) (*domain.Customer, error),
-) application.StartsRepositorySessions {
+) *EventSourcedRepository {
 
 	return &EventSourcedRepository{
-		eventStoreSessionFactory: eventStoreSessionFactory,
+		eventStoreSessionStarter: eventStoreSessionStarter,
 		customerFactory:          customerFactory,
 	}
 }
 
-/***** Implement application.StartsRepositorySessions *****/
+/***** Implement application.StartsCustomersSession *****/
 
-func (repo *EventSourcedRepository) StartSession(tx *sql.Tx) application.PersistableCustomers {
+func (repo *EventSourcedRepository) StartSession(tx *sql.Tx) application.Customers {
 	return &EventSourcedRepositorySession{
-		eventStoreSession: repo.eventStoreSessionFactory.StartSession(tx),
+		eventStoreSession: repo.eventStoreSessionStarter.StartSession(tx),
 		customerFactory:   repo.customerFactory,
 	}
 }
