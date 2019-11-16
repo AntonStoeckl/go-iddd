@@ -5,6 +5,7 @@ package test
 import (
 	"database/sql"
 	"go-iddd/customer/domain"
+	"go-iddd/customer/domain/events"
 	"go-iddd/service"
 	"go-iddd/shared/infrastructure/eventstore"
 
@@ -29,7 +30,7 @@ func SetUpDIContainer() *service.DIContainer {
 
 	diContainer, err := service.NewDIContainer(
 		db,
-		domain.UnmarshalDomainEvent,
+		events.UnmarshalDomainEvent,
 		domain.ReconstituteCustomerFrom,
 	)
 	So(err, ShouldBeNil)

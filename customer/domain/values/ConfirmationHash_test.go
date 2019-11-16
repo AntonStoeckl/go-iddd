@@ -106,10 +106,8 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
-				err := confirmationHash.ShouldEqual(equalConfirmationHash)
-
-				Convey("It should succeed", func() {
-					So(err, ShouldBeNil)
+				Convey("They should be equal", func() {
+					So(confirmationHash.Equals(equalConfirmationHash), ShouldBeTrue)
 				})
 			})
 		})
@@ -120,11 +118,8 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
-				err := confirmationHash.ShouldEqual(differentConfirmationHash)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, shared.ErrNotEqual), ShouldBeTrue)
+				Convey("They should not be equal", func() {
+					So(confirmationHash.Equals(differentConfirmationHash), ShouldBeFalse)
 				})
 			})
 		})

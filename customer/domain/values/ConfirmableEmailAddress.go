@@ -8,7 +8,7 @@ import (
 )
 
 type ConfirmableEmailAddress struct {
-	baseEmailAddress *EmailAddress
+	emailAddress     *EmailAddress
 	confirmationHash *ConfirmationHash
 	isConfirmed      bool
 }
@@ -17,7 +17,7 @@ type ConfirmableEmailAddress struct {
 
 func buildConfirmableEmailAddress(from *EmailAddress, with *ConfirmationHash) *ConfirmableEmailAddress {
 	return &ConfirmableEmailAddress{
-		baseEmailAddress: from,
+		emailAddress:     from,
 		confirmationHash: with,
 		isConfirmed:      false,
 	}
@@ -26,7 +26,7 @@ func buildConfirmableEmailAddress(from *EmailAddress, with *ConfirmationHash) *C
 /*** Getter Methods ***/
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) EmailAddress() string {
-	return confirmableEmailAddress.baseEmailAddress.EmailAddress()
+	return confirmableEmailAddress.emailAddress.EmailAddress()
 }
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) ConfirmationHash() string {
@@ -40,33 +40,18 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) IsConfirmed() bool {
 /*** Comparison Methods ***/
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) Equals(other *EmailAddress) bool {
-	return confirmableEmailAddress.baseEmailAddress.Equals(other)
+	return confirmableEmailAddress.emailAddress.Equals(other)
 }
 
-func (confirmableEmailAddress *ConfirmableEmailAddress) ShouldConfirm(given *EmailAddress, with *ConfirmationHash) error {
-	if err := confirmableEmailAddress.baseEmailAddress.ShouldEqual(given); err != nil {
-		return errors.Wrap(err, "confirmableEmailAddress.ShouldConfirm")
-	}
-
-	if err := confirmableEmailAddress.confirmationHash.ShouldEqual(with); err != nil {
-		return errors.Wrap(err, "confirmableEmailAddress.ShouldConfirm")
-	}
-
-	confirmedEmailAddress := buildConfirmableEmailAddress(
-		confirmableEmailAddress.baseEmailAddress,
-		confirmableEmailAddress.confirmationHash,
-	)
-
-	confirmedEmailAddress.isConfirmed = true
-
-	return nil
+func (confirmableEmailAddress *ConfirmableEmailAddress) IsConfirmedBy(hash *ConfirmationHash) bool {
+	return confirmableEmailAddress.confirmationHash.Equals(hash)
 }
 
 /*** Modification Methods ***/
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) MarkAsConfirmed() *ConfirmableEmailAddress {
 	confirmedEmailAddress := buildConfirmableEmailAddress(
-		confirmableEmailAddress.baseEmailAddress,
+		confirmableEmailAddress.emailAddress,
 		confirmableEmailAddress.confirmationHash,
 	)
 
@@ -82,7 +67,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) MarshalJSON() ([]byte, e
 		EmailAddress     *EmailAddress     `json:"emailAddress"`
 		ConfirmationHash *ConfirmationHash `json:"confirmationHash"`
 	}{
-		EmailAddress:     confirmableEmailAddress.baseEmailAddress,
+		EmailAddress:     confirmableEmailAddress.emailAddress,
 		ConfirmationHash: confirmableEmailAddress.confirmationHash,
 	}
 
@@ -106,7 +91,7 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) UnmarshalJSON(data []byt
 		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "confirmableEmailAddress.UnmarshalJSON")
 	}
 
-	confirmableEmailAddress.baseEmailAddress = values.EmailAddress
+	confirmableEmailAddress.emailAddress = values.EmailAddress
 	confirmableEmailAddress.confirmationHash = values.ConfirmationHash
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
+	"go-iddd/customer/domain/events"
 	"go-iddd/shared"
 	"reflect"
 
@@ -13,16 +14,16 @@ import (
 const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
-	repositorySessionFactory StartsRepositorySessions
-	db                       *sql.DB
+	sessionStarter StartsCustomersSession
+	db             *sql.DB
 }
 
 /*** Factory Method ***/
 
-func NewCommandHandler(repositorySessionFactory StartsRepositorySessions, db *sql.DB) *CommandHandler {
+func NewCommandHandler(sessionStarter StartsCustomersSession, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
-		repositorySessionFactory: repositorySessionFactory,
-		db:                       db,
+		sessionStarter: sessionStarter,
+		db:             db,
 	}
 }
 
@@ -80,43 +81,19 @@ func (handler *CommandHandler) handleSession(command shared.Command) error {
 		return errors.Mark(errTx, shared.ErrTechnical)
 	}
 
-	persistableCustomers := handler.repositorySessionFactory.StartSession(tx)
+	customers := handler.sessionStarter.StartSession(tx)
 
 	// call next method in chain
-	if err := handler.handleCommand(persistableCustomers, command); err != nil {
-		if errTx := tx.Rollback(); errTx != nil {
-			return errors.Wrap(err, errTx.Error())
-		}
+	err := handler.handleCommand(customers, command)
+
+	if err != nil && !errors.Is(err, shared.ErrDomainConstraintsViolation) {
+		_ = tx.Rollback()
 
 		return err
 	}
 
 	if errTx := tx.Commit(); errTx != nil {
 		return errors.Mark(errTx, shared.ErrTechnical)
-	}
-
-	return nil
-}
-
-func (handler *CommandHandler) handleCommand(
-	persistableCustomers PersistableCustomers,
-	command shared.Command,
-) error {
-
-	var err error
-	var customer *domain.Customer
-
-	switch actualCommand := command.(type) {
-	case *commands.Register:
-		err = handler.register(persistableCustomers, actualCommand)
-	case *commands.ConfirmEmailAddress:
-		if customer, err = handler.confirmEmailAddress(persistableCustomers, actualCommand); err == nil {
-			err = handler.persist(persistableCustomers, customer)
-		}
-	case *commands.ChangeEmailAddress:
-		if customer, err = handler.changeEmailAddress(persistableCustomers, actualCommand); err == nil {
-			err = handler.persist(persistableCustomers, customer)
-		}
 	}
 
 	if err != nil {
@@ -126,8 +103,23 @@ func (handler *CommandHandler) handleCommand(
 	return nil
 }
 
-func (handler *CommandHandler) persist(customers PersistsCustomers, customer *domain.Customer) error {
-	if err := customers.Persist(customer); err != nil {
+func (handler *CommandHandler) handleCommand(
+	customers Customers,
+	command shared.Command,
+) error {
+
+	var err error
+
+	switch actualCommand := command.(type) {
+	case *commands.Register:
+		err = handler.register(customers, actualCommand)
+	case *commands.ConfirmEmailAddress:
+		err = handler.confirmEmailAddress(customers, actualCommand)
+	case *commands.ChangeEmailAddress:
+		err = handler.changeEmailAddress(customers, actualCommand)
+	}
+
+	if err != nil {
 		return err
 	}
 
@@ -137,13 +129,13 @@ func (handler *CommandHandler) persist(customers PersistsCustomers, customer *do
 /*** Business cases ***/
 
 func (handler *CommandHandler) register(
-	customers domain.Customers,
+	customers Customers,
 	register *commands.Register,
 ) error {
 
-	newCustomer := domain.RegisterCustomer(register)
+	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := customers.Register(newCustomer); err != nil {
+	if err := customers.Register(register.ID(), recordedEvents); err != nil {
 		return err
 	}
 
@@ -151,35 +143,48 @@ func (handler *CommandHandler) register(
 }
 
 func (handler *CommandHandler) confirmEmailAddress(
-	customers PersistableCustomers,
+	customers Customers,
 	confirmEmailAddress *commands.ConfirmEmailAddress,
-) (*domain.Customer, error) {
+) error {
 
 	customer, err := customers.Of(confirmEmailAddress.ID())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if err := customer.ConfirmEmailAddress(confirmEmailAddress); err != nil {
-		return nil, err
+	recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
+
+	if err := customers.Persist(confirmEmailAddress.ID(), recordedEvents); err != nil {
+		return err
 	}
 
-	return customer, nil
+	for _, event := range recordedEvents {
+		switch actualEvent := event.(type) {
+		case *events.EmailAddressConfirmationFailed:
+			return errors.Mark(errors.New(actualEvent.EventName()), shared.ErrDomainConstraintsViolation)
+		}
+	}
+
+	return nil
 }
 
 func (handler *CommandHandler) changeEmailAddress(
-	customers PersistableCustomers,
+	customers Customers,
 	changeEmailAddress *commands.ChangeEmailAddress,
-) (*domain.Customer, error) {
+) error {
 
 	customer, err := customers.Of(changeEmailAddress.ID())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	customer.ChangeEmailAddress(changeEmailAddress)
+	recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
 
-	return customer, nil
+	if err := customers.Persist(changeEmailAddress.ID(), recordedEvents); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 /*** Command Assertions ***/

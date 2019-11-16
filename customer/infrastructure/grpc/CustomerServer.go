@@ -2,18 +2,18 @@ package customergrpc
 
 import (
 	"context"
+	"go-iddd/customer/application"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
-	"go-iddd/shared"
 
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
 type customerServer struct {
-	commandHandler shared.CommandHandler
+	commandHandler *application.CommandHandler
 }
 
-func NewCustomerServer(commandHandler shared.CommandHandler) *customerServer {
+func NewCustomerServer(commandHandler *application.CommandHandler) *customerServer {
 	return &customerServer{commandHandler: commandHandler}
 }
 

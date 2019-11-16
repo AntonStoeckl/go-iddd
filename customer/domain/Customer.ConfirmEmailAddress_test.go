@@ -4,12 +4,10 @@ import (
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
-	"go-iddd/customer/domain/mocks"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
 
-	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -40,71 +38,48 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.ConfirmEmailAddress(confirmEmailAddress)
+			recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
 
-			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
+			Convey("And it should record EmailAddressConfirmed", func() {
+				So(recordedEvents, ShouldHaveLength, 1)
+				emailAddressConfirmed, ok := recordedEvents[0].(*events.EmailAddressConfirmed)
+				So(ok, ShouldBeTrue)
+				So(emailAddressConfirmed, ShouldNotBeNil)
+				So(emailAddressConfirmed.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
+				So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
-				Convey("And it should record that a Customer's emailAddress was confirmed", func() {
-					recordedEvents := customer.RecordedEvents()
-					customer.PurgeRecordedEvents()
-					emailAddressConfirmed := mocks.FindCustomerEventIn(
-						recordedEvents,
-						new(events.EmailAddressConfirmed),
-					).(*events.EmailAddressConfirmed)
+				Convey("And when it is confirmed again", func() {
+					recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
 
-					So(emailAddressConfirmed, ShouldNotBeNil)
-					So(emailAddressConfirmed.ID().Equals(id), ShouldBeTrue)
-					So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
-					So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
-
-					Convey("And it should not record anything else", func() {
-						So(recordedEvents, ShouldHaveLength, 1)
-					})
-
-					Convey("And when it is confirmed again", func() {
-						err = customer.ConfirmEmailAddress(confirmEmailAddress)
-
-						Convey("It should be ignored", func() {
-							So(err, ShouldBeNil)
-							recordedEvents := customer.RecordedEvents()
-							customer.PurgeRecordedEvents()
-							So(recordedEvents, ShouldBeEmpty)
-						})
+					Convey("It should be ignored", func() {
+						So(recordedEvents, ShouldBeEmpty)
 					})
 				})
 			})
 		})
 
-		Convey("When a confirmableEmailAddress is confirmed with a wrong emailAddress", func() {
-			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-				id.String(),
-				"john+outdated@doe.com",
-				confirmableEmailAddress.ConfirmationHash(),
-			)
+		Convey("When an emailAddress is confirmed with a wrong confirmationHash", func() {
+			wrongConfirmationHash, err := values.RebuildConfirmationHash("some_not_matching_hash")
 			So(err, ShouldBeNil)
 
-			err = customer.ConfirmEmailAddress(confirmEmailAddress)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-			})
-		})
-
-		Convey("When a confirmableEmailAddress is confirmed with a wrong confirmationHash", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 				id.String(),
 				emailAddress.EmailAddress(),
-				"some_not_matching_hash",
+				wrongConfirmationHash.Hash(),
 			)
 			So(err, ShouldBeNil)
 
-			err = customer.ConfirmEmailAddress(confirmEmailAddress)
+			recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
 
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
+			Convey("It should record EmailAddressConfirmationFailed", func() {
+				So(recordedEvents, ShouldHaveLength, 1)
+				emailAddressConfirmationFailed, ok := recordedEvents[0].(*events.EmailAddressConfirmationFailed)
+				So(ok, ShouldBeTrue)
+				So(emailAddressConfirmationFailed, ShouldNotBeNil)
+				So(emailAddressConfirmationFailed.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.ConfirmationHash().Equals(wrongConfirmationHash), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 			})
 		})
 	})

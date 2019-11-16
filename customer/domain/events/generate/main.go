@@ -51,6 +51,14 @@ var events = []Event{
 		},
 	},
 	{
+		EventType:    "EmailAddressConfirmationFailed",
+		EventFactory: "EmailAddressConfirmationHasFailed",
+		Fields: []Field{
+			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "confirmationHash", DataType: "*values.ConfirmationHash"},
+		},
+	},
+	{
 		EventType:    "EmailAddressChanged",
 		EventFactory: "EmailAddressWasChanged",
 		Fields: []Field{
@@ -158,6 +166,7 @@ func generateTestsForEvents() {
 	valueFactoryForTestTemplates := map[string]string{
 		"id":                      idFactoryForTestTemplate,
 		"emailAddress":            emailAddressFactoryForTestTemplate,
+		"confirmationHash":        confirmationHashFactoryForTestTemplate,
 		"confirmableEmailAddress": confirmableEmailAddressFactoryForTestTemplate,
 		"personName":              personNameFactoryForTestTemplate,
 	}
@@ -365,6 +374,8 @@ var idFactoryForTestTemplate = `id := values.GenerateID()`
 
 var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
 	So(err, ShouldBeNil)`
+
+var confirmationHashFactoryForTestTemplate = `confirmationHash := values.GenerateConfirmationHash("secret_hash")`
 
 var confirmableEmailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
 	So(err, ShouldBeNil)
