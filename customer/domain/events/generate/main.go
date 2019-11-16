@@ -123,7 +123,6 @@ func generateEvents() {
 
 			rc, wc, _ := pipe.Commands(
 				exec.Command("gofmt"),
-				exec.Command("goimports"),
 			)
 
 			err = t.Execute(wc, event)
@@ -212,7 +211,6 @@ func generateTestsForEvents() {
 
 			rc, wc, _ := pipe.Commands(
 				exec.Command("gofmt"),
-				exec.Command("goimports"),
 			)
 
 			err = t.Execute(wc, event)
@@ -266,15 +264,8 @@ const (
 
 type {{eventName}} struct {
 	{{range .Fields}}{{.FieldName}} {{.DataType}}
-	{{end}}
-	meta *{{lcFirst eventName}}Meta
-}
-
-type {{lcFirst eventName}}Meta struct {
-	Identifier    string {{tick}}json:"identifier"{{tick}}
-	EventName     string {{tick}}json:"eventName"{{tick}}
-	OccurredAt    string {{tick}}json:"occurredAt"{{tick}}
-	StreamVersion uint   {{tick}}json:"streamVersion"{{tick}}
+	{{end -}}
+	meta *Meta
 }
 
 /*** Factory Methods ***/
@@ -296,11 +287,11 @@ func {{.EventFactory}}(
 	eventName = strings.Title(eventName)
 	fullEventName := {{$eventVar}}AggregateName + eventName
 
-	{{$eventVar}}.meta = &{{lcFirst eventName}}Meta{
-		Identifier:    id.String(),
-		EventName:     fullEventName,
-		OccurredAt:    time.Now().Format({{eventName}}MetaTimestampFormat),
-		StreamVersion: streamVersion,
+	{{$eventVar}}.meta = &Meta{
+		identifier:    id.String(),
+		eventName:     fullEventName,
+		occurredAt:    time.Now().Format({{eventName}}MetaTimestampFormat),
+		streamVersion: streamVersion,
 	}
 
 	return {{$eventVar}}
@@ -317,19 +308,19 @@ func ({{$eventVar}} *{{eventName}}) {{methodName .DataType}}() {{.DataType}} {
 /*** Implement shared.DomainEvent ***/
 
 func ({{$eventVar}} *{{eventName}}) Identifier() string {
-	return {{$eventVar}}.meta.Identifier
+	return {{$eventVar}}.meta.identifier
 }
 
 func ({{$eventVar}} *{{eventName}}) EventName() string {
-	return {{$eventVar}}.meta.EventName
+	return {{$eventVar}}.meta.eventName
 }
 
 func ({{$eventVar}} *{{eventName}}) OccurredAt() string {
-	return {{$eventVar}}.meta.OccurredAt
+	return {{$eventVar}}.meta.occurredAt
 }
 
 func ({{$eventVar}} *{{eventName}}) StreamVersion() uint {
-	return {{$eventVar}}.meta.StreamVersion
+	return {{$eventVar}}.meta.streamVersion
 }
 
 /*** Implement json.Marshaler ***/
@@ -338,7 +329,7 @@ func ({{$eventVar}} *{{eventName}}) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		{{range .Fields}}{{methodName .DataType}} {{.DataType}} {{tick}}json:"{{.FieldName}}"{{tick}}
 		{{end -}}
-		Meta *{{lcFirst eventName}}Meta {{tick}}json:"meta"{{tick}}
+		Meta *Meta {{tick}}json:"meta"{{tick}}
 	}{
 		{{range .Fields}}{{methodName .DataType}}: {{$eventVar}}.{{.FieldName}},
 		{{end -}}
@@ -354,7 +345,7 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
 		{{range .Fields}}{{methodName .DataType}} {{.DataType}} {{tick}}json:"{{.FieldName}}"{{tick}}
 		{{end -}}
-		Meta *{{lcFirst eventName}}Meta {{tick}}json:"meta"{{tick}}
+		Meta *Meta {{tick}}json:"meta"{{tick}}
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {

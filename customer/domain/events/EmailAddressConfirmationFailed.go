@@ -21,15 +21,7 @@ const (
 type EmailAddressConfirmationFailed struct {
 	id               *values.ID
 	confirmationHash *values.ConfirmationHash
-
-	meta *emailAddressConfirmationFailedMeta
-}
-
-type emailAddressConfirmationFailedMeta struct {
-	Identifier    string `json:"identifier"`
-	EventName     string `json:"eventName"`
-	OccurredAt    string `json:"occurredAt"`
-	StreamVersion uint   `json:"streamVersion"`
+	meta             *Meta
 }
 
 /*** Factory Methods ***/
@@ -51,11 +43,11 @@ func EmailAddressConfirmationHasFailed(
 	eventName = strings.Title(eventName)
 	fullEventName := emailAddressConfirmationFailedAggregateName + eventName
 
-	emailAddressConfirmationFailed.meta = &emailAddressConfirmationFailedMeta{
-		Identifier:    id.String(),
-		EventName:     fullEventName,
-		OccurredAt:    time.Now().Format(EmailAddressConfirmationFailedMetaTimestampFormat),
-		StreamVersion: streamVersion,
+	emailAddressConfirmationFailed.meta = &Meta{
+		identifier:    id.String(),
+		eventName:     fullEventName,
+		occurredAt:    time.Now().Format(EmailAddressConfirmationFailedMetaTimestampFormat),
+		streamVersion: streamVersion,
 	}
 
 	return emailAddressConfirmationFailed
@@ -74,28 +66,28 @@ func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) Confirmati
 /*** Implement shared.DomainEvent ***/
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) Identifier() string {
-	return emailAddressConfirmationFailed.meta.Identifier
+	return emailAddressConfirmationFailed.meta.identifier
 }
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) EventName() string {
-	return emailAddressConfirmationFailed.meta.EventName
+	return emailAddressConfirmationFailed.meta.eventName
 }
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) OccurredAt() string {
-	return emailAddressConfirmationFailed.meta.OccurredAt
+	return emailAddressConfirmationFailed.meta.occurredAt
 }
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) StreamVersion() uint {
-	return emailAddressConfirmationFailed.meta.StreamVersion
+	return emailAddressConfirmationFailed.meta.streamVersion
 }
 
 /*** Implement json.Marshaler ***/
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID               *values.ID                          `json:"id"`
-		ConfirmationHash *values.ConfirmationHash            `json:"confirmationHash"`
-		Meta             *emailAddressConfirmationFailedMeta `json:"meta"`
+		ID               *values.ID               `json:"id"`
+		ConfirmationHash *values.ConfirmationHash `json:"confirmationHash"`
+		Meta             *Meta                    `json:"meta"`
 	}{
 		ID:               emailAddressConfirmationFailed.id,
 		ConfirmationHash: emailAddressConfirmationFailed.confirmationHash,
@@ -109,9 +101,9 @@ func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) MarshalJSO
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID               *values.ID                          `json:"id"`
-		ConfirmationHash *values.ConfirmationHash            `json:"confirmationHash"`
-		Meta             *emailAddressConfirmationFailedMeta `json:"meta"`
+		ID               *values.ID               `json:"id"`
+		ConfirmationHash *values.ConfirmationHash `json:"confirmationHash"`
+		Meta             *Meta                    `json:"meta"`
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
