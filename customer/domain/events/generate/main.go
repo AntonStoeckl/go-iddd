@@ -37,7 +37,7 @@ var events = []Event{
 		EventType:    "Registered",
 		EventFactory: "ItWasRegistered",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.CustomerID"},
+			{FieldName: "customerID", DataType: "*values.CustomerID"},
 			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
 			{FieldName: "personName", DataType: "*values.PersonName"},
 		},
@@ -46,7 +46,7 @@ var events = []Event{
 		EventType:    "EmailAddressConfirmed",
 		EventFactory: "EmailAddressWasConfirmed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.CustomerID"},
+			{FieldName: "customerID", DataType: "*values.CustomerID"},
 			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
 		},
 	},
@@ -54,7 +54,7 @@ var events = []Event{
 		EventType:    "EmailAddressConfirmationFailed",
 		EventFactory: "EmailAddressConfirmationHasFailed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.CustomerID"},
+			{FieldName: "customerID", DataType: "*values.CustomerID"},
 			{FieldName: "confirmationHash", DataType: "*values.ConfirmationHash"},
 		},
 	},
@@ -62,7 +62,7 @@ var events = []Event{
 		EventType:    "EmailAddressChanged",
 		EventFactory: "EmailAddressWasChanged",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.CustomerID"},
+			{FieldName: "customerID", DataType: "*values.CustomerID"},
 			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
 		},
 	},
@@ -163,7 +163,7 @@ func generateTestsForEvents() {
 	}
 
 	valueFactoryForTestTemplates := map[string]string{
-		"id":                      idFactoryForTestTemplate,
+		"customerID":              customerIDFactoryForTestTemplate,
 		"emailAddress":            emailAddressFactoryForTestTemplate,
 		"confirmationHash":        confirmationHashFactoryForTestTemplate,
 		"confirmableEmailAddress": confirmableEmailAddressFactoryForTestTemplate,
@@ -288,7 +288,7 @@ func {{.EventFactory}}(
 	fullEventName := {{$eventVar}}AggregateName + eventName
 
 	{{$eventVar}}.meta = &Meta{
-		identifier:    id.String(),
+		identifier:    customerID.String(),
 		eventName:     fullEventName,
 		occurredAt:    time.Now().Format({{eventName}}MetaTimestampFormat),
 		streamVersion: streamVersion,
@@ -361,7 +361,7 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 }
 `
 
-var idFactoryForTestTemplate = `id := values.GenerateID()`
+var customerIDFactoryForTestTemplate = `customerID := values.GenerateCustomerID()`
 
 var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
 	So(err, ShouldBeNil)`
@@ -423,7 +423,7 @@ func Test{{eventName}}ExposesExpectedValues(t *testing.T) {
 		Convey("It should expose the expected values", func() {
 			{{range .Fields}}So({{$eventVar}}.{{methodName .DataType}}(), ShouldResemble, {{.FieldName}})
 			{{end -}}
-			So({{$eventVar}}.Identifier(), ShouldEqual, id.String())
+			So({{$eventVar}}.Identifier(), ShouldEqual, customerID.String())
 			So({{$eventVar}}.EventName(), ShouldEqual, "Customer{{eventName}}")
 			itOccurred, err := time.Parse(events.{{eventName}}MetaTimestampFormat, {{$eventVar}}.OccurredAt())
 			So(err, ShouldBeNil)

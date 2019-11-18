@@ -15,12 +15,12 @@ import (
 
 func TestEmailAddressConfirmationHasFailed(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 
 		Convey("When a new EmailAddressConfirmationFailed event is created", func() {
 			streamVersion := uint(1)
-			emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(id, confirmationHash, streamVersion)
+			emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(customerID, confirmationHash, streamVersion)
 
 			Convey("It should succeed", func() {
 				So(emailAddressConfirmationFailed, ShouldNotBeNil)
@@ -33,18 +33,18 @@ func TestEmailAddressConfirmationHasFailed(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedExposesExpectedValues(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 
 		beforeItOccurred := time.Now()
-		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(id, confirmationHash, streamVersion)
+		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(customerID, confirmationHash, streamVersion)
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
-			So(emailAddressConfirmationFailed.CustomerID(), ShouldResemble, id)
+			So(emailAddressConfirmationFailed.CustomerID(), ShouldResemble, customerID)
 			So(emailAddressConfirmationFailed.ConfirmationHash(), ShouldResemble, confirmationHash)
-			So(emailAddressConfirmationFailed.Identifier(), ShouldEqual, id.String())
+			So(emailAddressConfirmationFailed.Identifier(), ShouldEqual, customerID.String())
 			So(emailAddressConfirmationFailed.EventName(), ShouldEqual, "CustomerEmailAddressConfirmationFailed")
 			itOccurred, err := time.Parse(events.EmailAddressConfirmationFailedMetaTimestampFormat, emailAddressConfirmationFailed.OccurredAt())
 			So(err, ShouldBeNil)
@@ -57,11 +57,11 @@ func TestEmailAddressConfirmationFailedExposesExpectedValues(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedMarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 
-		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(id, confirmationHash, streamVersion)
+		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(customerID, confirmationHash, streamVersion)
 
 		Convey("When it is marshaled to json", func() {
 			data, err := emailAddressConfirmationFailed.MarshalJSON()
@@ -77,11 +77,11 @@ func TestEmailAddressConfirmationFailedMarshalJSON(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedUnmarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event marshaled to json", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 
-		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(id, confirmationHash, streamVersion)
+		emailAddressConfirmationFailed := events.EmailAddressConfirmationHasFailed(customerID, confirmationHash, streamVersion)
 
 		data, err := emailAddressConfirmationFailed.MarshalJSON()
 		So(err, ShouldBeNil)

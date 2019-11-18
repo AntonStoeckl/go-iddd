@@ -15,7 +15,7 @@ import (
 
 func TestItWasRegistered(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -24,7 +24,7 @@ func TestItWasRegistered(t *testing.T) {
 
 		Convey("When a new Registered event is created", func() {
 			streamVersion := uint(1)
-			registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
+			registered := events.ItWasRegistered(customerID, confirmableEmailAddress, personName, streamVersion)
 
 			Convey("It should succeed", func() {
 				So(registered, ShouldNotBeNil)
@@ -37,7 +37,7 @@ func TestItWasRegistered(t *testing.T) {
 
 func TestRegisteredExposesExpectedValues(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -46,14 +46,14 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 		streamVersion := uint(1)
 
 		beforeItOccurred := time.Now()
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
+		registered := events.ItWasRegistered(customerID, confirmableEmailAddress, personName, streamVersion)
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
-			So(registered.CustomerID(), ShouldResemble, id)
+			So(registered.CustomerID(), ShouldResemble, customerID)
 			So(registered.ConfirmableEmailAddress(), ShouldResemble, confirmableEmailAddress)
 			So(registered.PersonName(), ShouldResemble, personName)
-			So(registered.Identifier(), ShouldEqual, id.String())
+			So(registered.Identifier(), ShouldEqual, customerID.String())
 			So(registered.EventName(), ShouldEqual, "CustomerRegistered")
 			itOccurred, err := time.Parse(events.RegisteredMetaTimestampFormat, registered.OccurredAt())
 			So(err, ShouldBeNil)
@@ -66,7 +66,7 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 
 func TestRegisteredMarshalJSON(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -74,7 +74,7 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
+		registered := events.ItWasRegistered(customerID, confirmableEmailAddress, personName, streamVersion)
 
 		Convey("When it is marshaled to json", func() {
 			data, err := registered.MarshalJSON()
@@ -90,7 +90,7 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 
 func TestRegisteredUnmarshalJSON(t *testing.T) {
 	Convey("Given a Registered event marshaled to json", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -98,7 +98,7 @@ func TestRegisteredUnmarshalJSON(t *testing.T) {
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
-		registered := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
+		registered := events.ItWasRegistered(customerID, confirmableEmailAddress, personName, streamVersion)
 
 		data, err := registered.MarshalJSON()
 		So(err, ShouldBeNil)
