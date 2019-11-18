@@ -40,7 +40,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
+			recordedEvents := domain.ChangeEmailAddress(customer, changeEmailAddress)
 
 			Convey("It should record EmailAddressChanged", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
@@ -52,7 +52,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 				Convey("And when it is changed to the same value again", func() {
-					recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
+					recordedEvents := domain.ChangeEmailAddress(customer, changeEmailAddress)
 
 					Convey("It should be ignored", func() {
 						So(recordedEvents, ShouldBeEmpty)

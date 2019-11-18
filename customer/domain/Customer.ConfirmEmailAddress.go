@@ -6,7 +6,7 @@ import (
 	"go-iddd/shared"
 )
 
-func (customer *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress) shared.DomainEvents {
+func ConfirmEmailAddress(customer *Customer, with *commands.ConfirmEmailAddress) shared.DomainEvents {
 	if customer.confirmableEmailAddress.IsConfirmed() {
 		return nil
 	}

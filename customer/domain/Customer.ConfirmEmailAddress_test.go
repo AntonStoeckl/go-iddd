@@ -38,7 +38,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
+			recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
 
 			Convey("And it should record EmailAddressConfirmed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
@@ -50,7 +50,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 				So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 				Convey("And when it is confirmed again", func() {
-					recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
+					recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
 
 					Convey("It should be ignored", func() {
 						So(recordedEvents, ShouldBeEmpty)
@@ -70,7 +70,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
+			recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
 
 			Convey("It should record EmailAddressConfirmationFailed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)

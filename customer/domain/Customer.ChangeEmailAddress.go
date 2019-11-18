@@ -6,7 +6,7 @@ import (
 	"go-iddd/shared"
 )
 
-func (customer *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) shared.DomainEvents {
+func ChangeEmailAddress(customer *Customer, with *commands.ChangeEmailAddress) shared.DomainEvents {
 	if customer.confirmableEmailAddress.Equals(with.EmailAddress()) {
 		return nil
 	}

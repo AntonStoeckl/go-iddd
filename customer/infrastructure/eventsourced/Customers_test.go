@@ -208,7 +208,7 @@ func TestCustomers_Persist(t *testing.T) {
 		customer, err := domain.ReconstituteCustomerFrom(recordedEvents)
 		So(err, ShouldBeNil)
 
-		recordedEvents = customer.ChangeEmailAddress(changeEmailAddress)
+		recordedEvents = domain.ChangeEmailAddress(customer, changeEmailAddress)
 
 		Convey("When the Customer is persisted", func() {
 			tx := test.BeginTx(db)

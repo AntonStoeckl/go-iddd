@@ -152,7 +152,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 		return err
 	}
 
-	recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
+	recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
 
 	if err := customers.Persist(confirmEmailAddress.CustomerID(), recordedEvents); err != nil {
 		return err
@@ -178,7 +178,7 @@ func (handler *CommandHandler) changeEmailAddress(
 		return err
 	}
 
-	recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
+	recordedEvents := domain.ChangeEmailAddress(customer, changeEmailAddress)
 
 	if err := customers.Persist(changeEmailAddress.CustomerID(), recordedEvents); err != nil {
 		return err
