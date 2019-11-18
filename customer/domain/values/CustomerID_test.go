@@ -12,13 +12,13 @@ import (
 
 /*** Tests for Factory methods ***/
 
-func TestGenerateID(t *testing.T) {
-	Convey("When an ID is generated", t, func() {
-		id := values.GenerateID()
+func TestGenerateCustomerID(t *testing.T) {
+	Convey("When an CustomerID is generated", t, func() {
+		id := values.GenerateCustomerID()
 
 		Convey("It should succeed", func() {
 			So(id, ShouldNotBeNil)
-			So(id, ShouldHaveSameTypeAs, (*values.ID)(nil))
+			So(id, ShouldHaveSameTypeAs, (*values.CustomerID)(nil))
 		})
 	})
 
@@ -31,7 +31,7 @@ func TestGenerateID(t *testing.T) {
 		totalAmount := 0
 
 		for i := 0; i < numRoutines; i++ {
-			go generateManyIDs(ids, &group, &mutex, amountPerRoutine)
+			go generateManyCustomerIDs(ids, &group, &mutex, amountPerRoutine)
 			group.Add(1)
 			totalAmount += amountPerRoutine
 		}
@@ -44,11 +44,11 @@ func TestGenerateID(t *testing.T) {
 	})
 }
 
-func generateManyIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
+func generateManyCustomerIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
 	generatedIDs := make(map[string]int)
 
 	for i := 0; i < amountPerRoutine; i++ {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		generatedIDs[id.String()] = i
 	}
 
@@ -61,17 +61,17 @@ func generateManyIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mute
 	group.Done()
 }
 
-func TestRebuildID(t *testing.T) {
+func TestRebuildCustomerID(t *testing.T) {
 	Convey("Given that the supplied id is valid", t, func() {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
 
-		Convey("When an ID is rebuilt", func() {
-			id, err := values.RebuildID(idValue)
+		Convey("When an CustomerID is rebuilt", func() {
+			id, err := values.RebuildCustomerID(idValue)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(id, ShouldNotBeNil)
-				So(id, ShouldHaveSameTypeAs, (*values.ID)(nil))
+				So(id, ShouldHaveSameTypeAs, (*values.CustomerID)(nil))
 			})
 		})
 	})
@@ -79,8 +79,8 @@ func TestRebuildID(t *testing.T) {
 	Convey("Given that the supplied id is not valid", t, func() {
 		idValue := ""
 
-		Convey("When an ID is rebuilt", func() {
-			id, err := values.RebuildID(idValue)
+		Convey("When an CustomerID is rebuilt", func() {
+			id, err := values.RebuildCustomerID(idValue)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -93,18 +93,18 @@ func TestRebuildID(t *testing.T) {
 
 /*** Tests for Getter methods ***/
 
-func TestIDExposesExpectedValues(t *testing.T) {
-	Convey("Given a generated ID", t, func() {
-		id := values.GenerateID()
+func TestCustomerIDExposesExpectedValues(t *testing.T) {
+	Convey("Given a generated CustomerID", t, func() {
+		id := values.GenerateCustomerID()
 
 		Convey("It should expose a generated value", func() {
 			So(id.String(), ShouldNotBeBlank)
 		})
 	})
 
-	Convey("Given a rebuilt ID", t, func() {
+	Convey("Given a rebuilt CustomerID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		id, err := values.RebuildID(idValue)
+		id, err := values.RebuildCustomerID(idValue)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected value", func() {
@@ -115,14 +115,14 @@ func TestIDExposesExpectedValues(t *testing.T) {
 
 /*** Tests for Comparison methods ***/
 
-func TestEqualsOnID(t *testing.T) {
-	Convey("Given an Identifier of type ID", t, func() {
+func TestEqualsOnCustomerID(t *testing.T) {
+	Convey("Given an Identifier of type CustomerID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		id, err := values.RebuildID(idValue)
+		id, err := values.RebuildCustomerID(idValue)
 		So(err, ShouldBeNil)
 
-		Convey("And given an equal ID", func() {
-			equalId, err := values.RebuildID(idValue)
+		Convey("And given an equal CustomerID", func() {
+			equalId, err := values.RebuildCustomerID(idValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -134,7 +134,7 @@ func TestEqualsOnID(t *testing.T) {
 			})
 		})
 
-		Convey("And given an ID with equal value but different type", func() {
+		Convey("And given an CustomerID with equal value but different type", func() {
 			differentId := &dummyIdentifier{value: idValue}
 
 			Convey("When they are compared", func() {
@@ -146,9 +146,9 @@ func TestEqualsOnID(t *testing.T) {
 			})
 		})
 
-		Convey("And given an ID with equal type but different value", func() {
+		Convey("And given an CustomerID with equal type but different value", func() {
 			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
-			differentId, err := values.RebuildID(differentIdValue)
+			differentId, err := values.RebuildCustomerID(differentIdValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -164,9 +164,9 @@ func TestEqualsOnID(t *testing.T) {
 
 /*** Tests for Marshal/Unmarshal methods ***/
 
-func TestIDMarshalJSON(t *testing.T) {
-	Convey("Given an ID", t, func() {
-		id := values.GenerateID()
+func TestCustomerIDMarshalJSON(t *testing.T) {
+	Convey("Given an CustomerID", t, func() {
+		id := values.GenerateCustomerID()
 
 		Convey("When it is marshaled to json", func() {
 			data, err := id.MarshalJSON()
@@ -179,17 +179,17 @@ func TestIDMarshalJSON(t *testing.T) {
 	})
 }
 
-func TestIDUnmarshalJSON(t *testing.T) {
-	Convey("Given an ID marshaled to json", t, func() {
-		id := values.GenerateID()
+func TestCustomerIDUnmarshalJSON(t *testing.T) {
+	Convey("Given an CustomerID marshaled to json", t, func() {
+		id := values.GenerateCustomerID()
 		data, err := id.MarshalJSON()
 		So(err, ShouldBeNil)
 
 		Convey("When it is unmarshaled", func() {
-			unmarshaled := &values.ID{}
+			unmarshaled := &values.CustomerID{}
 			err := unmarshaled.UnmarshalJSON(data)
 
-			Convey("It should be equal to the original ID", func() {
+			Convey("It should be equal to the original CustomerID", func() {
 				So(err, ShouldBeNil)
 				So(id, ShouldResemble, unmarshaled)
 			})
@@ -199,8 +199,8 @@ func TestIDUnmarshalJSON(t *testing.T) {
 	Convey("Given invalid json", t, func() {
 		data := []byte("666")
 
-		Convey("When it is unmarshaled to ID", func() {
-			unmarshaled := &values.ID{}
+		Convey("When it is unmarshaled to CustomerID", func() {
+			unmarshaled := &values.CustomerID{}
 			err := unmarshaled.UnmarshalJSON(data)
 
 			Convey("It should fail", func() {

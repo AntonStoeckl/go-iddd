@@ -19,7 +19,7 @@ const (
 )
 
 type EmailAddressConfirmationFailed struct {
-	id               *values.ID
+	id               *values.CustomerID
 	confirmationHash *values.ConfirmationHash
 	meta             *Meta
 }
@@ -27,7 +27,7 @@ type EmailAddressConfirmationFailed struct {
 /*** Factory Methods ***/
 
 func EmailAddressConfirmationHasFailed(
-	id *values.ID,
+	id *values.CustomerID,
 	confirmationHash *values.ConfirmationHash,
 	streamVersion uint,
 ) *EmailAddressConfirmationFailed {
@@ -55,7 +55,7 @@ func EmailAddressConfirmationHasFailed(
 
 /*** Getter Methods ***/
 
-func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) ID() *values.ID {
+func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) ID() *values.CustomerID {
 	return emailAddressConfirmationFailed.id
 }
 
@@ -85,7 +85,7 @@ func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) StreamVers
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID               *values.ID               `json:"id"`
+		ID               *values.CustomerID       `json:"id"`
 		ConfirmationHash *values.ConfirmationHash `json:"confirmationHash"`
 		Meta             *Meta                    `json:"meta"`
 	}{
@@ -101,7 +101,7 @@ func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) MarshalJSO
 
 func (emailAddressConfirmationFailed *EmailAddressConfirmationFailed) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID               *values.ID               `json:"id"`
+		ID               *values.CustomerID       `json:"id"`
 		ConfirmationHash *values.ConfirmationHash `json:"confirmationHash"`
 		Meta             *Meta                    `json:"meta"`
 	}{}

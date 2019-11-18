@@ -10,7 +10,7 @@ import (
 )
 
 type Register struct {
-	id           *values.ID
+	id           *values.CustomerID
 	emailAddress *values.EmailAddress
 	personName   *values.PersonName
 }
@@ -24,7 +24,7 @@ func NewRegister(
 	familyName string,
 ) (*Register, error) {
 
-	idValue, err := values.RebuildID(id)
+	idValue, err := values.RebuildCustomerID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func NewRegister(
 
 /*** Getter Methods ***/
 
-func (register *Register) ID() *values.ID {
+func (register *Register) ID() *values.CustomerID {
 	return register.id
 }
 

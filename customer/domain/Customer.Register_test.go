@@ -13,7 +13,7 @@ import (
 
 func TestRegisterCustomer(t *testing.T) {
 	Convey("When a Customer is registered", t, func() {
-		id, err := values.RebuildID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		id, err := values.RebuildCustomerID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)

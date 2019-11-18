@@ -75,7 +75,7 @@ func TestRegisterExposesExpectedValues(t *testing.T) {
 		givenName := "John"
 		familyName := "Doe"
 
-		idValue, err := values.RebuildID(id)
+		idValue, err := values.RebuildCustomerID(id)
 		So(err, ShouldBeNil)
 		emailAddressValue, err := values.NewEmailAddress(emailAddress)
 		So(err, ShouldBeNil)

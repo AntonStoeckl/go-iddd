@@ -15,7 +15,7 @@ import (
 
 func TestEmailAddressConfirmationHasFailed(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 
 		Convey("When a new EmailAddressConfirmationFailed event is created", func() {
@@ -33,7 +33,7 @@ func TestEmailAddressConfirmationHasFailed(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedExposesExpectedValues(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 
@@ -57,7 +57,7 @@ func TestEmailAddressConfirmationFailedExposesExpectedValues(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedMarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 
@@ -77,7 +77,7 @@ func TestEmailAddressConfirmationFailedMarshalJSON(t *testing.T) {
 
 func TestEmailAddressConfirmationFailedUnmarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmationFailed event marshaled to json", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		confirmationHash := values.GenerateConfirmationHash("secret_hash")
 		streamVersion := uint(1)
 

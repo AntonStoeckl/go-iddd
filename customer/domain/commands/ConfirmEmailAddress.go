@@ -10,7 +10,7 @@ import (
 )
 
 type ConfirmEmailAddress struct {
-	id               *values.ID
+	id               *values.CustomerID
 	emailAddress     *values.EmailAddress
 	confirmationHash *values.ConfirmationHash
 }
@@ -23,7 +23,7 @@ func NewConfirmEmailAddress(
 	confirmationHash string,
 ) (*ConfirmEmailAddress, error) {
 
-	idValue, err := values.RebuildID(id)
+	idValue, err := values.RebuildCustomerID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func NewConfirmEmailAddress(
 
 /*** Getter Methods ***/
 
-func (confirmEmailAddress *ConfirmEmailAddress) ID() *values.ID {
+func (confirmEmailAddress *ConfirmEmailAddress) ID() *values.CustomerID {
 	return confirmEmailAddress.id
 }
 

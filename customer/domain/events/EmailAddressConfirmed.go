@@ -19,7 +19,7 @@ const (
 )
 
 type EmailAddressConfirmed struct {
-	id           *values.ID
+	id           *values.CustomerID
 	emailAddress *values.EmailAddress
 	meta         *Meta
 }
@@ -27,7 +27,7 @@ type EmailAddressConfirmed struct {
 /*** Factory Methods ***/
 
 func EmailAddressWasConfirmed(
-	id *values.ID,
+	id *values.CustomerID,
 	emailAddress *values.EmailAddress,
 	streamVersion uint,
 ) *EmailAddressConfirmed {
@@ -55,7 +55,7 @@ func EmailAddressWasConfirmed(
 
 /*** Getter Methods ***/
 
-func (emailAddressConfirmed *EmailAddressConfirmed) ID() *values.ID {
+func (emailAddressConfirmed *EmailAddressConfirmed) ID() *values.CustomerID {
 	return emailAddressConfirmed.id
 }
 
@@ -85,7 +85,7 @@ func (emailAddressConfirmed *EmailAddressConfirmed) StreamVersion() uint {
 
 func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID           *values.ID           `json:"id"`
+		ID           *values.CustomerID   `json:"id"`
 		EmailAddress *values.EmailAddress `json:"emailAddress"`
 		Meta         *Meta                `json:"meta"`
 	}{
@@ -101,7 +101,7 @@ func (emailAddressConfirmed *EmailAddressConfirmed) MarshalJSON() ([]byte, error
 
 func (emailAddressConfirmed *EmailAddressConfirmed) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID           *values.ID           `json:"id"`
+		ID           *values.CustomerID   `json:"id"`
 		EmailAddress *values.EmailAddress `json:"emailAddress"`
 		Meta         *Meta                `json:"meta"`
 	}{}

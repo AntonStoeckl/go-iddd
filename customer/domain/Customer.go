@@ -11,7 +11,7 @@ import (
 )
 
 type Customer struct {
-	id                      *values.ID
+	id                      *values.CustomerID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
 	currentStreamVersion    uint

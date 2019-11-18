@@ -15,11 +15,11 @@ type Customers struct {
 }
 
 // Of provides a mock function with given fields: id
-func (_m *Customers) Of(id *values.ID) (*domain.Customer, error) {
+func (_m *Customers) Of(id *values.CustomerID) (*domain.Customer, error) {
 	ret := _m.Called(id)
 
 	var r0 *domain.Customer
-	if rf, ok := ret.Get(0).(func(*values.ID) *domain.Customer); ok {
+	if rf, ok := ret.Get(0).(func(*values.CustomerID) *domain.Customer); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -28,7 +28,7 @@ func (_m *Customers) Of(id *values.ID) (*domain.Customer, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*values.ID) error); ok {
+	if rf, ok := ret.Get(1).(func(*values.CustomerID) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)
@@ -38,11 +38,11 @@ func (_m *Customers) Of(id *values.ID) (*domain.Customer, error) {
 }
 
 // Persist provides a mock function with given fields: id, recordedEvents
-func (_m *Customers) Persist(id *values.ID, recordedEvents shared.DomainEvents) error {
+func (_m *Customers) Persist(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
 	ret := _m.Called(id, recordedEvents)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*values.ID, shared.DomainEvents) error); ok {
+	if rf, ok := ret.Get(0).(func(*values.CustomerID, shared.DomainEvents) error); ok {
 		r0 = rf(id, recordedEvents)
 	} else {
 		r0 = ret.Error(0)
@@ -52,11 +52,11 @@ func (_m *Customers) Persist(id *values.ID, recordedEvents shared.DomainEvents) 
 }
 
 // Register provides a mock function with given fields: id, recordedEvents
-func (_m *Customers) Register(id *values.ID, recordedEvents shared.DomainEvents) error {
+func (_m *Customers) Register(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
 	ret := _m.Called(id, recordedEvents)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*values.ID, shared.DomainEvents) error); ok {
+	if rf, ok := ret.Get(0).(func(*values.CustomerID, shared.DomainEvents) error); ok {
 		r0 = rf(id, recordedEvents)
 	} else {
 		r0 = ret.Error(0)

@@ -15,7 +15,7 @@ import (
 
 func TestItWasRegistered(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -37,7 +37,7 @@ func TestItWasRegistered(t *testing.T) {
 
 func TestRegisteredExposesExpectedValues(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -66,7 +66,7 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 
 func TestRegisteredMarshalJSON(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -90,7 +90,7 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 
 func TestRegisteredUnmarshalJSON(t *testing.T) {
 	Convey("Given a Registered event marshaled to json", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()

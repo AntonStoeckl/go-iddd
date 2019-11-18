@@ -11,7 +11,7 @@ import (
 )
 
 func BenchmarkUnmarshalDomainEvent(b *testing.B) {
-	id := values.GenerateID()
+	id := values.GenerateCustomerID()
 	emailAddress, _ := values.NewEmailAddress("foo@bar.com")
 	confirmableEmailAddress := emailAddress.ToConfirmable()
 	personName, _ := values.NewPersonName("John", "Doe")
@@ -35,7 +35,7 @@ func BenchmarkUnmarshalDomainEvent(b *testing.B) {
 
 func TestUnmarshalRegistered(t *testing.T) {
 	Convey("When CustomerRegistered is unmarshaled", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
@@ -70,7 +70,7 @@ func TestUnmarshalRegistered(t *testing.T) {
 
 func TestUnmarshalCustomerEmailAddressConfirmed(t *testing.T) {
 	Convey("When CustomerEmailAddressConfirmed is unmarshaled", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
@@ -102,7 +102,7 @@ func TestUnmarshalCustomerEmailAddressConfirmed(t *testing.T) {
 
 func TestUnmarshalEmailAddressConfirmationFailed(t *testing.T) {
 	Convey("When EmailAddressConfirmationFailed is unmarshaled", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		streamVersion := uint(1)
 		invalidHash := values.GenerateConfirmationHash("invalid_hash")
 
@@ -133,7 +133,7 @@ func TestUnmarshalEmailAddressConfirmationFailed(t *testing.T) {
 
 func TestUnmarshalCustomerEmailAddressChanged(t *testing.T) {
 	Convey("When CustomerEmailAddressChanged is unmarshaled", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()

@@ -23,7 +23,7 @@ func TestCustomers_Register(t *testing.T) {
 		repo := diContainer.GetCustomerRepository()
 
 		Convey("And given a new Customer", func() {
-			id := values.GenerateID()
+			id := values.GenerateCustomerID()
 			recordedEvents := registerCustomerForCustomersTest(id)
 
 			Convey("When the Customer is registered", func() {
@@ -71,7 +71,7 @@ func TestCustomers_Register(t *testing.T) {
 		})
 
 		Convey("And given an existing Customer", func() {
-			id := values.GenerateID()
+			id := values.GenerateCustomerID()
 			recordedEvents := registerCustomerForCustomersTest(id)
 			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
@@ -99,7 +99,7 @@ func TestCustomers_Register(t *testing.T) {
 
 func TestCustomers_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		customer := registerCustomerForCustomersTest(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -168,7 +168,7 @@ func TestCustomers_Of(t *testing.T) {
 	})
 
 	Convey("Given a not existing Customer", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
@@ -189,7 +189,7 @@ func TestCustomers_Of(t *testing.T) {
 
 func TestCustomers_Persist(t *testing.T) {
 	Convey("Given a changed Customer", t, func() {
-		id := values.GenerateID()
+		id := values.GenerateCustomerID()
 		recordedEvents := registerCustomerForCustomersTest(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -255,7 +255,7 @@ func TestCustomers_Persist(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func registerCustomerForCustomersTest(id *values.ID) shared.DomainEvents {
+func registerCustomerForCustomersTest(id *values.CustomerID) shared.DomainEvents {
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.String())
 	givenName := "John"
 	familyName := "Doe"
@@ -269,7 +269,7 @@ func registerCustomerForCustomersTest(id *values.ID) shared.DomainEvents {
 	return recordedEvents
 }
 
-func cleanUpArtefactsForCustomers(id *values.ID) {
+func cleanUpArtefactsForCustomers(id *values.CustomerID) {
 	diContainer := test.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 

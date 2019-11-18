@@ -10,7 +10,7 @@ import (
 )
 
 type ChangeEmailAddress struct {
-	id           *values.ID
+	id           *values.CustomerID
 	emailAddress *values.EmailAddress
 }
 
@@ -21,7 +21,7 @@ func NewChangeEmailAddress(
 	emailAddress string,
 ) (*ChangeEmailAddress, error) {
 
-	idValue, err := values.RebuildID(id)
+	idValue, err := values.RebuildCustomerID(id)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func NewChangeEmailAddress(
 
 /*** Getter Methods ***/
 
-func (changeEmailAddress *ChangeEmailAddress) ID() *values.ID {
+func (changeEmailAddress *ChangeEmailAddress) ID() *values.CustomerID {
 	return changeEmailAddress.id
 }
 

@@ -19,7 +19,7 @@ const (
 )
 
 type EmailAddressChanged struct {
-	id                      *values.ID
+	id                      *values.CustomerID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	meta                    *Meta
 }
@@ -27,7 +27,7 @@ type EmailAddressChanged struct {
 /*** Factory Methods ***/
 
 func EmailAddressWasChanged(
-	id *values.ID,
+	id *values.CustomerID,
 	confirmableEmailAddress *values.ConfirmableEmailAddress,
 	streamVersion uint,
 ) *EmailAddressChanged {
@@ -55,7 +55,7 @@ func EmailAddressWasChanged(
 
 /*** Getter Methods ***/
 
-func (emailAddressChanged *EmailAddressChanged) ID() *values.ID {
+func (emailAddressChanged *EmailAddressChanged) ID() *values.CustomerID {
 	return emailAddressChanged.id
 }
 
@@ -85,7 +85,7 @@ func (emailAddressChanged *EmailAddressChanged) StreamVersion() uint {
 
 func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID                      *values.ID                      `json:"id"`
+		ID                      *values.CustomerID              `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		Meta                    *Meta                           `json:"meta"`
 	}{
@@ -101,7 +101,7 @@ func (emailAddressChanged *EmailAddressChanged) MarshalJSON() ([]byte, error) {
 
 func (emailAddressChanged *EmailAddressChanged) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID                      *values.ID                      `json:"id"`
+		ID                      *values.CustomerID              `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		Meta                    *Meta                           `json:"meta"`
 	}{}

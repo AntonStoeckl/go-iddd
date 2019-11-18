@@ -47,7 +47,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	emailAddress := ctx.Args().Get(0)
 	givenName := ctx.Args().Get(1)
 	familyName := ctx.Args().Get(2)
-	id := values.GenerateID()
+	id := values.GenerateCustomerID()
 
 	register, err := commands.NewRegister(id.String(), emailAddress, givenName, familyName)
 	if err != nil {

@@ -19,7 +19,7 @@ const (
 )
 
 type Registered struct {
-	id                      *values.ID
+	id                      *values.CustomerID
 	confirmableEmailAddress *values.ConfirmableEmailAddress
 	personName              *values.PersonName
 	meta                    *Meta
@@ -28,7 +28,7 @@ type Registered struct {
 /*** Factory Methods ***/
 
 func ItWasRegistered(
-	id *values.ID,
+	id *values.CustomerID,
 	confirmableEmailAddress *values.ConfirmableEmailAddress,
 	personName *values.PersonName,
 	streamVersion uint,
@@ -58,7 +58,7 @@ func ItWasRegistered(
 
 /*** Getter Methods ***/
 
-func (registered *Registered) ID() *values.ID {
+func (registered *Registered) ID() *values.CustomerID {
 	return registered.id
 }
 
@@ -92,7 +92,7 @@ func (registered *Registered) StreamVersion() uint {
 
 func (registered *Registered) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID                      *values.ID                      `json:"id"`
+		ID                      *values.CustomerID              `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		PersonName              *values.PersonName              `json:"personName"`
 		Meta                    *Meta                           `json:"meta"`
@@ -110,7 +110,7 @@ func (registered *Registered) MarshalJSON() ([]byte, error) {
 
 func (registered *Registered) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID                      *values.ID                      `json:"id"`
+		ID                      *values.CustomerID              `json:"id"`
 		ConfirmableEmailAddress *values.ConfirmableEmailAddress `json:"confirmableEmailAddress"`
 		PersonName              *values.PersonName              `json:"personName"`
 		Meta                    *Meta                           `json:"meta"`

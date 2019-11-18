@@ -18,7 +18,7 @@ func NewCustomerServer(commandHandler *application.CommandHandler) *customerServ
 }
 
 func (server *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
-	id := values.GenerateID()
+	id := values.GenerateCustomerID()
 
 	register, err := commands.NewRegister(id.String(), req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {

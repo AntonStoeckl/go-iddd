@@ -38,7 +38,7 @@ func TestNewCommandHandler(t *testing.T) {
 
 func TestCommandHandler_Handle_Register(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customerID := values.GenerateID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
@@ -93,7 +93,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customerID := values.GenerateID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
@@ -194,7 +194,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 
 func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customerID := values.GenerateID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
@@ -272,7 +272,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 
 func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customerID := values.GenerateID()
+		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.NewEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
@@ -398,7 +398,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 		Convey("When an unknown command is handled", func() {
 			unknownCommand := new(mocks.Command)
-			unknownCommand.On("AggregateID").Return(values.GenerateID())
+			unknownCommand.On("AggregateID").Return(values.GenerateCustomerID())
 			unknownCommand.On("CommandName").Return("unknown")
 
 			err := commandHandler.Handle(unknownCommand)
@@ -500,7 +500,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 //	})
 //}
 
-func registerCustomerForCommandHandlerTest(id *values.ID, emailAddress *values.EmailAddress) shared.DomainEvents {
+func registerCustomerForCommandHandlerTest(id *values.CustomerID, emailAddress *values.EmailAddress) shared.DomainEvents {
 	register, err := commands.NewRegister(
 		id.String(),
 		emailAddress.EmailAddress(),
