@@ -21,7 +21,7 @@ func NewChangeEmailAddress(
 	emailAddress string,
 ) (*ChangeEmailAddress, error) {
 
-	idValue, err := values.RebuildCustomerID(customerID)
+	customerIDValue, err := values.RebuildCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func NewChangeEmailAddress(
 	}
 
 	changeEmailAddress := &ChangeEmailAddress{
-		customerID:   idValue,
+		customerID:   customerIDValue,
 		emailAddress: emailAddressValue,
 	}
 

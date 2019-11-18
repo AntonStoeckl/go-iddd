@@ -24,7 +24,7 @@ func NewRegister(
 	familyName string,
 ) (*Register, error) {
 
-	idValue, err := values.RebuildCustomerID(customerID)
+	customerIDValue, err := values.RebuildCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func NewRegister(
 	}
 
 	register := &Register{
-		customerID:   idValue,
+		customerID:   customerIDValue,
 		emailAddress: emailAddressValue,
 		personName:   personNameValue,
 	}

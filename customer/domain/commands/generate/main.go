@@ -43,11 +43,11 @@ var commands = []Command{
 		CommandType: "Register",
 		Fields: []Field{
 			{
-				FieldName:    "id",
+				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildID(id)",
+				ValueFactory: "values.RebuildCustomerID(customerID)",
 				Input: []Input{
-					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
 			},
 			{
@@ -73,11 +73,11 @@ var commands = []Command{
 		CommandType: "ConfirmEmailAddress",
 		Fields: []Field{
 			{
-				FieldName:    "id",
+				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildID(id)",
+				ValueFactory: "values.RebuildCustomerID(customerID)",
 				Input: []Input{
-					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
 			},
 			{
@@ -102,11 +102,11 @@ var commands = []Command{
 		CommandType: "ChangeEmailAddress",
 		Fields: []Field{
 			{
-				FieldName:    "id",
+				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildID(id)",
+				ValueFactory: "values.RebuildCustomerID(customerID)",
 				Input: []Input{
-					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
+					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
 			},
 			{
@@ -316,7 +316,7 @@ func ({{$commandVar}} *{{commandName}}) {{methodName .DataType}}() {{.DataType}}
 /*** Implement shared.Command ***/
 
 func ({{$commandVar}} *{{commandName}}) AggregateID() shared.IdentifiesAggregates {
-	return {{$commandVar}}.id
+	return {{$commandVar}}.customerID
 }
 
 func ({{$commandVar}} *{{commandName}}) CommandName() string {
@@ -404,7 +404,7 @@ func Test{{commandName}}ExposesExpectedValues(t *testing.T) {
 			{{range .Fields}}So({{.FieldName}}Value.Equals({{$commandVar}}.{{methodName .DataType}}()), ShouldBeTrue)
 			{{end -}}
 			So({{$commandVar}}.CommandName(), ShouldEqual, "{{commandName}}")
-			So(idValue.Equals({{$commandVar}}.AggregateID()), ShouldBeTrue)
+			So(customerIDValue.Equals({{$commandVar}}.AggregateID()), ShouldBeTrue)
 		})
 	})
 }
