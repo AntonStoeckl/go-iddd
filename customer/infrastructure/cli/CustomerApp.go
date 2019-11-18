@@ -84,7 +84,7 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully confirmed the emailAddress of Customer with id '%s'\n",
-		confirmEmailAddress.ID().String(),
+		confirmEmailAddress.CustomerID().String(),
 	)
 
 	return nil
@@ -106,7 +106,7 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully changed the emailAddress of Customer with id '%s' to '%s\n",
-		changeEmailAddress.ID().String(),
+		changeEmailAddress.CustomerID().String(),
 		changeEmailAddress.EmailAddress().EmailAddress(),
 	)
 

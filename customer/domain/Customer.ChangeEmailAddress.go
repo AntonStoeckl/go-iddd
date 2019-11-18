@@ -12,7 +12,7 @@ func (customer *Customer) ChangeEmailAddress(with *commands.ChangeEmailAddress) 
 	}
 
 	event := events.EmailAddressWasChanged(
-		with.ID(),
+		with.CustomerID(),
 		with.EmailAddress().ToConfirmable(),
 		customer.currentStreamVersion+1,
 	)

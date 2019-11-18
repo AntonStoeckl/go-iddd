@@ -9,7 +9,7 @@ import (
 func RegisterCustomer(with *commands.Register) shared.DomainEvents {
 	return shared.DomainEvents{
 		events.ItWasRegistered(
-			with.ID(),
+			with.CustomerID(),
 			with.EmailAddress().ToConfirmable(),
 			with.PersonName(),
 			1,

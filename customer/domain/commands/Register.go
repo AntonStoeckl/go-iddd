@@ -10,7 +10,7 @@ import (
 )
 
 type Register struct {
-	id           *values.CustomerID
+	customerID   *values.CustomerID
 	emailAddress *values.EmailAddress
 	personName   *values.PersonName
 }
@@ -18,13 +18,13 @@ type Register struct {
 /*** Factory Method ***/
 
 func NewRegister(
-	id string,
+	customerID string,
 	emailAddress string,
 	givenName string,
 	familyName string,
 ) (*Register, error) {
 
-	idValue, err := values.RebuildCustomerID(id)
+	idValue, err := values.RebuildCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func NewRegister(
 	}
 
 	register := &Register{
-		id:           idValue,
+		customerID:   idValue,
 		emailAddress: emailAddressValue,
 		personName:   personNameValue,
 	}
@@ -50,8 +50,8 @@ func NewRegister(
 
 /*** Getter Methods ***/
 
-func (register *Register) ID() *values.CustomerID {
-	return register.id
+func (register *Register) CustomerID() *values.CustomerID {
+	return register.customerID
 }
 
 func (register *Register) EmailAddress() *values.EmailAddress {
@@ -65,7 +65,7 @@ func (register *Register) PersonName() *values.PersonName {
 /*** Implement shared.Command ***/
 
 func (register *Register) AggregateID() shared.IdentifiesAggregates {
-	return register.id
+	return register.customerID
 }
 
 func (register *Register) CommandName() string {

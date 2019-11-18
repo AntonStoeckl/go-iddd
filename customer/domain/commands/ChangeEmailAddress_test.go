@@ -26,7 +26,7 @@ func TestNewChangeEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("Given that id is invalid", func() {
+		Convey("Given that customerID is invalid", func() {
 			id = ""
 			conveyNewChangeEmailAddressWithInvalidInput(id, emailAddress)
 		})
@@ -68,7 +68,7 @@ func TestChangeEmailAddressExposesExpectedValues(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			So(idValue.Equals(changeEmailAddress.ID()), ShouldBeTrue)
+			So(idValue.Equals(changeEmailAddress.CustomerID()), ShouldBeTrue)
 			So(emailAddressValue.Equals(changeEmailAddress.EmailAddress()), ShouldBeTrue)
 			So(changeEmailAddress.CommandName(), ShouldEqual, "ChangeEmailAddress")
 			So(idValue.Equals(changeEmailAddress.AggregateID()), ShouldBeTrue)

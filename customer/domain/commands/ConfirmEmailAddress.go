@@ -10,7 +10,7 @@ import (
 )
 
 type ConfirmEmailAddress struct {
-	id               *values.CustomerID
+	customerID       *values.CustomerID
 	emailAddress     *values.EmailAddress
 	confirmationHash *values.ConfirmationHash
 }
@@ -18,12 +18,12 @@ type ConfirmEmailAddress struct {
 /*** Factory Method ***/
 
 func NewConfirmEmailAddress(
-	id string,
+	customerID string,
 	emailAddress string,
 	confirmationHash string,
 ) (*ConfirmEmailAddress, error) {
 
-	idValue, err := values.RebuildCustomerID(id)
+	idValue, err := values.RebuildCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func NewConfirmEmailAddress(
 	}
 
 	confirmEmailAddress := &ConfirmEmailAddress{
-		id:               idValue,
+		customerID:       idValue,
 		emailAddress:     emailAddressValue,
 		confirmationHash: confirmationHashValue,
 	}
@@ -49,8 +49,8 @@ func NewConfirmEmailAddress(
 
 /*** Getter Methods ***/
 
-func (confirmEmailAddress *ConfirmEmailAddress) ID() *values.CustomerID {
-	return confirmEmailAddress.id
+func (confirmEmailAddress *ConfirmEmailAddress) CustomerID() *values.CustomerID {
+	return confirmEmailAddress.customerID
 }
 
 func (confirmEmailAddress *ConfirmEmailAddress) EmailAddress() *values.EmailAddress {
@@ -64,7 +64,7 @@ func (confirmEmailAddress *ConfirmEmailAddress) ConfirmationHash() *values.Confi
 /*** Implement shared.Command ***/
 
 func (confirmEmailAddress *ConfirmEmailAddress) AggregateID() shared.IdentifiesAggregates {
-	return confirmEmailAddress.id
+	return confirmEmailAddress.customerID
 }
 
 func (confirmEmailAddress *ConfirmEmailAddress) CommandName() string {

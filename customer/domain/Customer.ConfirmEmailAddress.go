@@ -13,7 +13,7 @@ func (customer *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress
 
 	if !customer.confirmableEmailAddress.IsConfirmedBy(with.ConfirmationHash()) {
 		event := events.EmailAddressConfirmationHasFailed(
-			with.ID(),
+			with.CustomerID(),
 			with.ConfirmationHash(),
 			customer.currentStreamVersion+1,
 		)
@@ -24,7 +24,7 @@ func (customer *Customer) ConfirmEmailAddress(with *commands.ConfirmEmailAddress
 	}
 
 	event := events.EmailAddressWasConfirmed(
-		with.ID(),
+		with.CustomerID(),
 		with.EmailAddress(),
 		customer.currentStreamVersion+1,
 	)

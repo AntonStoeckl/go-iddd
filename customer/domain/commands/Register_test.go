@@ -28,7 +28,7 @@ func TestNewRegister(t *testing.T) {
 			})
 		})
 
-		Convey("Given that id is invalid", func() {
+		Convey("Given that customerID is invalid", func() {
 			id = ""
 			conveyNewRegisterWithInvalidInput(id, emailAddress, givenName, familyName)
 		})
@@ -86,7 +86,7 @@ func TestRegisterExposesExpectedValues(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
-			So(idValue.Equals(register.ID()), ShouldBeTrue)
+			So(idValue.Equals(register.CustomerID()), ShouldBeTrue)
 			So(emailAddressValue.Equals(register.EmailAddress()), ShouldBeTrue)
 			So(personNameValue.Equals(register.PersonName()), ShouldBeTrue)
 			So(register.CommandName(), ShouldEqual, "Register")

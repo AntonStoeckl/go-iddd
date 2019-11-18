@@ -135,7 +135,7 @@ func (handler *CommandHandler) register(
 
 	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := customers.Register(register.ID(), recordedEvents); err != nil {
+	if err := customers.Register(register.CustomerID(), recordedEvents); err != nil {
 		return err
 	}
 
@@ -147,14 +147,14 @@ func (handler *CommandHandler) confirmEmailAddress(
 	confirmEmailAddress *commands.ConfirmEmailAddress,
 ) error {
 
-	customer, err := customers.Of(confirmEmailAddress.ID())
+	customer, err := customers.Of(confirmEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := customer.ConfirmEmailAddress(confirmEmailAddress)
 
-	if err := customers.Persist(confirmEmailAddress.ID(), recordedEvents); err != nil {
+	if err := customers.Persist(confirmEmailAddress.CustomerID(), recordedEvents); err != nil {
 		return err
 	}
 
@@ -173,14 +173,14 @@ func (handler *CommandHandler) changeEmailAddress(
 	changeEmailAddress *commands.ChangeEmailAddress,
 ) error {
 
-	customer, err := customers.Of(changeEmailAddress.ID())
+	customer, err := customers.Of(changeEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := customer.ChangeEmailAddress(changeEmailAddress)
 
-	if err := customers.Persist(changeEmailAddress.ID(), recordedEvents); err != nil {
+	if err := customers.Persist(changeEmailAddress.CustomerID(), recordedEvents); err != nil {
 		return err
 	}
 

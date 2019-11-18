@@ -10,18 +10,18 @@ import (
 )
 
 type ChangeEmailAddress struct {
-	id           *values.CustomerID
+	customerID   *values.CustomerID
 	emailAddress *values.EmailAddress
 }
 
 /*** Factory Method ***/
 
 func NewChangeEmailAddress(
-	id string,
+	customerID string,
 	emailAddress string,
 ) (*ChangeEmailAddress, error) {
 
-	idValue, err := values.RebuildCustomerID(id)
+	idValue, err := values.RebuildCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func NewChangeEmailAddress(
 	}
 
 	changeEmailAddress := &ChangeEmailAddress{
-		id:           idValue,
+		customerID:   idValue,
 		emailAddress: emailAddressValue,
 	}
 
@@ -41,8 +41,8 @@ func NewChangeEmailAddress(
 
 /*** Getter Methods ***/
 
-func (changeEmailAddress *ChangeEmailAddress) ID() *values.CustomerID {
-	return changeEmailAddress.id
+func (changeEmailAddress *ChangeEmailAddress) CustomerID() *values.CustomerID {
+	return changeEmailAddress.customerID
 }
 
 func (changeEmailAddress *ChangeEmailAddress) EmailAddress() *values.EmailAddress {
@@ -52,7 +52,7 @@ func (changeEmailAddress *ChangeEmailAddress) EmailAddress() *values.EmailAddres
 /*** Implement shared.Command ***/
 
 func (changeEmailAddress *ChangeEmailAddress) AggregateID() shared.IdentifiesAggregates {
-	return changeEmailAddress.id
+	return changeEmailAddress.customerID
 }
 
 func (changeEmailAddress *ChangeEmailAddress) CommandName() string {
