@@ -44,7 +44,7 @@ var commands = []Command{
 		Fields: []Field{
 			{
 				FieldName:    "id",
-				DataType:     "*values.ID",
+				DataType:     "*values.CustomerID",
 				ValueFactory: "values.RebuildID(id)",
 				Input: []Input{
 					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
@@ -74,7 +74,7 @@ var commands = []Command{
 		Fields: []Field{
 			{
 				FieldName:    "id",
-				DataType:     "*values.ID",
+				DataType:     "*values.CustomerID",
 				ValueFactory: "values.RebuildID(id)",
 				Input: []Input{
 					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
@@ -103,7 +103,7 @@ var commands = []Command{
 		Fields: []Field{
 			{
 				FieldName:    "id",
-				DataType:     "*values.ID",
+				DataType:     "*values.CustomerID",
 				ValueFactory: "values.RebuildID(id)",
 				Input: []Input{
 					{FieldName: "id", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},

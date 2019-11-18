@@ -50,7 +50,7 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
-			So(registered.ID(), ShouldResemble, id)
+			So(registered.CustomerID(), ShouldResemble, id)
 			So(registered.ConfirmableEmailAddress(), ShouldResemble, confirmableEmailAddress)
 			So(registered.PersonName(), ShouldResemble, personName)
 			So(registered.Identifier(), ShouldEqual, id.String())

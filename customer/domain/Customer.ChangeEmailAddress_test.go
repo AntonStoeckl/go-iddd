@@ -47,7 +47,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 				emailAddressChanged, ok := recordedEvents[0].(*events.EmailAddressChanged)
 				So(ok, ShouldBeTrue)
 				So(emailAddressChanged, ShouldNotBeNil)
-				So(emailAddressChanged.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressChanged.CustomerID().Equals(id), ShouldBeTrue)
 				So(emailAddressChanged.ConfirmableEmailAddress().Equals(newEmailAddress), ShouldBeTrue)
 				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 

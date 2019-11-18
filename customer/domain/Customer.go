@@ -60,7 +60,7 @@ func (customer *Customer) apply(eventStream ...shared.DomainEvent) {
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case *events.Registered:
-			customer.id = actualEvent.ID()
+			customer.id = actualEvent.CustomerID()
 			customer.confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
 			customer.personName = actualEvent.PersonName()
 		case *events.EmailAddressConfirmed:

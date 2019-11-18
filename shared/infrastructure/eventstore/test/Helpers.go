@@ -43,7 +43,7 @@ func BeginTx(db *sql.DB) *sql.Tx {
 	return tx
 }
 
-/*** mocked ID ***/
+/*** mocked CustomerID ***/
 
 type SomeID struct {
 	ID string
@@ -114,7 +114,7 @@ func (someEvent *SomeEvent) StreamVersion() uint {
 
 func (someEvent *SomeEvent) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID         *SomeID `json:"ID"`
+		ID         *SomeID `json:"CustomerID"`
 		Name       string  `json:"name"`
 		Version    uint    `json:"version"`
 		OccurredAt string  `json:"occurredAt"`
@@ -130,7 +130,7 @@ func (someEvent *SomeEvent) MarshalJSON() ([]byte, error) {
 
 func (someEvent *SomeEvent) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID         *SomeID `json:"ID"`
+		ID         *SomeID `json:"CustomerID"`
 		Name       string  `json:"name"`
 		Version    uint    `json:"version"`
 		OccurredAt string  `json:"occurredAt"`
@@ -188,7 +188,7 @@ func (brokenMarshalingEvent *BrokenMarshalingEvent) MarshalJSON() ([]byte, error
 
 func (brokenMarshalingEvent *BrokenMarshalingEvent) UnmarshalJSON(data []byte) error {
 	unmarshaledData := &struct {
-		ID         *SomeID `json:"ID"`
+		ID         *SomeID `json:"CustomerID"`
 		Name       string  `json:"name"`
 		Version    uint    `json:"version"`
 		OccurredAt string  `json:"occurredAt"`
@@ -242,7 +242,7 @@ func (brokenUnmarshalingEvent *BrokenUnmarshalingEvent) StreamVersion() uint {
 
 func (brokenUnmarshalingEvent *BrokenUnmarshalingEvent) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		ID         *SomeID `json:"ID"`
+		ID         *SomeID `json:"CustomerID"`
 		Name       string  `json:"name"`
 		Version    uint    `json:"version"`
 		OccurredAt string  `json:"occurredAt"`

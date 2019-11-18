@@ -42,7 +42,7 @@ func TestEmailAddressConfirmationFailedExposesExpectedValues(t *testing.T) {
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
-			So(emailAddressConfirmationFailed.ID(), ShouldResemble, id)
+			So(emailAddressConfirmationFailed.CustomerID(), ShouldResemble, id)
 			So(emailAddressConfirmationFailed.ConfirmationHash(), ShouldResemble, confirmationHash)
 			So(emailAddressConfirmationFailed.Identifier(), ShouldEqual, id.String())
 			So(emailAddressConfirmationFailed.EventName(), ShouldEqual, "CustomerEmailAddressConfirmationFailed")

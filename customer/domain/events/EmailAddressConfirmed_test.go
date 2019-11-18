@@ -44,7 +44,7 @@ func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
 		afterItOccurred := time.Now()
 
 		Convey("It should expose the expected values", func() {
-			So(emailAddressConfirmed.ID(), ShouldResemble, id)
+			So(emailAddressConfirmed.CustomerID(), ShouldResemble, id)
 			So(emailAddressConfirmed.EmailAddress(), ShouldResemble, emailAddress)
 			So(emailAddressConfirmed.Identifier(), ShouldEqual, id.String())
 			So(emailAddressConfirmed.EventName(), ShouldEqual, "CustomerEmailAddressConfirmed")

@@ -35,7 +35,7 @@ func TestRegisterCustomer(t *testing.T) {
 			registered, ok := recordedEvents[0].(*events.Registered)
 			So(ok, ShouldBeTrue)
 			So(registered, ShouldNotBeNil)
-			So(registered.ID().Equals(id), ShouldBeTrue)
+			So(registered.CustomerID().Equals(id), ShouldBeTrue)
 			So(registered.ConfirmableEmailAddress().Equals(emailAddress), ShouldBeTrue)
 			_, err := values.RebuildConfirmationHash(registered.ConfirmableEmailAddress().ConfirmationHash())
 			So(err, ShouldBeNil)

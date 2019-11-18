@@ -37,7 +37,7 @@ var events = []Event{
 		EventType:    "Registered",
 		EventFactory: "ItWasRegistered",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "id", DataType: "*values.CustomerID"},
 			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
 			{FieldName: "personName", DataType: "*values.PersonName"},
 		},
@@ -46,7 +46,7 @@ var events = []Event{
 		EventType:    "EmailAddressConfirmed",
 		EventFactory: "EmailAddressWasConfirmed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "id", DataType: "*values.CustomerID"},
 			{FieldName: "emailAddress", DataType: "*values.EmailAddress"},
 		},
 	},
@@ -54,7 +54,7 @@ var events = []Event{
 		EventType:    "EmailAddressConfirmationFailed",
 		EventFactory: "EmailAddressConfirmationHasFailed",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "id", DataType: "*values.CustomerID"},
 			{FieldName: "confirmationHash", DataType: "*values.ConfirmationHash"},
 		},
 	},
@@ -62,7 +62,7 @@ var events = []Event{
 		EventType:    "EmailAddressChanged",
 		EventFactory: "EmailAddressWasChanged",
 		Fields: []Field{
-			{FieldName: "id", DataType: "*values.ID"},
+			{FieldName: "id", DataType: "*values.CustomerID"},
 			{FieldName: "confirmableEmailAddress", DataType: "*values.ConfirmableEmailAddress"},
 		},
 	},

@@ -45,7 +45,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 				emailAddressConfirmed, ok := recordedEvents[0].(*events.EmailAddressConfirmed)
 				So(ok, ShouldBeTrue)
 				So(emailAddressConfirmed, ShouldNotBeNil)
-				So(emailAddressConfirmed.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressConfirmed.CustomerID().Equals(id), ShouldBeTrue)
 				So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
 				So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
@@ -77,7 +77,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 				emailAddressConfirmationFailed, ok := recordedEvents[0].(*events.EmailAddressConfirmationFailed)
 				So(ok, ShouldBeTrue)
 				So(emailAddressConfirmationFailed, ShouldNotBeNil)
-				So(emailAddressConfirmationFailed.ID().Equals(id), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.CustomerID().Equals(id), ShouldBeTrue)
 				So(emailAddressConfirmationFailed.ConfirmationHash().Equals(wrongConfirmationHash), ShouldBeTrue)
 				So(emailAddressConfirmationFailed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 			})
