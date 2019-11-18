@@ -16,10 +16,10 @@ import (
 func TestItWasRegistered(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 
 		Convey("When a new Registered event is created", func() {
@@ -38,10 +38,10 @@ func TestItWasRegistered(t *testing.T) {
 func TestRegisteredExposesExpectedValues(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -67,10 +67,10 @@ func TestRegisteredExposesExpectedValues(t *testing.T) {
 func TestRegisteredMarshalJSON(t *testing.T) {
 	Convey("Given a Registered event", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -91,10 +91,10 @@ func TestRegisteredMarshalJSON(t *testing.T) {
 func TestRegisteredUnmarshalJSON(t *testing.T) {
 	Convey("Given a Registered event marshaled to json", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 

@@ -14,7 +14,7 @@ import (
 func TestNewEmailAddress(t *testing.T) {
 	Convey("Given a valid emailAddress as input", t, func() {
 		Convey("When a new EmailAddress is created", func() {
-			emailAddress, err := values.NewEmailAddress("foo@bar.com")
+			emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -26,7 +26,7 @@ func TestNewEmailAddress(t *testing.T) {
 
 	Convey("Given an invalid emailAddress as input", t, func() {
 		Convey("When a new EmailAddress is created", func() {
-			emailAddress, err := values.NewEmailAddress("foo@bar.c")
+			emailAddress, err := values.EmailAddressFrom("foo@bar.c")
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -42,7 +42,7 @@ func TestNewEmailAddress(t *testing.T) {
 func TestEmailAddressExposesExpectedValues(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.EmailAddressFrom(emailAddressValue)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected values", func() {
@@ -56,11 +56,11 @@ func TestEmailAddressExposesExpectedValues(t *testing.T) {
 func TestEmailAddressEquals(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.EmailAddressFrom(emailAddressValue)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal EmailAddress", func() {
-			equalEmailAddress, err := values.NewEmailAddress(emailAddressValue)
+			equalEmailAddress, err := values.EmailAddressFrom(emailAddressValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -74,7 +74,7 @@ func TestEmailAddressEquals(t *testing.T) {
 
 		Convey("And given a different EmailAddress", func() {
 			differentEmailAddressValue := "foo+different@bar.com"
-			differentEmailAddress, err := values.NewEmailAddress(differentEmailAddressValue)
+			differentEmailAddress, err := values.EmailAddressFrom(differentEmailAddressValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -91,11 +91,11 @@ func TestEmailAddressEquals(t *testing.T) {
 func TestEmailAddressShouldEqual(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.EmailAddressFrom(emailAddressValue)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal EmailAddress", func() {
-			equalEmailAddress, err := values.NewEmailAddress(emailAddressValue)
+			equalEmailAddress, err := values.EmailAddressFrom(emailAddressValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -108,7 +108,7 @@ func TestEmailAddressShouldEqual(t *testing.T) {
 		})
 
 		Convey("And given a different EmailAddress", func() {
-			differentEmailAddress, err := values.NewEmailAddress("foo+different@bar.com")
+			differentEmailAddress, err := values.EmailAddressFrom("foo+different@bar.com")
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -127,7 +127,7 @@ func TestEmailAddressShouldEqual(t *testing.T) {
 
 func TestEmailAddressToConfirmable(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When it is converted to confirmable", func() {
@@ -146,7 +146,7 @@ func TestEmailAddressToConfirmable(t *testing.T) {
 
 func TestEmailAddressMarshalJSON(t *testing.T) {
 	Convey("Given an EmailAddress", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When it is marshaled to json", func() {
@@ -162,7 +162,7 @@ func TestEmailAddressMarshalJSON(t *testing.T) {
 
 func TestEmailAddressUnmarshalJSON(t *testing.T) {
 	Convey("Given an EmailAddress marshaled to json", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		data, err := emailAddress.MarshalJSON()
 		So(err, ShouldBeNil)

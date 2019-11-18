@@ -16,7 +16,7 @@ import (
 func TestEmailAddressWasConfirmed(t *testing.T) {
 	Convey("Given valid parameters as input", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 
 		Convey("When a new EmailAddressConfirmed event is created", func() {
@@ -35,7 +35,7 @@ func TestEmailAddressWasConfirmed(t *testing.T) {
 func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
 	Convey("Given a EmailAddressConfirmed event", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -60,7 +60,7 @@ func TestEmailAddressConfirmedExposesExpectedValues(t *testing.T) {
 func TestEmailAddressConfirmedMarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmed event", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -81,7 +81,7 @@ func TestEmailAddressConfirmedMarshalJSON(t *testing.T) {
 func TestEmailAddressConfirmedUnmarshalJSON(t *testing.T) {
 	Convey("Given a EmailAddressConfirmed event marshaled to json", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 

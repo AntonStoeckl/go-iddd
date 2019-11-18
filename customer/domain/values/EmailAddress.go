@@ -18,8 +18,8 @@ type EmailAddress struct {
 
 /*** Factory methods ***/
 
-func NewEmailAddress(from string) (*EmailAddress, error) {
-	newEmailAddress := &EmailAddress{value: from}
+func EmailAddressFrom(input string) (*EmailAddress, error) {
+	newEmailAddress := &EmailAddress{value: input}
 
 	if err := newEmailAddress.shouldBeValid(); err != nil {
 		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "emailAddress.New")

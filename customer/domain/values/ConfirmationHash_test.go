@@ -45,7 +45,7 @@ func TestRebuildConfirmationHash(t *testing.T) {
 		confirmationHashValue := "secret_hash"
 
 		Convey("When a ConfirmationHash is rebuilt", func() {
-			confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			confirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -59,7 +59,7 @@ func TestRebuildConfirmationHash(t *testing.T) {
 		confirmationHashValue := ""
 
 		Convey("When a ConfirmationHash is rebuilt", func() {
-			confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			confirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -84,7 +84,7 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 
 	Convey("Given a rebuilt ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		confirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected value", func() {
@@ -98,11 +98,11 @@ func TestConfirmationHashExposesExpectedValues(t *testing.T) {
 func TestConfirmationHashShouldEqual(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		confirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal ConfirmationHash", func() {
-			equalConfirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			equalConfirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -114,7 +114,7 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 
 		Convey("And given another different ConfirmationHash", func() {
 			differentConfirmationHashValue := "different_hash"
-			differentConfirmationHash, err := values.RebuildConfirmationHash(differentConfirmationHashValue)
+			differentConfirmationHash, err := values.ConfirmationHashFrom(differentConfirmationHashValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -129,11 +129,11 @@ func TestConfirmationHashShouldEqual(t *testing.T) {
 func TestConfirmationHashEquals(t *testing.T) {
 	Convey("Given a ConfirmationHash", t, func() {
 		confirmationHashValue := "secret_hash"
-		confirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+		confirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal ConfirmationHash", func() {
-			equalConfirmationHash, err := values.RebuildConfirmationHash(confirmationHashValue)
+			equalConfirmationHash, err := values.ConfirmationHashFrom(confirmationHashValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -147,7 +147,7 @@ func TestConfirmationHashEquals(t *testing.T) {
 
 		Convey("And given another different ConfirmationHash", func() {
 			differentConfirmationHashValue := "different_hash"
-			differentConfirmationHash, err := values.RebuildConfirmationHash(differentConfirmationHashValue)
+			differentConfirmationHash, err := values.ConfirmationHashFrom(differentConfirmationHashValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {

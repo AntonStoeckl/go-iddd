@@ -75,11 +75,11 @@ func TestRegisterExposesExpectedValues(t *testing.T) {
 		givenName := "John"
 		familyName := "Doe"
 
-		customerIDValue, err := values.RebuildCustomerID(customerID)
+		customerIDValue, err := values.CustomerIDFrom(customerID)
 		So(err, ShouldBeNil)
-		emailAddressValue, err := values.NewEmailAddress(emailAddress)
+		emailAddressValue, err := values.EmailAddressFrom(emailAddress)
 		So(err, ShouldBeNil)
-		personNameValue, err := values.NewPersonName(givenName, familyName)
+		personNameValue, err := values.PersonNameFrom(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		register, err := commands.NewRegister(customerID, emailAddress, givenName, familyName)

@@ -26,11 +26,11 @@ func GenerateConfirmationHash(using string) *ConfirmationHash {
 	return &ConfirmationHash{value: value}
 }
 
-func RebuildConfirmationHash(from string) (*ConfirmationHash, error) {
-	rebuiltConfirmationHash := &ConfirmationHash{value: from}
+func ConfirmationHashFrom(input string) (*ConfirmationHash, error) {
+	rebuiltConfirmationHash := &ConfirmationHash{value: input}
 
 	if err := rebuiltConfirmationHash.shouldBeValid(); err != nil {
-		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "confirmationHash.RebuildConfirmationHash")
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "confirmationHash.ConfirmationHashFrom")
 	}
 
 	return rebuiltConfirmationHash, nil

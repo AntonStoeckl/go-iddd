@@ -18,8 +18,8 @@ func GenerateCustomerID() *CustomerID {
 	return &CustomerID{value: uuid.New().String()}
 }
 
-func RebuildCustomerID(from string) (*CustomerID, error) {
-	rebuiltID := &CustomerID{value: from}
+func CustomerIDFrom(value string) (*CustomerID, error) {
+	rebuiltID := &CustomerID{value: value}
 
 	if err := rebuiltID.shouldBeValid(); err != nil {
 		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "customerID.New")

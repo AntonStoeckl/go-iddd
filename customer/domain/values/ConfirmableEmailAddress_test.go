@@ -15,7 +15,7 @@ import (
 func TestConfirmableEmailAddressExposesExpectedValues(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.EmailAddressFrom(emailAddressValue)
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 
@@ -38,12 +38,12 @@ func TestConfirmableEmailAddressExposesExpectedValues(t *testing.T) {
 func TestConfirmableEmailAddressEquals(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
 		emailAddressValue := "foo@bar.com"
-		emailAddress, err := values.NewEmailAddress(emailAddressValue)
+		emailAddress, err := values.EmailAddressFrom(emailAddressValue)
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 
 		Convey("And given an equal EmailAddress", func() {
-			equalConfirmableEmailAddress, err := values.NewEmailAddress(emailAddressValue)
+			equalConfirmableEmailAddress, err := values.EmailAddressFrom(emailAddressValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -56,7 +56,7 @@ func TestConfirmableEmailAddressEquals(t *testing.T) {
 		})
 
 		Convey("And given a different EmailAddress", func() {
-			differentEmailAddress, err := values.NewEmailAddress("foo+different@bar.com")
+			differentEmailAddress, err := values.EmailAddressFrom("foo+different@bar.com")
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -72,7 +72,7 @@ func TestConfirmableEmailAddressEquals(t *testing.T) {
 
 func TestConfirmableEmailAddressMarkAsConfirmed(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		unconfirmedEmailAddress := emailAddress.ToConfirmable()
 
@@ -91,18 +91,18 @@ func TestConfirmableEmailAddressMarkAsConfirmed(t *testing.T) {
 
 func TestConfirmableEmailAddressIsConfirmedBy(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		unconfirmedEmailAddress := emailAddress.ToConfirmable()
 
 		Convey("It should confirm with the matching ConfirmationHash", func() {
-			confirmationHash, err := values.RebuildConfirmationHash(unconfirmedEmailAddress.ConfirmationHash())
+			confirmationHash, err := values.ConfirmationHashFrom(unconfirmedEmailAddress.ConfirmationHash())
 			So(err, ShouldBeNil)
 			So(unconfirmedEmailAddress.IsConfirmedBy(confirmationHash), ShouldBeTrue)
 		})
 
 		Convey("It should not confirm with a wrong ConfirmationHash", func() {
-			confirmationHash, err := values.RebuildConfirmationHash("invalid_confirmation_hash")
+			confirmationHash, err := values.ConfirmationHashFrom("invalid_confirmation_hash")
 			So(err, ShouldBeNil)
 			So(unconfirmedEmailAddress.IsConfirmedBy(confirmationHash), ShouldBeFalse)
 		})
@@ -113,7 +113,7 @@ func TestConfirmableEmailAddressIsConfirmedBy(t *testing.T) {
 
 func TestConfirmableEmailAddressMarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 
@@ -137,7 +137,7 @@ func TestConfirmableEmailAddressMarshalJSON(t *testing.T) {
 
 func TestConfirmableEmailAddressUnmarshalJSON(t *testing.T) {
 	Convey("Given a ConfirmableEmailAddress marshaled to json", t, func() {
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		data, err := confirmableEmailAddress.MarshalJSON()

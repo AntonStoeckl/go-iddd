@@ -14,7 +14,7 @@ type PersonName struct {
 
 /*** Factory methods ***/
 
-func NewPersonName(givenName string, familyName string) (*PersonName, error) {
+func PersonNameFrom(givenName string, familyName string) (*PersonName, error) {
 	newPersonName := &PersonName{
 		givenName:  givenName,
 		familyName: familyName,

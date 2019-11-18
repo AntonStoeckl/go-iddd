@@ -13,11 +13,11 @@ import (
 
 func TestRegisterCustomer(t *testing.T) {
 	Convey("When a Customer is registered", t, func() {
-		id, err := values.RebuildCustomerID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		id, err := values.CustomerIDFrom("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 
 		register, err := commands.NewRegister(
@@ -37,7 +37,7 @@ func TestRegisterCustomer(t *testing.T) {
 			So(registered, ShouldNotBeNil)
 			So(registered.CustomerID().Equals(id), ShouldBeTrue)
 			So(registered.ConfirmableEmailAddress().Equals(emailAddress), ShouldBeTrue)
-			_, err := values.RebuildConfirmationHash(registered.ConfirmableEmailAddress().ConfirmationHash())
+			_, err := values.ConfirmationHashFrom(registered.ConfirmableEmailAddress().ConfirmationHash())
 			So(err, ShouldBeNil)
 			So(registered.PersonName().Equals(personName), ShouldBeTrue)
 			So(registered.StreamVersion(), ShouldEqual, uint(1))

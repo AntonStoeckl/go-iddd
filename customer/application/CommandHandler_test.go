@@ -39,7 +39,7 @@ func TestNewCommandHandler(t *testing.T) {
 func TestCommandHandler_Handle_Register(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
 
 		customers := new(mocks.Customers)
@@ -94,7 +94,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
 
 		recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
@@ -195,7 +195,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
 
 		customers := new(mocks.Customers)
@@ -273,7 +273,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
 		customerID := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
 
 		customers := new(mocks.Customers)

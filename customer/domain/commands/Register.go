@@ -24,17 +24,17 @@ func NewRegister(
 	familyName string,
 ) (*Register, error) {
 
-	customerIDValue, err := values.RebuildCustomerID(customerID)
+	customerIDValue, err := values.CustomerIDFrom(customerID)
 	if err != nil {
 		return nil, err
 	}
 
-	emailAddressValue, err := values.NewEmailAddress(emailAddress)
+	emailAddressValue, err := values.EmailAddressFrom(emailAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	personNameValue, err := values.NewPersonName(givenName, familyName)
+	personNameValue, err := values.PersonNameFrom(givenName, familyName)
 	if err != nil {
 		return nil, err
 	}

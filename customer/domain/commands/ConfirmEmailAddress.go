@@ -23,17 +23,17 @@ func NewConfirmEmailAddress(
 	confirmationHash string,
 ) (*ConfirmEmailAddress, error) {
 
-	customerIDValue, err := values.RebuildCustomerID(customerID)
+	customerIDValue, err := values.CustomerIDFrom(customerID)
 	if err != nil {
 		return nil, err
 	}
 
-	emailAddressValue, err := values.NewEmailAddress(emailAddress)
+	emailAddressValue, err := values.EmailAddressFrom(emailAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	confirmationHashValue, err := values.RebuildConfirmationHash(confirmationHash)
+	confirmationHashValue, err := values.ConfirmationHashFrom(confirmationHash)
 	if err != nil {
 		return nil, err
 	}

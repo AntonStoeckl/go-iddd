@@ -66,7 +66,7 @@ func TestRebuildCustomerID(t *testing.T) {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
 
 		Convey("When an CustomerID is rebuilt", func() {
-			customerID, err := values.RebuildCustomerID(idValue)
+			customerID, err := values.CustomerIDFrom(idValue)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestRebuildCustomerID(t *testing.T) {
 		idValue := ""
 
 		Convey("When an CustomerID is rebuilt", func() {
-			customerID, err := values.RebuildCustomerID(idValue)
+			customerID, err := values.CustomerIDFrom(idValue)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -104,7 +104,7 @@ func TestCustomerIDExposesExpectedValues(t *testing.T) {
 
 	Convey("Given a rebuilt CustomerID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		customerID, err := values.RebuildCustomerID(idValue)
+		customerID, err := values.CustomerIDFrom(idValue)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected value", func() {
@@ -118,11 +118,11 @@ func TestCustomerIDExposesExpectedValues(t *testing.T) {
 func TestEqualsOnCustomerID(t *testing.T) {
 	Convey("Given an Identifier of type CustomerID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		customerID, err := values.RebuildCustomerID(idValue)
+		customerID, err := values.CustomerIDFrom(idValue)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal CustomerID", func() {
-			equalId, err := values.RebuildCustomerID(idValue)
+			equalId, err := values.CustomerIDFrom(idValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -148,7 +148,7 @@ func TestEqualsOnCustomerID(t *testing.T) {
 
 		Convey("And given an CustomerID with equal type but different value", func() {
 			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
-			differentId, err := values.RebuildCustomerID(differentIdValue)
+			differentId, err := values.CustomerIDFrom(differentIdValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {

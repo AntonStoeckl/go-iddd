@@ -12,9 +12,9 @@ import (
 
 func BenchmarkUnmarshalDomainEvent(b *testing.B) {
 	id := values.GenerateCustomerID()
-	emailAddress, _ := values.NewEmailAddress("foo@bar.com")
+	emailAddress, _ := values.EmailAddressFrom("foo@bar.com")
 	confirmableEmailAddress := emailAddress.ToConfirmable()
-	personName, _ := values.NewPersonName("John", "Doe")
+	personName, _ := values.PersonNameFrom("John", "Doe")
 	streamVersion := uint(1)
 
 	event1 := events.ItWasRegistered(id, confirmableEmailAddress, personName, streamVersion)
@@ -36,10 +36,10 @@ func BenchmarkUnmarshalDomainEvent(b *testing.B) {
 func TestUnmarshalRegistered(t *testing.T) {
 	Convey("When CustomerRegistered is unmarshaled", t, func() {
 		id := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -71,7 +71,7 @@ func TestUnmarshalRegistered(t *testing.T) {
 func TestUnmarshalCustomerEmailAddressConfirmed(t *testing.T) {
 	Convey("When CustomerEmailAddressConfirmed is unmarshaled", t, func() {
 		id := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		streamVersion := uint(1)
 
@@ -134,7 +134,7 @@ func TestUnmarshalEmailAddressConfirmationFailed(t *testing.T) {
 func TestUnmarshalCustomerEmailAddressChanged(t *testing.T) {
 	Convey("When CustomerEmailAddressChanged is unmarshaled", t, func() {
 		id := values.GenerateCustomerID()
-		emailAddress, err := values.NewEmailAddress("foo@bar.com")
+		emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
 		streamVersion := uint(1)

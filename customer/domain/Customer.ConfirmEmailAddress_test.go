@@ -13,12 +13,12 @@ import (
 
 func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 	Convey("Given a Customer", t, func() {
-		id, err := values.RebuildCustomerID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
+		id, err := values.CustomerIDFrom("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
-		emailAddress, err := values.NewEmailAddress("john@doe.com")
+		emailAddress, err := values.EmailAddressFrom("john@doe.com")
 		So(err, ShouldBeNil)
 		confirmableEmailAddress := emailAddress.ToConfirmable()
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 
 		currentStreamVersion := uint(1)
@@ -60,7 +60,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 		})
 
 		Convey("When an emailAddress is confirmed with a wrong confirmationHash", func() {
-			wrongConfirmationHash, err := values.RebuildConfirmationHash("some_not_matching_hash")
+			wrongConfirmationHash, err := values.ConfirmationHashFrom("some_not_matching_hash")
 			So(err, ShouldBeNil)
 
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(

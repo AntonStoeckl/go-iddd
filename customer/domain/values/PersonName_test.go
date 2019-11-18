@@ -18,7 +18,7 @@ func TestNewPersonName(t *testing.T) {
 		familyName := "Doe"
 
 		Convey("When a PersonName is created", func() {
-			personName, err := values.NewPersonName(givenName, familyName)
+			personName, err := values.PersonNameFrom(givenName, familyName)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
@@ -33,7 +33,7 @@ func TestNewPersonName(t *testing.T) {
 		familyName := "Doe"
 
 		Convey("When a PersonName is created", func() {
-			personName, err := values.NewPersonName(givenName, familyName)
+			personName, err := values.PersonNameFrom(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -48,7 +48,7 @@ func TestNewPersonName(t *testing.T) {
 		familyName := ""
 
 		Convey("When a PersonName is created", func() {
-			personName, err := values.NewPersonName(givenName, familyName)
+			personName, err := values.PersonNameFrom(givenName, familyName)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -65,7 +65,7 @@ func TestPersonNameExposesExpectedValues(t *testing.T) {
 	Convey("Given an PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := values.NewPersonName(givenName, familyName)
+		personName, err := values.PersonNameFrom(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("It should expose the expected GivenName", func() {
@@ -84,11 +84,11 @@ func TestPersonNameEquals(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := values.NewPersonName(givenName, familyName)
+		personName, err := values.PersonNameFrom(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal PersonName", func() {
-			equalPersonName, err := values.NewPersonName(givenName, familyName)
+			equalPersonName, err := values.PersonNameFrom(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -102,7 +102,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 		Convey("And given another PersonName with different givenName", func() {
 			givenName = "Peter"
-			differentPersonName, err := values.NewPersonName(givenName, familyName)
+			differentPersonName, err := values.PersonNameFrom(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -116,7 +116,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 		Convey("And given another PersonName with different familyName", func() {
 			familyName = "Mueller"
-			differentPersonName, err := values.NewPersonName(givenName, familyName)
+			differentPersonName, err := values.PersonNameFrom(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -134,7 +134,7 @@ func TestPersonNameEquals(t *testing.T) {
 
 func TestPersonNameMarshalJSON(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 
 		Convey("When it is marshaled to json", func() {
@@ -156,7 +156,7 @@ func TestPersonNameMarshalJSON(t *testing.T) {
 
 func TestPersonNameUnmarshalJSON(t *testing.T) {
 	Convey("Given a PersonName marshaled to json", t, func() {
-		personName, err := values.NewPersonName("John", "Doe")
+		personName, err := values.PersonNameFrom("John", "Doe")
 		So(err, ShouldBeNil)
 		data, err := personName.MarshalJSON()
 		So(err, ShouldBeNil)

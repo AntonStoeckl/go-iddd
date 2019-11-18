@@ -59,9 +59,9 @@ func TestChangeEmailAddressExposesExpectedValues(t *testing.T) {
 		customerID := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		emailAddress := "john@doe.com"
 
-		customerIDValue, err := values.RebuildCustomerID(customerID)
+		customerIDValue, err := values.CustomerIDFrom(customerID)
 		So(err, ShouldBeNil)
-		emailAddressValue, err := values.NewEmailAddress(emailAddress)
+		emailAddressValue, err := values.EmailAddressFrom(emailAddress)
 		So(err, ShouldBeNil)
 
 		changeEmailAddress, err := commands.NewChangeEmailAddress(customerID, emailAddress)
