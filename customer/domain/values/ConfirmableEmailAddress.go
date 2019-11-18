@@ -13,16 +13,6 @@ type ConfirmableEmailAddress struct {
 	isConfirmed      bool
 }
 
-/*** Factory methods ***/
-
-func buildConfirmableEmailAddress(from *EmailAddress, with *ConfirmationHash) *ConfirmableEmailAddress {
-	return &ConfirmableEmailAddress{
-		emailAddress:     from,
-		confirmationHash: with,
-		isConfirmed:      false,
-	}
-}
-
 /*** Getter Methods ***/
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) EmailAddress() string {
@@ -50,14 +40,11 @@ func (confirmableEmailAddress *ConfirmableEmailAddress) IsConfirmedBy(hash *Conf
 /*** Modification Methods ***/
 
 func (confirmableEmailAddress *ConfirmableEmailAddress) MarkAsConfirmed() *ConfirmableEmailAddress {
-	confirmedEmailAddress := buildConfirmableEmailAddress(
-		confirmableEmailAddress.emailAddress,
-		confirmableEmailAddress.confirmationHash,
-	)
-
-	confirmedEmailAddress.isConfirmed = true
-
-	return confirmedEmailAddress
+	return &ConfirmableEmailAddress{
+		emailAddress:     confirmableEmailAddress.emailAddress,
+		confirmationHash: confirmableEmailAddress.confirmationHash,
+		isConfirmed:      true,
+	}
 }
 
 /*** Implement json.Marshaler ***/

@@ -23,11 +23,11 @@ func GenerateConfirmationHash(using string) *ConfirmationHash {
 	md5Sum := md5.Sum([]byte(using + strconv.Itoa(randomInt)))
 	value := fmt.Sprintf("%x", md5Sum)
 
-	return buildConfirmationHash(value)
+	return &ConfirmationHash{value: value}
 }
 
 func RebuildConfirmationHash(from string) (*ConfirmationHash, error) {
-	rebuiltConfirmationHash := buildConfirmationHash(from)
+	rebuiltConfirmationHash := &ConfirmationHash{value: from}
 
 	if err := rebuiltConfirmationHash.shouldBeValid(); err != nil {
 		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "confirmationHash.RebuildConfirmationHash")
@@ -42,10 +42,6 @@ func (confirmationHash *ConfirmationHash) shouldBeValid() error {
 	}
 
 	return nil
-}
-
-func buildConfirmationHash(from string) *ConfirmationHash {
-	return &ConfirmationHash{value: from}
 }
 
 /*** Getter Methods ***/

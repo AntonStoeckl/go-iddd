@@ -19,7 +19,7 @@ type EmailAddress struct {
 /*** Factory methods ***/
 
 func NewEmailAddress(from string) (*EmailAddress, error) {
-	newEmailAddress := buildEmailAddress(from)
+	newEmailAddress := &EmailAddress{value: from}
 
 	if err := newEmailAddress.shouldBeValid(); err != nil {
 		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "emailAddress.New")
@@ -30,14 +30,10 @@ func NewEmailAddress(from string) (*EmailAddress, error) {
 
 func (emailAddress *EmailAddress) shouldBeValid() error {
 	if matched := emailAddressRegExp.MatchString(emailAddress.value); matched != true {
-		return errors.New("input does not match regex")
+		return errors.New("input has invalid format")
 	}
 
 	return nil
-}
-
-func buildEmailAddress(from string) *EmailAddress {
-	return &EmailAddress{value: from}
 }
 
 /*** Getter Methods ***/
@@ -63,7 +59,11 @@ func (emailAddress *EmailAddress) ShouldEqual(other *EmailAddress) error {
 /*** Conversion Methods ***/
 
 func (emailAddress *EmailAddress) ToConfirmable() *ConfirmableEmailAddress {
-	return buildConfirmableEmailAddress(emailAddress, GenerateConfirmationHash(emailAddress.EmailAddress()))
+	return &ConfirmableEmailAddress{
+		emailAddress:     emailAddress,
+		confirmationHash: GenerateConfirmationHash(emailAddress.EmailAddress()),
+		isConfirmed:      false,
+	}
 }
 
 /*** Implement json.Marshaler ***/

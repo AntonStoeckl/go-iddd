@@ -15,20 +15,16 @@ type PersonName struct {
 /*** Factory methods ***/
 
 func NewPersonName(givenName string, familyName string) (*PersonName, error) {
-	newPersonName := buildPersonName(givenName, familyName)
+	newPersonName := &PersonName{
+		givenName:  givenName,
+		familyName: familyName,
+	}
 
 	if err := newPersonName.shouldBeValid(); err != nil {
 		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "personName.New")
 	}
 
 	return newPersonName, nil
-}
-
-func buildPersonName(givenName string, familyName string) *PersonName {
-	return &PersonName{
-		givenName:  givenName,
-		familyName: familyName,
-	}
 }
 
 func (personName *PersonName) shouldBeValid() error {

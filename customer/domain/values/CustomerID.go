@@ -15,21 +15,17 @@ type CustomerID struct {
 /*** Factory methods ***/
 
 func GenerateCustomerID() *CustomerID {
-	return buildCustomerID(uuid.New().String())
+	return &CustomerID{value: uuid.New().String()}
 }
 
 func RebuildCustomerID(from string) (*CustomerID, error) {
-	rebuiltID := buildCustomerID(from)
+	rebuiltID := &CustomerID{value: from}
 
 	if err := rebuiltID.shouldBeValid(); err != nil {
-		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "id.New")
+		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "customerID.New")
 	}
 
 	return rebuiltID, nil
-}
-
-func buildCustomerID(from string) *CustomerID {
-	return &CustomerID{value: from}
 }
 
 func (id *CustomerID) shouldBeValid() error {
