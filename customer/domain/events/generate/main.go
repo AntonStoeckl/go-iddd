@@ -363,16 +363,16 @@ func ({{$eventVar}} *{{eventName}}) UnmarshalJSON(data []byte) error {
 
 var customerIDFactoryForTestTemplate = `customerID := values.GenerateCustomerID()`
 
-var emailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
+var emailAddressFactoryForTestTemplate = `emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 	So(err, ShouldBeNil)`
 
 var confirmationHashFactoryForTestTemplate = `confirmationHash := values.GenerateConfirmationHash("secret_hash")`
 
-var confirmableEmailAddressFactoryForTestTemplate = `emailAddress, err := values.NewEmailAddress("foo@bar.com")
+var confirmableEmailAddressFactoryForTestTemplate = `emailAddress, err := values.EmailAddressFrom("foo@bar.com")
 	So(err, ShouldBeNil)
 	confirmableEmailAddress := emailAddress.ToConfirmable()`
 
-var personNameFactoryForTestTemplate = `personName, err := values.NewPersonName("John", "Doe")
+var personNameFactoryForTestTemplate = `personName, err := values.PersonNameFrom("John", "Doe")
 	So(err, ShouldBeNil)`
 
 var testTemplate = `

@@ -45,7 +45,7 @@ var commands = []Command{
 			{
 				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildCustomerID(customerID)",
+				ValueFactory: "values.CustomerIDFrom(customerID)",
 				Input: []Input{
 					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
@@ -53,7 +53,7 @@ var commands = []Command{
 			{
 				FieldName:    "emailAddress",
 				DataType:     "*values.EmailAddress",
-				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				ValueFactory: "values.EmailAddressFrom(emailAddress)",
 				Input: []Input{
 					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
 				},
@@ -61,7 +61,7 @@ var commands = []Command{
 			{
 				FieldName:    "personName",
 				DataType:     "*values.PersonName",
-				ValueFactory: "values.NewPersonName(givenName, familyName)",
+				ValueFactory: "values.PersonNameFrom(givenName, familyName)",
 				Input: []Input{
 					{FieldName: "givenName", DataType: "string", Valid: `"John"`, Invalid: `""`},
 					{FieldName: "familyName", DataType: "string", Valid: `"Doe"`, Invalid: `""`},
@@ -75,7 +75,7 @@ var commands = []Command{
 			{
 				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildCustomerID(customerID)",
+				ValueFactory: "values.CustomerIDFrom(customerID)",
 				Input: []Input{
 					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
@@ -83,7 +83,7 @@ var commands = []Command{
 			{
 				FieldName:    "emailAddress",
 				DataType:     "*values.EmailAddress",
-				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				ValueFactory: "values.EmailAddressFrom(emailAddress)",
 				Input: []Input{
 					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
 				},
@@ -91,7 +91,7 @@ var commands = []Command{
 			{
 				FieldName:    "confirmationHash",
 				DataType:     "*values.ConfirmationHash",
-				ValueFactory: "values.RebuildConfirmationHash(confirmationHash)",
+				ValueFactory: "values.ConfirmationHashFrom(confirmationHash)",
 				Input: []Input{
 					{FieldName: "confirmationHash", DataType: "string", Valid: `"secret_hash"`, Invalid: `""`},
 				},
@@ -104,7 +104,7 @@ var commands = []Command{
 			{
 				FieldName:    "customerID",
 				DataType:     "*values.CustomerID",
-				ValueFactory: "values.RebuildCustomerID(customerID)",
+				ValueFactory: "values.CustomerIDFrom(customerID)",
 				Input: []Input{
 					{FieldName: "customerID", DataType: "string", Valid: `"64bcf656-da30-4f5a-b0b5-aead60965aa3"`, Invalid: `""`},
 				},
@@ -112,7 +112,7 @@ var commands = []Command{
 			{
 				FieldName:    "emailAddress",
 				DataType:     "*values.EmailAddress",
-				ValueFactory: "values.NewEmailAddress(emailAddress)",
+				ValueFactory: "values.EmailAddressFrom(emailAddress)",
 				Input: []Input{
 					{FieldName: "emailAddress", DataType: "string", Valid: `"john@doe.com"`, Invalid: `""`},
 				},
