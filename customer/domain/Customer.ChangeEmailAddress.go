@@ -3,21 +3,34 @@ package domain
 import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
+	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 )
 
-func ChangeEmailAddress(customer *Customer, with *commands.ChangeEmailAddress) shared.DomainEvents {
-	if customer.confirmableEmailAddress.Equals(with.EmailAddress()) {
+func ChangeEmailAddress(eventStream shared.DomainEvents, command *commands.ChangeEmailAddress) shared.DomainEvents {
+	var confirmableEmailAddress *values.ConfirmableEmailAddress
+	var currentStreamVersion uint
+
+	for _, event := range eventStream {
+		switch actualEvent := event.(type) {
+		case *events.Registered:
+			confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
+		case *events.EmailAddressChanged:
+			confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
+		}
+
+		currentStreamVersion = event.StreamVersion()
+	}
+
+	if confirmableEmailAddress.Equals(command.EmailAddress()) {
 		return nil
 	}
 
 	event := events.EmailAddressWasChanged(
-		with.CustomerID(),
-		with.EmailAddress().ToConfirmable(),
-		customer.currentStreamVersion+1,
+		command.CustomerID(),
+		command.EmailAddress().ToConfirmable(),
+		currentStreamVersion+1,
 	)
-
-	customer.apply(event)
 
 	return shared.DomainEvents{event}
 }

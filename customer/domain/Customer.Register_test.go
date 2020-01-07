@@ -5,7 +5,6 @@ import (
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
-	"go-iddd/shared"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -41,15 +40,6 @@ func TestRegisterCustomer(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(registered.PersonName().Equals(personName), ShouldBeTrue)
 			So(registered.StreamVersion(), ShouldEqual, uint(1))
-		})
-
-		Convey("And it should reconstitute a Customer", func() {
-			customer, err := domain.ReconstituteCustomerFrom(recordedEvents)
-			So(err, ShouldBeNil)
-			So(customer, ShouldNotBeNil)
-			So(customer, ShouldHaveSameTypeAs, (*domain.Customer)(nil))
-			So(customer.ID(), ShouldImplement, (*shared.IdentifiesAggregates)(nil))
-			So(customer.ID().Equals(id), ShouldBeTrue)
 		})
 	})
 }

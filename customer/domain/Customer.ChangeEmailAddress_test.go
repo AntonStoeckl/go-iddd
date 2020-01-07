@@ -23,12 +23,9 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 
 		currentStreamVersion := uint(1)
 
-		customer, err := domain.ReconstituteCustomerFrom(
-			shared.DomainEvents{
-				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
-			},
-		)
-		So(err, ShouldBeNil)
+		eventStream := shared.DomainEvents{
+			events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
+		}
 
 		Convey("When an emailAddress is changed", func() {
 			newEmailAddress, err := values.EmailAddressFrom("john+changed@doe.com")
@@ -40,7 +37,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := domain.ChangeEmailAddress(customer, changeEmailAddress)
+			recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
 			Convey("It should record EmailAddressChanged", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
@@ -52,7 +49,8 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 				Convey("And when it is changed to the same value again", func() {
-					recordedEvents := domain.ChangeEmailAddress(customer, changeEmailAddress)
+					eventStream = append(eventStream, recordedEvents...)
+					recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
 					Convey("It should be ignored", func() {
 						So(recordedEvents, ShouldBeEmpty)

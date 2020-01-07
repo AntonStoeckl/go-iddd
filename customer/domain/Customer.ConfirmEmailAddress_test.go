@@ -11,7 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestConfirmEmailAddressOfCustomer(t *testing.T) {
+func TestConfirmEmailAddress(t *testing.T) {
 	Convey("Given a Customer", t, func() {
 		id, err := values.CustomerIDFrom("64bcf656-da30-4f5a-b0b5-aead60965aa3")
 		So(err, ShouldBeNil)
@@ -23,12 +23,9 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 
 		currentStreamVersion := uint(1)
 
-		customer, err := domain.ReconstituteCustomerFrom(
-			shared.DomainEvents{
-				events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
-			},
-		)
-		So(err, ShouldBeNil)
+		eventStream := shared.DomainEvents{
+			events.ItWasRegistered(id, confirmableEmailAddress, personName, currentStreamVersion),
+		}
 
 		Convey("When an unconfirmed emailAddress is confirmed", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
@@ -38,7 +35,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
+			recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
 			Convey("And it should record EmailAddressConfirmed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
@@ -50,7 +47,8 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 				So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 				Convey("And when it is confirmed again", func() {
-					recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
+					eventStream = append(eventStream, recordedEvents...)
+					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
 					Convey("It should be ignored", func() {
 						So(recordedEvents, ShouldBeEmpty)
@@ -70,7 +68,7 @@ func TestConfirmEmailAddressOfCustomer(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			recordedEvents := domain.ConfirmEmailAddress(customer, confirmEmailAddress)
+			recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
 			Convey("It should record EmailAddressConfirmationFailed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
