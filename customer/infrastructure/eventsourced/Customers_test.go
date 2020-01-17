@@ -22,7 +22,7 @@ func TestCustomers_Register(t *testing.T) {
 
 		Convey("And given a new Customer", func() {
 			id := values.GenerateCustomerID()
-			recordedEvents := registerCustomerForCustomersTest(id)
+			recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 
 			Convey("When the Customer is registered", func() {
 				tx := test.BeginTx(db)
@@ -36,7 +36,7 @@ func TestCustomers_Register(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("And when the same Customer is registered again", func() {
-						customer := registerCustomerForCustomersTest(id)
+						customer := retrieveEventStreamForARegisteredCustomer(id)
 						tx := test.BeginTx(db)
 						session := repo.StartSession(tx)
 
@@ -50,7 +50,7 @@ func TestCustomers_Register(t *testing.T) {
 			})
 
 			Convey("And given the session was already committed", func() {
-				recordedEvents := registerCustomerForCustomersTest(id)
+				recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 				err := tx.Commit()
@@ -70,7 +70,7 @@ func TestCustomers_Register(t *testing.T) {
 
 		Convey("And given an existing Customer", func() {
 			id := values.GenerateCustomerID()
-			recordedEvents := registerCustomerForCustomersTest(id)
+			recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 			err := session.Register(id, recordedEvents)
@@ -79,7 +79,7 @@ func TestCustomers_Register(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When the same Customer is registered again", func() {
-				recordedEvents := registerCustomerForCustomersTest(id)
+				recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
 
@@ -98,7 +98,7 @@ func TestCustomers_Register(t *testing.T) {
 func TestCustomers_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
 		id := values.GenerateCustomerID()
-		eventStream := registerCustomerForCustomersTest(id)
+		eventStream := retrieveEventStreamForARegisteredCustomer(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
@@ -165,7 +165,7 @@ func TestCustomers_Of(t *testing.T) {
 func TestCustomers_Persist(t *testing.T) {
 	Convey("Given a changed Customer", t, func() {
 		id := values.GenerateCustomerID()
-		recordedEvents := registerCustomerForCustomersTest(id)
+		recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
@@ -228,7 +228,7 @@ func TestCustomers_Persist(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func registerCustomerForCustomersTest(id values.CustomerID) shared.DomainEvents {
+func retrieveEventStreamForARegisteredCustomer(id values.CustomerID) shared.DomainEvents {
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.ID())
 	givenName := "John"
 	familyName := "Doe"
