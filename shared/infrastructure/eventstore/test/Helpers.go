@@ -54,6 +54,8 @@ func (someID *SomeID) String() string {
 }
 
 func (someID *SomeID) Equals(other shared.IdentifiesAggregates) bool {
+	_ = other
+
 	return true // not needed in scope of this test
 }
 
@@ -257,12 +259,15 @@ func (brokenUnmarshalingEvent *BrokenUnmarshalingEvent) MarshalJSON() ([]byte, e
 }
 
 func (brokenUnmarshalingEvent *BrokenUnmarshalingEvent) UnmarshalJSON(data []byte) error {
+	_ = data
+
 	return errors.New("mocked marshaling error")
 }
 
 /*** Unmarshal mocked events ***/
 
 func Unmarshal(name string, payload []byte, streamVersion uint) (shared.DomainEvent, error) {
+	_ = streamVersion
 	defaultErrFormat := "unmarshalDomainEvent [%s] failed: %w"
 
 	switch name {
