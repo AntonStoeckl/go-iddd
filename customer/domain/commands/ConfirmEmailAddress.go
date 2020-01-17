@@ -63,20 +63,20 @@ func (confirmEmailAddress ConfirmEmailAddress) AggregateID() shared.IdentifiesAg
 	return confirmEmailAddress.customerID
 }
 
-func (confirmEmailAddress ConfirmEmailAddress) CommandName() string {
-	commandType := reflect.TypeOf(confirmEmailAddress).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
-}
-
 func (confirmEmailAddress ConfirmEmailAddress) ShouldBeValid() error {
 	if !confirmEmailAddress.isValid {
-		err := errors.Newf("%s: is not valid", confirmEmailAddress.CommandName())
+		err := errors.Newf("%s: is not valid", confirmEmailAddress.commandName())
 
 		return errors.Mark(err, shared.ErrCommandIsInvalid)
 	}
 
 	return nil
+}
+
+func (confirmEmailAddress ConfirmEmailAddress) commandName() string {
+	commandType := reflect.TypeOf(confirmEmailAddress).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }

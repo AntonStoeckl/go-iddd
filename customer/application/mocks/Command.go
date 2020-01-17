@@ -28,20 +28,6 @@ func (_m *Command) AggregateID() shared.IdentifiesAggregates {
 	return r0
 }
 
-// CommandName provides a mock function with given fields:
-func (_m *Command) CommandName() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // ShouldBeValid provides a mock function with given fields:
 func (_m *Command) ShouldBeValid() error {
 	ret := _m.Called()

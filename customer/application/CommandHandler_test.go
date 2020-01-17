@@ -364,20 +364,6 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
 			})
 		})
-
-		// Convey("When an unknown command is handled", func() {
-		// 	unknownCommand := new(mocks.Command)
-		// 	unknownCommand.On("AggregateID").Return(values.GenerateCustomerID())
-		// 	unknownCommand.On("CommandName").Return("unknown")
-		// 	unknownCommand.On("ShouldBeValid").Return(nil)
-		//
-		// 	err := commandHandler.Handle(unknownCommand)
-		//
-		// 	Convey("It should fail", func() {
-		// 		So(err, ShouldBeError)
-		// 		So(errors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
-		// 	})
-		// })
 	})
 }
 

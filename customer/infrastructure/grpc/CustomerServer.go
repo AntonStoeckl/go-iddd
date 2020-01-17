@@ -2,6 +2,7 @@ package customergrpc
 
 import (
 	"context"
+	"go-iddd/customer"
 	"go-iddd/customer/application"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
@@ -10,11 +11,19 @@ import (
 )
 
 type customerServer struct {
-	commandHandler *application.CommandHandler
+	forRegisteringCustomers     customer.ForRegisteringCustomers
+	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses
+	forChangingEmailAddresses   customer.ForChangingEmailAddresses
 }
 
 func NewCustomerServer(commandHandler *application.CommandHandler) *customerServer {
-	return &customerServer{commandHandler: commandHandler}
+	server := &customerServer{
+		forRegisteringCustomers:     commandHandler,
+		forConfirmingEmailAddresses: commandHandler,
+		forChangingEmailAddresses:   commandHandler,
+	}
+
+	return server
 }
 
 func (server *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
@@ -25,7 +34,7 @@ func (server *customerServer) Register(ctx context.Context, req *RegisterRequest
 		return nil, err
 	}
 
-	if err := server.commandHandler.Register(command); err != nil {
+	if err := server.forRegisteringCustomers.Register(command); err != nil {
 		return nil, err
 	}
 
@@ -38,7 +47,7 @@ func (server *customerServer) ConfirmEmailAddress(ctx context.Context, req *Conf
 		return nil, err
 	}
 
-	if err := server.commandHandler.ConfirmEmailAddress(command); err != nil {
+	if err := server.forConfirmingEmailAddresses.ConfirmEmailAddress(command); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +60,7 @@ func (server *customerServer) ChangeEmailAddress(ctx context.Context, req *Chang
 		return nil, err
 	}
 
-	if err := server.commandHandler.ChangeEmailAddress(command); err != nil {
+	if err := server.forChangingEmailAddresses.ChangeEmailAddress(command); err != nil {
 		return nil, err
 	}
 

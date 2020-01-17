@@ -51,20 +51,20 @@ func (changeEmailAddress ChangeEmailAddress) AggregateID() shared.IdentifiesAggr
 	return changeEmailAddress.customerID
 }
 
-func (changeEmailAddress ChangeEmailAddress) CommandName() string {
-	commandType := reflect.TypeOf(changeEmailAddress).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
-}
-
 func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {
 	if !changeEmailAddress.isValid {
-		err := errors.Newf("%s: is not valid", changeEmailAddress.CommandName())
+		err := errors.Newf("%s: is not valid", changeEmailAddress.commandName())
 
 		return errors.Mark(err, shared.ErrCommandIsInvalid)
 	}
 
 	return nil
+}
+
+func (changeEmailAddress ChangeEmailAddress) commandName() string {
+	commandType := reflect.TypeOf(changeEmailAddress).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }

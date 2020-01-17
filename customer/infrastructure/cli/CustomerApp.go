@@ -2,6 +2,7 @@ package customercli
 
 import (
 	"fmt"
+	"go-iddd/customer"
 	"go-iddd/customer/application"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/values"
@@ -10,11 +11,19 @@ import (
 )
 
 type CustomerApp struct {
-	commandHandler *application.CommandHandler
+	forRegisteringCustomers     customer.ForRegisteringCustomers
+	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses
+	forChangingEmailAddresses   customer.ForChangingEmailAddresses
 }
 
 func NewCustomerApp(commandHandler *application.CommandHandler) *CustomerApp {
-	return &CustomerApp{commandHandler: commandHandler}
+	app := &CustomerApp{
+		forRegisteringCustomers:     commandHandler,
+		forConfirmingEmailAddresses: commandHandler,
+		forChangingEmailAddresses:   commandHandler,
+	}
+
+	return app
 }
 
 func (app *CustomerApp) Commands() []cli.Command {
@@ -54,7 +63,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.commandHandler.Register(command); err != nil {
+	if err := app.forRegisteringCustomers.Register(command); err != nil {
 		return err
 	}
 
@@ -77,7 +86,7 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.commandHandler.ConfirmEmailAddress(command); err != nil {
+	if err := app.forConfirmingEmailAddresses.ConfirmEmailAddress(command); err != nil {
 		return err
 	}
 
@@ -99,7 +108,7 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.commandHandler.ChangeEmailAddress(command); err != nil {
+	if err := app.forChangingEmailAddresses.ChangeEmailAddress(command); err != nil {
 		return err
 	}
 

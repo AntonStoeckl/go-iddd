@@ -64,20 +64,20 @@ func (register Register) AggregateID() shared.IdentifiesAggregates {
 	return register.customerID
 }
 
-func (register Register) CommandName() string {
-	commandType := reflect.TypeOf(register).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
-}
-
 func (register Register) ShouldBeValid() error {
 	if !register.isValid {
-		err := errors.Newf("%s: is not valid", register.CommandName())
+		err := errors.Newf("%s: is not valid", register.commandName())
 
 		return errors.Mark(err, shared.ErrCommandIsInvalid)
 	}
 
 	return nil
+}
+
+func (register Register) commandName() string {
+	commandType := reflect.TypeOf(register).String()
+	commandTypeParts := strings.Split(commandType, ".")
+	commandName := commandTypeParts[len(commandTypeParts)-1]
+
+	return strings.Title(commandName)
 }
