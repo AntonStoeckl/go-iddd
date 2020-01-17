@@ -201,14 +201,12 @@ func TestCustomers_Persist(t *testing.T) {
 		err = tx.Commit()
 		So(err, ShouldBeNil)
 		changeEmailAddress, err := commands.NewChangeEmailAddress(
-			id.String(),
-			fmt.Sprintf("john+%s+changed@doe.com", id.String()),
+			id.ID(),
+			fmt.Sprintf("john+%s+changed@doe.com", id.ID()),
 		)
 		So(err, ShouldBeNil)
-		customer, err := domain.ReconstituteCustomerFrom(recordedEvents)
-		So(err, ShouldBeNil)
 
-		recordedEvents = domain.ChangeEmailAddress(customer, changeEmailAddress)
+		recordedEvents = domain.ChangeEmailAddress(recordedEvents, changeEmailAddress)
 
 		Convey("When the Customer is persisted", func() {
 			tx := test.BeginTx(db)
@@ -256,10 +254,10 @@ func TestCustomers_Persist(t *testing.T) {
 /*** Test Helper Methods ***/
 
 func registerCustomerForCustomersTest(id *values.CustomerID) shared.DomainEvents {
-	emailAddress := fmt.Sprintf("john+%s@doe.com", id.String())
+	emailAddress := fmt.Sprintf("john+%s@doe.com", id.ID())
 	givenName := "John"
 	familyName := "Doe"
-	register, err := commands.NewRegister(id.String(), emailAddress, givenName, familyName)
+	register, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
 	So(err, ShouldBeNil)
 
 	recordedEvents := domain.RegisterCustomer(register)
@@ -273,7 +271,7 @@ func cleanUpArtefactsForCustomers(id *values.CustomerID) {
 	diContainer := test.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 
-	streamID := shared.NewStreamID("customer" + "-" + id.String())
+	streamID := shared.NewStreamID("customer" + "-" + id.ID())
 	err := store.PurgeEventStream(streamID)
 	So(err, ShouldBeNil)
 }

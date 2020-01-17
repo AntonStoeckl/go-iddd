@@ -1,7 +1,6 @@
 package values_test
 
 import (
-	"fmt"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"testing"
@@ -10,85 +9,70 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-/*** Tests for Factory methods ***/
-
-func TestNewPersonName(t *testing.T) {
-	Convey("Given that the supplied givenName and familyName are valid", t, func() {
+func TestBuildPersonName(t *testing.T) {
+	Convey("When a PersonName is built from valid input", t, func() {
 		givenName := "John"
 		familyName := "Doe"
+		personName, err := values.BuildPersonName(givenName, familyName)
 
-		Convey("When a PersonName is created", func() {
-			personName, err := values.PersonNameFrom(givenName, familyName)
-
-			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
-				So(personName, ShouldNotBeNil)
-				So(personName, ShouldHaveSameTypeAs, (*values.PersonName)(nil))
-			})
+		Convey("It should succeed", func() {
+			So(err, ShouldBeNil)
+			So(personName, ShouldHaveSameTypeAs, values.PersonName{})
+			So(personName, ShouldNotBeZeroValue)
+			So(personName.GivenName(), ShouldEqual, givenName)
+			So(personName.FamilyName(), ShouldEqual, familyName)
 		})
 	})
 
-	Convey("Given that the supplied givenName is not valid", t, func() {
+	Convey("When a PersonName is built with invalid givenName", t, func() {
 		givenName := ""
 		familyName := "Doe"
+		personName, err := values.BuildPersonName(givenName, familyName)
 
-		Convey("When a PersonName is created", func() {
-			personName, err := values.PersonNameFrom(givenName, familyName)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
-				So(personName, ShouldBeNil)
-			})
+		Convey("It should fail", func() {
+			So(err, ShouldBeError)
+			So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+			So(personName, ShouldBeZeroValue)
 		})
 	})
 
-	Convey("Given that the supplied familyName is not valid", t, func() {
+	Convey("When a PersonName is built with invalid familyName", t, func() {
 		givenName := "John"
 		familyName := ""
+		personName, err := values.BuildPersonName(givenName, familyName)
 
-		Convey("When a PersonName is created", func() {
-			personName, err := values.PersonNameFrom(givenName, familyName)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
-				So(personName, ShouldBeNil)
-			})
+		Convey("It should fail", func() {
+			So(err, ShouldBeError)
+			So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+			So(personName, ShouldBeZeroValue)
 		})
 	})
 }
 
-/*** Tests for Getter methods ***/
-
-func TestPersonNameExposesExpectedValues(t *testing.T) {
-	Convey("Given an PersonName", t, func() {
+func TestRebuildPersonName(t *testing.T) {
+	Convey("When a PersonName is built from valid input", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := values.PersonNameFrom(givenName, familyName)
-		So(err, ShouldBeNil)
+		personName := values.RebuildPersonName(givenName, familyName)
 
-		Convey("It should expose the expected GivenName", func() {
+		Convey("It should succeed", func() {
+			So(personName, ShouldHaveSameTypeAs, values.PersonName{})
+			So(personName, ShouldNotBeZeroValue)
 			So(personName.GivenName(), ShouldEqual, givenName)
-		})
-
-		Convey("It should expose the expected FamilyName", func() {
 			So(personName.FamilyName(), ShouldEqual, familyName)
 		})
 	})
 }
 
-/*** Tests for Comparison methods ***/
-
 func TestPersonNameEquals(t *testing.T) {
 	Convey("Given a PersonName", t, func() {
 		givenName := "John"
 		familyName := "Doe"
-		personName, err := values.PersonNameFrom(givenName, familyName)
+		personName, err := values.BuildPersonName(givenName, familyName)
 		So(err, ShouldBeNil)
 
 		Convey("And given an equal PersonName", func() {
-			equalPersonName, err := values.PersonNameFrom(givenName, familyName)
+			equalPersonName, err := values.BuildPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -100,9 +84,9 @@ func TestPersonNameEquals(t *testing.T) {
 			})
 		})
 
-		Convey("And given another PersonName with different givenName", func() {
+		Convey("And given a PersonName with different givenName", func() {
 			givenName = "Peter"
-			differentPersonName, err := values.PersonNameFrom(givenName, familyName)
+			differentPersonName, err := values.BuildPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -114,9 +98,9 @@ func TestPersonNameEquals(t *testing.T) {
 			})
 		})
 
-		Convey("And given another PersonName with different familyName", func() {
+		Convey("And given a PersonName with different familyName", func() {
 			familyName = "Mueller"
-			differentPersonName, err := values.PersonNameFrom(givenName, familyName)
+			differentPersonName, err := values.BuildPersonName(givenName, familyName)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -125,63 +109,6 @@ func TestPersonNameEquals(t *testing.T) {
 				Convey("They should not be equal", func() {
 					So(isEqual, ShouldBeFalse)
 				})
-			})
-		})
-	})
-}
-
-/*** Tests for Marshal/Unmarshal methods ***/
-
-func TestPersonNameMarshalJSON(t *testing.T) {
-	Convey("Given a PersonName", t, func() {
-		personName, err := values.PersonNameFrom("John", "Doe")
-		So(err, ShouldBeNil)
-
-		Convey("When it is marshaled to json", func() {
-			data, err := personName.MarshalJSON()
-
-			expectedJSON := fmt.Sprintf(
-				`{"givenName":"%s","familyName":"%s"}`,
-				personName.GivenName(),
-				personName.FamilyName(),
-			)
-
-			Convey("It should create the expected json", func() {
-				So(err, ShouldBeNil)
-				So(string(data), ShouldEqual, expectedJSON)
-			})
-		})
-	})
-}
-
-func TestPersonNameUnmarshalJSON(t *testing.T) {
-	Convey("Given a PersonName marshaled to json", t, func() {
-		personName, err := values.PersonNameFrom("John", "Doe")
-		So(err, ShouldBeNil)
-		data, err := personName.MarshalJSON()
-		So(err, ShouldBeNil)
-
-		Convey("When it is unmarshaled", func() {
-			unmarshaled := &values.PersonName{}
-			err := unmarshaled.UnmarshalJSON(data)
-
-			Convey("It should be equal to the original PersonName", func() {
-				So(err, ShouldBeNil)
-				So(personName, ShouldResemble, unmarshaled)
-			})
-		})
-	})
-
-	Convey("Given invalid json", t, func() {
-		data := []byte("666")
-
-		Convey("When it is unmarshaled to PersonName", func() {
-			unmarshaled := &values.PersonName{}
-			err := unmarshaled.UnmarshalJSON(data)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 			})
 		})
 	})

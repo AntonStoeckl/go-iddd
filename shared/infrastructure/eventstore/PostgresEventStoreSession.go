@@ -21,7 +21,7 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 	maxEvents uint,
 ) (shared.DomainEvents, error) {
 
-	queryTemplate := `SELECT event_name, payload FROM %name% 
+	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
 						WHERE stream_id = $1 AND stream_version >= $2
 						ORDER BY stream_version ASC
 						LIMIT $3`
@@ -39,10 +39,11 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 	var stream []shared.DomainEvent
 	var eventName string
 	var payload string
+	var streamVersion uint
 	var domainEvent shared.DomainEvent
 
 	for eventRows.Next() {
-		if err = eventRows.Scan(&eventName, &payload); err != nil {
+		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
 			return nil, xerrors.Errorf(
 				"postgresEventStore.LoadEventStream: %s: %w",
 				err,
@@ -50,7 +51,7 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 			)
 		}
 
-		if domainEvent, err = session.eventStore.unmarshal(eventName, []byte(payload)); err != nil {
+		if domainEvent, err = session.eventStore.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
 			return nil, xerrors.Errorf(
 				"postgresEventStore.LoadEventStream: %s: %w",
 				err,

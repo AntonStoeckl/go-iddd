@@ -1,7 +1,6 @@
 package eventsourced
 
 import (
-	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/values"
 	"go-iddd/shared"
 	"math"
@@ -11,11 +10,10 @@ import (
 
 type Customers struct {
 	eventStoreSession shared.EventStore
-	customerFactory   func(eventStream shared.DomainEvents) (*domain.Customer, error)
 }
 
 func (customers *Customers) Register(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
+	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
@@ -28,8 +26,8 @@ func (customers *Customers) Register(id *values.CustomerID, recordedEvents share
 	return nil
 }
 
-func (customers *Customers) Of(id *values.CustomerID) (*domain.Customer, error) {
-	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
+func (customers *Customers) EventStream(id *values.CustomerID) (shared.DomainEvents, error) {
+	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	eventStream, err := customers.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
 	if err != nil {
@@ -40,16 +38,11 @@ func (customers *Customers) Of(id *values.CustomerID) (*domain.Customer, error) 
 		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: event stream is empty: %w", shared.ErrNotFound)
 	}
 
-	customer, err := customers.customerFactory(eventStream)
-	if err != nil {
-		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
-	}
-
-	return customer, nil
+	return eventStream, nil
 }
 
 func (customers *Customers) Persist(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
-	streamID := shared.NewStreamID(streamPrefix + "-" + id.String())
+	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
 		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)

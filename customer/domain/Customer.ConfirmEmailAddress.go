@@ -7,30 +7,36 @@ import (
 	"go-iddd/shared"
 )
 
-func ConfirmEmailAddress(eventStream shared.DomainEvents, command *commands.ConfirmEmailAddress) shared.DomainEvents {
-	var confirmableEmailAddress *values.ConfirmableEmailAddress
+func ConfirmEmailAddress(eventStream shared.DomainEvents, command commands.ConfirmEmailAddress) shared.DomainEvents {
+	var emailAddress values.EmailAddress
+	var confirmationHash values.ConfirmationHash
+	var isConfirmed bool
 	var currentStreamVersion uint
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
-		case *events.Registered:
-			confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
-		case *events.EmailAddressConfirmed:
-			confirmableEmailAddress = confirmableEmailAddress.MarkAsConfirmed()
-		case *events.EmailAddressChanged:
-			confirmableEmailAddress = actualEvent.ConfirmableEmailAddress()
+		case events.Registered:
+			emailAddress = actualEvent.EmailAddress()
+			confirmationHash = actualEvent.ConfirmationHash()
+		case events.EmailAddressConfirmed:
+			isConfirmed = true
+		case events.EmailAddressChanged:
+			emailAddress = actualEvent.EmailAddress()
+			confirmationHash = actualEvent.ConfirmationHash()
+			isConfirmed = false
 		}
 
 		currentStreamVersion = event.StreamVersion()
 	}
 
-	if confirmableEmailAddress.IsConfirmed() {
+	if isConfirmed {
 		return nil
 	}
 
-	if !confirmableEmailAddress.IsConfirmedBy(command.ConfirmationHash()) {
+	if !confirmationHash.Equals(command.ConfirmationHash()) {
 		event := events.EmailAddressConfirmationHasFailed(
 			command.CustomerID(),
+			emailAddress,
 			command.ConfirmationHash(),
 			currentStreamVersion+1,
 		)
@@ -40,7 +46,7 @@ func ConfirmEmailAddress(eventStream shared.DomainEvents, command *commands.Conf
 
 	event := events.EmailAddressWasConfirmed(
 		command.CustomerID(),
-		command.EmailAddress(),
+		emailAddress,
 		currentStreamVersion+1,
 	)
 

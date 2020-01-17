@@ -4,7 +4,6 @@ import (
 	"go-iddd/shared"
 
 	"github.com/cockroachdb/errors"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type PersonName struct {
@@ -12,46 +11,53 @@ type PersonName struct {
 	familyName string
 }
 
-/*** Factory methods ***/
+func BuildPersonName(givenName string, familyName string) (PersonName, error) {
+	if familyName == "" {
+		err := shared.MarkAndWrapError(
+			errors.New("empty input for familyName"),
+			shared.ErrInputIsInvalid,
+			"BuildPersonName",
+		)
 
-func PersonNameFrom(givenName string, familyName string) (*PersonName, error) {
-	newPersonName := &PersonName{
+		return PersonName{}, err
+	}
+
+	if givenName == "" {
+		err := shared.MarkAndWrapError(
+			errors.New("empty input for givenName"),
+			shared.ErrInputIsInvalid,
+			"BuildPersonName",
+		)
+
+		return PersonName{}, err
+	}
+
+	personName := PersonName{
 		givenName:  givenName,
 		familyName: familyName,
 	}
 
-	if err := newPersonName.shouldBeValid(); err != nil {
-		return nil, errors.Wrap(errors.Mark(err, shared.ErrInputIsInvalid), "personName.New")
-	}
-
-	return newPersonName, nil
+	return personName, nil
 }
 
-func (personName *PersonName) shouldBeValid() error {
-	if personName.familyName == "" {
-		return errors.New("empty input for familyName")
+func RebuildPersonName(givenName string, familyName string) PersonName {
+	personName := PersonName{
+		givenName:  givenName,
+		familyName: familyName,
 	}
 
-	if personName.givenName == "" {
-		return errors.New("empty input for givenName")
-	}
-
-	return nil
+	return personName
 }
 
-/*** Getter methods ***/
-
-func (personName *PersonName) GivenName() string {
+func (personName PersonName) GivenName() string {
 	return personName.givenName
 }
 
-func (personName *PersonName) FamilyName() string {
+func (personName PersonName) FamilyName() string {
 	return personName.familyName
 }
 
-/*** Comparison methods ***/
-
-func (personName *PersonName) Equals(other *PersonName) bool {
+func (personName PersonName) Equals(other PersonName) bool {
 	if personName.GivenName() != other.GivenName() {
 		return false
 	}
@@ -61,41 +67,4 @@ func (personName *PersonName) Equals(other *PersonName) bool {
 	}
 
 	return true
-}
-
-/*** Implement json.Marshaler ***/
-
-func (personName *PersonName) MarshalJSON() ([]byte, error) {
-	data := &struct {
-		GivenName  string `json:"givenName"`
-		FamilyName string `json:"familyName"`
-	}{
-		GivenName:  personName.givenName,
-		FamilyName: personName.familyName,
-	}
-
-	bytes, err := jsoniter.Marshal(data)
-	if err != nil {
-		return nil, errors.Wrap(errors.Mark(err, shared.ErrMarshalingFailed), "personName.MarshalJSON")
-	}
-
-	return bytes, nil
-}
-
-/*** Implement json.Unmarshaler ***/
-
-func (personName *PersonName) UnmarshalJSON(data []byte) error {
-	values := &struct {
-		GivenName  string `json:"givenName"`
-		FamilyName string `json:"familyName"`
-	}{}
-
-	if err := jsoniter.Unmarshal(data, values); err != nil {
-		return errors.Wrap(errors.Mark(err, shared.ErrUnmarshalingFailed), "personName.UnmarshalJSON")
-	}
-
-	personName.givenName = values.GivenName
-	personName.familyName = values.FamilyName
-
-	return nil
 }

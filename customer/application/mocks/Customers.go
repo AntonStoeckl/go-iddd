@@ -4,7 +4,6 @@
 
 package mocks
 
-import domain "go-iddd/customer/domain"
 import mock "github.com/stretchr/testify/mock"
 import shared "go-iddd/shared"
 import values "go-iddd/customer/domain/values"
@@ -14,16 +13,16 @@ type Customers struct {
 	mock.Mock
 }
 
-// Of provides a mock function with given fields: id
-func (_m *Customers) Of(id *values.CustomerID) (*domain.Customer, error) {
+// EventStream provides a mock function with given fields: id
+func (_m *Customers) EventStream(id *values.CustomerID) (shared.DomainEvents, error) {
 	ret := _m.Called(id)
 
-	var r0 *domain.Customer
-	if rf, ok := ret.Get(0).(func(*values.CustomerID) *domain.Customer); ok {
+	var r0 shared.DomainEvents
+	if rf, ok := ret.Get(0).(func(*values.CustomerID) shared.DomainEvents); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Customer)
+			r0 = ret.Get(0).(shared.DomainEvents)
 		}
 	}
 

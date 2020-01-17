@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/events"
 	customercli "go-iddd/customer/infrastructure/cli"
 	"go-iddd/service"
@@ -89,7 +88,6 @@ func mustBuildDIContainer() {
 		diContainer, err = service.NewDIContainer(
 			postgresDBConn,
 			events.UnmarshalDomainEvent,
-			domain.ReconstituteCustomerFrom,
 		)
 
 		if err != nil {
@@ -113,7 +111,6 @@ func shutdown() {
 	logger.Info("stopping services ...")
 
 	if postgresDBConn != nil {
-		//logger.Info("closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
 			logger.Warnf("failed to close the Postgres DB connection: %s", err)
 		}

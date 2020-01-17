@@ -9,21 +9,21 @@ import (
 )
 
 type PostgresEventStore struct {
-	db        *sql.DB
-	tableName string
-	unmarshal shared.UnmarshalDomainEvent
+	db                   *sql.DB
+	tableName            string
+	unmarshalDomainEvent shared.UnmarshalDomainEvent
 }
 
 func NewPostgresEventStore(
 	db *sql.DB,
 	tableName string,
-	unmarshal shared.UnmarshalDomainEvent,
+	unmarshalDomainEvent shared.UnmarshalDomainEvent,
 ) *PostgresEventStore {
 
 	return &PostgresEventStore{
-		db:        db,
-		tableName: tableName,
-		unmarshal: unmarshal,
+		db:                   db,
+		tableName:            tableName,
+		unmarshalDomainEvent: unmarshalDomainEvent,
 	}
 }
 

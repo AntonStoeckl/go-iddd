@@ -49,7 +49,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	familyName := ctx.Args().Get(2)
 	id := values.GenerateCustomerID()
 
-	register, err := commands.NewRegister(id.String(), emailAddress, givenName, familyName)
+	register, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"Customer registered with id '%s'\n",
-		id.String(),
+		id.ID(),
 	)
 
 	return nil
@@ -84,7 +84,7 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully confirmed the emailAddress of Customer with id '%s'\n",
-		confirmEmailAddress.CustomerID().String(),
+		confirmEmailAddress.CustomerID().ID(),
 	)
 
 	return nil
@@ -106,7 +106,7 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully changed the emailAddress of Customer with id '%s' to '%s\n",
-		changeEmailAddress.CustomerID().String(),
+		changeEmailAddress.CustomerID().ID(),
 		changeEmailAddress.EmailAddress().EmailAddress(),
 	)
 

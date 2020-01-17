@@ -1,3 +1,3 @@
 package shared
 
-type UnmarshalDomainEvent func(name string, payload []byte) (DomainEvent, error)
+type UnmarshalDomainEvent func(name string, payload []byte, streamVersion uint) (DomainEvent, error)

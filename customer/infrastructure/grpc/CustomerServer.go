@@ -20,7 +20,7 @@ func NewCustomerServer(commandHandler *application.CommandHandler) *customerServ
 func (server *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	id := values.GenerateCustomerID()
 
-	register, err := commands.NewRegister(id.String(), req.EmailAddress, req.GivenName, req.FamilyName)
+	register, err := commands.NewRegister(id.ID(), req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (server *customerServer) Register(ctx context.Context, req *RegisterRequest
 		return nil, err
 	}
 
-	return &RegisterResponse{Id: id.String()}, nil
+	return &RegisterResponse{Id: id.ID()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(ctx context.Context, req *ConfirmEmailAddressRequest) (*empty.Empty, error) {

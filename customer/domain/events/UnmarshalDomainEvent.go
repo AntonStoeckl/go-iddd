@@ -8,45 +8,19 @@ import (
 
 const unmarshalEventNamePrefix = "Customer"
 
-func UnmarshalDomainEvent(name string, payload []byte) (shared.DomainEvent, error) {
-	defaultErrFormat := "unmarshalDomainEvent [%s] failed"
-
+func UnmarshalDomainEvent(name string, payload []byte, streamVersion uint) (shared.DomainEvent, error) {
 	switch name {
 	case unmarshalEventNamePrefix + "Registered":
-		event := &Registered{}
-
-		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, errors.Wrapf(err, defaultErrFormat, name)
-		}
-
-		return event, nil
+		return UnmarshalRegisteredFromJSON(payload, streamVersion), nil
 	case unmarshalEventNamePrefix + "EmailAddressConfirmed":
-		event := &EmailAddressConfirmed{}
-
-		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, errors.Wrapf(err, defaultErrFormat, name)
-		}
-
-		return event, nil
+		return UnmarshalEmailAddressConfirmedFromJSON(payload, streamVersion), nil
 	case unmarshalEventNamePrefix + "EmailAddressConfirmationFailed":
-		event := &EmailAddressConfirmationFailed{}
-
-		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, errors.Wrapf(err, defaultErrFormat, name)
-		}
-
-		return event, nil
+		return UnmarshalEmailAddressConfirmationFailedFromJSON(payload, streamVersion), nil
 	case unmarshalEventNamePrefix + "EmailAddressChanged":
-		event := &EmailAddressChanged{}
-
-		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, errors.Wrapf(err, defaultErrFormat, name)
-		}
-
-		return event, nil
+		return UnmarshalEmailAddressChangedFromJSON(payload, streamVersion), nil
 	default:
 		return nil, errors.Mark(
-			errors.Wrapf(errors.New("event is unknown"), defaultErrFormat, name),
+			errors.Wrapf(errors.New("event is unknown"), "unmarshalDomainEvent [%s] failed", name),
 			shared.ErrUnmarshalingFailed,
 		)
 	}

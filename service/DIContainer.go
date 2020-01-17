@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 	"go-iddd/customer/application"
-	"go-iddd/customer/domain"
 	"go-iddd/customer/infrastructure/eventsourced"
 	"go-iddd/shared"
 	"go-iddd/shared/infrastructure/eventstore"
@@ -18,7 +17,6 @@ const (
 type DIContainer struct {
 	postgresDBConn          *sql.DB
 	unmarshalDomainEvent    shared.UnmarshalDomainEvent
-	customerFactory         func(eventStream shared.DomainEvents) (*domain.Customer, error)
 	postgresEventStore      *eventstore.PostgresEventStore
 	customersSessionStarter *eventsourced.CustomersSessionStarter
 	customerCommandHandler  *application.CommandHandler
@@ -27,7 +25,6 @@ type DIContainer struct {
 func NewDIContainer(
 	postgresDBConn *sql.DB,
 	unmarshalDomainEvent shared.UnmarshalDomainEvent,
-	customerFactory func(eventStream shared.DomainEvents) (*domain.Customer, error),
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
@@ -37,7 +34,6 @@ func NewDIContainer(
 	container := &DIContainer{
 		postgresDBConn:       postgresDBConn,
 		unmarshalDomainEvent: unmarshalDomainEvent,
-		customerFactory:      customerFactory,
 	}
 
 	return container, nil
@@ -63,7 +59,6 @@ func (container DIContainer) GetCustomerRepository() *eventsourced.CustomersSess
 	if container.customersSessionStarter == nil {
 		container.customersSessionStarter = eventsourced.NewCustomersSessionStarter(
 			container.GetPostgresEventStore(),
-			container.customerFactory,
 		)
 	}
 
