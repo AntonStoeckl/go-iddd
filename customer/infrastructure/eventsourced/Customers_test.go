@@ -1,19 +1,17 @@
 package eventsourced_test
 
 import (
-	"errors"
 	"fmt"
 	"go-iddd/customer/domain"
 	"go-iddd/customer/domain/commands"
 	"go-iddd/customer/domain/events"
 	"go-iddd/customer/domain/values"
-	"go-iddd/customer/infrastructure/eventsourced"
 	"go-iddd/customer/infrastructure/eventsourced/test"
 	"go-iddd/shared"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestCustomers_Register(t *testing.T) {
@@ -45,7 +43,7 @@ func TestCustomers_Register(t *testing.T) {
 						err = session.Register(id, customer)
 
 						Convey("It should fail", func() {
-							So(xerrors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
 						})
 					})
 				})
@@ -62,7 +60,7 @@ func TestCustomers_Register(t *testing.T) {
 					err = session.Register(id, recordedEvents)
 
 					Convey("It should fail", func() {
-						So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 					})
 				})
 			})
@@ -88,7 +86,7 @@ func TestCustomers_Register(t *testing.T) {
 				err = session.Register(id, recordedEvents)
 
 				Convey("It should fail", func() {
-					So(xerrors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
 				})
 			})
 
@@ -100,14 +98,14 @@ func TestCustomers_Register(t *testing.T) {
 func TestCustomers_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
 		id := values.GenerateCustomerID()
-		customer := registerCustomerForCustomersTest(id)
+		eventStream := registerCustomerForCustomersTest(id)
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
-		store := diContainer.GetPostgresEventStore()
+		// store := diContainer.GetPostgresEventStore()
 		tx := test.BeginTx(db)
 		session := repo.StartSession(tx)
-		err := session.Register(id, customer)
+		err := session.Register(id, eventStream)
 		So(err, ShouldBeNil)
 		err = tx.Commit()
 		So(err, ShouldBeNil)
@@ -115,36 +113,13 @@ func TestCustomers_Of(t *testing.T) {
 		Convey("When the Customer is retrieved", func() {
 			session := repo.StartSession(tx)
 
-			customer, err := session.Of(id)
+			eventStream, err := session.EventStream(id)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
-				So(customer.ID().Equals(id), ShouldBeTrue)
-				So(customer.StreamVersion(), ShouldEqual, uint(1))
+				So(eventStream, ShouldHaveSameTypeAs, shared.DomainEvents{})
+				So(eventStream, ShouldHaveLength, 1)
 			})
-
-			Convey("And when the customer can not be reconstituted", func() {
-				expectedErr := errors.New("mocked error")
-				customerFactory := func(eventStream shared.DomainEvents) (*domain.Customer, error) {
-					return nil, expectedErr
-				}
-
-				repo := eventsourced.NewCustomersSessionStarter(store, customerFactory)
-				tx := test.BeginTx(db)
-
-				session := repo.StartSession(tx)
-
-				customer, err := session.Of(id)
-
-				Convey("It should fail", func() {
-					So(xerrors.Is(err, expectedErr), ShouldBeTrue)
-					So(customer, ShouldBeNil)
-				})
-
-				err = tx.Rollback()
-				So(err, ShouldBeNil)
-			})
-
 		})
 
 		Convey("And given the DB connection was closed", func() {
@@ -155,11 +130,11 @@ func TestCustomers_Of(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When the Customer is retrieved", func() {
-				customer, err := session.Of(id)
+				eventStream, err := session.EventStream(id)
 
 				Convey("It should fail", func() {
-					So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-					So(customer, ShouldBeNil)
+					So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+					So(eventStream, ShouldHaveLength, 0)
 				})
 			})
 		})
@@ -177,11 +152,11 @@ func TestCustomers_Of(t *testing.T) {
 			tx := test.BeginTx(db)
 			session := repo.StartSession(tx)
 
-			customer, err := session.Of(id)
+			eventStream, err := session.EventStream(id)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrNotFound), ShouldBeTrue)
-				So(customer, ShouldBeNil)
+				So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
+				So(eventStream, ShouldHaveLength, 0)
 			})
 		})
 	})
@@ -221,10 +196,10 @@ func TestCustomers_Persist(t *testing.T) {
 
 				tx := test.BeginTx(db)
 				session := repo.StartSession(tx)
-				customer, err := session.Of(id)
+				eventStream, err := session.EventStream(id)
 				So(err, ShouldBeNil)
-				So(customer.ID().Equals(id), ShouldBeTrue)
-				So(customer.StreamVersion(), ShouldEqual, uint(2))
+				So(eventStream, ShouldHaveSameTypeAs, shared.DomainEvents{})
+				So(eventStream, ShouldHaveLength, 2)
 				err = tx.Commit()
 				So(err, ShouldBeNil)
 			})
@@ -242,7 +217,7 @@ func TestCustomers_Persist(t *testing.T) {
 				err = session.Persist(id, recordedEvents)
 
 				Convey("It should fail", func() {
-					So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 				})
 			})
 		})
@@ -253,7 +228,7 @@ func TestCustomers_Persist(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func registerCustomerForCustomersTest(id *values.CustomerID) shared.DomainEvents {
+func registerCustomerForCustomersTest(id values.CustomerID) shared.DomainEvents {
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.ID())
 	givenName := "John"
 	familyName := "Doe"
@@ -262,12 +237,12 @@ func registerCustomerForCustomersTest(id *values.CustomerID) shared.DomainEvents
 
 	recordedEvents := domain.RegisterCustomer(register)
 	So(recordedEvents, ShouldHaveLength, 1)
-	So(recordedEvents[0], ShouldHaveSameTypeAs, (*events.Registered)(nil))
+	So(recordedEvents[0], ShouldHaveSameTypeAs, events.Registered{})
 
 	return recordedEvents
 }
 
-func cleanUpArtefactsForCustomers(id *values.CustomerID) {
+func cleanUpArtefactsForCustomers(id values.CustomerID) {
 	diContainer := test.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 
