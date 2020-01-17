@@ -262,7 +262,7 @@ func (brokenUnmarshalingEvent *BrokenUnmarshalingEvent) UnmarshalJSON(data []byt
 
 /*** Unmarshal mocked events ***/
 
-func Unmarshal(name string, payload []byte) (shared.DomainEvent, error) {
+func Unmarshal(name string, payload []byte, streamVersion uint) (shared.DomainEvent, error) {
 	defaultErrFormat := "unmarshalDomainEvent [%s] failed: %w"
 
 	switch name {
