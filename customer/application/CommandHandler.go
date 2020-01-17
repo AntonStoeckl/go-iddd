@@ -17,8 +17,6 @@ type CommandHandler struct {
 	db             *sql.DB
 }
 
-/*** Factory Method ***/
-
 func NewCommandHandler(sessionStarter StartsCustomersSession, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
 		sessionStarter: sessionStarter,
@@ -26,29 +24,41 @@ func NewCommandHandler(sessionStarter StartsCustomersSession, db *sql.DB) *Comma
 	}
 }
 
-/*** Implement shared.CommandHandler ***/
-
-func (handler *CommandHandler) Handle(command shared.Command) error {
+func (handler *CommandHandler) Register(command commands.Register) error {
 	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.Handle")
-	}
-
-	switch command.(type) {
-	case commands.Register, commands.ConfirmEmailAddress, commands.ChangeEmailAddress:
-	default:
-		err := errors.Newf("[%s] command is unknown", command.CommandName())
-
-		return errors.Mark(err, shared.ErrCommandIsUnknown)
+		return errors.Wrap(err, "commandHandler.Register")
 	}
 
 	if err := handler.handleRetry(command); err != nil {
-		return errors.Wrapf(err, "commandHandler.Handle: [%s]", command.CommandName())
+		return err
 	}
 
 	return nil
 }
 
-/*** Chain of handler functions ***/
+func (handler *CommandHandler) ConfirmEmailAddress(command commands.ConfirmEmailAddress) error {
+	if err := command.ShouldBeValid(); err != nil {
+		return errors.Wrap(err, "commandHandler.ConfirmEmailAddress")
+	}
+
+	if err := handler.handleRetry(command); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (handler *CommandHandler) ChangeEmailAddress(command commands.ChangeEmailAddress) error {
+	if err := command.ShouldBeValid(); err != nil {
+		return errors.Wrap(err, "commandHandler.ChangeEmailAddress")
+	}
+
+	if err := handler.handleRetry(command); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (handler *CommandHandler) handleRetry(command shared.Command) error {
 	var err error
@@ -130,8 +140,6 @@ func (handler *CommandHandler) handleCommand(
 
 	return nil
 }
-
-/*** Business cases ***/
 
 func (handler *CommandHandler) register(
 	customers Customers,

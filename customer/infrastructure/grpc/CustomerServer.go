@@ -20,12 +20,12 @@ func NewCustomerServer(commandHandler *application.CommandHandler) *customerServ
 func (server *customerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
 	id := values.GenerateCustomerID()
 
-	register, err := commands.NewRegister(id.ID(), req.EmailAddress, req.GivenName, req.FamilyName)
+	command, err := commands.NewRegister(id.ID(), req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := server.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.Register(command); err != nil {
 		return nil, err
 	}
 
@@ -33,12 +33,12 @@ func (server *customerServer) Register(ctx context.Context, req *RegisterRequest
 }
 
 func (server *customerServer) ConfirmEmailAddress(ctx context.Context, req *ConfirmEmailAddressRequest) (*empty.Empty, error) {
-	register, err := commands.NewConfirmEmailAddress(req.Id, req.EmailAddress, req.ConfirmationHash)
+	command, err := commands.NewConfirmEmailAddress(req.Id, req.EmailAddress, req.ConfirmationHash)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := server.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.ConfirmEmailAddress(command); err != nil {
 		return nil, err
 	}
 
@@ -46,12 +46,12 @@ func (server *customerServer) ConfirmEmailAddress(ctx context.Context, req *Conf
 }
 
 func (server *customerServer) ChangeEmailAddress(ctx context.Context, req *ChangeEmailAddressRequest) (*empty.Empty, error) {
-	register, err := commands.NewChangeEmailAddress(req.Id, req.EmailAddress)
+	command, err := commands.NewChangeEmailAddress(req.Id, req.EmailAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := server.commandHandler.Handle(register); err != nil {
+	if err := server.commandHandler.ChangeEmailAddress(command); err != nil {
 		return nil, err
 	}
 

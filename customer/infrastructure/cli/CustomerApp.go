@@ -49,12 +49,12 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	familyName := ctx.Args().Get(2)
 	id := values.GenerateCustomerID()
 
-	register, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
+	command, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
 	if err != nil {
 		return err
 	}
 
-	if err := app.commandHandler.Handle(register); err != nil {
+	if err := app.commandHandler.Register(command); err != nil {
 		return err
 	}
 
@@ -72,19 +72,19 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 	emailAddress := ctx.Args().Get(1)
 	confirmationHash := ctx.Args().Get(2)
 
-	confirmEmailAddress, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+	command, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
 	if err != nil {
 		return err
 	}
 
-	if err := app.commandHandler.Handle(confirmEmailAddress); err != nil {
+	if err := app.commandHandler.ConfirmEmailAddress(command); err != nil {
 		return err
 	}
 
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully confirmed the emailAddress of Customer with id '%s'\n",
-		confirmEmailAddress.CustomerID().ID(),
+		command.CustomerID().ID(),
 	)
 
 	return nil
@@ -94,20 +94,20 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 	id := ctx.Args().Get(0)
 	emailAddress := ctx.Args().Get(1)
 
-	changeEmailAddress, err := commands.NewChangeEmailAddress(id, emailAddress)
+	command, err := commands.NewChangeEmailAddress(id, emailAddress)
 	if err != nil {
 		return err
 	}
 
-	if err := app.commandHandler.Handle(changeEmailAddress); err != nil {
+	if err := app.commandHandler.ChangeEmailAddress(command); err != nil {
 		return err
 	}
 
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"successfully changed the emailAddress of Customer with id '%s' to '%s\n",
-		changeEmailAddress.CustomerID().ID(),
-		changeEmailAddress.EmailAddress().EmailAddress(),
+		command.CustomerID().ID(),
+		command.EmailAddress().EmailAddress(),
 	)
 
 	return nil

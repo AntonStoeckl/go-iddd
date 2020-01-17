@@ -66,7 +66,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 					customers.On("Register", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(nil).Once()
 					dbMock.ExpectCommit()
 
-					err := commandHandler.Handle(register)
+					err := commandHandler.Register(register)
 
 					Convey("It should register and save a Customer", func() {
 						So(err, ShouldBeNil)
@@ -78,7 +78,7 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 					customers.On("Register", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
-					err := commandHandler.Handle(register)
+					err := commandHandler.Register(register)
 
 					Convey("It should fail", func() {
 						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
@@ -127,7 +127,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 							customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(nil).Once()
 							dbMock.ExpectCommit()
 
-							err := commandHandler.Handle(confirmEmailAddress)
+							err := commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
 							Convey("It should modify the Customer and save it", func() {
 								So(err, ShouldBeNil)
@@ -140,7 +140,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 							customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(shared.ErrTechnical).Once()
 							dbMock.ExpectRollback()
 
-							err := commandHandler.Handle(confirmEmailAddress)
+							err := commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
 							Convey("It should fail", func() {
 								So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
@@ -161,7 +161,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.Handle(confirmEmailAddress)
+						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
 						Convey("It should fail", func() {
 							So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
@@ -175,7 +175,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 					customers.On("EventStream", confirmEmailAddress.AggregateID()).Return(nil, shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
-					err := commandHandler.Handle(confirmEmailAddress)
+					err := commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
 					Convey("It should fail", func() {
 						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
@@ -221,7 +221,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 						customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(nil).Once()
 						dbMock.ExpectCommit()
 
-						err := commandHandler.Handle(changeEmailAddress)
+						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should modify the Customer and save it", func() {
 							So(err, ShouldBeNil)
@@ -234,7 +234,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 						customers.On("Persist", customerID, mock.AnythingOfType("shared.DomainEvents")).Return(shared.ErrTechnical).Once()
 						dbMock.ExpectRollback()
 
-						err := commandHandler.Handle(changeEmailAddress)
+						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should fail", func() {
 							So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
@@ -248,7 +248,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 					customers.On("EventStream", changeEmailAddress.AggregateID()).Return(nil, shared.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
-					err := commandHandler.Handle(changeEmailAddress)
+					err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 					Convey("It should fail", func() {
 						So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
@@ -304,7 +304,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 						dbMock.ExpectBegin()
 						dbMock.ExpectCommit()
 
-						err := commandHandler.Handle(changeEmailAddress)
+						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should modify the Customer and save it", func() {
 							So(err, ShouldBeNil)
@@ -326,7 +326,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 							dbMock.ExpectRollback()
 						}
 
-						err := commandHandler.Handle(changeEmailAddress)
+						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should fail", func() {
 							So(err, ShouldNotBeNil)
@@ -357,7 +357,7 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 		Convey("When an empty command is handled", func() {
 			emptyCommand := commands.ConfirmEmailAddress{}
 
-			err := commandHandler.Handle(emptyCommand)
+			err := commandHandler.ConfirmEmailAddress(emptyCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -365,19 +365,19 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 			})
 		})
 
-		Convey("When an unknown command is handled", func() {
-			unknownCommand := new(mocks.Command)
-			unknownCommand.On("AggregateID").Return(values.GenerateCustomerID())
-			unknownCommand.On("CommandName").Return("unknown")
-			unknownCommand.On("ShouldBeValid").Return(nil)
-
-			err := commandHandler.Handle(unknownCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
-			})
-		})
+		// Convey("When an unknown command is handled", func() {
+		// 	unknownCommand := new(mocks.Command)
+		// 	unknownCommand.On("AggregateID").Return(values.GenerateCustomerID())
+		// 	unknownCommand.On("CommandName").Return("unknown")
+		// 	unknownCommand.On("ShouldBeValid").Return(nil)
+		//
+		// 	err := commandHandler.Handle(unknownCommand)
+		//
+		// 	Convey("It should fail", func() {
+		// 		So(err, ShouldBeError)
+		// 		So(errors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
+		// 	})
+		// })
 	})
 }
 
@@ -401,7 +401,7 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = commandHandler.Handle(register)
+			err = commandHandler.Register(register)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -427,7 +427,7 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			)
 			So(err, ShouldBeNil)
 
-			err = commandHandler.Handle(register)
+			err = commandHandler.Register(register)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
