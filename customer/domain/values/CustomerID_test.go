@@ -30,8 +30,8 @@ func TestGenerateCustomerID(t *testing.T) {
 		totalAmount := 0
 
 		for i := 0; i < numRoutines; i++ {
-			go generateManyCustomerIDs(customerIDs, &group, &mutex, amountPerRoutine)
 			group.Add(1)
+			go generateManyCustomerIDs(customerIDs, &group, &mutex, amountPerRoutine)
 			totalAmount += amountPerRoutine
 		}
 
