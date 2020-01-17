@@ -6,7 +6,7 @@ import (
 )
 
 type Customers interface {
-	Register(id *values.CustomerID, recordedEvents shared.DomainEvents) error
-	EventStream(id *values.CustomerID) (shared.DomainEvents, error)
-	Persist(id *values.CustomerID, recordedEvents shared.DomainEvents) error
+	Register(id values.CustomerID, recordedEvents shared.DomainEvents) error
+	EventStream(id values.CustomerID) (shared.DomainEvents, error)
+	Persist(id values.CustomerID, recordedEvents shared.DomainEvents) error
 }

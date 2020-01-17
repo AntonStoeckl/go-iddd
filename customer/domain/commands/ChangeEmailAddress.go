@@ -5,11 +5,14 @@ import (
 	"go-iddd/shared"
 	"reflect"
 	"strings"
+
+	"github.com/cockroachdb/errors"
 )
 
 type ChangeEmailAddress struct {
 	customerID   values.CustomerID
 	emailAddress values.EmailAddress
+	isValid      bool
 }
 
 func NewChangeEmailAddress(
@@ -30,6 +33,7 @@ func NewChangeEmailAddress(
 	changeEmailAddress := ChangeEmailAddress{
 		customerID:   customerIDValue,
 		emailAddress: emailAddressValue,
+		isValid:      true,
 	}
 
 	return changeEmailAddress, nil
@@ -53,4 +57,14 @@ func (changeEmailAddress ChangeEmailAddress) CommandName() string {
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
 	return strings.Title(commandName)
+}
+
+func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {
+	if !changeEmailAddress.isValid {
+		err := errors.Newf("%s: is not valid", changeEmailAddress.CommandName())
+
+		return errors.Mark(err, shared.ErrCommandIsInvalid)
+	}
+
+	return nil
 }

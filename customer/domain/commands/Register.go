@@ -5,12 +5,15 @@ import (
 	"go-iddd/shared"
 	"reflect"
 	"strings"
+
+	"github.com/cockroachdb/errors"
 )
 
 type Register struct {
 	customerID   values.CustomerID
 	emailAddress values.EmailAddress
 	personName   values.PersonName
+	isValid      bool
 }
 
 func NewRegister(
@@ -39,6 +42,7 @@ func NewRegister(
 		customerID:   customerIDValue,
 		emailAddress: emailAddressValue,
 		personName:   personNameValue,
+		isValid:      true,
 	}
 
 	return register, nil
@@ -66,4 +70,14 @@ func (register Register) CommandName() string {
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
 	return strings.Title(commandName)
+}
+
+func (register Register) ShouldBeValid() error {
+	if !register.isValid {
+		err := errors.Newf("%s: is not valid", register.CommandName())
+
+		return errors.Mark(err, shared.ErrCommandIsInvalid)
+	}
+
+	return nil
 }

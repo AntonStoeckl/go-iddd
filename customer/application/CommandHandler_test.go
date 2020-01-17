@@ -1,7 +1,6 @@
 package application_test
 
 import (
-	"fmt"
 	"go-iddd/customer/application"
 	"go-iddd/customer/application/mocks"
 	"go-iddd/customer/domain"
@@ -98,7 +97,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
-		confirmationHash := recordedEvents[0].(*events.Registered).ConfirmableEmailAddress().ConfirmationHash()
+		confirmationHash := recordedEvents[0].(events.Registered).ConfirmationHash()
 
 		customers := new(mocks.Customers)
 
@@ -115,7 +114,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 				customerID.ID(),
 				emailAddress.EmailAddress(),
-				confirmationHash,
+				confirmationHash.Hash(),
 			)
 			So(err, ShouldBeNil)
 
@@ -355,36 +354,14 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 
 		commandHandler := application.NewCommandHandler(sessionStarter, db)
 
-		Convey("When a nil interface command is handled", func() {
-			var nilInterfaceCommand shared.Command
-			err := commandHandler.Handle(nilInterfaceCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-				fmt.Println(err)
-			})
-		})
-
-		Convey("When a nil pointer command is handled", func() {
-			var nilCommand *commands.ConfirmEmailAddress
-			err := commandHandler.Handle(nilCommand)
-
-			Convey("It should fail", func() {
-				So(err, ShouldBeError)
-				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-				fmt.Println(err)
-			})
-		})
-
 		Convey("When an empty command is handled", func() {
-			emptyCommand := &commands.ConfirmEmailAddress{}
+			emptyCommand := commands.ConfirmEmailAddress{}
+
 			err := commandHandler.Handle(emptyCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(errors.Is(err, shared.ErrCommandIsInvalid), ShouldBeTrue)
-				fmt.Println(err)
 			})
 		})
 
@@ -392,107 +369,77 @@ func TestCommandHandler_Handle_WithInvalidCommand(t *testing.T) {
 			unknownCommand := new(mocks.Command)
 			unknownCommand.On("AggregateID").Return(values.GenerateCustomerID())
 			unknownCommand.On("CommandName").Return("unknown")
+			unknownCommand.On("ShouldBeValid").Return(nil)
 
 			err := commandHandler.Handle(unknownCommand)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(errors.Is(err, shared.ErrCommandIsUnknown), ShouldBeTrue)
-				fmt.Println(err)
 			})
 		})
 	})
 }
 
-//func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
-//	Convey("Given a CommandHandler", t, func() {
-//		customers := new(mocks.Customers)
-//
-//		repo := new(mocks.StartsCustomersSession)
-//		repo.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
-//
-//		db, _, err := sqlmock.New()
-//		So(err, ShouldBeNil)
-//
-//		commandHandler := application.NewCommandHandler(repo, db)
-//
-//		Convey("When starting the repositry session fails", func() {
-//			register, err := commands.NewRegister(
-//				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-//				"john@doe.com",
-//				"John",
-//				"Doe",
-//			)
-//			So(err, ShouldBeNil)
-//
-//			repo := new(mocks.StartsCustomersSession)
-//			db, _, err := sqlmock.New()
-//			So(err, ShouldBeNil)
-//			repo.On("StartSession").Return(nil, shared.ErrTechnical)
-//			commandHandler = application.NewCommandHandler(repo, db)
-//
-//			err = commandHandler.Handle(register)
-//
-//			Convey("It should fail", func() {
-//				So(err, ShouldBeError)
-//				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-//			})
-//		})
-//
-//		Convey("When committing the repositry session fails", func() {
-//			register, err := commands.NewRegister(
-//				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-//				"john@doe.com",
-//				"John",
-//				"Doe",
-//			)
-//			So(err, ShouldBeNil)
-//
-//			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(nil).Once()
-//			repo := new(mocks.StartsCustomersSession)
-//			repo.On("StartSession").Return(customers, nil)
-//			db, _, err := sqlmock.New()
-//			So(err, ShouldBeNil)
-//			customers.On("Commit").Return(shared.ErrTechnical).Once()
-//			commandHandler = application.NewCommandHandler(repo, db)
-//
-//			err = commandHandler.Handle(register)
-//
-//			Convey("It should fail", func() {
-//				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
-//				So(customers.AssertExpectations(t), ShouldBeTrue)
-//			})
-//		})
-//
-//		Convey("When rolling back the repositry session fails", func() {
-//			register, err := commands.NewRegister(
-//				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
-//				"john@doe.com",
-//				"John",
-//				"Doe",
-//			)
-//			So(err, ShouldBeNil)
-//
-//			customers.On("Register", mock.AnythingOfType("*domain.Customer")).Return(shared.ErrDomainConstraintsViolation).Once()
-//			repo := new(mocks.StartsCustomersSession)
-//			repo.On("StartSession").Return(customers, nil)
-//			db, _, err := sqlmock.New()
-//			So(err, ShouldBeNil)
-//			customers.On("Rollback").Return(shared.ErrTechnical).Once()
-//			commandHandler = application.NewCommandHandler(repo, db)
-//
-//			err = commandHandler.Handle(register)
-//
-//			Convey("It should fail", func() {
-//				So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-//				So(customers.AssertExpectations(t), ShouldBeTrue)
-//				fmt.Println(err)
-//			})
-//		})
-//	})
-//}
+func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
+	Convey("Given a CommandHandler", t, func() {
+		db, sqlMock, err := sqlmock.New()
+		So(err, ShouldBeNil)
+		sessionStarter := new(mocks.StartsCustomersSession)
+		customers := new(mocks.Customers)
 
-func registerCustomerForCommandHandlerTest(id *values.CustomerID, emailAddress *values.EmailAddress) shared.DomainEvents {
+		commandHandler := application.NewCommandHandler(sessionStarter, db)
+
+		Convey("When beginning the transaction fails", func() {
+			sqlMock.ExpectBegin().WillReturnError(shared.ErrTechnical)
+
+			register, err := commands.NewRegister(
+				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
+				"john@doe.com",
+				"John",
+				"Doe",
+			)
+			So(err, ShouldBeNil)
+
+			err = commandHandler.Handle(register)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+				So(sessionStarter.AssertExpectations(t), ShouldBeTrue)
+				So(customers.AssertExpectations(t), ShouldBeTrue)
+			})
+		})
+
+		Convey("When committing the repositry session fails", func() {
+			sqlMock.ExpectBegin()
+			sessionStarter.On("StartSession", mock.AnythingOfType("*sql.Tx")).Return(customers)
+			customers.
+				On("Register", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("shared.DomainEvents")).
+				Return(nil)
+			sqlMock.ExpectCommit().WillReturnError(shared.ErrTechnical)
+
+			register, err := commands.NewRegister(
+				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
+				"john@doe.com",
+				"John",
+				"Doe",
+			)
+			So(err, ShouldBeNil)
+
+			err = commandHandler.Handle(register)
+
+			Convey("It should fail", func() {
+				So(err, ShouldBeError)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+				// So(sessionStarter.AssertExpectations(t), ShouldBeTrue)
+				So(customers.AssertExpectations(t), ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func registerCustomerForCommandHandlerTest(id values.CustomerID, emailAddress values.EmailAddress) shared.DomainEvents {
 	register, err := commands.NewRegister(
 		id.ID(),
 		emailAddress.EmailAddress(),
@@ -503,7 +450,7 @@ func registerCustomerForCommandHandlerTest(id *values.CustomerID, emailAddress *
 
 	recordedEvents := domain.RegisterCustomer(register)
 	So(recordedEvents, ShouldHaveLength, 1)
-	So(recordedEvents[0], ShouldHaveSameTypeAs, (*events.Registered)(nil))
+	So(recordedEvents[0], ShouldHaveSameTypeAs, events.Registered{})
 
 	return recordedEvents
 }

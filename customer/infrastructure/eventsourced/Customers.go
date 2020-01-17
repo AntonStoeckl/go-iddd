@@ -12,7 +12,7 @@ type Customers struct {
 	eventStoreSession shared.EventStore
 }
 
-func (customers *Customers) Register(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
+func (customers *Customers) Register(id values.CustomerID, recordedEvents shared.DomainEvents) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
@@ -26,7 +26,7 @@ func (customers *Customers) Register(id *values.CustomerID, recordedEvents share
 	return nil
 }
 
-func (customers *Customers) EventStream(id *values.CustomerID) (shared.DomainEvents, error) {
+func (customers *Customers) EventStream(id values.CustomerID) (shared.DomainEvents, error) {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	eventStream, err := customers.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
@@ -41,7 +41,7 @@ func (customers *Customers) EventStream(id *values.CustomerID) (shared.DomainEve
 	return eventStream, nil
 }
 
-func (customers *Customers) Persist(id *values.CustomerID, recordedEvents shared.DomainEvents) error {
+func (customers *Customers) Persist(id values.CustomerID, recordedEvents shared.DomainEvents) error {
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
