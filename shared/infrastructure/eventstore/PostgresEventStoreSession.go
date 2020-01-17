@@ -16,7 +16,7 @@ type PostgresEventStoreSession struct {
 }
 
 func (session *PostgresEventStoreSession) LoadEventStream(
-	streamID *shared.StreamID,
+	streamID shared.StreamID,
 	fromVersion uint,
 	maxEvents uint,
 ) (shared.DomainEvents, error) {
@@ -65,7 +65,7 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 	return stream, nil
 }
 
-func (session *PostgresEventStoreSession) AppendEventsToStream(streamID *shared.StreamID, events shared.DomainEvents) error {
+func (session *PostgresEventStoreSession) AppendEventsToStream(streamID shared.StreamID, events shared.DomainEvents) error {
 	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
 						VALUES ($1, $2, $3, $4, $5)`
 	query := strings.Replace(queryTemplate, "%name%", session.eventStore.tableName, 1)

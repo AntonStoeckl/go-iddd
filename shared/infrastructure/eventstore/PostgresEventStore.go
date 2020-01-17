@@ -34,7 +34,7 @@ func (store *PostgresEventStore) StartSession(tx *sql.Tx) shared.EventStore {
 	}
 }
 
-func (store *PostgresEventStore) PurgeEventStream(streamID *shared.StreamID) error {
+func (store *PostgresEventStore) PurgeEventStream(streamID shared.StreamID) error {
 	queryTemplate := `DELETE FROM %name% WHERE stream_id = $1`
 	query := strings.Replace(queryTemplate, "%name%", store.tableName, 1)
 

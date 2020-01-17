@@ -354,7 +354,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 
 /*** Test Helper Methods ***/
 
-func cleanUpArtefactsForPostgresEventStoreSession(store *eventstore.PostgresEventStore, streamID *shared.StreamID) {
+func cleanUpArtefactsForPostgresEventStoreSession(store *eventstore.PostgresEventStore, streamID shared.StreamID) {
 	err := store.PurgeEventStream(streamID)
 	So(err, ShouldBeNil)
 }
