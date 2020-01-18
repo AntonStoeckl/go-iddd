@@ -5,7 +5,7 @@ import (
 	"go-iddd/shared"
 	"math"
 
-	"golang.org/x/xerrors"
+	"github.com/cockroachdb/errors"
 )
 
 type Customers struct {
@@ -16,11 +16,11 @@ func (customers *Customers) Register(id values.CustomerID, recordedEvents shared
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
-		if xerrors.Is(err, shared.ErrConcurrencyConflict) {
-			return xerrors.Errorf("eventSourcedRepositorySession.Register: %s: %w", err, shared.ErrDuplicate)
+		if errors.Is(err, shared.ErrConcurrencyConflict) {
+			return shared.MarkAndWrapError(err, shared.ErrDuplicate, "customers.Register")
 		}
 
-		return xerrors.Errorf("eventSourcedRepositorySession.Register: %w", err)
+		return errors.Wrap(err, "customers.Register")
 	}
 
 	return nil
@@ -31,11 +31,12 @@ func (customers *Customers) EventStream(id values.CustomerID) (shared.DomainEven
 
 	eventStream, err := customers.eventStoreSession.LoadEventStream(streamID, 0, math.MaxUint32)
 	if err != nil {
-		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: %w", err)
+		return nil, errors.Wrap(err, "customers.EventStream")
 	}
 
 	if len(eventStream) == 0 {
-		return nil, xerrors.Errorf("eventSourcedRepositorySession.Of: event stream is empty: %w", shared.ErrNotFound)
+		err := errors.New("found empty event stream")
+		return nil, shared.MarkAndWrapError(err, shared.ErrNotFound, "customers.EventStream")
 	}
 
 	return eventStream, nil
@@ -45,7 +46,7 @@ func (customers *Customers) Persist(id values.CustomerID, recordedEvents shared.
 	streamID := shared.NewStreamID(streamPrefix + "-" + id.ID())
 
 	if err := customers.eventStoreSession.AppendEventsToStream(streamID, recordedEvents); err != nil {
-		return xerrors.Errorf("eventSourcedRepositorySession.Persist: %w", err)
+		return errors.Wrap(err, "customers.Persist")
 	}
 
 	return nil
