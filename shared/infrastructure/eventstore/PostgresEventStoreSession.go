@@ -7,7 +7,6 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/lib/pq"
-	"golang.org/x/xerrors"
 )
 
 type PostgresEventStoreSession struct {
@@ -21,6 +20,8 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 	maxEvents uint,
 ) (shared.DomainEvents, error) {
 
+	wrapWithMsg := "postgresEventStoreSession.LoadEventStream"
+
 	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
 						WHERE stream_id = $1 AND stream_version >= $2
 						ORDER BY stream_version ASC
@@ -29,14 +30,10 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 
 	eventRows, err := session.eventStore.db.Query(query, streamID.String(), fromVersion, maxEvents)
 	if err != nil {
-		return nil, xerrors.Errorf(
-			"postgresEventStore.LoadEventStream: %s: %w",
-			err,
-			shared.ErrTechnical,
-		)
+		return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	var stream []shared.DomainEvent
+	var stream shared.DomainEvents
 	var eventName string
 	var payload string
 	var streamVersion uint
@@ -44,19 +41,11 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 
 	for eventRows.Next() {
 		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
-			return nil, xerrors.Errorf(
-				"postgresEventStore.LoadEventStream: %s: %w",
-				err,
-				shared.ErrTechnical,
-			)
+			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 		}
 
 		if domainEvent, err = session.eventStore.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
-			return nil, xerrors.Errorf(
-				"postgresEventStore.LoadEventStream: %s: %w",
-				err,
-				shared.ErrUnmarshalingFailed,
-			)
+			return nil, shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, wrapWithMsg)
 		}
 
 		stream = append(stream, domainEvent)
@@ -65,7 +54,13 @@ func (session *PostgresEventStoreSession) LoadEventStream(
 	return stream, nil
 }
 
-func (session *PostgresEventStoreSession) AppendEventsToStream(streamID shared.StreamID, events shared.DomainEvents) error {
+func (session *PostgresEventStoreSession) AppendEventsToStream(
+	streamID shared.StreamID,
+	events shared.DomainEvents,
+) error {
+
+	wrapWithMsg := "postgresEventStoreSession.AppendEventsToStream"
+
 	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
 						VALUES ($1, $2, $3, $4, $5)`
 	query := strings.Replace(queryTemplate, "%name%", session.eventStore.tableName, 1)
@@ -73,11 +68,7 @@ func (session *PostgresEventStoreSession) AppendEventsToStream(streamID shared.S
 	for _, event := range events {
 		eventJson, err := jsoniter.Marshal(event)
 		if err != nil {
-			return xerrors.Errorf(
-				"postgresEventStoreSession.appendEventsToStreamWithTransaction: %s: %w",
-				err,
-				shared.ErrMarshalingFailed,
-			)
+			return shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, wrapWithMsg)
 		}
 
 		_, err = session.tx.Exec(
@@ -90,21 +81,13 @@ func (session *PostgresEventStoreSession) AppendEventsToStream(streamID shared.S
 		)
 
 		if err != nil {
-			defaultErr := xerrors.Errorf(
-				"postgresEventStoreSession.appendEventsToStreamWithTransaction: %s: %w",
-				err,
-				shared.ErrTechnical,
-			)
+			defaultErr := shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 
 			switch actualErr := err.(type) {
 			case *pq.Error:
 				switch actualErr.Code {
 				case "23505":
-					return xerrors.Errorf(
-						"postgresEventStoreSession.appendEventsToStreamWithTransaction: %s: %w",
-						err,
-						shared.ErrConcurrencyConflict,
-					)
+					return shared.MarkAndWrapError(err, shared.ErrConcurrencyConflict, wrapWithMsg)
 				default:
 					return defaultErr // some other postgres error (e.g. table does not exist)
 				}
@@ -116,27 +99,3 @@ func (session *PostgresEventStoreSession) AppendEventsToStream(streamID shared.S
 
 	return nil
 }
-
-//func (session *PostgresEventStoreSession) Commit() error {
-//	if err := session.tx.Commit(); err != nil {
-//		return xerrors.Errorf(
-//			"postgresEventStoreSession.Commit: %s: %w",
-//			err,
-//			shared.ErrTechnical,
-//		)
-//	}
-//
-//	return nil
-//}
-//
-//func (session *PostgresEventStoreSession) Rollback() error {
-//	if err := session.tx.Rollback(); err != nil {
-//		return xerrors.Errorf(
-//			"postgresEventStoreSession.Rollback: %s: %w",
-//			err,
-//			shared.ErrTechnical,
-//		)
-//	}
-//
-//	return nil
-//}

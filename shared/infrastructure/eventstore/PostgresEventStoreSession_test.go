@@ -8,10 +8,10 @@ import (
 	"math"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
@@ -128,7 +128,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 			stream, err := session.LoadEventStream(streamID, 0, math.MaxUint32)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 				So(stream, ShouldHaveLength, 0)
 			})
 
@@ -155,7 +155,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 			_, err := session.LoadEventStream(streamID, 0, math.MaxUint32)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 			})
 		})
 	})
@@ -247,7 +247,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 						)
 
 						Convey("It should fail", func() {
-							So(xerrors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrConcurrencyConflict), ShouldBeTrue)
 
 							errTx = tx.Rollback()
 							So(errTx, ShouldBeNil)
@@ -282,7 +282,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 			)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrMarshalingFailed), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrMarshalingFailed), ShouldBeTrue)
 			})
 
 			errTx := tx.Rollback()
@@ -313,7 +313,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 			)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 			})
 		})
 
@@ -341,7 +341,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 			)
 
 			Convey("It should fail", func() {
-				So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+				So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 			})
 
 			errTx := tx.Rollback()
