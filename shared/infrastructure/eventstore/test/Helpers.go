@@ -11,7 +11,6 @@ import (
 	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func SetUpDIContainer() *DIContainer {
@@ -62,7 +61,7 @@ func (someID *SomeID) Equals(other shared.IdentifiesAggregates) bool {
 func (someID *SomeID) MarshalJSON() ([]byte, error) {
 	bytes, err := jsoniter.Marshal(someID.ID)
 	if err != nil {
-		return bytes, xerrors.Errorf("SomeID.MarshalJSON: %s: %w", err, shared.ErrMarshalingFailed)
+		return bytes, shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, "SomeID.MarshalJSON")
 	}
 
 	return bytes, nil
@@ -72,7 +71,7 @@ func (someID *SomeID) UnmarshalJSON(data []byte) error {
 	var value string
 
 	if err := jsoniter.Unmarshal(data, &value); err != nil {
-		return xerrors.Errorf("SomeID.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, "SomeID.UnmarshalJSON")
 	}
 
 	someID.ID = value
@@ -139,7 +138,7 @@ func (someEvent *SomeEvent) UnmarshalJSON(data []byte) error {
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
-		return xerrors.Errorf("SomeEvent.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, "SomeEvent.UnmarshalJSON")
 	}
 
 	someEvent.id = unmarshaledData.ID
@@ -197,7 +196,7 @@ func (brokenMarshalingEvent *BrokenMarshalingEvent) UnmarshalJSON(data []byte) e
 	}{}
 
 	if err := jsoniter.Unmarshal(data, unmarshaledData); err != nil {
-		return xerrors.Errorf("SomeEvent.UnmarshalJSON: %s: %w", err, shared.ErrUnmarshalingFailed)
+		return shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, "SomeEvent.UnmarshalJSON")
 	}
 
 	brokenMarshalingEvent.id = unmarshaledData.ID
@@ -275,7 +274,7 @@ func Unmarshal(name string, payload []byte, streamVersion uint) (shared.DomainEv
 		event := &SomeEvent{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Errorf(defaultErrFormat, name, err)
 		}
 
 		return event, nil
@@ -283,7 +282,7 @@ func Unmarshal(name string, payload []byte, streamVersion uint) (shared.DomainEv
 		event := &BrokenUnmarshalingEvent{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Errorf(defaultErrFormat, name, err)
 		}
 
 		return event, nil
@@ -291,7 +290,7 @@ func Unmarshal(name string, payload []byte, streamVersion uint) (shared.DomainEv
 		event := &BrokenUnmarshalingEvent{}
 
 		if err := event.UnmarshalJSON(payload); err != nil {
-			return nil, xerrors.Errorf(defaultErrFormat, name, err)
+			return nil, errors.Errorf(defaultErrFormat, name, err)
 		}
 
 		return event, nil
