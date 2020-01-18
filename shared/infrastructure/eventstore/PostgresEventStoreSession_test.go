@@ -16,7 +16,7 @@ import (
 
 func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -41,7 +41,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event stream with 5 events", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -104,7 +104,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event in the stream can not be unmarshaled", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -141,7 +141,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given the DB connection is already closed", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -163,7 +163,7 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 
 func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -263,7 +263,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given an event which can not be marshaled", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -293,7 +293,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the session was already committed", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -322,7 +322,7 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the DB table does not exist", t, func() {
-		id := &test.SomeID{ID: uuid.New().String()}
+		id := test.SomeID{ID: uuid.New().String()}
 		streamID := shared.NewStreamID("customer" + "-" + id.String())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
