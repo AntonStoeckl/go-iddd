@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"go-iddd/shared"
 	"strings"
-
-	"golang.org/x/xerrors"
 )
 
 type PostgresEventStore struct {
@@ -41,11 +39,7 @@ func (store *PostgresEventStore) PurgeEventStream(streamID shared.StreamID) erro
 	_, err := store.db.Exec(query, streamID.String())
 
 	if err != nil {
-		return xerrors.Errorf(
-			"postgresEventStore.PurgeEventStream: %s: %w",
-			err,
-			shared.ErrTechnical,
-		)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, "postgresEventStore.PurgeEventStream")
 	}
 
 	return nil

@@ -7,9 +7,9 @@ import (
 	"math"
 	"testing"
 
+	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/xerrors"
 )
 
 func TestPostgresEventStore_StartSession(t *testing.T) {
@@ -83,7 +83,7 @@ func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 				err := store.PurgeEventStream(streamID)
 
 				Convey("It should fail", func() {
-					So(xerrors.Is(err, shared.ErrTechnical), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 				})
 			})
 		})
