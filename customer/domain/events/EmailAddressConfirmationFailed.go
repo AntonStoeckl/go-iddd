@@ -41,7 +41,6 @@ func EmailAddressConfirmationHasFailed(
 	fullEventName := emailAddressConfirmationFailedAggregateName + eventName
 
 	emailAddressConfirmationFailed.meta = Meta{
-		identifier:    customerID.ID(),
 		eventName:     fullEventName,
 		occurredAt:    time.Now().Format(EmailAddressConfirmationFailedMetaTimestampFormat),
 		streamVersion: streamVersion,
@@ -60,10 +59,6 @@ func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) EmailAddres
 
 func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) ConfirmationHash() values.ConfirmationHash {
 	return emailAddressConfirmationFailed.confirmationHash
-}
-
-func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) Identifier() string {
-	return emailAddressConfirmationFailed.meta.identifier
 }
 
 func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) EventName() string {

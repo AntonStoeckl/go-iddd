@@ -41,7 +41,6 @@ func EmailAddressWasChanged(
 	fullEventName := emailAddressChangedAggregateName + eventName
 
 	emailAddressChanged.meta = Meta{
-		identifier:    customerID.ID(),
 		eventName:     fullEventName,
 		occurredAt:    time.Now().Format(EmailAddressChangedMetaTimestampFormat),
 		streamVersion: streamVersion,
@@ -60,10 +59,6 @@ func (emailAddressChanged EmailAddressChanged) EmailAddress() values.EmailAddres
 
 func (emailAddressChanged EmailAddressChanged) ConfirmationHash() values.ConfirmationHash {
 	return emailAddressChanged.confirmationHash
-}
-
-func (emailAddressChanged EmailAddressChanged) Identifier() string {
-	return emailAddressChanged.meta.identifier
 }
 
 func (emailAddressChanged EmailAddressChanged) EventName() string {

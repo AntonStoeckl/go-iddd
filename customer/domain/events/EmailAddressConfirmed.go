@@ -38,7 +38,6 @@ func EmailAddressWasConfirmed(
 	fullEventName := emailAddressConfirmedAggregateName + eventName
 
 	emailAddressConfirmed.meta = Meta{
-		identifier:    customerID.ID(),
 		eventName:     fullEventName,
 		occurredAt:    time.Now().Format(EmailAddressConfirmedMetaTimestampFormat),
 		streamVersion: streamVersion,
@@ -53,10 +52,6 @@ func (emailAddressConfirmed EmailAddressConfirmed) CustomerID() values.CustomerI
 
 func (emailAddressConfirmed EmailAddressConfirmed) EmailAddress() values.EmailAddress {
 	return emailAddressConfirmed.emailAddress
-}
-
-func (emailAddressConfirmed EmailAddressConfirmed) Identifier() string {
-	return emailAddressConfirmed.meta.identifier
 }
 
 func (emailAddressConfirmed EmailAddressConfirmed) EventName() string {

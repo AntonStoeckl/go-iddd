@@ -44,7 +44,6 @@ func ItWasRegistered(
 	fullEventName := registeredAggregateName + eventName
 
 	registered.meta = Meta{
-		identifier:    customerID.ID(),
 		eventName:     fullEventName,
 		occurredAt:    time.Now().Format(RegisteredMetaTimestampFormat),
 		streamVersion: streamVersion,
@@ -67,10 +66,6 @@ func (registered Registered) ConfirmationHash() values.ConfirmationHash {
 
 func (registered Registered) PersonName() values.PersonName {
 	return registered.personName
-}
-
-func (registered Registered) Identifier() string {
-	return registered.meta.identifier
 }
 
 func (registered Registered) EventName() string {
