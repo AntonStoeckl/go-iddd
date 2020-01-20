@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	values "go-iddd/service/customer/domain/values"
+	values "go-iddd/service/customer/application/domain/values"
 	lib "go-iddd/service/lib"
 
 	mock "github.com/stretchr/testify/mock"

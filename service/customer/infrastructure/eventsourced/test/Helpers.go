@@ -5,7 +5,7 @@ package test
 import (
 	"database/sql"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/domain/events"
+	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/lib/infrastructure/eventstore"
 
 	. "github.com/smartystreets/goconvey/convey"

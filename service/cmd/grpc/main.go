@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/domain/events"
+	"go-iddd/service/customer/application/domain/events"
 	customergrpc "go-iddd/service/customer/infrastructure/grpc"
 	"go-iddd/service/lib/infrastructure/eventstore"
 	"net"

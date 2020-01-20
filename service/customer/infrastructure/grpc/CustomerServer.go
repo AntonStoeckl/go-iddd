@@ -4,7 +4,7 @@ import (
 	"context"
 	"go-iddd/service/customer"
 	"go-iddd/service/customer/application"
-	"go-iddd/service/customer/domain/commands"
+	"go-iddd/service/customer/application/domain/commands"
 
 	"github.com/golang/protobuf/ptypes/empty"
 )

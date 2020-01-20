@@ -2,10 +2,10 @@ package application_test
 
 import (
 	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/domain/commands"
+	"go-iddd/service/customer/application/domain/events"
+	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/application/mocks"
-	"go-iddd/service/customer/domain/commands"
-	"go-iddd/service/customer/domain/events"
-	"go-iddd/service/customer/domain/values"
 	"go-iddd/service/lib"
 	"testing"
 

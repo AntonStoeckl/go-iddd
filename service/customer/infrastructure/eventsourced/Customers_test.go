@@ -2,10 +2,10 @@ package eventsourced_test
 
 import (
 	"fmt"
-	"go-iddd/service/customer/domain"
-	"go-iddd/service/customer/domain/commands"
-	"go-iddd/service/customer/domain/events"
-	"go-iddd/service/customer/domain/values"
+	"go-iddd/service/customer/application/domain"
+	"go-iddd/service/customer/application/domain/commands"
+	"go-iddd/service/customer/application/domain/events"
+	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure/eventsourced/test"
 	"go-iddd/service/lib"
 	"testing"

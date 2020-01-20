@@ -1,7 +1,7 @@
 package events
 
 import (
-	"go-iddd/service/customer/domain/values"
+	"go-iddd/service/customer/application/domain/values"
 	"reflect"
 	"strings"
 	"time"
