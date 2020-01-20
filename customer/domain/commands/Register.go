@@ -17,16 +17,10 @@ type Register struct {
 }
 
 func NewRegister(
-	customerID string,
 	emailAddress string,
 	givenName string,
 	familyName string,
 ) (Register, error) {
-
-	customerIDValue, err := values.BuildCustomerID(customerID)
-	if err != nil {
-		return Register{}, err
-	}
 
 	emailAddressValue, err := values.BuildEmailAddress(emailAddress)
 	if err != nil {
@@ -39,7 +33,7 @@ func NewRegister(
 	}
 
 	register := Register{
-		customerID:   customerIDValue,
+		customerID:   values.GenerateCustomerID(),
 		emailAddress: emailAddressValue,
 		personName:   personNameValue,
 		isValid:      true,

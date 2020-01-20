@@ -37,7 +37,6 @@ func TestNewCommandHandler(t *testing.T) {
 
 func TestCommandHandler_Handle_Register(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customerID := values.GenerateCustomerID()
 		emailAddress, err := values.BuildEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
@@ -54,12 +53,13 @@ func TestCommandHandler_Handle_Register(t *testing.T) {
 
 		Convey("And given a Register command", func() {
 			register, err := commands.NewRegister(
-				customerID.ID(),
 				emailAddress.EmailAddress(),
 				"John",
 				"Doe",
 			)
 			So(err, ShouldBeNil)
+
+			customerID := register.CustomerID()
 
 			Convey("When the command is handled", func() {
 				Convey("And when registering the Customer succeeds", func() {
@@ -96,7 +96,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 		emailAddress, err := values.BuildEmailAddress("john@doe.com")
 		So(err, ShouldBeNil)
 
-		recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
+		recordedEvents := registerCustomerForCommandHandlerTest(emailAddress)
 		confirmationHash := recordedEvents[0].(events.Registered).ConfirmationHash()
 
 		customers := new(mocks.Customers)
@@ -214,7 +214,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
+					recordedEvents := registerCustomerForCommandHandlerTest(emailAddress)
 					customers.On("EventStream", changeEmailAddress.AggregateID()).Return(recordedEvents, nil).Once()
 
 					Convey("And when saving the Customer succeeds", func() {
@@ -288,7 +288,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					recordedEvents := registerCustomerForCommandHandlerTest(customerID, emailAddress)
+					recordedEvents := registerCustomerForCommandHandlerTest(emailAddress)
 
 					Convey("And when saving the Customer has a concurrency conflict once", func() {
 						// should be called twice due to retry
@@ -380,7 +380,6 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			sqlMock.ExpectBegin().WillReturnError(shared.ErrTechnical)
 
 			register, err := commands.NewRegister(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
 				"john@doe.com",
 				"John",
 				"Doe",
@@ -406,7 +405,6 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 			sqlMock.ExpectCommit().WillReturnError(shared.ErrTechnical)
 
 			register, err := commands.NewRegister(
-				"64bcf656-da30-4f5a-b0b5-aead60965aa3",
 				"john@doe.com",
 				"John",
 				"Doe",
@@ -425,9 +423,8 @@ func TestCommandHandler_Handle_WithSessionErrors(t *testing.T) {
 	})
 }
 
-func registerCustomerForCommandHandlerTest(id values.CustomerID, emailAddress values.EmailAddress) shared.DomainEvents {
+func registerCustomerForCommandHandlerTest(emailAddress values.EmailAddress) shared.DomainEvents {
 	register, err := commands.NewRegister(
-		id.ID(),
 		emailAddress.EmailAddress(),
 		"John",
 		"Doe",

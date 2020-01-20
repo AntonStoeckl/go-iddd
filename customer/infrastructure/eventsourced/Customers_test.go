@@ -232,7 +232,7 @@ func retrieveEventStreamForARegisteredCustomer(id values.CustomerID) shared.Doma
 	emailAddress := fmt.Sprintf("john+%s@doe.com", id.ID())
 	givenName := "John"
 	familyName := "Doe"
-	register, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
+	register, err := commands.NewRegister(emailAddress, givenName, familyName)
 	So(err, ShouldBeNil)
 
 	recordedEvents := domain.RegisterCustomer(register)

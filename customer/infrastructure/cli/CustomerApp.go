@@ -5,7 +5,6 @@ import (
 	"go-iddd/customer"
 	"go-iddd/customer/application"
 	"go-iddd/customer/domain/commands"
-	"go-iddd/customer/domain/values"
 
 	"github.com/urfave/cli"
 )
@@ -56,9 +55,8 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	emailAddress := ctx.Args().Get(0)
 	givenName := ctx.Args().Get(1)
 	familyName := ctx.Args().Get(2)
-	id := values.GenerateCustomerID()
 
-	command, err := commands.NewRegister(id.ID(), emailAddress, givenName, familyName)
+	command, err := commands.NewRegister(emailAddress, givenName, familyName)
 	if err != nil {
 		return err
 	}
@@ -70,7 +68,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	_, _ = fmt.Fprintf(
 		ctx.App.Writer,
 		"Customer registered with id '%s'\n",
-		id.ID(),
+		command.CustomerID().ID(),
 	)
 
 	return nil
