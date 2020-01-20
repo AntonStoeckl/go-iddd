@@ -52,7 +52,7 @@ func (someID SomeID) String() string {
 	return someID.ID
 }
 
-func (someID SomeID) Equals(lib shared.IdentifiesAggregates) bool {
+func (someID SomeID) Equals(other lib.IdentifiesAggregates) bool {
 	_ = other
 
 	return true // not needed in scope of this test
