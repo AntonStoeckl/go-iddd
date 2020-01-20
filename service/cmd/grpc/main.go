@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
-	customergrpc "go-iddd/service/customer/infrastructure/grpc"
+	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/lib/infrastructure/eventstore"
 	"net"
 	"net/http"

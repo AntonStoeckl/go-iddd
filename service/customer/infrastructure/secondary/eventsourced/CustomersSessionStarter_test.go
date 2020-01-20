@@ -1,8 +1,8 @@
 package eventsourced_test
 
 import (
-	"go-iddd/service/customer/infrastructure/eventsourced"
-	"go-iddd/service/customer/infrastructure/eventsourced/test"
+	"go-iddd/service/customer/infrastructure/secondary/eventsourced"
+	"go-iddd/service/customer/infrastructure/secondary/eventsourced/test"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"

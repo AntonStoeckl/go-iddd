@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
-	customercli "go-iddd/service/customer/infrastructure/cli"
+	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	"go-iddd/service/lib/infrastructure/eventstore"
 	"os"
 

@@ -3,7 +3,7 @@ package cmd
 import (
 	"database/sql"
 	"go-iddd/service/customer/application"
-	"go-iddd/service/customer/infrastructure/eventsourced"
+	"go-iddd/service/customer/infrastructure/secondary/eventsourced"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/infrastructure/eventstore"
 
