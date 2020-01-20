@@ -43,6 +43,6 @@ func (id CustomerID) String() string {
 	return id.value
 }
 
-func (id CustomerID) Equals(other lib.IdentifiesAggregates) bool {
-	return id.String() == other.String()
+func (id CustomerID) Equals(other CustomerID) bool {
+	return id.ID() == other.ID()
 }

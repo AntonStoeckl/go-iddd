@@ -54,10 +54,6 @@ func (register Register) PersonName() values.PersonName {
 	return register.personName
 }
 
-func (register Register) AggregateID() lib.IdentifiesAggregates {
-	return register.customerID
-}
-
 func (register Register) ShouldBeValid() error {
 	if !register.isValid {
 		err := errors.Newf("%s: is not valid", register.commandName())
@@ -74,4 +70,8 @@ func (register Register) commandName() string {
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
 	return strings.Title(commandName)
+}
+
+func (register Register) IsCommand() bool {
+	return true
 }

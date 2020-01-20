@@ -33,8 +33,8 @@ func TestPostgresEventStore_StartSession(t *testing.T) {
 
 func TestPostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Given an EventStore", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()

@@ -45,17 +45,11 @@ func BeginTx(db *sql.DB) *sql.Tx {
 /*** mocked CustomerID ***/
 
 type SomeID struct {
-	ID string
+	Value string
 }
 
-func (someID SomeID) String() string {
-	return someID.ID
-}
-
-func (someID SomeID) Equals(other lib.IdentifiesAggregates) bool {
-	_ = other
-
-	return true // not needed in scope of this test
+func (someID SomeID) ID() string {
+	return someID.Value
 }
 
 /*** mocked Event that works ***/
@@ -95,7 +89,7 @@ func (someEvent SomeEvent) MarshalJSON() ([]byte, error) {
 		Version    uint   `json:"version"`
 		OccurredAt string `json:"occurredAt"`
 	}{
-		ID:         someEvent.id.ID,
+		ID:         someEvent.id.Value,
 		Name:       someEvent.name,
 		Version:    someEvent.version,
 		OccurredAt: someEvent.occurredAt,
@@ -106,7 +100,7 @@ func (someEvent SomeEvent) MarshalJSON() ([]byte, error) {
 
 func UnmarshalSomeEventFromJSON(data []byte) SomeEvent {
 	someEvent := SomeEvent{
-		id:         SomeID{ID: jsoniter.Get(data, "customerID").ToString()},
+		id:         SomeID{Value: jsoniter.Get(data, "customerID").ToString()},
 		name:       jsoniter.Get(data, "name").ToString(),
 		version:    jsoniter.Get(data, "version").ToUint(),
 		occurredAt: jsoniter.Get(data, "occurredAt").ToString(),

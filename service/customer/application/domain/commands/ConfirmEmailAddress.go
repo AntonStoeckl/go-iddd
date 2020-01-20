@@ -59,10 +59,6 @@ func (confirmEmailAddress ConfirmEmailAddress) ConfirmationHash() values.Confirm
 	return confirmEmailAddress.confirmationHash
 }
 
-func (confirmEmailAddress ConfirmEmailAddress) AggregateID() lib.IdentifiesAggregates {
-	return confirmEmailAddress.customerID
-}
-
 func (confirmEmailAddress ConfirmEmailAddress) ShouldBeValid() error {
 	if !confirmEmailAddress.isValid {
 		err := errors.Newf("%s: is not valid", confirmEmailAddress.commandName())
@@ -79,4 +75,8 @@ func (confirmEmailAddress ConfirmEmailAddress) commandName() string {
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
 	return strings.Title(commandName)
+}
+
+func (confirmEmailAddress ConfirmEmailAddress) IsCommand() bool {
+	return true
 }

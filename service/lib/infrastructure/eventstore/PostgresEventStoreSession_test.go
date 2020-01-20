@@ -16,8 +16,8 @@ import (
 
 func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -41,8 +41,8 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event stream with 5 events", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -104,8 +104,8 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given an event in the stream can not be unmarshaled", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -141,8 +141,8 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 	})
 
 	Convey("Given the DB connection is already closed", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -163,8 +163,8 @@ func TestPostgresEventStoreSession_LoadEventStream(t *testing.T) {
 
 func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	Convey("Given an empty event stream", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -263,8 +263,8 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given an event which can not be marshaled", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -293,8 +293,8 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the session was already committed", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := diContainer.GetPostgresEventStore()
@@ -322,8 +322,8 @@ func TestPostgresEventStoreSession_AppendEventsToStream(t *testing.T) {
 	})
 
 	Convey("Given the DB table does not exist", t, func() {
-		id := test.SomeID{ID: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.String())
+		id := test.SomeID{Value: uuid.New().String()}
+		streamID := lib.NewStreamID("customer" + "-" + id.ID())
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		store := eventstore.NewPostgresEventStore(db, "unknown_table", test.Unmarshal)

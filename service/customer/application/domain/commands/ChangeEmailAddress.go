@@ -47,10 +47,6 @@ func (changeEmailAddress ChangeEmailAddress) EmailAddress() values.EmailAddress 
 	return changeEmailAddress.emailAddress
 }
 
-func (changeEmailAddress ChangeEmailAddress) AggregateID() lib.IdentifiesAggregates {
-	return changeEmailAddress.customerID
-}
-
 func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {
 	if !changeEmailAddress.isValid {
 		err := errors.Newf("%s: is not valid", changeEmailAddress.commandName())
@@ -67,4 +63,8 @@ func (changeEmailAddress ChangeEmailAddress) commandName() string {
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
 	return strings.Title(commandName)
+}
+
+func (changeEmailAddress ChangeEmailAddress) IsCommand() bool {
+	return true
 }
