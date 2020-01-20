@@ -102,7 +102,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					customers.On("EventStream", confirmEmailAddress.AggregateID()).Return(eventStream, nil).Once()
+					customers.On("EventStream", confirmEmailAddress.CustomerID()).Return(eventStream, nil).Once()
 
 					Convey("And when executing the command succeeds", func() {
 						Convey("And when persisting the Customer succeeds", func() {
@@ -154,7 +154,7 @@ func TestCommandHandler_Handle_ConfirmEmailAddress(t *testing.T) {
 				})
 
 				Convey("And when finding the Customer fails", func() {
-					customers.On("EventStream", confirmEmailAddress.AggregateID()).Return(nil, lib.ErrTechnical).Once()
+					customers.On("EventStream", confirmEmailAddress.CustomerID()).Return(nil, lib.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
 					err := commandHandler.ConfirmEmailAddress(confirmEmailAddress)
@@ -199,7 +199,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 
 			Convey("When the command is handled", func() {
 				Convey("And when finding the Customer succeeds", func() {
-					customers.On("EventStream", changeEmailAddress.AggregateID()).Return(eventStream, nil).Once()
+					customers.On("EventStream", changeEmailAddress.CustomerID()).Return(eventStream, nil).Once()
 
 					Convey("And when saving the Customer succeeds", func() {
 						customers.On("Persist", customerID, mock.AnythingOfType("lib.DomainEvents")).Return(nil).Once()
@@ -229,7 +229,7 @@ func TestCommandHandler_Handle_ChangeEmailAddress(t *testing.T) {
 				})
 
 				Convey("And when finding the Customer fails", func() {
-					customers.On("EventStream", changeEmailAddress.AggregateID()).Return(nil, lib.ErrTechnical).Once()
+					customers.On("EventStream", changeEmailAddress.CustomerID()).Return(nil, lib.ErrTechnical).Once()
 					dbMock.ExpectRollback()
 
 					err := commandHandler.ChangeEmailAddress(changeEmailAddress)
@@ -278,7 +278,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 					Convey("And when saving the Customer has a concurrency conflict once", func() {
 						// should be called twice due to retry
-						customers.On("EventStream", changeEmailAddress.AggregateID()).Return(eventStream, nil).Twice()
+						customers.On("EventStream", changeEmailAddress.CustomerID()).Return(eventStream, nil).Twice()
 
 						// fist attempt runs into a concurrency conflict
 						customers.On("Persist", customerID, mock.AnythingOfType("lib.DomainEvents")).Return(lib.ErrConcurrencyConflict).Once()
@@ -301,7 +301,7 @@ func TestCommandHandler_Handle_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 					Convey("And when saving the Customer has too many concurrency conflicts", func() {
 						// should be called 10 times due to retries
-						customers.On("EventStream", changeEmailAddress.AggregateID()).Return(eventStream, nil).Times(10)
+						customers.On("EventStream", changeEmailAddress.CustomerID()).Return(eventStream, nil).Times(10)
 
 						// all attempts run into a concurrency conflict
 						customers.On("Persist", customerID, mock.AnythingOfType("lib.DomainEvents")).Return(lib.ErrConcurrencyConflict).Times(10)
