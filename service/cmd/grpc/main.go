@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go-iddd/customer/domain/events"
-	customergrpc "go-iddd/customer/infrastructure/grpc"
-	"go-iddd/service"
-	"go-iddd/shared/infrastructure/eventstore"
+	"go-iddd/service/cmd"
+	"go-iddd/service/customer/domain/events"
+	customergrpc "go-iddd/service/customer/infrastructure/grpc"
+	"go-iddd/service/lib/infrastructure/eventstore"
 	"net"
 	"net/http"
 	"os"
@@ -30,10 +30,10 @@ const (
 )
 
 var (
-	config            *service.Config
-	logger            *service.Logger
+	config            *cmd.Config
+	logger            *cmd.Logger
 	postgresDBConn    *sql.DB
-	diContainer       *service.DIContainer
+	diContainer       *cmd.DIContainer
 	grpcServer        *grpc.Server
 	cancelCtx         context.CancelFunc
 	grpcClientConn    *grpc.ClientConn
@@ -61,7 +61,7 @@ func mustBuildConfig() {
 	if config == nil {
 		var err error
 
-		config, err = service.NewConfigFromEnv()
+		config, err = cmd.NewConfigFromEnv()
 		if err != nil {
 			logrus.Fatalf("failed to get config from env - exiting: %s", err)
 		}
@@ -70,7 +70,7 @@ func mustBuildConfig() {
 
 func buildLogger() {
 	if logger == nil {
-		logger = service.NewStandardLogger()
+		logger = cmd.NewStandardLogger()
 	}
 }
 
@@ -111,7 +111,7 @@ func mustBuildDIContainer() {
 	var err error
 
 	if diContainer == nil {
-		diContainer, err = service.NewDIContainer(
+		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
 			events.UnmarshalDomainEvent,
 		)
