@@ -1,6 +1,6 @@
 // +build test
 
-package test
+package infrastructure
 
 import (
 	"database/sql"

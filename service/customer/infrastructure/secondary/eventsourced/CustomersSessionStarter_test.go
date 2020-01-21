@@ -1,8 +1,8 @@
 package eventsourced_test
 
 import (
+	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/customer/infrastructure/secondary/eventsourced"
-	"go-iddd/service/customer/infrastructure/secondary/eventsourced/test"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,12 +10,12 @@ import (
 
 func TestCustomersSessionStarter_StartSession(t *testing.T) {
 	Convey("Given a Respository", t, func() {
-		diContainer := test.SetUpDIContainer()
+		diContainer := infrastructure.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
 		Convey("When a Session is started", func() {
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 
 			session := repo.StartSession(tx)
 

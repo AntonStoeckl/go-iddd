@@ -6,7 +6,7 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/customer/infrastructure/secondary/eventsourced/test"
+	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/lib"
 	"testing"
 
@@ -16,7 +16,7 @@ import (
 
 func TestCustomers_Register(t *testing.T) {
 	Convey("Given a Repository", t, func() {
-		diContainer := test.SetUpDIContainer()
+		diContainer := infrastructure.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
@@ -25,7 +25,7 @@ func TestCustomers_Register(t *testing.T) {
 			recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
 
 			Convey("When the Customer is registered", func() {
-				tx := test.BeginTx(db)
+				tx := infrastructure.BeginTx(db)
 				session := repo.StartSession(tx)
 
 				err := session.Register(id, recordedEvents)
@@ -37,7 +37,7 @@ func TestCustomers_Register(t *testing.T) {
 
 					Convey("And when the same Customer is registered again", func() {
 						customer := retrieveEventStreamForARegisteredCustomer(id)
-						tx := test.BeginTx(db)
+						tx := infrastructure.BeginTx(db)
 						session := repo.StartSession(tx)
 
 						err = session.Register(id, customer)
@@ -51,7 +51,7 @@ func TestCustomers_Register(t *testing.T) {
 
 			Convey("And given the session was already committed", func() {
 				recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
-				tx := test.BeginTx(db)
+				tx := infrastructure.BeginTx(db)
 				session := repo.StartSession(tx)
 				err := tx.Commit()
 				So(err, ShouldBeNil)
@@ -71,7 +71,7 @@ func TestCustomers_Register(t *testing.T) {
 		Convey("And given an existing Customer", func() {
 			id := values.GenerateCustomerID()
 			recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 			session := repo.StartSession(tx)
 			err := session.Register(id, recordedEvents)
 			So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestCustomers_Register(t *testing.T) {
 
 			Convey("When the same Customer is registered again", func() {
 				recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
-				tx := test.BeginTx(db)
+				tx := infrastructure.BeginTx(db)
 				session := repo.StartSession(tx)
 
 				err = session.Register(id, recordedEvents)
@@ -99,11 +99,11 @@ func TestCustomers_Of(t *testing.T) {
 	Convey("Given an existing Customer", t, func() {
 		id := values.GenerateCustomerID()
 		eventStream := retrieveEventStreamForARegisteredCustomer(id)
-		diContainer := test.SetUpDIContainer()
+		diContainer := infrastructure.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 		// store := diContainer.GetPostgresEventStore()
-		tx := test.BeginTx(db)
+		tx := infrastructure.BeginTx(db)
 		session := repo.StartSession(tx)
 		err := session.Register(id, eventStream)
 		So(err, ShouldBeNil)
@@ -123,7 +123,7 @@ func TestCustomers_Of(t *testing.T) {
 		})
 
 		Convey("And given the DB connection was closed", func() {
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			err = db.Close()
@@ -144,12 +144,12 @@ func TestCustomers_Of(t *testing.T) {
 
 	Convey("Given a not existing Customer", t, func() {
 		id := values.GenerateCustomerID()
-		diContainer := test.SetUpDIContainer()
+		diContainer := infrastructure.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
 
 		Convey("When the Customer is retrieved", func() {
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			eventStream, err := session.EventStream(id)
@@ -166,10 +166,10 @@ func TestCustomers_Persist(t *testing.T) {
 	Convey("Given a changed Customer", t, func() {
 		id := values.GenerateCustomerID()
 		recordedEvents := retrieveEventStreamForARegisteredCustomer(id)
-		diContainer := test.SetUpDIContainer()
+		diContainer := infrastructure.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
 		repo := diContainer.GetCustomerRepository()
-		tx := test.BeginTx(db)
+		tx := infrastructure.BeginTx(db)
 		session := repo.StartSession(tx)
 		err := session.Register(id, recordedEvents)
 		So(err, ShouldBeNil)
@@ -184,7 +184,7 @@ func TestCustomers_Persist(t *testing.T) {
 		recordedEvents = domain.ChangeEmailAddress(recordedEvents, changeEmailAddress)
 
 		Convey("When the Customer is persisted", func() {
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 			session := repo.StartSession(tx)
 
 			err = session.Persist(id, recordedEvents)
@@ -194,7 +194,7 @@ func TestCustomers_Persist(t *testing.T) {
 				err = tx.Commit()
 				So(err, ShouldBeNil)
 
-				tx := test.BeginTx(db)
+				tx := infrastructure.BeginTx(db)
 				session := repo.StartSession(tx)
 				eventStream, err := session.EventStream(id)
 				So(err, ShouldBeNil)
@@ -206,7 +206,7 @@ func TestCustomers_Persist(t *testing.T) {
 		})
 
 		Convey("And given the session was already committed", func() {
-			tx := test.BeginTx(db)
+			tx := infrastructure.BeginTx(db)
 			session := repo.StartSession(tx)
 			So(err, ShouldBeNil)
 
@@ -243,7 +243,7 @@ func retrieveEventStreamForARegisteredCustomer(id values.CustomerID) lib.DomainE
 }
 
 func cleanUpArtefactsForCustomers(id values.CustomerID) {
-	diContainer := test.SetUpDIContainer()
+	diContainer := infrastructure.SetUpDIContainer()
 	store := diContainer.GetPostgresEventStore()
 
 	streamID := lib.NewStreamID("customer" + "-" + id.ID())
