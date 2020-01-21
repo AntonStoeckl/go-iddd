@@ -10,10 +10,11 @@ import (
 )
 
 type Register struct {
-	customerID   values.CustomerID
-	emailAddress values.EmailAddress
-	personName   values.PersonName
-	isValid      bool
+	customerID       values.CustomerID
+	emailAddress     values.EmailAddress
+	confirmationHash values.ConfirmationHash
+	personName       values.PersonName
+	isValid          bool
 }
 
 func NewRegister(
@@ -27,16 +28,19 @@ func NewRegister(
 		return Register{}, err
 	}
 
+	confirmationHash := values.GenerateConfirmationHash(emailAddressValue.EmailAddress())
+
 	personNameValue, err := values.BuildPersonName(givenName, familyName)
 	if err != nil {
 		return Register{}, err
 	}
 
 	register := Register{
-		customerID:   values.GenerateCustomerID(),
-		emailAddress: emailAddressValue,
-		personName:   personNameValue,
-		isValid:      true,
+		customerID:       values.GenerateCustomerID(),
+		emailAddress:     emailAddressValue,
+		confirmationHash: confirmationHash,
+		personName:       personNameValue,
+		isValid:          true,
 	}
 
 	return register, nil
@@ -48,6 +52,10 @@ func (register Register) CustomerID() values.CustomerID {
 
 func (register Register) EmailAddress() values.EmailAddress {
 	return register.emailAddress
+}
+
+func (register Register) ConfirmationHash() values.ConfirmationHash {
+	return register.confirmationHash
 }
 
 func (register Register) PersonName() values.PersonName {

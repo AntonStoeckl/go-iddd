@@ -33,7 +33,7 @@ func TestRegisterCustomer(t *testing.T) {
 			So(registered, ShouldNotBeZeroValue)
 			So(registered.CustomerID().Equals(register.CustomerID()), ShouldBeTrue)
 			So(registered.EmailAddress().Equals(emailAddress), ShouldBeTrue)
-			So(registered.ConfirmationHash(), ShouldNotBeZeroValue)
+			So(registered.ConfirmationHash().Equals(register.ConfirmationHash()), ShouldBeTrue)
 			So(registered.PersonName().Equals(personName), ShouldBeTrue)
 			So(registered.StreamVersion(), ShouldEqual, uint(1))
 		})
