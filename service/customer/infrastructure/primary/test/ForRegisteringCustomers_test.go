@@ -18,7 +18,7 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 		diContainer := infrastructure.SetUpDIContainer()
 		sut := application.NewCommandHandler(diContainer.GetCustomerRepository(), diContainer.GetPostgresDBConn())
 
-		Convey("When a Customer is registered with a valid Command", func() {
+		Convey("When a Customer is registered", func() {
 			register, err := commands.NewRegister(
 				"john@doe.com",
 				"John",
@@ -30,7 +30,7 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 
 			cleanUpArtefactsForPostgresEventStoreSession(diContainer, register.CustomerID())
 
-			Convey("Then it should succeed", func() {
+			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 			})
 		})

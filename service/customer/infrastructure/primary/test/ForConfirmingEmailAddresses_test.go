@@ -52,7 +52,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 
 				err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
-				Convey("Then it should fail", func() {
+				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
 				})
