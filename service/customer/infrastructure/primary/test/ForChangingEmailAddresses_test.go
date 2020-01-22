@@ -12,13 +12,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_ForConfirmingEmailAddresses(t *testing.T) {
+func Test_ForChangingEmailAddresses(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer := infrastructure.SetUpDIContainer()
 		commandHandler := application.NewCommandHandler(
 			diContainer.GetCustomerRepository(),
 			diContainer.GetPostgresDBConn(),
 		)
+
+		newEmailAddress := "john+changed@doe.com"
 
 		Convey("Given a registered Customer", func() {
 			register, err := commands.NewRegister(
@@ -31,28 +33,26 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 			err = commandHandler.Register(register)
 			So(err, ShouldBeNil)
 
-			Convey("When a Customer's emailAddress is confirmed with a valid confirmationHash", func() {
-				confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+			Convey("When a Customer's emailAddress is changed", func() {
+				changeEmailAddress, err := commands.NewChangeEmailAddress(
 					register.CustomerID().ID(),
-					register.EmailAddress().EmailAddress(),
-					register.ConfirmationHash().Hash(),
+					newEmailAddress,
 				)
 				So(err, ShouldBeNil)
 
-				err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+				err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 				Convey("Then it should succeed", func() {
 					So(err, ShouldBeNil)
 
-					Convey("And when this emailAddress is confirmed again", func() {
-						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+					Convey("When a Customer's emailAddress is changed again to the same emailAddress", func() {
+						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
-							register.EmailAddress().EmailAddress(),
-							register.ConfirmationHash().Hash(),
+							newEmailAddress,
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("Then it should succeed", func() {
 							So(err, ShouldBeNil)
@@ -61,24 +61,8 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 				})
 			})
 
-			Convey("When a Customer's emailAddress is confirmed with an invalid confirmationHash", func() {
-				confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-					register.CustomerID().ID(),
-					register.EmailAddress().EmailAddress(),
-					"some_invalid_hash",
-				)
-				So(err, ShouldBeNil)
-
-				err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
-				})
-			})
-
-			Convey("When a Customer's emailAddress is confirmed with an invalid command", func() {
-				err := commandHandler.ConfirmEmailAddress(commands.ConfirmEmailAddress{})
+			Convey("When a Customer's emailAddress is changed with an invalid command", func() {
+				err := commandHandler.ChangeEmailAddress(commands.ChangeEmailAddress{})
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -90,15 +74,14 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 		})
 
 		Convey("Given an unregistered Customer", func() {
-			Convey("When a Customer's emailAddress is confirmed", func() {
-				confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+			Convey("When a Customer's emailAddress is changed", func() {
+				changeEmailAddress, err := commands.NewChangeEmailAddress(
 					values.GenerateCustomerID().ID(),
-					"john@doe.com",
-					"any_hash",
+					newEmailAddress,
 				)
 				So(err, ShouldBeNil)
 
-				err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+				err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)

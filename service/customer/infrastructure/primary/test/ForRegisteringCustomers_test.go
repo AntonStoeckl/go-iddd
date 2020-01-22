@@ -16,29 +16,40 @@ import (
 func Test_ForRegisteringCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer := infrastructure.SetUpDIContainer()
-		sut := application.NewCommandHandler(diContainer.GetCustomerRepository(), diContainer.GetPostgresDBConn())
+		commandHandler := application.NewCommandHandler(
+			diContainer.GetCustomerRepository(),
+			diContainer.GetPostgresDBConn(),
+		)
+
+		register, err := commands.NewRegister(
+			"john@doe.com",
+			"John",
+			"Doe",
+		)
+		So(err, ShouldBeNil)
 
 		Convey("When a Customer is registered", func() {
-			register, err := commands.NewRegister(
-				"john@doe.com",
-				"John",
-				"Doe",
-			)
-			So(err, ShouldBeNil)
-
-			err = sut.Register(register)
-
-			cleanUpArtefactsForPostgresEventStoreSession(diContainer, register.CustomerID())
+			err = commandHandler.Register(register)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
+
+				Convey("And when a Customer is registered with the same ID", func() {
+					err = commandHandler.Register(register)
+
+					Convey("It should fail", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
+						So(errors.Is(err, lib.ErrConcurrencyConflict), ShouldBeFalse)
+					})
+				})
 			})
+
+			cleanUpArtefactsForPostgresEventStoreSession(diContainer, register.CustomerID())
 		})
 
 		Convey("When a Customer is registered with an invalid command", func() {
-			register := commands.Register{}
-
-			err := sut.Register(register)
+			err := commandHandler.Register(commands.Register{})
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
