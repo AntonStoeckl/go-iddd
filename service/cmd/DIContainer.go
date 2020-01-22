@@ -3,6 +3,8 @@ package cmd
 import (
 	"database/sql"
 	"go-iddd/service/customer/application"
+	customercli "go-iddd/service/customer/infrastructure/primary/cli"
+	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/customer/infrastructure/secondary/eventsourced"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/infrastructure/eventstore"
@@ -20,6 +22,8 @@ type DIContainer struct {
 	postgresEventStore      *eventstore.PostgresEventStore
 	customersSessionStarter *eventsourced.CustomersSessionStarter
 	customerCommandHandler  *application.CommandHandler
+	customerServer          customergrpc.CustomerServer
+	customerApp             *customercli.CustomerApp
 }
 
 func NewDIContainer(
@@ -36,7 +40,17 @@ func NewDIContainer(
 		unmarshalDomainEvent: unmarshalDomainEvent,
 	}
 
+	container.init()
+
 	return container, nil
+}
+
+func (container DIContainer) init() {
+	container.GetPostgresEventStore()
+	container.GetCustomerRepository()
+	container.GetCustomerCommandHandler()
+	container.GetCustomerServer()
+	container.GetCustomerApp()
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
@@ -74,4 +88,28 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CommandHan
 	}
 
 	return container.customerCommandHandler
+}
+
+func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
+	if container.customerServer == nil {
+		container.customerServer = customergrpc.NewCustomerServer(
+			container.GetCustomerCommandHandler(),
+			container.GetCustomerCommandHandler(),
+			container.GetCustomerCommandHandler(),
+		)
+	}
+
+	return container.customerServer
+}
+
+func (container DIContainer) GetCustomerApp() *customercli.CustomerApp {
+	if container.customerApp == nil {
+		container.customerApp = customercli.NewCustomerApp(
+			container.GetCustomerCommandHandler(),
+			container.GetCustomerCommandHandler(),
+			container.GetCustomerCommandHandler(),
+		)
+	}
+
+	return container.customerApp
 }

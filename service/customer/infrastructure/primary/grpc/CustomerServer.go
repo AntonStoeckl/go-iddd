@@ -3,7 +3,6 @@ package customergrpc
 import (
 	"context"
 	"go-iddd/service/customer"
-	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -15,11 +14,15 @@ type customerServer struct {
 	forChangingEmailAddresses   customer.ForChangingEmailAddresses
 }
 
-func NewCustomerServer(commandHandler *application.CommandHandler) *customerServer {
+func NewCustomerServer(
+	forRegisteringCustomers customer.ForRegisteringCustomers,
+	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses,
+	forChangingEmailAddresses customer.ForChangingEmailAddresses,
+) *customerServer {
 	server := &customerServer{
-		forRegisteringCustomers:     commandHandler,
-		forConfirmingEmailAddresses: commandHandler,
-		forChangingEmailAddresses:   commandHandler,
+		forRegisteringCustomers:     forRegisteringCustomers,
+		forConfirmingEmailAddresses: forConfirmingEmailAddresses,
+		forChangingEmailAddresses:   forChangingEmailAddresses,
 	}
 
 	return server

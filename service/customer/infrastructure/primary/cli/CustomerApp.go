@@ -3,7 +3,6 @@ package customercli
 import (
 	"fmt"
 	"go-iddd/service/customer"
-	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
 
 	"github.com/urfave/cli"
@@ -15,11 +14,15 @@ type CustomerApp struct {
 	forChangingEmailAddresses   customer.ForChangingEmailAddresses
 }
 
-func NewCustomerApp(commandHandler *application.CommandHandler) *CustomerApp {
+func NewCustomerApp(
+	forRegisteringCustomers customer.ForRegisteringCustomers,
+	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses,
+	forChangingEmailAddresses customer.ForChangingEmailAddresses,
+) *CustomerApp {
 	app := &CustomerApp{
-		forRegisteringCustomers:     commandHandler,
-		forConfirmingEmailAddresses: commandHandler,
-		forChangingEmailAddresses:   commandHandler,
+		forRegisteringCustomers:     forRegisteringCustomers,
+		forConfirmingEmailAddresses: forConfirmingEmailAddresses,
+		forChangingEmailAddresses:   forChangingEmailAddresses,
 	}
 
 	return app
