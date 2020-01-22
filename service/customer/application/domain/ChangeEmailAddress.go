@@ -29,7 +29,7 @@ func ChangeEmailAddress(eventStream lib.DomainEvents, command commands.ChangeEma
 	event := events.EmailAddressWasChanged(
 		command.CustomerID(),
 		command.EmailAddress(),
-		values.GenerateConfirmationHash(command.EmailAddress().EmailAddress()),
+		command.ConfirmationHash(),
 		currentStreamVersion+1,
 	)
 

@@ -10,9 +10,10 @@ import (
 )
 
 type ChangeEmailAddress struct {
-	customerID   values.CustomerID
-	emailAddress values.EmailAddress
-	isValid      bool
+	customerID       values.CustomerID
+	emailAddress     values.EmailAddress
+	confirmationHash values.ConfirmationHash
+	isValid          bool
 }
 
 func NewChangeEmailAddress(
@@ -31,9 +32,10 @@ func NewChangeEmailAddress(
 	}
 
 	changeEmailAddress := ChangeEmailAddress{
-		customerID:   customerIDValue,
-		emailAddress: emailAddressValue,
-		isValid:      true,
+		customerID:       customerIDValue,
+		emailAddress:     emailAddressValue,
+		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
+		isValid:          true,
 	}
 
 	return changeEmailAddress, nil
@@ -45,6 +47,10 @@ func (changeEmailAddress ChangeEmailAddress) CustomerID() values.CustomerID {
 
 func (changeEmailAddress ChangeEmailAddress) EmailAddress() values.EmailAddress {
 	return changeEmailAddress.emailAddress
+}
+
+func (changeEmailAddress ChangeEmailAddress) ConfirmationHash() values.ConfirmationHash {
+	return changeEmailAddress.confirmationHash
 }
 
 func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {

@@ -46,8 +46,7 @@ func TestChangeEmailAddressOfCustomer(t *testing.T) {
 				So(emailAddressChanged, ShouldNotBeNil)
 				So(emailAddressChanged.CustomerID().Equals(id), ShouldBeTrue)
 				So(emailAddressChanged.EmailAddress().Equals(newEmailAddress), ShouldBeTrue)
-				_, err := values.BuildConfirmationHash(emailAddressChanged.ConfirmationHash().Hash())
-				So(err, ShouldBeNil)
+				So(emailAddressChanged.ConfirmationHash().Equals(changeEmailAddress.ConfirmationHash()), ShouldBeTrue)
 				So(emailAddressChanged.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
 				Convey("And when it is changed to the same value again", func() {

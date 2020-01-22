@@ -28,8 +28,6 @@ func NewRegister(
 		return Register{}, err
 	}
 
-	confirmationHash := values.GenerateConfirmationHash(emailAddressValue.EmailAddress())
-
 	personNameValue, err := values.BuildPersonName(givenName, familyName)
 	if err != nil {
 		return Register{}, err
@@ -38,7 +36,7 @@ func NewRegister(
 	register := Register{
 		customerID:       values.GenerateCustomerID(),
 		emailAddress:     emailAddressValue,
-		confirmationHash: confirmationHash,
+		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
 		personName:       personNameValue,
 		isValid:          true,
 	}
