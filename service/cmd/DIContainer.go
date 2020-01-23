@@ -5,7 +5,7 @@ import (
 	"go-iddd/service/customer/application"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	"go-iddd/service/customer/infrastructure/secondary/eventsourced"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/infrastructure/eventstore"
 
@@ -17,13 +17,13 @@ const (
 )
 
 type DIContainer struct {
-	postgresDBConn          *sql.DB
-	unmarshalDomainEvent    lib.UnmarshalDomainEvent
-	postgresEventStore      *eventstore.PostgresEventStore
-	customersSessionStarter *eventsourced.CustomersSessionStarter
-	customerCommandHandler  *application.CommandHandler
-	customerServer          customergrpc.CustomerServer
-	customerApp             *customercli.CustomerApp
+	postgresDBConn         *sql.DB
+	unmarshalDomainEvent   lib.UnmarshalDomainEvent
+	postgresEventStore     *eventstore.PostgresEventStoreV2
+	customers              *forstoringcustomers.EventsourcedCustomers
+	customerCommandHandler *application.CommandHandler
+	customerServer         customergrpc.CustomerServer
+	customerApp            *customercli.CustomerApp
 }
 
 func NewDIContainer(
@@ -46,7 +46,7 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.GetPostgresEventStore()
+	container.getPostgresEventStore()
 	container.GetCustomerRepository()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerServer()
@@ -57,9 +57,9 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventStore {
+func (container DIContainer) getPostgresEventStore() *eventstore.PostgresEventStoreV2 {
 	if container.postgresEventStore == nil {
-		container.postgresEventStore = eventstore.NewPostgresEventStore(
+		container.postgresEventStore = eventstore.NewPostgresEventStoreV2(
 			container.postgresDBConn,
 			eventStoreTableName,
 			container.unmarshalDomainEvent,
@@ -69,14 +69,14 @@ func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventSt
 	return container.postgresEventStore
 }
 
-func (container DIContainer) GetCustomerRepository() *eventsourced.CustomersSessionStarter {
-	if container.customersSessionStarter == nil {
-		container.customersSessionStarter = eventsourced.NewCustomersSessionStarter(
-			container.GetPostgresEventStore(),
+func (container DIContainer) GetCustomerRepository() *forstoringcustomers.EventsourcedCustomers {
+	if container.customers == nil {
+		container.customers = forstoringcustomers.NewEventsourcedCustomers(
+			container.getPostgresEventStore(),
 		)
 	}
 
-	return container.customersSessionStarter
+	return container.customers
 }
 
 func (container DIContainer) GetCustomerCommandHandler() *application.CommandHandler {

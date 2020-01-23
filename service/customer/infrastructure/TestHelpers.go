@@ -8,37 +8,58 @@ import (
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/lib/infrastructure/eventstore"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func SetUpDIContainer() *cmd.DIContainer {
+func SetUpDIContainer() (*cmd.DIContainer, error) {
 	config, err := cmd.NewConfigFromEnv()
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
 	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
 	err = db.Ping()
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
 	migrator, err := eventstore.NewMigrator(db, config.Postgres.MigrationsPath)
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
 	err = migrator.Up()
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
 	diContainer, err := cmd.NewDIContainer(
 		db,
 		events.UnmarshalDomainEvent,
 	)
-	So(err, ShouldBeNil)
+	if err != nil {
+		return nil, err
+	}
 
-	return diContainer
+	return diContainer, nil
 }
 
-func BeginTx(db *sql.DB) *sql.Tx {
-	tx, err := db.Begin()
-	So(err, ShouldBeNil)
+func MockTx() (*sql.Tx, error) {
+	db, dbMock, err := sqlmock.New()
+	if err != nil {
+		return nil, err
+	}
 
-	return tx
+	dbMock.ExpectBegin()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	return tx, nil
 }

@@ -13,14 +13,14 @@ import (
 const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
-	sessionStarter StartsCustomersSession
-	db             *sql.DB
+	customers ForStoringCustomers
+	db        *sql.DB
 }
 
-func NewCommandHandler(sessionStarter StartsCustomersSession, db *sql.DB) *CommandHandler {
+func NewCommandHandler(customers ForStoringCustomers, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
-		sessionStarter: sessionStarter,
-		db:             db,
+		customers: customers,
+		db:        db,
 	}
 }
 
@@ -94,10 +94,8 @@ func (handler *CommandHandler) handleSession(command lib.Command) error {
 		return errors.Mark(errTx, lib.ErrTechnical)
 	}
 
-	customers := handler.sessionStarter.StartSession(tx)
-
 	// call next method in chain
-	err := handler.handleCommand(customers, command)
+	err := handler.handleCommand(command, tx)
 
 	if err != nil {
 		if !errors.Is(err, lib.ErrDomainConstraintsViolation) {
@@ -119,19 +117,19 @@ func (handler *CommandHandler) handleSession(command lib.Command) error {
 }
 
 func (handler *CommandHandler) handleCommand(
-	customers Customers,
 	command lib.Command,
+	tx *sql.Tx,
 ) error {
 
 	var err error
 
 	switch actualCommand := command.(type) {
 	case commands.Register:
-		err = handler.register(customers, actualCommand)
+		err = handler.register(actualCommand, tx)
 	case commands.ConfirmEmailAddress:
-		err = handler.confirmEmailAddress(customers, actualCommand)
+		err = handler.confirmEmailAddress(actualCommand, tx)
 	case commands.ChangeEmailAddress:
-		err = handler.changeEmailAddress(customers, actualCommand)
+		err = handler.changeEmailAddress(actualCommand, tx)
 	}
 
 	if err != nil {
@@ -142,13 +140,13 @@ func (handler *CommandHandler) handleCommand(
 }
 
 func (handler *CommandHandler) register(
-	customers Customers,
 	register commands.Register,
+	tx *sql.Tx,
 ) error {
 
 	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := customers.Register(register.CustomerID(), recordedEvents); err != nil {
+	if err := handler.customers.Register(register.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 
@@ -156,18 +154,18 @@ func (handler *CommandHandler) register(
 }
 
 func (handler *CommandHandler) confirmEmailAddress(
-	customers Customers,
 	confirmEmailAddress commands.ConfirmEmailAddress,
+	tx *sql.Tx,
 ) error {
 
-	eventStream, err := customers.EventStream(confirmEmailAddress.CustomerID())
+	eventStream, err := handler.customers.EventStream(confirmEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-	if err := customers.Persist(confirmEmailAddress.CustomerID(), recordedEvents); err != nil {
+	if err := handler.customers.Persist(confirmEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 
@@ -182,18 +180,18 @@ func (handler *CommandHandler) confirmEmailAddress(
 }
 
 func (handler *CommandHandler) changeEmailAddress(
-	customers Customers,
 	changeEmailAddress commands.ChangeEmailAddress,
+	tx *sql.Tx,
 ) error {
 
-	eventStream, err := customers.EventStream(changeEmailAddress.CustomerID())
+	eventStream, err := handler.customers.EventStream(changeEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
-	if err := customers.Persist(changeEmailAddress.CustomerID(), recordedEvents); err != nil {
+	if err := handler.customers.Persist(changeEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 

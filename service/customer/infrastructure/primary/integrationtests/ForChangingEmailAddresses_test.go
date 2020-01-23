@@ -1,4 +1,4 @@
-package test_test
+package integrationtests_test
 
 import (
 	"go-iddd/service/customer/application"
@@ -14,7 +14,8 @@ import (
 
 func Test_ForChangingEmailAddresses(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer := infrastructure.SetUpDIContainer()
+		diContainer, err := infrastructure.SetUpDIContainer()
+		So(err, ShouldBeNil)
 		commandHandler := application.NewCommandHandler(
 			diContainer.GetCustomerRepository(),
 			diContainer.GetPostgresDBConn(),
@@ -42,10 +43,10 @@ func Test_ForChangingEmailAddresses(t *testing.T) {
 
 				err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
-				Convey("Then it should succeed", func() {
+				Convey("It should succeed", func() {
 					So(err, ShouldBeNil)
 
-					Convey("When a Customer's emailAddress is changed again to the same emailAddress", func() {
+					Convey("And when a Customer's emailAddress is changed again to the same emailAddress", func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
 							newEmailAddress,
@@ -54,7 +55,7 @@ func Test_ForChangingEmailAddresses(t *testing.T) {
 
 						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
-						Convey("Then it should succeed", func() {
+						Convey("It should succeed", func() {
 							So(err, ShouldBeNil)
 						})
 					})
@@ -70,7 +71,8 @@ func Test_ForChangingEmailAddresses(t *testing.T) {
 				})
 			})
 
-			cleanUpArtefactsForPostgresEventStoreSession(diContainer, register.CustomerID())
+			err = diContainer.GetCustomerRepository().Delete(register.CustomerID())
+			So(err, ShouldBeNil)
 		})
 
 		Convey("Given an unregistered Customer", func() {
@@ -83,7 +85,7 @@ func Test_ForChangingEmailAddresses(t *testing.T) {
 
 				err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
-				Convey("Then it should fail", func() {
+				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 				})

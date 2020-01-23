@@ -1,10 +1,8 @@
-package test_test
+package integrationtests_test
 
 import (
-	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/lib"
 	"testing"
@@ -15,7 +13,8 @@ import (
 
 func Test_ForRegisteringCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer := infrastructure.SetUpDIContainer()
+		diContainer, err := infrastructure.SetUpDIContainer()
+		So(err, ShouldBeNil)
 		commandHandler := application.NewCommandHandler(
 			diContainer.GetCustomerRepository(),
 			diContainer.GetPostgresDBConn(),
@@ -45,7 +44,8 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 				})
 			})
 
-			cleanUpArtefactsForPostgresEventStoreSession(diContainer, register.CustomerID())
+			err := diContainer.GetCustomerRepository().Delete(register.CustomerID())
+			So(err, ShouldBeNil)
 		})
 
 		Convey("When a Customer is registered with an invalid command", func() {
@@ -57,11 +57,4 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 			})
 		})
 	})
-}
-
-// TODO: this sucks!
-func cleanUpArtefactsForPostgresEventStoreSession(diContainer *cmd.DIContainer, customerID values.CustomerID) {
-	streamID := lib.NewStreamID("customer" + "-" + customerID.ID())
-	err := diContainer.GetPostgresEventStore().PurgeEventStream(streamID)
-	So(err, ShouldBeNil)
 }
