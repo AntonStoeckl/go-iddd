@@ -35,13 +35,6 @@ func SetUpDIContainer() *DIContainer {
 	return diContainer
 }
 
-func BeginTx(db *sql.DB) *sql.Tx {
-	tx, err := db.Begin()
-	So(err, ShouldBeNil)
-
-	return tx
-}
-
 /*** mocked CustomerID ***/
 
 type SomeID struct {
