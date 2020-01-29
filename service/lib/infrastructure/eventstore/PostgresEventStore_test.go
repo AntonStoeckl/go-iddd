@@ -141,10 +141,13 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
 				})
 
-				errTx := tx.Rollback()
-				So(errTx, ShouldBeNil)
+				err = tx.Rollback()
+				So(err, ShouldBeNil)
 			})
 		})
+
+		err := eventStore.PurgeEventStream(streamID)
+		So(err, ShouldBeNil)
 	})
 }
 
@@ -237,6 +240,9 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 				})
 			})
 		})
+
+		err := eventStore.PurgeEventStream(streamID)
+		So(err, ShouldBeNil)
 
 		Convey("Given the DB connection was closed", func() {
 			err := db.Close()
