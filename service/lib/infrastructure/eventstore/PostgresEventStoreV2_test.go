@@ -116,6 +116,35 @@ func Test_PostgresEventStoreV2_AppendEventsToStream(t *testing.T) {
 				})
 			})
 		})
+
+		Convey("Given the DB table does not exist", func() {
+			id := test.SomeID{Value: uuid.New().String()}
+			streamID := lib.NewStreamID("customer" + "-" + id.ID())
+			diContainer := test.SetUpDIContainer()
+			db := diContainer.GetPostgresDBConn()
+			store := eventstore.NewPostgresEventStoreV2(db, "unknown_table", test.Unmarshal)
+
+			event1 := test.CreateSomeEvent(id, 1)
+			event2 := test.CreateSomeEvent(id, 2)
+
+			Convey("When events are appended", func() {
+				tx, err := db.Begin()
+				So(err, ShouldBeNil)
+
+				err = store.AppendEventsToStream(
+					streamID,
+					lib.DomainEvents{event1, event2},
+					tx,
+				)
+
+				Convey("It should fail", func() {
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+
+				errTx := tx.Rollback()
+				So(errTx, ShouldBeNil)
+			})
+		})
 	})
 }
 
@@ -195,7 +224,7 @@ func Test_PostgresEventStoreV2_LoadEventStream(t *testing.T) {
 			})
 		})
 
-		Convey("In case the event store contains an event which can't be unmarshaled", func() {
+		Convey("Given the event store contains an event which can't be unmarshaled", func() {
 			event := test.CreateBrokenUnmarshalingEvent(id, 1)
 			appendEventToStream(db, eventStore, streamID, event)
 
@@ -209,7 +238,7 @@ func Test_PostgresEventStoreV2_LoadEventStream(t *testing.T) {
 			})
 		})
 
-		Convey("In case the DB connection was closed", func() {
+		Convey("Given the DB connection was closed", func() {
 			err := db.Close()
 			So(err, ShouldBeNil)
 
