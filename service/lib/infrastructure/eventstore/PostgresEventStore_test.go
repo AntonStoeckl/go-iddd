@@ -13,7 +13,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_PostgresEventStoreV2_AppendEventsToStream(t *testing.T) {
+func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -122,7 +122,7 @@ func Test_PostgresEventStoreV2_AppendEventsToStream(t *testing.T) {
 			streamID := lib.NewStreamID("customer" + "-" + id.ID())
 			diContainer := test.SetUpDIContainer()
 			db := diContainer.GetPostgresDBConn()
-			store := eventstore.NewPostgresEventStoreV2(db, "unknown_table", test.Unmarshal)
+			store := eventstore.NewPostgresEventStore(db, "unknown_table", test.Unmarshal)
 
 			event1 := test.CreateSomeEvent(id, 1)
 			event2 := test.CreateSomeEvent(id, 2)
@@ -148,7 +148,7 @@ func Test_PostgresEventStoreV2_AppendEventsToStream(t *testing.T) {
 	})
 }
 
-func Test_PostgresEventStoreV2_LoadEventStream(t *testing.T) {
+func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -254,7 +254,7 @@ func Test_PostgresEventStoreV2_LoadEventStream(t *testing.T) {
 	})
 }
 
-func Test_PostgresEventStoreV2_PurgeEventStream(t *testing.T) {
+func Test_PostgresEventStore_PurgeEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer := test.SetUpDIContainer()
 		db := diContainer.GetPostgresDBConn()
@@ -297,7 +297,7 @@ func Test_PostgresEventStoreV2_PurgeEventStream(t *testing.T) {
 
 func appendEventToStream(
 	db *sql.DB,
-	eventStore *eventstore.PostgresEventStoreV2,
+	eventStore *eventstore.PostgresEventStore,
 	streamID lib.StreamID,
 	event lib.DomainEvent,
 ) {

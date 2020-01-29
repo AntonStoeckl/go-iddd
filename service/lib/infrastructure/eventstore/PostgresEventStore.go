@@ -9,18 +9,18 @@ import (
 	"github.com/lib/pq"
 )
 
-type PostgresEventStoreV2 struct {
+type PostgresEventStore struct {
 	db                   *sql.DB
 	tableName            string
 	unmarshalDomainEvent lib.UnmarshalDomainEvent
 }
 
-func NewPostgresEventStoreV2(
+func NewPostgresEventStore(
 	db *sql.DB,
 	tableName string,
 	unmarshalDomainEvent lib.UnmarshalDomainEvent,
-) *PostgresEventStoreV2 {
-	store := &PostgresEventStoreV2{
+) *PostgresEventStore {
+	store := &PostgresEventStore{
 		db:                   db,
 		tableName:            tableName,
 		unmarshalDomainEvent: unmarshalDomainEvent,
@@ -29,7 +29,7 @@ func NewPostgresEventStoreV2(
 	return store
 }
 
-func (es *PostgresEventStoreV2) AppendEventsToStream(
+func (es *PostgresEventStore) AppendEventsToStream(
 	streamID lib.StreamID,
 	events lib.DomainEvents,
 	tx *sql.Tx,
@@ -76,7 +76,7 @@ func (es *PostgresEventStoreV2) AppendEventsToStream(
 	return nil
 }
 
-func (es *PostgresEventStoreV2) LoadEventStream(
+func (es *PostgresEventStore) LoadEventStream(
 	streamID lib.StreamID,
 	fromVersion uint,
 	maxEvents uint,
@@ -117,7 +117,7 @@ func (es *PostgresEventStoreV2) LoadEventStream(
 	return stream, nil
 }
 
-func (es *PostgresEventStoreV2) PurgeEventStream(streamID lib.StreamID) error {
+func (es *PostgresEventStore) PurgeEventStream(streamID lib.StreamID) error {
 	queryTemplate := `DELETE FROM %name% WHERE stream_id = $1`
 	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
 

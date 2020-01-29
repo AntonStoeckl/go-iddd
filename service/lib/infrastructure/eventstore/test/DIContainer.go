@@ -17,7 +17,7 @@ const (
 type DIContainer struct {
 	postgresDBConn       *sql.DB
 	unmarshalDomainEvent lib.UnmarshalDomainEvent
-	postgresEventStore   *eventstore.PostgresEventStoreV2
+	postgresEventStore   *eventstore.PostgresEventStore
 }
 
 func NewDIContainer(
@@ -41,9 +41,9 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventStoreV2 {
+func (container DIContainer) GetPostgresEventStore() *eventstore.PostgresEventStore {
 	if container.postgresEventStore == nil {
-		container.postgresEventStore = eventstore.NewPostgresEventStoreV2(
+		container.postgresEventStore = eventstore.NewPostgresEventStore(
 			container.postgresDBConn,
 			eventStoreTableName,
 			container.unmarshalDomainEvent,
