@@ -5,7 +5,7 @@ import (
 )
 
 type EventStore interface {
-	LoadEventStream(streamID StreamID, fromVersion uint, maxEvents uint) (DomainEvents, error)
 	AppendEventsToStream(streamID StreamID, events DomainEvents, tx *sql.Tx) error
+	LoadEventStream(streamID StreamID, fromVersion uint, maxEvents uint) (DomainEvents, error)
 	PurgeEventStream(streamID StreamID) error
 }

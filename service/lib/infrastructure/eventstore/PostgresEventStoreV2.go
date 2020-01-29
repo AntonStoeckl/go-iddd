@@ -29,47 +29,6 @@ func NewPostgresEventStoreV2(
 	return store
 }
 
-func (es *PostgresEventStoreV2) LoadEventStream(
-	streamID lib.StreamID,
-	fromVersion uint,
-	maxEvents uint,
-) (lib.DomainEvents, error) {
-
-	wrapWithMsg := "postgresEventStoreSession.LoadEventStream"
-
-	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
-						WHERE stream_id = $1 AND stream_version >= $2
-						ORDER BY stream_version ASC
-						LIMIT $3`
-
-	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
-
-	eventRows, err := es.db.Query(query, streamID.String(), fromVersion, maxEvents)
-	if err != nil {
-		return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
-	}
-
-	var stream lib.DomainEvents
-	var eventName string
-	var payload string
-	var streamVersion uint
-	var domainEvent lib.DomainEvent
-
-	for eventRows.Next() {
-		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
-			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
-		}
-
-		if domainEvent, err = es.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
-			return nil, lib.MarkAndWrapError(err, lib.ErrUnmarshalingFailed, wrapWithMsg)
-		}
-
-		stream = append(stream, domainEvent)
-	}
-
-	return stream, nil
-}
-
 func (es *PostgresEventStoreV2) AppendEventsToStream(
 	streamID lib.StreamID,
 	events lib.DomainEvents,
@@ -115,6 +74,47 @@ func (es *PostgresEventStoreV2) AppendEventsToStream(
 	}
 
 	return nil
+}
+
+func (es *PostgresEventStoreV2) LoadEventStream(
+	streamID lib.StreamID,
+	fromVersion uint,
+	maxEvents uint,
+) (lib.DomainEvents, error) {
+
+	wrapWithMsg := "postgresEventStoreSession.LoadEventStream"
+
+	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
+						WHERE stream_id = $1 AND stream_version >= $2
+						ORDER BY stream_version ASC
+						LIMIT $3`
+
+	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
+
+	eventRows, err := es.db.Query(query, streamID.String(), fromVersion, maxEvents)
+	if err != nil {
+		return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
+	var stream lib.DomainEvents
+	var eventName string
+	var payload string
+	var streamVersion uint
+	var domainEvent lib.DomainEvent
+
+	for eventRows.Next() {
+		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
+			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		}
+
+		if domainEvent, err = es.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
+			return nil, lib.MarkAndWrapError(err, lib.ErrUnmarshalingFailed, wrapWithMsg)
+		}
+
+		stream = append(stream, domainEvent)
+	}
+
+	return stream, nil
 }
 
 func (es *PostgresEventStoreV2) PurgeEventStream(streamID lib.StreamID) error {
