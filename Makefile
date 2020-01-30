@@ -10,13 +10,22 @@ generate_proto:
 		--swagger_out=logtostderr=true:service/customer/infrastructure/primary/grpc \
 		service/customer/infrastructure/primary/grpc/customer.proto
 
-generate_eventstore_mock:
+generate_mocked_EventStore:
 	@mockery \
 		-name EventStore \
-		-dir service/lib \
+		-dir service/lib/es \
 		-outpkg mocked \
-		-output service/lib/infrastructure/eventstore/mocked \
+		-output service/lib/eventstore/mocked \
+		-note "+build test"
+
+generate_mocked_ForStoringCustomerEvents:
+	@mockery \
+		-name ForStoringCustomerEvents \
+		-dir service/customer/application \
+		-outpkg mocked \
+		-output service/customer/infrastructure/secondary/forstoringcustomerevents/mocked \
 		-note "+build test"
 
 generate_all_mocks: \
-	generate_eventstore_mock
+	generate_mocked_EventStore \
+	generate_mocked_ForStoringCustomerEvents

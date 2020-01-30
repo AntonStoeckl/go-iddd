@@ -6,7 +6,7 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/customer/application/mocks"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/mocked"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"testing"
@@ -18,7 +18,7 @@ import (
 
 func Test_CommandHandler_ConfirmEmailAddress_WithErrorFromCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
-		customers := new(mocks.ForStoringCustomers)
+		customers := new(mocked.ForStoringCustomerEvents)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
@@ -62,7 +62,7 @@ func Test_CommandHandler_ConfirmEmailAddress_WithErrorFromCustomers(t *testing.T
 
 func Test_CommandHandler_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
-		customers := new(mocks.ForStoringCustomers)
+		customers := new(mocked.ForStoringCustomerEvents)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
@@ -105,7 +105,7 @@ func Test_CommandHandler_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T)
 
 func Test_CommandHandler_WithTransactionErrors(t *testing.T) {
 	Convey("Setup", t, func() {
-		customers := new(mocks.ForStoringCustomers)
+		customers := new(mocked.ForStoringCustomerEvents)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
@@ -150,7 +150,7 @@ func Test_CommandHandler_WithTransactionErrors(t *testing.T) {
 
 func Test_CommandHandler_RetriesWithConcurrencyConflicts(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customers := new(mocks.ForStoringCustomers)
+		customers := new(mocked.ForStoringCustomerEvents)
 
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
