@@ -14,14 +14,14 @@ import (
 const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
-	customers ForStoringCustomerEvents
-	db        *sql.DB
+	customerEvents ForStoringCustomerEvents
+	db             *sql.DB
 }
 
 func NewCommandHandler(customers ForStoringCustomerEvents, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
-		customers: customers,
-		db:        db,
+		customerEvents: customers,
+		db:             db,
 	}
 }
 
@@ -147,7 +147,7 @@ func (handler *CommandHandler) register(
 
 	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := handler.customers.Register(register.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.Register(register.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 
@@ -159,14 +159,14 @@ func (handler *CommandHandler) confirmEmailAddress(
 	tx *sql.Tx,
 ) error {
 
-	eventStream, err := handler.customers.EventStream(confirmEmailAddress.CustomerID())
+	eventStream, err := handler.customerEvents.EventStream(confirmEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-	if err := handler.customers.Persist(confirmEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.Persist(confirmEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 
@@ -185,14 +185,14 @@ func (handler *CommandHandler) changeEmailAddress(
 	tx *sql.Tx,
 ) error {
 
-	eventStream, err := handler.customers.EventStream(changeEmailAddress.CustomerID())
+	eventStream, err := handler.customerEvents.EventStream(changeEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
-	if err := handler.customers.Persist(changeEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.Persist(changeEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
 		return err
 	}
 
