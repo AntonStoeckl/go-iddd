@@ -5,7 +5,7 @@ import (
 	"go-iddd/service/customer/application"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"go-iddd/service/lib/eventstore/postgres"
@@ -19,7 +19,7 @@ type DIContainer struct {
 	postgresDBConn         *sql.DB
 	unmarshalDomainEvent   es.UnmarshalDomainEvent
 	eventStore             *postgres.EventStore
-	customers              *forstoringcustomers.EventsourcedCustomers
+	customers              *forstoringcustomerevents.EventsourcedCustomers
 	customerCommandHandler *application.CommandHandler
 	customerServer         customergrpc.CustomerServer
 	customerApp            *customercli.CustomerApp
@@ -68,9 +68,9 @@ func (container DIContainer) getEventStore() *postgres.EventStore {
 	return container.eventStore
 }
 
-func (container DIContainer) GetCustomerRepository() *forstoringcustomers.EventsourcedCustomers {
+func (container DIContainer) GetCustomerRepository() *forstoringcustomerevents.EventsourcedCustomers {
 	if container.customers == nil {
-		container.customers = forstoringcustomers.NewEventsourcedCustomers(
+		container.customers = forstoringcustomerevents.NewEventsourcedCustomers(
 			container.getEventStore(),
 		)
 	}

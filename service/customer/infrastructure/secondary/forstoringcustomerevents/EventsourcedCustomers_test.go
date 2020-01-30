@@ -1,9 +1,9 @@
-package forstoringcustomers_test
+package forstoringcustomerevents_test
 
 import (
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"go-iddd/service/lib/eventstore/mocked"
@@ -21,7 +21,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 		tx, err := infrastructure.MockTx()
 		So(err, ShouldBeNil)
 		eventStore := new(mocked.EventStore)
-		customers := forstoringcustomers.NewEventsourcedCustomers(eventStore)
+		customers := forstoringcustomerevents.NewEventsourcedCustomers(eventStore)
 
 		Convey("Given a technical error from the EventStore when EventStream is called", func() {
 			eventStore.

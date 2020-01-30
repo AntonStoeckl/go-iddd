@@ -1,4 +1,4 @@
-package forstoringcustomers
+package forstoringcustomerevents
 
 import (
 	"database/sql"
