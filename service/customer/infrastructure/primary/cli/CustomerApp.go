@@ -33,7 +33,7 @@ func (app *CustomerApp) Commands() []cli.Command {
 		{
 			Name:      "RegisterCustomer",
 			Aliases:   []string{"rc"},
-			Usage:     "Register a Customer",
+			Usage:     "CreateStreamFrom a Customer",
 			Action:    app.RegisterCustomer,
 			ArgsUsage: "emailAddress givenName familyName",
 		},

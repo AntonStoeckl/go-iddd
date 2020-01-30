@@ -14,6 +14,34 @@ type ForStoringCustomerEvents struct {
 	mock.Mock
 }
 
+// Add provides a mock function with given fields: recordedEvents, id, tx
+func (_m *ForStoringCustomerEvents) Add(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error {
+	ret := _m.Called(recordedEvents, id, tx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(es.DomainEvents, values.CustomerID, *sql.Tx) error); ok {
+		r0 = rf(recordedEvents, id, tx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreateStreamFrom provides a mock function with given fields: recordedEvents, id, tx
+func (_m *ForStoringCustomerEvents) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error {
+	ret := _m.Called(recordedEvents, id, tx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(es.DomainEvents, values.CustomerID, *sql.Tx) error); ok {
+		r0 = rf(recordedEvents, id, tx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: id
 func (_m *ForStoringCustomerEvents) Delete(id values.CustomerID) error {
 	ret := _m.Called(id)
@@ -28,8 +56,8 @@ func (_m *ForStoringCustomerEvents) Delete(id values.CustomerID) error {
 	return r0
 }
 
-// EventStream provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) EventStream(id values.CustomerID) (es.DomainEvents, error) {
+// EventStreamFor provides a mock function with given fields: id
+func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
 	ret := _m.Called(id)
 
 	var r0 es.DomainEvents
@@ -49,32 +77,4 @@ func (_m *ForStoringCustomerEvents) EventStream(id values.CustomerID) (es.Domain
 	}
 
 	return r0, r1
-}
-
-// Persist provides a mock function with given fields: id, recordedEvents, tx
-func (_m *ForStoringCustomerEvents) Persist(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
-	ret := _m.Called(id, recordedEvents, tx)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID, es.DomainEvents, *sql.Tx) error); ok {
-		r0 = rf(id, recordedEvents, tx)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Register provides a mock function with given fields: id, recordedEvents, tx
-func (_m *ForStoringCustomerEvents) Register(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
-	ret := _m.Called(id, recordedEvents, tx)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID, es.DomainEvents, *sql.Tx) error); ok {
-		r0 = rf(id, recordedEvents, tx)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

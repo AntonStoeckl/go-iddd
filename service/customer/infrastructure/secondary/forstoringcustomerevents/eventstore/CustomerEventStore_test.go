@@ -1,9 +1,9 @@
-package forstoringcustomerevents_test
+package eventstore_test
 
 import (
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"go-iddd/service/lib/eventstore/mocked"
@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing.T) {
+func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T) {
 	Convey("Setup", t, func() {
 		id := values.GenerateCustomerID()
 		var recordedEvents es.DomainEvents
 		tx, err := infrastructure.MockTx()
 		So(err, ShouldBeNil)
 		eventStore := new(mocked.EventStore)
-		customers := forstoringcustomerevents.NewEventsourcedCustomers(eventStore)
+		customers := eventstore.NewCustomerEventStore(eventStore)
 
-		Convey("Given a technical error from the EventStore when EventStream is called", func() {
+		Convey("Given a technical error from the EventStore when EventStreamFor is called", func() {
 			eventStore.
 				On(
 					"LoadEventStream",
@@ -34,7 +34,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 				Return(nil, lib.ErrTechnical)
 
 			Convey("When a Customer's eventStream is retrieved", func() {
-				_, err := customers.EventStream(id)
+				_, err := customers.EventStreamFor(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -54,7 +54,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 				Return(lib.ErrTechnical)
 
 			Convey("When a Customer is registered", func() {
-				err := customers.Register(id, recordedEvents, tx)
+				err := customers.CreateStreamFrom(recordedEvents, id, tx)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -63,7 +63,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 			})
 
 			Convey("When changes of a Customer are persisted", func() {
-				err := customers.Persist(id, recordedEvents, tx)
+				err := customers.Add(recordedEvents, id, tx)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)

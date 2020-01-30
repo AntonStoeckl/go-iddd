@@ -44,8 +44,8 @@ func Test_CommandHandler_ConfirmEmailAddress_WithErrorFromCustomers(t *testing.T
 		So(err, ShouldBeNil)
 
 		Convey("Given the Customer can't be persisted because of a technical error", func() {
-			customers.On("EventStream", mock.Anything).Return(eventStream, nil).Once()
-			customers.On("Persist", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
+			customers.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Once()
+			customers.On("Add", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
 
 			Convey("When a Customer's emailAddress is confirmed", func() {
 				err := commandHandler.ConfirmEmailAddress(confirmEmailAddress)
@@ -87,8 +87,8 @@ func Test_CommandHandler_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T)
 		So(err, ShouldBeNil)
 
 		Convey("Given the Customer can't be persisted because of a technical error", func() {
-			customers.On("EventStream", mock.Anything).Return(eventStream, nil).Once()
-			customers.On("Persist", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
+			customers.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Once()
+			customers.On("Add", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
 
 			Convey("When a Customer's emailAddress is confirmed", func() {
 				err := commandHandler.ChangeEmailAddress(changeEmailAddress)
@@ -133,7 +133,7 @@ func Test_CommandHandler_WithTransactionErrors(t *testing.T) {
 			dbMock.ExpectBegin()
 			dbMock.ExpectCommit().WillReturnError(lib.ErrTechnical)
 
-			customers.On("Register", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+			customers.On("CreateStreamFrom", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 			Convey("When a command is handled", func() {
 				err := commandHandler.Register(register)
@@ -177,11 +177,11 @@ func Test_CommandHandler_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 					Convey("And when saving the Customer has a concurrency conflict once", func() {
 						// should be called twice due to retry
-						customers.On("EventStream", mock.Anything).Return(eventStream, nil).Twice()
+						customers.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Twice()
 
 						// fist attempt runs into a concurrency conflict
 						customers.
-							On("Persist", mock.Anything, mock.Anything, mock.Anything).
+							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(lib.ErrConcurrencyConflict).
 							Once()
 						dbMock.ExpectBegin()
@@ -189,7 +189,7 @@ func Test_CommandHandler_RetriesWithConcurrencyConflicts(t *testing.T) {
 
 						// second attempt works
 						customers.
-							On("Persist", mock.Anything, mock.Anything, mock.Anything).
+							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(nil).
 							Once()
 						dbMock.ExpectBegin()
@@ -206,13 +206,13 @@ func Test_CommandHandler_RetriesWithConcurrencyConflicts(t *testing.T) {
 					Convey("And when saving the Customer has too many concurrency conflicts", func() {
 						// should be called 10 times due to retries
 						customers.
-							On("EventStream", mock.Anything).
+							On("EventStreamFor", mock.Anything).
 							Return(eventStream, nil).
 							Times(10)
 
 						// all attempts run into a concurrency conflict
 						customers.
-							On("Persist", mock.Anything, mock.Anything, mock.Anything).
+							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(lib.ErrConcurrencyConflict).
 							Times(10)
 

@@ -18,16 +18,16 @@ type CommandHandler struct {
 	db             *sql.DB
 }
 
-func NewCommandHandler(customers ForStoringCustomerEvents, db *sql.DB) *CommandHandler {
+func NewCommandHandler(customerEvents ForStoringCustomerEvents, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
-		customerEvents: customers,
+		customerEvents: customerEvents,
 		db:             db,
 	}
 }
 
 func (handler *CommandHandler) Register(command commands.Register) error {
 	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.Register")
+		return errors.Wrap(err, "commandHandler.CreateStreamFrom")
 	}
 
 	if err := handler.handleRetry(command); err != nil {
@@ -147,7 +147,7 @@ func (handler *CommandHandler) register(
 
 	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := handler.customerEvents.Register(register.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID(), tx); err != nil {
 		return err
 	}
 
@@ -159,14 +159,14 @@ func (handler *CommandHandler) confirmEmailAddress(
 	tx *sql.Tx,
 ) error {
 
-	eventStream, err := handler.customerEvents.EventStream(confirmEmailAddress.CustomerID())
+	eventStream, err := handler.customerEvents.EventStreamFor(confirmEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-	if err := handler.customerEvents.Persist(confirmEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID(), tx); err != nil {
 		return err
 	}
 
@@ -185,14 +185,14 @@ func (handler *CommandHandler) changeEmailAddress(
 	tx *sql.Tx,
 ) error {
 
-	eventStream, err := handler.customerEvents.EventStream(changeEmailAddress.CustomerID())
+	eventStream, err := handler.customerEvents.EventStreamFor(changeEmailAddress.CustomerID())
 	if err != nil {
 		return err
 	}
 
 	recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
-	if err := handler.customerEvents.Persist(changeEmailAddress.CustomerID(), recordedEvents, tx); err != nil {
+	if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID(), tx); err != nil {
 		return err
 	}
 

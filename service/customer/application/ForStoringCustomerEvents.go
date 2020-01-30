@@ -7,8 +7,8 @@ import (
 )
 
 type ForStoringCustomerEvents interface {
-	EventStream(id values.CustomerID) (es.DomainEvents, error)
-	Register(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error
-	Persist(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error
+	EventStreamFor(id values.CustomerID) (es.DomainEvents, error)
+	CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error
+	Add(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error
 	Delete(id values.CustomerID) error
 }

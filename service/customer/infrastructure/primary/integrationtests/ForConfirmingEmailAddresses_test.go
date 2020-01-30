@@ -1,7 +1,6 @@
 package integrationtests_test
 
 import (
-	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure"
@@ -16,10 +15,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
-		commandHandler := application.NewCommandHandler(
-			diContainer.GetCustomerRepository(),
-			diContainer.GetPostgresDBConn(),
-		)
+		commandHandler := diContainer.GetCustomerCommandHandler()
 
 		Convey("Given a registered Customer", func() {
 			register, err := commands.NewRegister(
@@ -87,7 +83,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 				})
 			})
 
-			err = diContainer.GetCustomerRepository().Delete(register.CustomerID())
+			err = diContainer.GetCustomerEventStore().Delete(register.CustomerID())
 			So(err, ShouldBeNil)
 		})
 
