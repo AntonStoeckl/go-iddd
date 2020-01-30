@@ -55,6 +55,10 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 						})
 					})
 				})
+
+				// Clean up test artifacts
+				err := eventStore.PurgeEventStream(streamID)
+				So(err, ShouldBeNil)
 			})
 
 			Convey("When 2 events with conflicting stream version are appended", func() {
@@ -75,7 +79,7 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 				})
 			})
 
-			Convey("When boken events which can't be marshaled to json are appended", func() {
+			Convey("When events which can't be marshaled to json are appended", func() {
 				tx, err := db.Begin()
 				So(err, ShouldBeNil)
 
@@ -145,9 +149,6 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 		})
-
-		err := eventStore.PurgeEventStream(streamID)
-		So(err, ShouldBeNil)
 	})
 }
 
@@ -204,6 +205,9 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 				})
 			})
 
+			// Clean up test artifacts
+			err := eventStore.PurgeEventStream(streamID)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("Given 3 events were appended with wrong order of stream versions", func() {
@@ -225,6 +229,10 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 					So(eventStream, ShouldResemble, expectedEvents)
 				})
 			})
+
+			// Clean up test artifacts
+			err := eventStore.PurgeEventStream(streamID)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("Given the event store contains an event which can't be unmarshaled", func() {
@@ -239,10 +247,11 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 					So(errors.Is(err, lib.ErrUnmarshalingFailed), ShouldBeTrue)
 				})
 			})
-		})
 
-		err := eventStore.PurgeEventStream(streamID)
-		So(err, ShouldBeNil)
+			// Clean up test artifacts
+			err := eventStore.PurgeEventStream(streamID)
+			So(err, ShouldBeNil)
+		})
 
 		Convey("Given the DB connection was closed", func() {
 			err := db.Close()
