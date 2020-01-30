@@ -14,11 +14,11 @@ import (
 const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
-	customers ForStoringCustomers
+	customers ForStoringCustomerEvents
 	db        *sql.DB
 }
 
-func NewCommandHandler(customers ForStoringCustomers, db *sql.DB) *CommandHandler {
+func NewCommandHandler(customers ForStoringCustomerEvents, db *sql.DB) *CommandHandler {
 	return &CommandHandler{
 		customers: customers,
 		db:        db,

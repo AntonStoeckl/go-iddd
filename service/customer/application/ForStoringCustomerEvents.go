@@ -6,7 +6,7 @@ import (
 	"go-iddd/service/lib/es"
 )
 
-type ForStoringCustomers interface {
+type ForStoringCustomerEvents interface {
 	EventStream(id values.CustomerID) (es.DomainEvents, error)
 	Register(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error
 	Persist(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error
