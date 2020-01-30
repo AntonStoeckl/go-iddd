@@ -9,3 +9,14 @@ generate_proto:
 		--grpc-gateway_out=logtostderr=true:service/customer/infrastructure/primary/grpc \
 		--swagger_out=logtostderr=true:service/customer/infrastructure/primary/grpc \
 		service/customer/infrastructure/primary/grpc/customer.proto
+
+generate_eventstore_mock:
+	@mockery \
+		-name EventStore \
+		-dir service/lib \
+		-outpkg mocks \
+		-output service/lib/infrastructure/eventstore/mocks \
+		-note "+build test"
+
+generate_all_mocks: \
+	generate_eventstore_mock

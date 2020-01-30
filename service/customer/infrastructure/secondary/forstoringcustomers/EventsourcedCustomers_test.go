@@ -4,8 +4,8 @@ import (
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers/mocks"
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/infrastructure/eventstore/mocks"
 	"testing"
 
 	"github.com/cockroachdb/errors"
