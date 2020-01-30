@@ -4,10 +4,10 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 )
 
-func ConfirmEmailAddress(eventStream lib.DomainEvents, command commands.ConfirmEmailAddress) lib.DomainEvents {
+func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEmailAddress) es.DomainEvents {
 	var emailAddress values.EmailAddress
 	var confirmationHash values.ConfirmationHash
 	var isConfirmed bool
@@ -41,7 +41,7 @@ func ConfirmEmailAddress(eventStream lib.DomainEvents, command commands.ConfirmE
 			currentStreamVersion+1,
 		)
 
-		return lib.DomainEvents{event}
+		return es.DomainEvents{event}
 	}
 
 	event := events.EmailAddressWasConfirmed(
@@ -50,5 +50,5 @@ func ConfirmEmailAddress(eventStream lib.DomainEvents, command commands.ConfirmE
 		currentStreamVersion+1,
 	)
 
-	return lib.DomainEvents{event}
+	return es.DomainEvents{event}
 }

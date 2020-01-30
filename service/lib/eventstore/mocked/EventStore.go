@@ -2,9 +2,9 @@
 
 // +build test
 
-package mocks
+package mocked
 
-import lib "go-iddd/service/lib"
+import es "go-iddd/service/lib/es"
 import mock "github.com/stretchr/testify/mock"
 import sql "database/sql"
 
@@ -14,11 +14,11 @@ type EventStore struct {
 }
 
 // AppendEventsToStream provides a mock function with given fields: streamID, events, tx
-func (_m *EventStore) AppendEventsToStream(streamID lib.StreamID, events lib.DomainEvents, tx *sql.Tx) error {
+func (_m *EventStore) AppendEventsToStream(streamID es.StreamID, events es.DomainEvents, tx *sql.Tx) error {
 	ret := _m.Called(streamID, events, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(lib.StreamID, lib.DomainEvents, *sql.Tx) error); ok {
+	if rf, ok := ret.Get(0).(func(es.StreamID, es.DomainEvents, *sql.Tx) error); ok {
 		r0 = rf(streamID, events, tx)
 	} else {
 		r0 = ret.Error(0)
@@ -28,20 +28,20 @@ func (_m *EventStore) AppendEventsToStream(streamID lib.StreamID, events lib.Dom
 }
 
 // LoadEventStream provides a mock function with given fields: streamID, fromVersion, maxEvents
-func (_m *EventStore) LoadEventStream(streamID lib.StreamID, fromVersion uint, maxEvents uint) (lib.DomainEvents, error) {
+func (_m *EventStore) LoadEventStream(streamID es.StreamID, fromVersion uint, maxEvents uint) (es.DomainEvents, error) {
 	ret := _m.Called(streamID, fromVersion, maxEvents)
 
-	var r0 lib.DomainEvents
-	if rf, ok := ret.Get(0).(func(lib.StreamID, uint, uint) lib.DomainEvents); ok {
+	var r0 es.DomainEvents
+	if rf, ok := ret.Get(0).(func(es.StreamID, uint, uint) es.DomainEvents); ok {
 		r0 = rf(streamID, fromVersion, maxEvents)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(lib.DomainEvents)
+			r0 = ret.Get(0).(es.DomainEvents)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(lib.StreamID, uint, uint) error); ok {
+	if rf, ok := ret.Get(1).(func(es.StreamID, uint, uint) error); ok {
 		r1 = rf(streamID, fromVersion, maxEvents)
 	} else {
 		r1 = ret.Error(1)
@@ -51,11 +51,11 @@ func (_m *EventStore) LoadEventStream(streamID lib.StreamID, fromVersion uint, m
 }
 
 // PurgeEventStream provides a mock function with given fields: streamID
-func (_m *EventStore) PurgeEventStream(streamID lib.StreamID) error {
+func (_m *EventStore) PurgeEventStream(streamID es.StreamID) error {
 	ret := _m.Called(streamID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(lib.StreamID) error); ok {
+	if rf, ok := ret.Get(0).(func(es.StreamID) error); ok {
 		r0 = rf(streamID)
 	} else {
 		r0 = ret.Error(0)

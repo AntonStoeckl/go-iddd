@@ -5,7 +5,7 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -23,7 +23,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		currentStreamVersion := uint(1)
 
-		eventStream := lib.DomainEvents{
+		eventStream := es.DomainEvents{
 			events.ItWasRegistered(id, emailAddress, confirmationHash, personName, currentStreamVersion),
 		}
 

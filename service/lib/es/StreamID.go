@@ -1,4 +1,4 @@
-package lib
+package es
 
 type StreamID struct {
 	value string

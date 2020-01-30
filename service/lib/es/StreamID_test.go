@@ -1,7 +1,7 @@
-package lib_test
+package es_test
 
 import (
-	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -12,7 +12,7 @@ func TestNewStreamID(t *testing.T) {
 		streamIDInput := "customer-123"
 
 		Convey("When a new StreamID is created", func() {
-			streamID := lib.NewStreamID(streamIDInput)
+			streamID := es.NewStreamID(streamIDInput)
 
 			Convey("It should succeed", func() {
 				So(streamID, ShouldNotBeNil)
@@ -25,7 +25,7 @@ func TestNewStreamID(t *testing.T) {
 
 		Convey("When a new StreamID is created", func() {
 			newStreamIDWithEmptyInput := func() {
-				lib.NewStreamID(streamIDInput)
+				es.NewStreamID(streamIDInput)
 			}
 
 			Convey("It should fail with a panic", func() {
@@ -38,7 +38,7 @@ func TestNewStreamID(t *testing.T) {
 func TestStreamID_String(t *testing.T) {
 	Convey("Given a StreamID", t, func() {
 		streamIDInput := "customer-123"
-		streamID := lib.NewStreamID(streamIDInput)
+		streamID := es.NewStreamID(streamIDInput)
 
 		Convey("It should expose the expected value", func() {
 			So(streamID.String(), ShouldEqual, streamIDInput)
@@ -48,10 +48,10 @@ func TestStreamID_String(t *testing.T) {
 
 func TestStreamID_Equals(t *testing.T) {
 	Convey("Given a StreamID", t, func() {
-		streamID := lib.NewStreamID("customer-123")
+		streamID := es.NewStreamID("customer-123")
 
 		Convey("And given an equal StreamID", func() {
-			equalStreamID := lib.NewStreamID("customer-123")
+			equalStreamID := es.NewStreamID("customer-123")
 
 			Convey("When they are compared", func() {
 				streamIDsAreEqual := streamID.Equals(equalStreamID)
@@ -63,7 +63,7 @@ func TestStreamID_Equals(t *testing.T) {
 		})
 
 		Convey("And given a different StreamID", func() {
-			differentStreamID := lib.NewStreamID("customer-666")
+			differentStreamID := es.NewStreamID("customer-666")
 
 			Convey("When they are compared", func() {
 				streamIDsAreEqual := streamID.Equals(differentStreamID)

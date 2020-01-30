@@ -1,3 +1,3 @@
-package lib
+package es
 
 type DomainEvents []DomainEvent

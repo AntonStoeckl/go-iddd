@@ -2,13 +2,14 @@ package events
 
 import (
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 
 	"github.com/cockroachdb/errors"
 )
 
 const unmarshalEventNamePrefix = "Customer"
 
-func UnmarshalDomainEvent(name string, payload []byte, streamVersion uint) (lib.DomainEvent, error) {
+func UnmarshalCustomerEvent(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
 	switch name {
 	case unmarshalEventNamePrefix + "Registered":
 		return UnmarshalRegisteredFromJSON(payload, streamVersion), nil

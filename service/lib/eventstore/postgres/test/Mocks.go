@@ -3,37 +3,12 @@
 package test
 
 import (
-	"database/sql"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/infrastructure/eventstore"
+	"go-iddd/service/lib/es"
 	"time"
 
 	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
-	. "github.com/smartystreets/goconvey/convey"
 )
-
-func SetUpDIContainer() *DIContainer {
-	config, err := NewConfigFromEnv()
-	So(err, ShouldBeNil)
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
-
-	err = db.Ping()
-	So(err, ShouldBeNil)
-
-	migrator, err := eventstore.NewMigrator(db, config.Postgres.MigrationsPath)
-	So(err, ShouldBeNil)
-
-	err = migrator.Up()
-	So(err, ShouldBeNil)
-
-	diContainer, err := NewDIContainer(db, Unmarshal)
-	So(err, ShouldBeNil)
-
-	return diContainer
-}
 
 /*** mocked CustomerID ***/
 
@@ -168,15 +143,13 @@ func (brokenUnmarshalingEvent BrokenUnmarshalingEvent) StreamVersion() uint {
 
 /*** Unmarshal mocked events ***/
 
-func Unmarshal(name string, payload []byte, streamVersion uint) (lib.DomainEvent, error) {
+func UnmarshalMockEvents(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
 	_ = streamVersion
 	defaultErrFormat := "unmarshalDomainEvent [%s] failed: %w"
 
 	switch name {
 	case "SomeEvent":
 		return UnmarshalSomeEventFromJSON(payload), nil
-	case "BrokenMarshalingEvent":
-		return BrokenMarshalingEvent{}, nil
 	case "BrokenUnmarshalingEvent":
 		return nil, errors.Errorf(defaultErrFormat, name, errors.New("mocked marshaling error"))
 	default:

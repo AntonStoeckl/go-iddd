@@ -1,26 +1,27 @@
-package eventstore
+package postgres
 
 import (
 	"database/sql"
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/lib/pq"
 )
 
-type PostgresEventStore struct {
+type EventStore struct {
 	db                   *sql.DB
 	tableName            string
-	unmarshalDomainEvent lib.UnmarshalDomainEvent
+	unmarshalDomainEvent es.UnmarshalDomainEvent
 }
 
-func NewPostgresEventStore(
+func NewEventStore(
 	db *sql.DB,
 	tableName string,
-	unmarshalDomainEvent lib.UnmarshalDomainEvent,
-) *PostgresEventStore {
-	store := &PostgresEventStore{
+	unmarshalDomainEvent es.UnmarshalDomainEvent,
+) *EventStore {
+	store := &EventStore{
 		db:                   db,
 		tableName:            tableName,
 		unmarshalDomainEvent: unmarshalDomainEvent,
@@ -29,17 +30,17 @@ func NewPostgresEventStore(
 	return store
 }
 
-func (es *PostgresEventStore) AppendEventsToStream(
-	streamID lib.StreamID,
-	events lib.DomainEvents,
+func (eventStore *EventStore) AppendEventsToStream(
+	streamID es.StreamID,
+	events es.DomainEvents,
 	tx *sql.Tx,
 ) error {
 
-	wrapWithMsg := "postgresEventStoreSession.AppendEventsToStream"
+	wrapWithMsg := "eventStore.AppendEventsToStream"
 
 	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
 						VALUES ($1, $2, $3, $4, $5)`
-	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
+	query := strings.Replace(queryTemplate, "%name%", eventStore.tableName, 1)
 
 	for _, event := range events {
 		eventJson, err := jsoniter.Marshal(event)
@@ -76,55 +77,55 @@ func (es *PostgresEventStore) AppendEventsToStream(
 	return nil
 }
 
-func (es *PostgresEventStore) LoadEventStream(
-	streamID lib.StreamID,
+func (eventStore *EventStore) LoadEventStream(
+	streamID es.StreamID,
 	fromVersion uint,
 	maxEvents uint,
-) (lib.DomainEvents, error) {
+) (es.DomainEvents, error) {
 
-	wrapWithMsg := "postgresEventStoreSession.LoadEventStream"
+	wrapWithMsg := "eventStore.LoadEventStream"
 
 	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
 						WHERE stream_id = $1 AND stream_version >= $2
 						ORDER BY stream_version ASC
 						LIMIT $3`
 
-	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
+	query := strings.Replace(queryTemplate, "%name%", eventStore.tableName, 1)
 
-	eventRows, err := es.db.Query(query, streamID.String(), fromVersion, maxEvents)
+	eventRows, err := eventStore.db.Query(query, streamID.String(), fromVersion, maxEvents)
 	if err != nil {
 		return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	var stream lib.DomainEvents
+	var eventStream es.DomainEvents
 	var eventName string
 	var payload string
 	var streamVersion uint
-	var domainEvent lib.DomainEvent
+	var domainEvent es.DomainEvent
 
 	for eventRows.Next() {
 		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
 			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 		}
 
-		if domainEvent, err = es.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
+		if domainEvent, err = eventStore.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
 			return nil, lib.MarkAndWrapError(err, lib.ErrUnmarshalingFailed, wrapWithMsg)
 		}
 
-		stream = append(stream, domainEvent)
+		eventStream = append(eventStream, domainEvent)
 	}
 
-	return stream, nil
+	return eventStream, nil
 }
 
-func (es *PostgresEventStore) PurgeEventStream(streamID lib.StreamID) error {
+func (eventStore *EventStore) PurgeEventStream(streamID es.StreamID) error {
 	queryTemplate := `DELETE FROM %name% WHERE stream_id = $1`
-	query := strings.Replace(queryTemplate, "%name%", es.tableName, 1)
+	query := strings.Replace(queryTemplate, "%name%", eventStore.tableName, 1)
 
-	_, err := es.db.Exec(query, streamID.String())
+	_, err := eventStore.db.Exec(query, streamID.String())
 
 	if err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, "postgresEventStore.PurgeEventStream")
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, "eventStore.PurgeEventStream")
 	}
 
 	return nil

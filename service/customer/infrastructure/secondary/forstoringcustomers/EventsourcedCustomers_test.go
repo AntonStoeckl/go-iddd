@@ -5,7 +5,8 @@ import (
 	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
 	"go-iddd/service/lib"
-	"go-iddd/service/lib/infrastructure/eventstore/mocks"
+	"go-iddd/service/lib/es"
+	"go-iddd/service/lib/eventstore/mocked"
 	"testing"
 
 	"github.com/cockroachdb/errors"
@@ -16,17 +17,17 @@ import (
 func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing.T) {
 	Convey("Setup", t, func() {
 		id := values.GenerateCustomerID()
-		var recordedEvents lib.DomainEvents
+		var recordedEvents es.DomainEvents
 		tx, err := infrastructure.MockTx()
 		So(err, ShouldBeNil)
-		eventStore := new(mocks.EventStore)
+		eventStore := new(mocked.EventStore)
 		customers := forstoringcustomers.NewEventsourcedCustomers(eventStore)
 
 		Convey("Given a technical error from the EventStore when EventStream is called", func() {
 			eventStore.
 				On(
 					"LoadEventStream",
-					mock.AnythingOfType("lib.StreamID"),
+					mock.AnythingOfType("es.StreamID"),
 					mock.AnythingOfType("uint"),
 					mock.AnythingOfType("uint"),
 				).
@@ -46,7 +47,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 			eventStore.
 				On(
 					"AppendEventsToStream",
-					mock.AnythingOfType("lib.StreamID"),
+					mock.AnythingOfType("es.StreamID"),
 					recordedEvents,
 					mock.AnythingOfType("*sql.Tx"),
 				).
@@ -75,7 +76,7 @@ func Test_EventsourcedCustomers_With_Technical_Errors_From_EventStore(t *testing
 			eventStore.
 				On(
 					"PurgeEventStream",
-					mock.AnythingOfType("lib.StreamID"),
+					mock.AnythingOfType("es.StreamID"),
 				).
 				Return(lib.ErrTechnical)
 

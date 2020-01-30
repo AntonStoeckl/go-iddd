@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
-	"go-iddd/service/lib/infrastructure/eventstore"
+	"go-iddd/service/lib/eventstore/postgres/database"
 	"os"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -66,7 +66,7 @@ func mustOpenPostgresDBConnection() {
 }
 
 func mustRunDBMigrations() {
-	migrator, err := eventstore.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
+	migrator, err := database.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
 	if err != nil {
 		logger.Errorf("failed to create DB migrator: %s", err)
 		shutdown()
@@ -86,7 +86,7 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
-			events.UnmarshalDomainEvent,
+			events.UnmarshalCustomerEvent,
 		)
 
 		if err != nil {

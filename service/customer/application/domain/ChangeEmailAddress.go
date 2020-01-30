@@ -4,10 +4,10 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 )
 
-func ChangeEmailAddress(eventStream lib.DomainEvents, command commands.ChangeEmailAddress) lib.DomainEvents {
+func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeEmailAddress) es.DomainEvents {
 	var emailAddress values.EmailAddress
 	var currentStreamVersion uint
 
@@ -33,5 +33,5 @@ func ChangeEmailAddress(eventStream lib.DomainEvents, command commands.ChangeEma
 		currentStreamVersion+1,
 	)
 
-	return lib.DomainEvents{event}
+	return es.DomainEvents{event}
 }

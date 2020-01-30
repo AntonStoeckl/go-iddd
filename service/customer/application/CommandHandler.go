@@ -6,6 +6,7 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/cqrs"
 
 	"github.com/cockroachdb/errors"
 )
@@ -60,7 +61,7 @@ func (handler *CommandHandler) ChangeEmailAddress(command commands.ChangeEmailAd
 	return nil
 }
 
-func (handler *CommandHandler) handleRetry(command lib.Command) error {
+func (handler *CommandHandler) handleRetry(command cqrs.Command) error {
 	var err error
 	var retries uint8
 
@@ -88,7 +89,7 @@ func (handler *CommandHandler) handleRetry(command lib.Command) error {
 	return nil
 }
 
-func (handler *CommandHandler) handleSession(command lib.Command) error {
+func (handler *CommandHandler) handleSession(command cqrs.Command) error {
 	tx, errTx := handler.db.Begin()
 	if errTx != nil {
 		return errors.Mark(errTx, lib.ErrTechnical)
@@ -117,7 +118,7 @@ func (handler *CommandHandler) handleSession(command lib.Command) error {
 }
 
 func (handler *CommandHandler) handleCommand(
-	command lib.Command,
+	command cqrs.Command,
 	tx *sql.Tx,
 ) error {
 

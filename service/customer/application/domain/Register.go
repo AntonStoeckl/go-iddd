@@ -3,11 +3,11 @@ package domain
 import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
-	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 )
 
-func RegisterCustomer(with commands.Register) lib.DomainEvents {
-	return lib.DomainEvents{
+func RegisterCustomer(with commands.Register) es.DomainEvents {
+	return es.DomainEvents{
 		events.ItWasRegistered(
 			with.CustomerID(),
 			with.EmailAddress(),

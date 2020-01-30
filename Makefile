@@ -14,8 +14,8 @@ generate_eventstore_mock:
 	@mockery \
 		-name EventStore \
 		-dir service/lib \
-		-outpkg mocks \
-		-output service/lib/infrastructure/eventstore/mocks \
+		-outpkg mocked \
+		-output service/lib/infrastructure/eventstore/mocked \
 		-note "+build test"
 
 generate_all_mocks: \

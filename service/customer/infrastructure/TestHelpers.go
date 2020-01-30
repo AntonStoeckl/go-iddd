@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
-	"go-iddd/service/lib/infrastructure/eventstore"
+	"go-iddd/service/lib/eventstore/postgres/database"
 
 	"github.com/DATA-DOG/go-sqlmock"
 )
@@ -27,7 +27,7 @@ func SetUpDIContainer() (*cmd.DIContainer, error) {
 		return nil, err
 	}
 
-	migrator, err := eventstore.NewMigrator(db, config.Postgres.MigrationsPath)
+	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func SetUpDIContainer() (*cmd.DIContainer, error) {
 
 	diContainer, err := cmd.NewDIContainer(
 		db,
-		events.UnmarshalDomainEvent,
+		events.UnmarshalCustomerEvent,
 	)
 	if err != nil {
 		return nil, err

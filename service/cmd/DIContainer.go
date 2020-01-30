@@ -7,19 +7,18 @@ import (
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomers"
 	"go-iddd/service/lib"
-	"go-iddd/service/lib/infrastructure/eventstore"
+	"go-iddd/service/lib/es"
+	"go-iddd/service/lib/eventstore/postgres"
 
 	"github.com/cockroachdb/errors"
 )
 
-const (
-	eventStoreTableName = "eventstore"
-)
+const eventStoreTableName = "eventstore"
 
 type DIContainer struct {
 	postgresDBConn         *sql.DB
-	unmarshalDomainEvent   lib.UnmarshalDomainEvent
-	postgresEventStore     *eventstore.PostgresEventStore
+	unmarshalDomainEvent   es.UnmarshalDomainEvent
+	eventStore             *postgres.EventStore
 	customers              *forstoringcustomers.EventsourcedCustomers
 	customerCommandHandler *application.CommandHandler
 	customerServer         customergrpc.CustomerServer
@@ -28,7 +27,7 @@ type DIContainer struct {
 
 func NewDIContainer(
 	postgresDBConn *sql.DB,
-	unmarshalDomainEvent lib.UnmarshalDomainEvent,
+	unmarshalDomainEvent es.UnmarshalDomainEvent,
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
@@ -46,7 +45,7 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.getPostgresEventStore()
+	container.getEventStore()
 	container.GetCustomerRepository()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerServer()
@@ -57,22 +56,22 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) getPostgresEventStore() *eventstore.PostgresEventStore {
-	if container.postgresEventStore == nil {
-		container.postgresEventStore = eventstore.NewPostgresEventStore(
+func (container DIContainer) getEventStore() *postgres.EventStore {
+	if container.eventStore == nil {
+		container.eventStore = postgres.NewEventStore(
 			container.postgresDBConn,
 			eventStoreTableName,
 			container.unmarshalDomainEvent,
 		)
 	}
 
-	return container.postgresEventStore
+	return container.eventStore
 }
 
 func (container DIContainer) GetCustomerRepository() *forstoringcustomers.EventsourcedCustomers {
 	if container.customers == nil {
 		container.customers = forstoringcustomers.NewEventsourcedCustomers(
-			container.getPostgresEventStore(),
+			container.getEventStore(),
 		)
 	}
 

@@ -1,10 +1,11 @@
-package eventstore_test
+package postgres_test
 
 import (
 	"database/sql"
 	"go-iddd/service/lib"
-	"go-iddd/service/lib/infrastructure/eventstore"
-	"go-iddd/service/lib/infrastructure/eventstore/test"
+	"go-iddd/service/lib/es"
+	"go-iddd/service/lib/eventstore/postgres"
+	"go-iddd/service/lib/eventstore/postgres/test"
 	"math"
 	"testing"
 
@@ -13,18 +14,19 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
+func Test_EventStore_AppendEventsToStream(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer := test.SetUpDIContainer()
+		diContainer, err := test.SetUpDIContainer()
+		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
-		eventStore := diContainer.GetPostgresEventStore()
+		eventStore := diContainer.GetEventStore()
 
 		id := test.SomeID{Value: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.ID())
+		streamID := es.NewStreamID("customer" + "-" + id.ID())
 
 		Convey("Given an empty event stream", func() {
 			Convey("When 2 events are appended", func() {
-				appendedEvents := lib.DomainEvents{
+				appendedEvents := es.DomainEvents{
 					test.CreateSomeEvent(id, 1),
 					test.CreateSomeEvent(id, 2),
 				}
@@ -69,7 +71,7 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					lib.DomainEvents{event, event},
+					es.DomainEvents{event, event},
 					tx,
 				)
 
@@ -87,7 +89,7 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					lib.DomainEvents{event},
+					es.DomainEvents{event},
 					tx,
 				)
 
@@ -110,7 +112,7 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					lib.DomainEvents{event},
+					es.DomainEvents{event},
 					tx,
 				)
 
@@ -122,11 +124,13 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 		})
 
 		Convey("Given the DB table does not exist", func() {
-			id := test.SomeID{Value: uuid.New().String()}
-			streamID := lib.NewStreamID("customer" + "-" + id.ID())
-			diContainer := test.SetUpDIContainer()
+			diContainer, err := test.SetUpDIContainer()
+			So(err, ShouldBeNil)
 			db := diContainer.GetPostgresDBConn()
-			store := eventstore.NewPostgresEventStore(db, "unknown_table", test.Unmarshal)
+			eventStore := postgres.NewEventStore(db, "unknown_table", test.UnmarshalMockEvents)
+
+			id := test.SomeID{Value: uuid.New().String()}
+			streamID := es.NewStreamID("customer" + "-" + id.ID())
 
 			event1 := test.CreateSomeEvent(id, 1)
 			event2 := test.CreateSomeEvent(id, 2)
@@ -135,9 +139,9 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 				tx, err := db.Begin()
 				So(err, ShouldBeNil)
 
-				err = store.AppendEventsToStream(
+				err = eventStore.AppendEventsToStream(
 					streamID,
-					lib.DomainEvents{event1, event2},
+					es.DomainEvents{event1, event2},
 					tx,
 				)
 
@@ -152,14 +156,15 @@ func Test_PostgresEventStore_AppendEventsToStream(t *testing.T) {
 	})
 }
 
-func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
+func Test_EventStore_LoadEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer := test.SetUpDIContainer()
+		diContainer, err := test.SetUpDIContainer()
+		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
-		eventStore := diContainer.GetPostgresEventStore()
+		eventStore := diContainer.GetEventStore()
 
 		id := test.SomeID{Value: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.ID())
+		streamID := es.NewStreamID("customer" + "-" + id.ID())
 
 		Convey("Given an empty event stream", func() {
 			Convey("When it is loaded", func() {
@@ -173,7 +178,7 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 		})
 
 		Convey("Given an event stream with 4 events", func() {
-			expectedEvents := lib.DomainEvents{
+			expectedEvents := es.DomainEvents{
 				test.CreateSomeEvent(id, 1),
 				test.CreateSomeEvent(id, 2),
 				test.CreateSomeEvent(id, 3),
@@ -211,7 +216,7 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 		})
 
 		Convey("Given 3 events were appended with wrong order of stream versions", func() {
-			expectedEvents := lib.DomainEvents{
+			expectedEvents := es.DomainEvents{
 				test.CreateSomeEvent(id, 1),
 				test.CreateSomeEvent(id, 2),
 				test.CreateSomeEvent(id, 3),
@@ -235,7 +240,7 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("Given the event store contains an event which can't be unmarshaled", func() {
+		Convey("Given the eventStore contains an event which can't be unmarshaled", func() {
 			event := test.CreateBrokenUnmarshalingEvent(id, 1)
 			appendEventToStream(db, eventStore, streamID, event)
 
@@ -269,14 +274,15 @@ func Test_PostgresEventStore_LoadEventStream(t *testing.T) {
 	})
 }
 
-func Test_PostgresEventStore_PurgeEventStream(t *testing.T) {
+func Test_EventStore_PurgeEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer := test.SetUpDIContainer()
+		diContainer, err := test.SetUpDIContainer()
+		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
-		eventStore := diContainer.GetPostgresEventStore()
+		eventStore := diContainer.GetEventStore()
 
 		id := test.SomeID{Value: uuid.New().String()}
-		streamID := lib.NewStreamID("customer" + "-" + id.ID())
+		streamID := es.NewStreamID("customer" + "-" + id.ID())
 
 		Convey("Given an event stream with 3 events", func() {
 			appendEventToStream(db, eventStore, streamID, test.CreateSomeEvent(id, 1))
@@ -312,9 +318,9 @@ func Test_PostgresEventStore_PurgeEventStream(t *testing.T) {
 
 func appendEventToStream(
 	db *sql.DB,
-	eventStore *eventstore.PostgresEventStore,
-	streamID lib.StreamID,
-	event lib.DomainEvent,
+	eventStore *postgres.EventStore,
+	streamID es.StreamID,
+	event es.DomainEvent,
 ) {
 
 	tx, err := db.Begin()
@@ -322,7 +328,7 @@ func appendEventToStream(
 
 	err = eventStore.AppendEventsToStream(
 		streamID,
-		lib.DomainEvents{event},
+		es.DomainEvents{event},
 		tx,
 	)
 	So(err, ShouldBeNil)

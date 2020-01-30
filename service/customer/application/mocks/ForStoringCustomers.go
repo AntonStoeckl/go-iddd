@@ -4,7 +4,7 @@
 
 package mocks
 
-import lib "go-iddd/service/lib"
+import es "go-iddd/service/lib/es"
 import mock "github.com/stretchr/testify/mock"
 import sql "database/sql"
 import values "go-iddd/service/customer/application/domain/values"
@@ -29,15 +29,15 @@ func (_m *ForStoringCustomers) Delete(id values.CustomerID) error {
 }
 
 // EventStream provides a mock function with given fields: id
-func (_m *ForStoringCustomers) EventStream(id values.CustomerID) (lib.DomainEvents, error) {
+func (_m *ForStoringCustomers) EventStream(id values.CustomerID) (es.DomainEvents, error) {
 	ret := _m.Called(id)
 
-	var r0 lib.DomainEvents
-	if rf, ok := ret.Get(0).(func(values.CustomerID) lib.DomainEvents); ok {
+	var r0 es.DomainEvents
+	if rf, ok := ret.Get(0).(func(values.CustomerID) es.DomainEvents); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(lib.DomainEvents)
+			r0 = ret.Get(0).(es.DomainEvents)
 		}
 	}
 
@@ -52,11 +52,11 @@ func (_m *ForStoringCustomers) EventStream(id values.CustomerID) (lib.DomainEven
 }
 
 // Persist provides a mock function with given fields: id, recordedEvents, tx
-func (_m *ForStoringCustomers) Persist(id values.CustomerID, recordedEvents lib.DomainEvents, tx *sql.Tx) error {
+func (_m *ForStoringCustomers) Persist(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	ret := _m.Called(id, recordedEvents, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID, lib.DomainEvents, *sql.Tx) error); ok {
+	if rf, ok := ret.Get(0).(func(values.CustomerID, es.DomainEvents, *sql.Tx) error); ok {
 		r0 = rf(id, recordedEvents, tx)
 	} else {
 		r0 = ret.Error(0)
@@ -66,11 +66,11 @@ func (_m *ForStoringCustomers) Persist(id values.CustomerID, recordedEvents lib.
 }
 
 // Register provides a mock function with given fields: id, recordedEvents, tx
-func (_m *ForStoringCustomers) Register(id values.CustomerID, recordedEvents lib.DomainEvents, tx *sql.Tx) error {
+func (_m *ForStoringCustomers) Register(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	ret := _m.Called(id, recordedEvents, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID, lib.DomainEvents, *sql.Tx) error); ok {
+	if rf, ok := ret.Get(0).(func(values.CustomerID, es.DomainEvents, *sql.Tx) error); ok {
 		r0 = rf(id, recordedEvents, tx)
 	} else {
 		r0 = ret.Error(0)

@@ -7,7 +7,7 @@ import (
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	"go-iddd/service/lib/infrastructure/eventstore"
+	"go-iddd/service/lib/eventstore/postgres/database"
 	"net"
 	"net/http"
 	"os"
@@ -93,7 +93,7 @@ func mustOpenPostgresDBConnection() {
 }
 
 func mustRunDBMigrations() {
-	migrator, err := eventstore.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
+	migrator, err := database.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
 	if err != nil {
 		logger.Errorf("failed to create DB migrator: %s", err)
 		shutdown()
@@ -113,7 +113,7 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
-			events.UnmarshalDomainEvent,
+			events.UnmarshalCustomerEvent,
 		)
 
 		if err != nil {

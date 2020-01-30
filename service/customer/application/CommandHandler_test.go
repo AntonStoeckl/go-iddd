@@ -8,6 +8,7 @@ import (
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/application/mocks"
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -31,7 +32,7 @@ func Test_CommandHandler_ConfirmEmailAddress_WithErrorFromCustomers(t *testing.T
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("John", "Doe")
 
-		eventStream := lib.DomainEvents{
+		eventStream := es.DomainEvents{
 			events.ItWasRegistered(customerID, emailAddress, confirmationHash, personName, uint(1)),
 		}
 
@@ -75,7 +76,7 @@ func Test_CommandHandler_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T)
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("John", "Doe")
 
-		eventStream := lib.DomainEvents{
+		eventStream := es.DomainEvents{
 			events.ItWasRegistered(customerID, emailAddress, confirmationHash, personName, uint(1)),
 		}
 
@@ -160,7 +161,7 @@ func Test_CommandHandler_RetriesWithConcurrencyConflicts(t *testing.T) {
 		emailAddress := values.RebuildEmailAddress("john@doe.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("John", "Doe")
-		eventStream := lib.DomainEvents{
+		eventStream := es.DomainEvents{
 			events.ItWasRegistered(customerID, emailAddress, confirmationHash, personName, uint(1)),
 		}
 

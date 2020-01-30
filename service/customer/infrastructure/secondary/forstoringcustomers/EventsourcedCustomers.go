@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/lib"
+	"go-iddd/service/lib/es"
 	"math"
 
 	"github.com/cockroachdb/errors"
@@ -12,14 +13,14 @@ import (
 const streamPrefix = "customer"
 
 type EventsourcedCustomers struct {
-	eventStore lib.EventStore
+	eventStore es.EventStore
 }
 
-func NewEventsourcedCustomers(eventStore lib.EventStore) *EventsourcedCustomers {
+func NewEventsourcedCustomers(eventStore es.EventStore) *EventsourcedCustomers {
 	return &EventsourcedCustomers{eventStore: eventStore}
 }
 
-func (customers *EventsourcedCustomers) EventStream(id values.CustomerID) (lib.DomainEvents, error) {
+func (customers *EventsourcedCustomers) EventStream(id values.CustomerID) (es.DomainEvents, error) {
 	eventStream, err := customers.eventStore.LoadEventStream(customers.streamID(id), 0, math.MaxUint32)
 	if err != nil {
 		return nil, errors.Wrap(err, "customers.EventStream")
@@ -33,7 +34,7 @@ func (customers *EventsourcedCustomers) EventStream(id values.CustomerID) (lib.D
 	return eventStream, nil
 }
 
-func (customers *EventsourcedCustomers) Register(id values.CustomerID, recordedEvents lib.DomainEvents, tx *sql.Tx) error {
+func (customers *EventsourcedCustomers) Register(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	if err := customers.eventStore.AppendEventsToStream(customers.streamID(id), recordedEvents, tx); err != nil {
 		if errors.Is(err, lib.ErrConcurrencyConflict) {
 			err = errors.New("found duplicate customer")
@@ -46,7 +47,7 @@ func (customers *EventsourcedCustomers) Register(id values.CustomerID, recordedE
 	return nil
 }
 
-func (customers *EventsourcedCustomers) Persist(id values.CustomerID, recordedEvents lib.DomainEvents, tx *sql.Tx) error {
+func (customers *EventsourcedCustomers) Persist(id values.CustomerID, recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	if err := customers.eventStore.AppendEventsToStream(customers.streamID(id), recordedEvents, tx); err != nil {
 		return errors.Wrap(err, "customers.Persist")
 	}
@@ -62,6 +63,6 @@ func (customers *EventsourcedCustomers) Delete(id values.CustomerID) error {
 	return nil
 }
 
-func (customers *EventsourcedCustomers) streamID(id values.CustomerID) lib.StreamID {
-	return lib.NewStreamID(streamPrefix + "-" + id.ID())
+func (customers *EventsourcedCustomers) streamID(id values.CustomerID) es.StreamID {
+	return es.NewStreamID(streamPrefix + "-" + id.ID())
 }
