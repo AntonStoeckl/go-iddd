@@ -1,16 +1,20 @@
 package acceptance_test
 
 import (
+	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/infrastructure"
+	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/mocked"
 	"go-iddd/service/lib"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/mock"
 )
 
-func Test_ForRegisteringCustomers(t *testing.T) {
+func Test_Register(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
@@ -50,6 +54,51 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func Test_Register_WithTransactionErrors(t *testing.T) {
+	Convey("Setup", t, func() {
+		customers := new(mocked.ForStoringCustomerEvents)
+
+		db, dbMock, err := sqlmock.New()
+		So(err, ShouldBeNil)
+
+		register, err := commands.NewRegister("john@doe.com", "John", "Doe")
+		So(err, ShouldBeNil)
+
+		commandHandler := application.NewCommandHandler(customers, db)
+
+		Convey("Given begin transaction will fail", func() {
+			dbMock.ExpectBegin().WillReturnError(lib.ErrTechnical)
+
+			Convey("When a Customer is registered", func() {
+				err := commandHandler.Register(register)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+					So(dbMock.ExpectationsWereMet(), ShouldBeNil)
+				})
+			})
+		})
+
+		Convey("Given commit transaction will fail", func() {
+			dbMock.ExpectBegin()
+			dbMock.ExpectCommit().WillReturnError(lib.ErrTechnical)
+
+			customers.On("CreateStreamFrom", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+
+			Convey("When a Customer is registered", func() {
+				err := commandHandler.Register(register)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+					So(dbMock.ExpectationsWereMet(), ShouldBeNil)
+				})
 			})
 		})
 	})
