@@ -1,4 +1,4 @@
-package integrationtests_test
+package acceptance_test
 
 import (
 	"go-iddd/service/customer/application/domain/commands"
