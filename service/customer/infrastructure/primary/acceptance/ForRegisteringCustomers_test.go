@@ -27,20 +27,28 @@ func Test_Register(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		Convey("When a Customer is registered", func() {
+		Convey("Given no Customer with the same ID exists", func() {
+			Convey("When a Customer is registered", func() {
+				err = commandHandler.Register(register)
+
+				Convey("It should succeed", func() {
+					So(err, ShouldBeNil)
+				})
+
+				err := diContainer.GetCustomerEventStore().Delete(register.CustomerID())
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("Given a Customer with the same ID already exists", func() {
 			err = commandHandler.Register(register)
 
-			Convey("It should succeed", func() {
-				So(err, ShouldBeNil)
+			Convey("When a Customer is registered", func() {
+				err = commandHandler.Register(register)
 
-				Convey("And when a Customer is registered with the same ID", func() {
-					err = commandHandler.Register(register)
-
-					Convey("It should fail", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
-						So(errors.Is(err, lib.ErrConcurrencyConflict), ShouldBeFalse)
-					})
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
 				})
 			})
 
@@ -61,17 +69,15 @@ func Test_Register(t *testing.T) {
 
 func Test_Register_WithTransactionErrors(t *testing.T) {
 	Convey("Setup", t, func() {
-		customers := new(mocked.ForStoringCustomerEvents)
-
+		customerEventStore := new(mocked.ForStoringCustomerEvents)
 		db, dbMock, err := sqlmock.New()
 		So(err, ShouldBeNil)
+		commandHandler := application.NewCommandHandler(customerEventStore, db)
 
 		register, err := commands.NewRegister("john@doe.com", "John", "Doe")
 		So(err, ShouldBeNil)
 
-		commandHandler := application.NewCommandHandler(customers, db)
-
-		Convey("Given begin transaction will fail", func() {
+		Convey("Assuming that beginning the transaction fails", func() {
 			dbMock.ExpectBegin().WillReturnError(lib.ErrTechnical)
 
 			Convey("When a Customer is registered", func() {
@@ -85,11 +91,11 @@ func Test_Register_WithTransactionErrors(t *testing.T) {
 			})
 		})
 
-		Convey("Given commit transaction will fail", func() {
+		Convey("Assuming that committing the transaction fails", func() {
 			dbMock.ExpectBegin()
 			dbMock.ExpectCommit().WillReturnError(lib.ErrTechnical)
 
-			customers.On("CreateStreamFrom", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+			customerEventStore.On("CreateStreamFrom", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 			Convey("When a Customer is registered", func() {
 				err := commandHandler.Register(register)
