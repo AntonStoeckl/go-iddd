@@ -1,7 +1,6 @@
 package application
 
 import (
-	"database/sql"
 	"go-iddd/service/customer/application/domain"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
@@ -15,13 +14,11 @@ const maxCommandHandlerRetries = uint8(10)
 
 type CommandHandler struct {
 	customerEvents ForStoringCustomerEvents
-	db             *sql.DB
 }
 
-func NewCommandHandler(customerEvents ForStoringCustomerEvents, db *sql.DB) *CommandHandler {
+func NewCommandHandler(customerEvents ForStoringCustomerEvents) *CommandHandler {
 	return &CommandHandler{
 		customerEvents: customerEvents,
-		db:             db,
 	}
 }
 
@@ -67,7 +64,7 @@ func (handler *CommandHandler) handleRetry(command cqrs.Command) error {
 
 	for retries = 0; retries < maxCommandHandlerRetries; retries++ {
 		// call next method in chain
-		if err = handler.handleSession(command); err == nil {
+		if err = handler.handleCommand(command); err == nil {
 			break // no need to retry, handling was successful
 		}
 
@@ -89,48 +86,16 @@ func (handler *CommandHandler) handleRetry(command cqrs.Command) error {
 	return nil
 }
 
-func (handler *CommandHandler) handleSession(command cqrs.Command) error {
-	tx, errTx := handler.db.Begin()
-	if errTx != nil {
-		return errors.Mark(errTx, lib.ErrTechnical)
-	}
-
-	// call next method in chain
-	err := handler.handleCommand(command, tx)
-
-	if err != nil {
-		if !errors.Is(err, lib.ErrDomainConstraintsViolation) {
-			_ = tx.Rollback()
-
-			return err
-		}
-	}
-
-	if errTx := tx.Commit(); errTx != nil {
-		return errors.Mark(errTx, lib.ErrTechnical)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (handler *CommandHandler) handleCommand(
-	command cqrs.Command,
-	tx *sql.Tx,
-) error {
-
+func (handler *CommandHandler) handleCommand(command cqrs.Command) error {
 	var err error
 
 	switch actualCommand := command.(type) {
 	case commands.Register:
-		err = handler.register(actualCommand, tx)
+		err = handler.register(actualCommand)
 	case commands.ConfirmEmailAddress:
-		err = handler.confirmEmailAddress(actualCommand, tx)
+		err = handler.confirmEmailAddress(actualCommand)
 	case commands.ChangeEmailAddress:
-		err = handler.changeEmailAddress(actualCommand, tx)
+		err = handler.changeEmailAddress(actualCommand)
 	}
 
 	if err != nil {
@@ -140,25 +105,17 @@ func (handler *CommandHandler) handleCommand(
 	return nil
 }
 
-func (handler *CommandHandler) register(
-	register commands.Register,
-	tx *sql.Tx,
-) error {
-
+func (handler *CommandHandler) register(register commands.Register) error {
 	recordedEvents := domain.RegisterCustomer(register)
 
-	if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID(), tx); err != nil {
+	if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (handler *CommandHandler) confirmEmailAddress(
-	confirmEmailAddress commands.ConfirmEmailAddress,
-	tx *sql.Tx,
-) error {
-
+func (handler *CommandHandler) confirmEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
 	eventStream, err := handler.customerEvents.EventStreamFor(confirmEmailAddress.CustomerID())
 	if err != nil {
 		return err
@@ -166,7 +123,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 
 	recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-	if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID(), tx); err != nil {
+	if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID()); err != nil {
 		return err
 	}
 
@@ -180,11 +137,7 @@ func (handler *CommandHandler) confirmEmailAddress(
 	return nil
 }
 
-func (handler *CommandHandler) changeEmailAddress(
-	changeEmailAddress commands.ChangeEmailAddress,
-	tx *sql.Tx,
-) error {
-
+func (handler *CommandHandler) changeEmailAddress(changeEmailAddress commands.ChangeEmailAddress) error {
 	eventStream, err := handler.customerEvents.EventStreamFor(changeEmailAddress.CustomerID())
 	if err != nil {
 		return err
@@ -192,7 +145,7 @@ func (handler *CommandHandler) changeEmailAddress(
 
 	recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
-	if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID(), tx); err != nil {
+	if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID()); err != nil {
 		return err
 	}
 

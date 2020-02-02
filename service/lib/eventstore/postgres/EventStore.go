@@ -33,7 +33,6 @@ func NewEventStore(
 func (eventStore *EventStore) AppendEventsToStream(
 	streamID es.StreamID,
 	events es.DomainEvents,
-	tx *sql.Tx,
 ) error {
 
 	wrapWithMsg := "eventStore.AppendEventsToStream"
@@ -41,6 +40,11 @@ func (eventStore *EventStore) AppendEventsToStream(
 	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
 						VALUES ($1, $2, $3, $4, $5)`
 	query := strings.Replace(queryTemplate, "%name%", eventStore.tableName, 1)
+
+	tx, err := eventStore.db.Begin()
+	if err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
 
 	for _, event := range events {
 		eventJson, err := jsoniter.Marshal(event)
@@ -72,6 +76,12 @@ func (eventStore *EventStore) AppendEventsToStream(
 				return defaultErr // some other DB error (e.g. tx already closed, no connection)
 			}
 		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		_ = tx.Rollback()
+
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
 	return nil

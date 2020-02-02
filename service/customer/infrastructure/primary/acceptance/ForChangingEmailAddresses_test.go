@@ -11,7 +11,6 @@ import (
 	"go-iddd/service/lib/es"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -21,6 +20,7 @@ func Test_ChangeEmailAddress(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
+
 		commandHandler := diContainer.GetCustomerCommandHandler()
 
 		newEmailAddress := "john+changed@doe.com"
@@ -98,14 +98,9 @@ func Test_ChangeEmailAddress(t *testing.T) {
 
 func Test_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
-		customers := new(mocked.ForStoringCustomerEvents)
+		customerEventStore := new(mocked.ForStoringCustomerEvents)
 
-		db, dbMock, err := sqlmock.New()
-		So(err, ShouldBeNil)
-		dbMock.ExpectBegin()
-		dbMock.ExpectRollback()
-
-		commandHandler := application.NewCommandHandler(customers, db)
+		commandHandler := application.NewCommandHandler(customerEventStore)
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("john@doe.com")
@@ -123,8 +118,8 @@ func Test_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Given the Customer can't be persisted because of a technical error", func() {
-			customers.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Once()
-			customers.On("Add", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
+			customerEventStore.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Once()
+			customerEventStore.On("Add", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
 
 			Convey("When a Customer's emailAddress is confirmed", func() {
 				err := commandHandler.ChangeEmailAddress(changeEmailAddress)
@@ -132,7 +127,6 @@ func Test_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-					So(dbMock.ExpectationsWereMet(), ShouldBeNil)
 				})
 			})
 		})
@@ -141,12 +135,9 @@ func Test_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
 
 func Test_ChangeEmailAddress_RetriesWhenItHasConcurrencyConflicts(t *testing.T) {
 	Convey("Given a CommandHandler", t, func() {
-		customers := new(mocked.ForStoringCustomerEvents)
+		customerEventStore := new(mocked.ForStoringCustomerEvents)
 
-		db, dbMock, err := sqlmock.New()
-		So(err, ShouldBeNil)
-
-		commandHandler := application.NewCommandHandler(customers, db)
+		commandHandler := application.NewCommandHandler(customerEventStore)
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("john@doe.com")
@@ -167,57 +158,45 @@ func Test_ChangeEmailAddress_RetriesWhenItHasConcurrencyConflicts(t *testing.T) 
 				Convey("And when finding the Customer succeeds", func() {
 					Convey("And when saving the Customer has a concurrency conflict once", func() {
 						// should be called twice due to retry
-						customers.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Twice()
+						customerEventStore.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Twice()
 
 						// fist attempt runs into a concurrency conflict
-						customers.
+						customerEventStore.
 							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(lib.ErrConcurrencyConflict).
 							Once()
-						dbMock.ExpectBegin()
-						dbMock.ExpectRollback()
 
 						// second attempt works
-						customers.
+						customerEventStore.
 							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(nil).
 							Once()
-						dbMock.ExpectBegin()
-						dbMock.ExpectCommit()
 
 						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should modify the Customer and save it", func() {
 							So(err, ShouldBeNil)
-							So(dbMock.ExpectationsWereMet(), ShouldBeNil)
 						})
 					})
 
 					Convey("And when saving the Customer has too many concurrency conflicts", func() {
 						// should be called 10 times due to retries
-						customers.
+						customerEventStore.
 							On("EventStreamFor", mock.Anything).
 							Return(eventStream, nil).
 							Times(10)
 
 						// all attempts run into a concurrency conflict
-						customers.
+						customerEventStore.
 							On("Add", mock.Anything, mock.Anything, mock.Anything).
 							Return(lib.ErrConcurrencyConflict).
 							Times(10)
-
-						// we expect this 10 time - no simpler way with Sqlmock
-						for i := 1; i <= 10; i++ {
-							dbMock.ExpectBegin()
-							dbMock.ExpectRollback()
-						}
 
 						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
 
 						Convey("It should fail", func() {
 							So(err, ShouldNotBeNil)
 							So(errors.Is(err, lib.ErrConcurrencyConflict), ShouldBeTrue)
-							So(dbMock.ExpectationsWereMet(), ShouldBeNil)
 						})
 					})
 				})

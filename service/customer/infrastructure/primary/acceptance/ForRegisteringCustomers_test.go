@@ -9,7 +9,6 @@ import (
 	"go-iddd/service/lib/es"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -18,10 +17,8 @@ import (
 func Test_ForRegisteringCustomers(t *testing.T) {
 	Convey("Setup", t, func() {
 		customerEventStore := new(mocked.ForStoringCustomerEvents)
-		db, sqlMock, err := sqlmock.New()
-		So(err, ShouldBeNil)
 
-		commandHandler := application.NewCommandHandler(customerEventStore, db)
+		commandHandler := application.NewCommandHandler(customerEventStore)
 
 		register, err := commands.NewRegister(
 			"john@doe.com",
@@ -41,15 +38,11 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 		}
 
 		Convey("Given no Customer with the same ID exists", func() {
-			sqlMock.ExpectBegin()
-			sqlMock.ExpectCommit()
-
 			customerEventStore.
 				On(
 					"CreateStreamFrom",
 					mock.MatchedBy(containsOnlyRegisteredEvent),
 					register.CustomerID(),
-					mock.AnythingOfType("*sql.Tx"),
 				).
 				Return(nil).
 				Once()
@@ -59,21 +52,16 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 
 				Convey("It should succeed", func() {
 					So(err, ShouldBeNil)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 				})
 			})
 		})
 
 		Convey("Given a Customer with the same ID already exists", func() {
-			sqlMock.ExpectBegin()
-			sqlMock.ExpectRollback()
-
 			customerEventStore.
 				On(
 					"CreateStreamFrom",
 					mock.MatchedBy(containsOnlyRegisteredEvent),
 					register.CustomerID(),
-					mock.AnythingOfType("*sql.Tx"),
 				).
 				Return(lib.ErrDuplicate).
 				Once()
@@ -84,7 +72,6 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 				})
 			})
 		})
@@ -95,38 +82,6 @@ func Test_ForRegisteringCustomers(t *testing.T) {
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
 				So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-				So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
-			})
-		})
-
-		Convey("Assuming that beginning the transaction fails", func() {
-			sqlMock.ExpectBegin().WillReturnError(lib.ErrTechnical)
-
-			Convey("When a Customer is registered", func() {
-				err := commandHandler.Register(register)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
-				})
-			})
-		})
-
-		Convey("Assuming that committing the transaction fails", func() {
-			sqlMock.ExpectBegin()
-			sqlMock.ExpectCommit().WillReturnError(lib.ErrTechnical)
-
-			customerEventStore.On("CreateStreamFrom", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
-
-			Convey("When a Customer is registered", func() {
-				err := commandHandler.Register(register)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
-				})
 			})
 		})
 	})

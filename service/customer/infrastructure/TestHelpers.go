@@ -7,8 +7,6 @@ import (
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/lib/eventstore/postgres/database"
-
-	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func SetUpDIContainer() (*cmd.DIContainer, error) {
@@ -46,20 +44,4 @@ func SetUpDIContainer() (*cmd.DIContainer, error) {
 	}
 
 	return diContainer, nil
-}
-
-func MockTx() (*sql.Tx, error) {
-	db, dbMock, err := sqlmock.New()
-	if err != nil {
-		return nil, err
-	}
-
-	dbMock.ExpectBegin()
-
-	tx, err := db.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	return tx, nil
 }

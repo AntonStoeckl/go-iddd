@@ -1,7 +1,6 @@
 package eventstore
 
 import (
-	"database/sql"
 	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
@@ -34,8 +33,8 @@ func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.Dom
 	return eventStream, nil
 }
 
-func (customer *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error {
-	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents, tx); err != nil {
+func (customer *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID) error {
+	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents); err != nil {
 		if errors.Is(err, lib.ErrConcurrencyConflict) {
 			err = errors.New("found duplicate customer")
 			return lib.MarkAndWrapError(err, lib.ErrDuplicate, "customerEventStore.CreateStreamFrom")
@@ -47,8 +46,8 @@ func (customer *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEve
 	return nil
 }
 
-func (customer *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.CustomerID, tx *sql.Tx) error {
-	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents, tx); err != nil {
+func (customer *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.CustomerID) error {
+	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents); err != nil {
 		return errors.Wrap(err, "customerEventStore.Add")
 	}
 

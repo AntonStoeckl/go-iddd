@@ -2,7 +2,6 @@ package eventstore_test
 
 import (
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
@@ -18,8 +17,6 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 	Convey("Setup", t, func() {
 		id := values.GenerateCustomerID()
 		var recordedEvents es.DomainEvents
-		tx, err := infrastructure.MockTx()
-		So(err, ShouldBeNil)
 		eventStore := new(mocked.EventStore)
 		customers := eventstore.NewCustomerEventStore(eventStore)
 
@@ -49,12 +46,11 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 					"AppendEventsToStream",
 					mock.AnythingOfType("es.StreamID"),
 					recordedEvents,
-					mock.AnythingOfType("*sql.Tx"),
 				).
 				Return(lib.ErrTechnical)
 
 			Convey("When a Customer is registered", func() {
-				err := customers.CreateStreamFrom(recordedEvents, id, tx)
+				err := customers.CreateStreamFrom(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -63,7 +59,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When changes of a Customer are persisted", func() {
-				err := customers.Add(recordedEvents, id, tx)
+				err := customers.Add(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)

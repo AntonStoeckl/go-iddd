@@ -10,7 +10,6 @@ import (
 	"go-iddd/service/lib/es"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -19,10 +18,8 @@ import (
 func Test_ForConfirmingEmailAddresses(t *testing.T) {
 	Convey("Setup", t, func() {
 		customerEventStore := new(mocked.ForStoringCustomerEvents)
-		db, sqlMock, err := sqlmock.New()
-		So(err, ShouldBeNil)
 
-		commandHandler := application.NewCommandHandler(customerEventStore, db)
+		commandHandler := application.NewCommandHandler(customerEventStore)
 
 		registered := events.ItWasRegistered(
 			values.GenerateCustomerID(),
@@ -80,15 +77,11 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 					Once()
 
 				Convey("When the emailAddress is confirmed with a valid confirmationHash", func() {
-					sqlMock.ExpectBegin()
-					sqlMock.ExpectCommit()
-
 					customerEventStore.
 						On(
 							"Add",
 							mock.MatchedBy(containsOnlyEmailAddressConfirmedEvent),
 							registered.CustomerID(),
-							mock.AnythingOfType("*sql.Tx"),
 						).
 						Return(nil).
 						Once()
@@ -97,20 +90,15 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 
 					Convey("It should succeed", func() {
 						So(err, ShouldBeNil)
-						So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 					})
 				})
 
 				Convey("When the emailAddress is confirmed with an invalid confirmationHash", func() {
-					sqlMock.ExpectBegin()
-					sqlMock.ExpectCommit()
-
 					customerEventStore.
 						On(
 							"Add",
 							mock.MatchedBy(containsOnlyEmailAddressConfirmationFailedEvent),
 							registered.CustomerID(),
-							mock.AnythingOfType("*sql.Tx"),
 						).
 						Return(nil).
 						Once()
@@ -120,7 +108,6 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 					Convey("It should fail", func() {
 						So(err, ShouldBeError)
 						So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
-						So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 					})
 				})
 			})
@@ -132,15 +119,11 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 					Once()
 
 				Convey("When the emailAddress is confirmed again", func() {
-					sqlMock.ExpectBegin()
-					sqlMock.ExpectCommit()
-
 					customerEventStore.
 						On(
 							"Add",
 							es.DomainEvents(nil),
 							registered.CustomerID(),
-							mock.AnythingOfType("*sql.Tx"),
 						).
 						Return(nil).
 						Once()
@@ -149,7 +132,6 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 
 					Convey("It should succeed", func() {
 						So(err, ShouldBeNil)
-						So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 					})
 				})
 			})
@@ -160,14 +142,10 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 				})
 			})
 
 			Convey("Assuming that the recordedEvents can't be added", func() {
-				sqlMock.ExpectBegin()
-				sqlMock.ExpectRollback()
-
 				customerEventStore.
 					On("EventStreamFor", registered.CustomerID()).
 					Return(es.DomainEvents{registered}, nil).
@@ -184,16 +162,12 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 					Convey("It should fail", func() {
 						So(err, ShouldBeError)
 						So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 					})
 				})
 			})
 		})
 
 		Convey("Given an unregistered Customer", func() {
-			sqlMock.ExpectBegin()
-			sqlMock.ExpectRollback()
-
 			customerID := values.GenerateCustomerID()
 
 			customerEventStore.
@@ -214,7 +188,6 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
-					So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 				})
 			})
 		})

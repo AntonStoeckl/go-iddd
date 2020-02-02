@@ -82,7 +82,6 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CommandHan
 	if container.customerCommandHandler == nil {
 		container.customerCommandHandler = application.NewCommandHandler(
 			container.GetCustomerEventStore(),
-			container.postgresDBConn,
 		)
 	}
 
