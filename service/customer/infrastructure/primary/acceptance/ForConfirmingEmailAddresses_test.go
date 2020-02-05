@@ -35,14 +35,14 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 			uint(2),
 		)
 
-		withValidHash, err := commands.NewConfirmEmailAddress(
+		confirmWithValidHash, err := commands.NewConfirmEmailAddress(
 			registered.CustomerID().ID(),
 			registered.EmailAddress().EmailAddress(),
 			registered.ConfirmationHash().Hash(),
 		)
 		So(err, ShouldBeNil)
 
-		withInvalidHash, err := commands.NewConfirmEmailAddress(
+		confirmWithInvalidHash, err := commands.NewConfirmEmailAddress(
 			registered.CustomerID().ID(),
 			registered.EmailAddress().EmailAddress(),
 			"some_invalid_hash",
@@ -86,7 +86,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 						Return(nil).
 						Once()
 
-					err = commandHandler.ConfirmEmailAddress(withValidHash)
+					err = commandHandler.ConfirmEmailAddress(confirmWithValidHash)
 
 					Convey("It should succeed", func() {
 						So(err, ShouldBeNil)
@@ -103,7 +103,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 						Return(nil).
 						Once()
 
-					err = commandHandler.ConfirmEmailAddress(withInvalidHash)
+					err = commandHandler.ConfirmEmailAddress(confirmWithInvalidHash)
 
 					Convey("It should fail", func() {
 						So(err, ShouldBeError)
@@ -128,7 +128,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 						Return(nil).
 						Once()
 
-					err = commandHandler.ConfirmEmailAddress(withValidHash)
+					err = commandHandler.ConfirmEmailAddress(confirmWithValidHash)
 
 					Convey("It should succeed", func() {
 						So(err, ShouldBeNil)
@@ -157,7 +157,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 					Once()
 
 				Convey("When the emailAddress is confirmed", func() {
-					err := commandHandler.ConfirmEmailAddress(withValidHash)
+					err := commandHandler.ConfirmEmailAddress(confirmWithValidHash)
 
 					Convey("It should fail", func() {
 						So(err, ShouldBeError)
