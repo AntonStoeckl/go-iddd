@@ -70,7 +70,3 @@ func (changeEmailAddress ChangeEmailAddress) commandName() string {
 
 	return strings.Title(commandName)
 }
-
-func (changeEmailAddress ChangeEmailAddress) IsCommand() bool {
-	return true
-}

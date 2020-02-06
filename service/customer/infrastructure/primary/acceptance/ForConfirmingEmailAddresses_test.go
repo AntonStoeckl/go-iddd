@@ -130,7 +130,7 @@ func Test_ForConfirmingEmailAddresses(t *testing.T) {
 
 					err = commandHandler.ConfirmEmailAddress(confirmWithValidHash)
 
-					Convey("It should succeed", func() {
+					Convey("It should be ignored", func() {
 						So(err, ShouldBeNil)
 					})
 				})

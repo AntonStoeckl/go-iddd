@@ -76,7 +76,3 @@ func (confirmEmailAddress ConfirmEmailAddress) commandName() string {
 
 	return strings.Title(commandName)
 }
-
-func (confirmEmailAddress ConfirmEmailAddress) IsCommand() bool {
-	return true
-}

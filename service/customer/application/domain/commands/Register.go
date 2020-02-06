@@ -77,7 +77,3 @@ func (register Register) commandName() string {
 
 	return strings.Title(commandName)
 }
-
-func (register Register) IsCommand() bool {
-	return true
-}

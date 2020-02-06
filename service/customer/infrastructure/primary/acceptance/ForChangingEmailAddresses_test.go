@@ -5,7 +5,6 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
-	"go-iddd/service/customer/infrastructure"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/mocked"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
@@ -16,55 +15,136 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func Test_ChangeEmailAddress(t *testing.T) {
+func Test_ForChangingEmailAddresses(t *testing.T) {
 	Convey("Setup", t, func() {
-		diContainer, err := infrastructure.SetUpDIContainer()
+		customerEventStore := new(mocked.ForStoringCustomerEvents)
+
+		commandHandler := application.NewCommandHandler(customerEventStore)
+
+		registered := events.ItWasRegistered(
+			values.GenerateCustomerID(),
+			values.RebuildEmailAddress("john@doe.com"),
+			values.RebuildConfirmationHash("john@doe.com"),
+			values.RebuildPersonName("John", "Doe"),
+			uint(1),
+		)
+
+		emailAddressConfirmed := events.EmailAddressWasChanged(
+			registered.CustomerID(),
+			registered.EmailAddress(),
+			registered.ConfirmationHash(),
+			uint(2),
+		)
+
+		changeEmailAddress, err := commands.NewChangeEmailAddress(
+			registered.CustomerID().ID(),
+			"john+change@doe.com",
+		)
 		So(err, ShouldBeNil)
 
-		commandHandler := diContainer.GetCustomerCommandHandler()
+		emailAddressChanged := events.EmailAddressWasChanged(
+			changeEmailAddress.CustomerID(),
+			changeEmailAddress.EmailAddress(),
+			changeEmailAddress.ConfirmationHash(),
+			uint(3),
+		)
 
-		newEmailAddress := "john+changed@doe.com"
+		containsOnlyEmailAddressChangedEvent := func(recordedEvents es.DomainEvents) bool {
+			if len(recordedEvents) != 1 {
+				return false
+			}
+
+			_, ok := recordedEvents[0].(events.EmailAddressChanged)
+
+			return ok
+		}
+
+		containsOnlyEmailAddressConfirmedEvent := func(recordedEvents es.DomainEvents) bool {
+			if len(recordedEvents) != 1 {
+				return false
+			}
+
+			_, ok := recordedEvents[0].(events.EmailAddressConfirmed)
+
+			return ok
+		}
 
 		Convey("Given a registered Customer", func() {
-			register, err := commands.NewRegister(
-				"john@doe.com",
-				"John",
-				"Doe",
-			)
-			So(err, ShouldBeNil)
+			Convey("And given their emailAddress has been confirmed", func() {
+				customerEventStore.
+					On("EventStreamFor", registered.CustomerID()).
+					Return(es.DomainEvents{registered, emailAddressConfirmed}, nil).
+					Once()
 
-			err = commandHandler.Register(register)
-			So(err, ShouldBeNil)
+				Convey("When the emailAddress is changed", func() {
+					customerEventStore.
+						On(
+							"Add",
+							mock.MatchedBy(containsOnlyEmailAddressChangedEvent),
+							registered.CustomerID(),
+						).
+						Return(nil).
+						Once()
 
-			Convey("When a Customer's emailAddress is changed", func() {
-				changeEmailAddress, err := commands.NewChangeEmailAddress(
-					register.CustomerID().ID(),
-					newEmailAddress,
-				)
-				So(err, ShouldBeNil)
+					err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 
-				err = commandHandler.ChangeEmailAddress(changeEmailAddress)
-
-				Convey("It should succeed", func() {
-					So(err, ShouldBeNil)
-
-					Convey("And when a Customer's emailAddress is changed again to the same emailAddress", func() {
-						changeEmailAddress, err := commands.NewChangeEmailAddress(
-							register.CustomerID().ID(),
-							newEmailAddress,
-						)
+					Convey("It should succeed", func() {
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+						Convey("And the changed emailAddress should be unconfirmed", func() {
+							customerEventStore.
+								On("EventStreamFor", registered.CustomerID()).
+								Return(es.DomainEvents{registered, emailAddressConfirmed, emailAddressChanged}, nil).
+								Once()
 
-						Convey("It should succeed", func() {
+							customerEventStore.
+								On(
+									"Add",
+									mock.MatchedBy(containsOnlyEmailAddressConfirmedEvent),
+									registered.CustomerID(),
+								).
+								Return(nil).
+								Once()
+
+							confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+								changeEmailAddress.CustomerID().ID(),
+								changeEmailAddress.EmailAddress().EmailAddress(),
+								changeEmailAddress.ConfirmationHash().Hash(),
+							)
+							So(err, ShouldBeNil)
+
+							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 							So(err, ShouldBeNil)
 						})
 					})
 				})
 			})
 
-			Convey("When a Customer's emailAddress is changed with an invalid command", func() {
+			Convey("And given their emailAddress has already been changed", func() {
+				customerEventStore.
+					On("EventStreamFor", registered.CustomerID()).
+					Return(es.DomainEvents{registered, emailAddressChanged}, nil).
+					Once()
+
+				Convey("When the emailAddress is changed to the same value again", func() {
+					customerEventStore.
+						On(
+							"Add",
+							es.DomainEvents(nil),
+							registered.CustomerID(),
+						).
+						Return(nil).
+						Once()
+
+					err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+
+					Convey("It should be ignored", func() {
+						So(err, ShouldBeNil)
+					})
+				})
+			})
+
+			Convey("When the emailAddress is changed with an invalid command", func() {
 				err := commandHandler.ChangeEmailAddress(commands.ChangeEmailAddress{})
 
 				Convey("It should fail", func() {
@@ -73,15 +153,40 @@ func Test_ChangeEmailAddress(t *testing.T) {
 				})
 			})
 
-			err = diContainer.GetCustomerEventStore().Delete(register.CustomerID())
-			So(err, ShouldBeNil)
+			Convey("Assuming that the recordedEvents can't be added", func() {
+				customerEventStore.
+					On("EventStreamFor", registered.CustomerID()).
+					Return(es.DomainEvents{registered}, nil).
+					Once()
+
+				customerEventStore.
+					On("Add", mock.Anything, mock.Anything, mock.Anything).
+					Return(lib.ErrTechnical).
+					Once()
+
+				Convey("When the emailAddress is confirmed", func() {
+					err := commandHandler.ChangeEmailAddress(changeEmailAddress)
+
+					Convey("It should fail", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+					})
+				})
+			})
 		})
 
 		Convey("Given an unregistered Customer", func() {
-			Convey("When a Customer's emailAddress is changed", func() {
+			customerID := values.GenerateCustomerID()
+
+			customerEventStore.
+				On("EventStreamFor", customerID).
+				Return(es.DomainEvents{}, lib.ErrNotFound).
+				Once()
+
+			Convey("When the emailAddress is confirmed", func() {
 				changeEmailAddress, err := commands.NewChangeEmailAddress(
-					values.GenerateCustomerID().ID(),
-					newEmailAddress,
+					customerID.ID(),
+					"john@doe.com",
 				)
 				So(err, ShouldBeNil)
 
@@ -90,115 +195,6 @@ func Test_ChangeEmailAddress(t *testing.T) {
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
-				})
-			})
-		})
-	})
-}
-
-func Test_ChangeEmailAddress_WithErrorFromCustomers(t *testing.T) {
-	Convey("Setup", t, func() {
-		customerEventStore := new(mocked.ForStoringCustomerEvents)
-
-		commandHandler := application.NewCommandHandler(customerEventStore)
-
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("john@doe.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-		personName := values.RebuildPersonName("John", "Doe")
-
-		eventStream := es.DomainEvents{
-			events.ItWasRegistered(customerID, emailAddress, confirmationHash, personName, uint(1)),
-		}
-
-		changeEmailAddress, err := commands.NewChangeEmailAddress(
-			customerID.ID(),
-			"john+changed@doe.com",
-		)
-		So(err, ShouldBeNil)
-
-		Convey("Given the Customer can't be persisted because of a technical error", func() {
-			customerEventStore.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Once()
-			customerEventStore.On("Add", mock.Anything, mock.Anything, mock.Anything).Return(lib.ErrTechnical).Once()
-
-			Convey("When a Customer's emailAddress is confirmed", func() {
-				err := commandHandler.ChangeEmailAddress(changeEmailAddress)
-
-				Convey("It should fail", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-				})
-			})
-		})
-	})
-}
-
-func Test_ChangeEmailAddress_RetriesWhenItHasConcurrencyConflicts(t *testing.T) {
-	Convey("Given a CommandHandler", t, func() {
-		customerEventStore := new(mocked.ForStoringCustomerEvents)
-
-		commandHandler := application.NewCommandHandler(customerEventStore)
-
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("john@doe.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-		personName := values.RebuildPersonName("John", "Doe")
-		eventStream := es.DomainEvents{
-			events.ItWasRegistered(customerID, emailAddress, confirmationHash, personName, uint(1)),
-		}
-
-		Convey("And given a ChangeEmailAddress command", func() {
-			changeEmailAddress, err := commands.NewChangeEmailAddress(
-				customerID.ID(),
-				emailAddress.EmailAddress(),
-			)
-			So(err, ShouldBeNil)
-
-			Convey("When the command is handled", func() {
-				Convey("And when finding the Customer succeeds", func() {
-					Convey("And when saving the Customer has a concurrency conflict once", func() {
-						// should be called twice due to retry
-						customerEventStore.On("EventStreamFor", mock.Anything).Return(eventStream, nil).Twice()
-
-						// fist attempt runs into a concurrency conflict
-						customerEventStore.
-							On("Add", mock.Anything, mock.Anything, mock.Anything).
-							Return(lib.ErrConcurrencyConflict).
-							Once()
-
-						// second attempt works
-						customerEventStore.
-							On("Add", mock.Anything, mock.Anything, mock.Anything).
-							Return(nil).
-							Once()
-
-						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
-
-						Convey("It should modify the Customer and save it", func() {
-							So(err, ShouldBeNil)
-						})
-					})
-
-					Convey("And when saving the Customer has too many concurrency conflicts", func() {
-						// should be called 10 times due to retries
-						customerEventStore.
-							On("EventStreamFor", mock.Anything).
-							Return(eventStream, nil).
-							Times(10)
-
-						// all attempts run into a concurrency conflict
-						customerEventStore.
-							On("Add", mock.Anything, mock.Anything, mock.Anything).
-							Return(lib.ErrConcurrencyConflict).
-							Times(10)
-
-						err := commandHandler.ChangeEmailAddress(changeEmailAddress)
-
-						Convey("It should fail", func() {
-							So(err, ShouldNotBeNil)
-							So(errors.Is(err, lib.ErrConcurrencyConflict), ShouldBeTrue)
-						})
-					})
 				})
 			})
 		})
