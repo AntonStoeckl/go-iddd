@@ -20,8 +20,8 @@ func Test_ChangeEmailAddress(t *testing.T) {
 	Convey("Setup", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
-
 		commandHandler := diContainer.GetCustomerCommandHandler()
+		customerEventStore := diContainer.GetCustomerEventStore()
 
 		newEmailAddress := "john+changed@doe.com"
 
@@ -48,6 +48,12 @@ func Test_ChangeEmailAddress(t *testing.T) {
 				Convey("It should succeed", func() {
 					So(err, ShouldBeNil)
 
+					eventStream, err := customerEventStore.EventStreamFor(register.CustomerID())
+					So(err, ShouldBeNil)
+					So(eventStream, ShouldHaveLength, 2)
+					So(eventStream[0], ShouldHaveSameTypeAs, events.Registered{})
+					So(eventStream[1], ShouldHaveSameTypeAs, events.EmailAddressChanged{})
+
 					Convey("And when a Customer's emailAddress is changed again to the same emailAddress", func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
@@ -59,6 +65,12 @@ func Test_ChangeEmailAddress(t *testing.T) {
 
 						Convey("It should succeed", func() {
 							So(err, ShouldBeNil)
+
+							eventStream, err := customerEventStore.EventStreamFor(register.CustomerID())
+							So(err, ShouldBeNil)
+							So(eventStream, ShouldHaveLength, 2)
+							So(eventStream[0], ShouldHaveSameTypeAs, events.Registered{})
+							So(eventStream[1], ShouldHaveSameTypeAs, events.EmailAddressChanged{})
 						})
 					})
 				})
