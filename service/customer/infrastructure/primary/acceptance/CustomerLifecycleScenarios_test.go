@@ -15,8 +15,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_CustomerLifecycle(t *testing.T) {
-	Convey("Scenarios", t, func() {
+func Test_CustomerLifecycleScenarios(t *testing.T) {
+	Convey("Customer Lifecycle Scenarios", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
 
