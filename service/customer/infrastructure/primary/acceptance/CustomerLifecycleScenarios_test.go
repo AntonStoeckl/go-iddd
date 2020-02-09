@@ -23,9 +23,9 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 		commandHandler := diContainer.GetCustomerCommandHandler()
 		customerEventStore := diContainer.GetCustomerEventStore()
 
-		emailAddress := "jane@doe.com"
-		givenName := "Jane"
-		familyName := "Doe"
+		emailAddress := "karen@jackson.com"
+		givenName := "Karen"
+		familyName := "Jackson"
 
 		register, err := commands.NewRegister(
 			emailAddress,
@@ -34,12 +34,23 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		Convey("SCENARIO: A prospective Customer registers and confirms her email address", func() {
+		Convey("\nSCENARIO 1: A prospective Customer registers", func() {
 			Convey(fmt.Sprintf("When I register as %s %s with %s", givenName, familyName, emailAddress), func() {
+				err := commandHandler.Register(register)
+
+				Convey("Then I should have an account with an unconfirmed email address", func() {
+					So(err, ShouldBeNil)
+					MyAccountShouldBeRegistered(register.CustomerID(), customerEventStore)
+				})
+			})
+		})
+
+		Convey("\nSCENARIO 2: A Customer confirms her email address", func() {
+			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
-				Convey("and I confirm my email address with a valid confirmation hash", func() {
+				Convey("When I confirm my email address with a valid confirmation hash", func() {
 					confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 						register.CustomerID().ID(),
 						register.EmailAddress().EmailAddress(),
@@ -66,8 +77,8 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("SCENARIO: A Customer fails to confirm her email address", func() {
-			Convey("Given I registered as a Customer", func() {
+		Convey("\nSCENARIO 3: A Customer fails to confirm her email address", func() {
+			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
@@ -93,8 +104,8 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("SCENARIO: A Customer changes her confirmed email address", func() {
-			Convey("Given I registered as a Customer", func() {
+		Convey("\nSCENARIO 4: A Customer changes her confirmed email address", func() {
+			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
@@ -120,7 +131,7 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 						So(err, ShouldBeNil)
 
 						Convey("Then my changed email address should not be confirmed", func() {
-							MyEmailChangedAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+							MyChangedEmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
 
 							Convey("When I try to change it again", func() {
 								changeEmailAddress, err := commands.NewChangeEmailAddress(
@@ -132,7 +143,7 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 								err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 								Convey("Then it should be ignored", func() {
 									So(err, ShouldBeNil)
-									MyEmailChangedAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+									MyChangedEmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
 								})
 							})
 						})
@@ -141,8 +152,8 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("SCENARIO: A Customer confirms a changed email address", func() {
-			Convey("Given I registered as a Customer", func() {
+		Convey("\nSCENARIO 5: A Customer confirms a changed email address", func() {
+			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
@@ -179,7 +190,7 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 							So(err, ShouldBeNil)
 
 							Convey("Then my changed email address should be confirmed", func() {
-								MyEmailChangedAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+								MyChangedEmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
 							})
 						})
 					})
@@ -193,6 +204,13 @@ func Test_CustomerLifecycleScenarios(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+}
+
+func MyAccountShouldBeRegistered(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+	eventStream, err := customerEventStore.EventStreamFor(customerID)
+	So(err, ShouldBeNil)
+	So(eventStream, ShouldHaveLength, 1)
+	So(eventStream[0], ShouldHaveSameTypeAs, events.Registered{})
 }
 
 func MyEmailAddressShouldBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
@@ -211,7 +229,7 @@ func MyEmailAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEv
 	So(eventStream[1], ShouldHaveSameTypeAs, events.EmailAddressConfirmationFailed{})
 }
 
-func MyEmailChangedAddressShouldBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func MyChangedEmailAddressShouldBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 4)
@@ -221,7 +239,7 @@ func MyEmailChangedAddressShouldBeConfirmed(customerID values.CustomerID, custom
 	So(eventStream[3], ShouldHaveSameTypeAs, events.EmailAddressConfirmed{})
 }
 
-func MyEmailChangedAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func MyChangedEmailAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 3)
