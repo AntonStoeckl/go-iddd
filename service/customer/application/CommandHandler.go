@@ -24,7 +24,7 @@ func NewCommandHandler(customerEvents ForStoringCustomerEvents) *CommandHandler 
 
 func (handler *CommandHandler) Register(register commands.Register) error {
 	if err := register.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.CreateStreamFrom")
+		return errors.Wrap(err, "commandHandler.Register")
 	}
 
 	if err := cqrs.RetryCommand(
