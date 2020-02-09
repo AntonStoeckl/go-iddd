@@ -27,18 +27,17 @@ func (handler *CommandHandler) Register(register commands.Register) error {
 		return errors.Wrap(err, "commandHandler.Register")
 	}
 
-	if err := cqrs.RetryCommand(
-		func() error {
-			recordedEvents := domain.RegisterCustomer(register)
+	doRegister := func() error {
+		recordedEvents := domain.RegisterCustomer(register)
 
-			if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID()); err != nil {
-				return err
-			}
+		if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID()); err != nil {
+			return err
+		}
 
-			return nil
-		},
-		maxCommandHandlerRetries,
-	); err != nil {
+		return nil
+	}
+
+	if err := cqrs.RetryCommand(doRegister, maxCommandHandlerRetries); err != nil {
 		return err
 	}
 
@@ -50,30 +49,29 @@ func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.
 		return errors.Wrap(err, "commandHandler.ConfirmEmailAddress")
 	}
 
-	if err := cqrs.RetryCommand(
-		func() error {
-			eventStream, err := handler.customerEvents.EventStreamFor(confirmEmailAddress.CustomerID())
-			if err != nil {
-				return err
+	doConfirmEmailAddress := func() error {
+		eventStream, err := handler.customerEvents.EventStreamFor(confirmEmailAddress.CustomerID())
+		if err != nil {
+			return err
+		}
+
+		recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
+
+		if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID()); err != nil {
+			return err
+		}
+
+		for _, event := range recordedEvents {
+			switch actualEvent := event.(type) {
+			case events.EmailAddressConfirmationFailed:
+				return errors.Mark(errors.New(actualEvent.EventName()), lib.ErrDomainConstraintsViolation)
 			}
+		}
 
-			recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
+		return nil
+	}
 
-			if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID()); err != nil {
-				return err
-			}
-
-			for _, event := range recordedEvents {
-				switch actualEvent := event.(type) {
-				case events.EmailAddressConfirmationFailed:
-					return errors.Mark(errors.New(actualEvent.EventName()), lib.ErrDomainConstraintsViolation)
-				}
-			}
-
-			return nil
-		},
-		maxCommandHandlerRetries,
-	); err != nil {
+	if err := cqrs.RetryCommand(doConfirmEmailAddress, maxCommandHandlerRetries); err != nil {
 		return err
 	}
 
@@ -85,23 +83,22 @@ func (handler *CommandHandler) ChangeEmailAddress(changeEmailAddress commands.Ch
 		return errors.Wrap(err, "commandHandler.ChangeEmailAddress")
 	}
 
-	if err := cqrs.RetryCommand(
-		func() error {
-			eventStream, err := handler.customerEvents.EventStreamFor(changeEmailAddress.CustomerID())
-			if err != nil {
-				return err
-			}
+	doChangeEmailAddress := func() error {
+		eventStream, err := handler.customerEvents.EventStreamFor(changeEmailAddress.CustomerID())
+		if err != nil {
+			return err
+		}
 
-			recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+		recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
-			if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID()); err != nil {
-				return err
-			}
+		if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID()); err != nil {
+			return err
+		}
 
-			return nil
-		},
-		maxCommandHandlerRetries,
-	); err != nil {
+		return nil
+	}
+
+	if err := cqrs.RetryCommand(doChangeEmailAddress, maxCommandHandlerRetries); err != nil {
 		return err
 	}
 
