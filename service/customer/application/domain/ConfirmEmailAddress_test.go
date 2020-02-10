@@ -12,41 +12,42 @@ import (
 )
 
 func TestConfirmEmailAddress(t *testing.T) {
-	Convey("Given a Customer has an unconfirmed emailAddress", t, func() {
-		id, err := values.BuildCustomerID("64bcf656-da30-4f5a-b0b5-aead60965aa3")
-		So(err, ShouldBeNil)
-		emailAddress, err := values.BuildEmailAddress("john@doe.com")
-		So(err, ShouldBeNil)
+	Convey("Given a Customer with an unconfirmed emailAddress", t, func() {
+		id := values.GenerateCustomerID()
+		emailAddress := values.RebuildEmailAddress("john@doe.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-		personName, err := values.BuildPersonName("John", "Doe")
-		So(err, ShouldBeNil)
+		personName := values.RebuildPersonName("John", "Doe")
 
 		currentStreamVersion := uint(1)
+		registered := events.ItWasRegistered(
+			id,
+			emailAddress,
+			confirmationHash,
+			personName,
+			currentStreamVersion,
+		)
 
-		eventStream := es.DomainEvents{
-			events.ItWasRegistered(id, emailAddress, confirmationHash, personName, currentStreamVersion),
-		}
+		eventStream := es.DomainEvents{registered}
 
-		Convey("When it is confirmed with the right confirmationHash", func() {
+		Convey("When the emailAddress is confirmed with the right confirmationHash", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-				id.ID(),
-				emailAddress.EmailAddress(),
-				confirmationHash.Hash(),
+				registered.CustomerID().ID(),
+				registered.EmailAddress().EmailAddress(),
+				registered.ConfirmationHash().Hash(),
 			)
 			So(err, ShouldBeNil)
 
 			recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-			Convey("It should succeed", func() {
+			Convey("Then it should record EmailAddressConfirmed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
 				emailAddressConfirmed, ok := recordedEvents[0].(events.EmailAddressConfirmed)
 				So(ok, ShouldBeTrue)
-				So(emailAddressConfirmed, ShouldNotBeNil)
-				So(emailAddressConfirmed.CustomerID().Equals(id), ShouldBeTrue)
-				So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
+				So(emailAddressConfirmed.CustomerID().Equals(registered.CustomerID()), ShouldBeTrue)
+				So(emailAddressConfirmed.EmailAddress().Equals(registered.EmailAddress()), ShouldBeTrue)
 				So(emailAddressConfirmed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 
-				eventStream = append(eventStream, recordedEvents...)
+				eventStream = append(eventStream, emailAddressConfirmed)
 				currentStreamVersion++
 
 				Convey("And when it is confirmed again", func() {
@@ -56,45 +57,26 @@ func TestConfirmEmailAddress(t *testing.T) {
 						So(recordedEvents, ShouldBeEmpty)
 					})
 				})
-
-				Convey("And when it is changed", func() {
-					emailAddress, err := values.BuildEmailAddress("john+different@doe.com")
-					So(err, ShouldBeNil)
-					confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-					emailAddressChanged := events.EmailAddressWasChanged(id, emailAddress, confirmationHash, currentStreamVersion)
-					eventStream = append(eventStream, emailAddressChanged)
-
-					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
-
-					Convey("It should be marked as unconfirmed", func() {
-						So(recordedEvents, ShouldHaveLength, 1)
-						_, ok := recordedEvents[0].(events.EmailAddressConfirmationFailed)
-						So(ok, ShouldBeTrue)
-					})
-				})
 			})
 		})
 
-		Convey("When the emailAddress is confirmed with some wrong confirmationHash", func() {
-			wrongConfirmationHash, err := values.BuildConfirmationHash("some_not_matching_hash")
-			So(err, ShouldBeNil)
-
+		Convey("When the emailAddress is confirmed with a wrong confirmationHash", func() {
 			confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-				id.ID(),
-				emailAddress.EmailAddress(),
-				wrongConfirmationHash.Hash(),
+				registered.CustomerID().ID(),
+				registered.EmailAddress().EmailAddress(),
+				"some_not_matching_hash",
 			)
 			So(err, ShouldBeNil)
 
 			recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-			Convey("It should fail", func() {
+			Convey("Then it should record EmailAddressConfirmationFailed", func() {
 				So(recordedEvents, ShouldHaveLength, 1)
 				emailAddressConfirmationFailed, ok := recordedEvents[0].(events.EmailAddressConfirmationFailed)
 				So(ok, ShouldBeTrue)
-				So(emailAddressConfirmationFailed, ShouldNotBeNil)
-				So(emailAddressConfirmationFailed.CustomerID().Equals(id), ShouldBeTrue)
-				So(emailAddressConfirmationFailed.ConfirmationHash().Equals(wrongConfirmationHash), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
+				So(emailAddressConfirmationFailed.ConfirmationHash().Equals(confirmEmailAddress.ConfirmationHash()), ShouldBeTrue)
 				So(emailAddressConfirmationFailed.StreamVersion(), ShouldEqual, currentStreamVersion+1)
 			})
 		})
