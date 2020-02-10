@@ -15,7 +15,3 @@ func NewStreamID(from string) StreamID {
 func (streamID StreamID) String() string {
 	return streamID.value
 }
-
-func (streamID StreamID) Equals(other StreamID) bool {
-	return streamID.value == other.value
-}

@@ -45,33 +45,3 @@ func TestStreamID_String(t *testing.T) {
 		})
 	})
 }
-
-func TestStreamID_Equals(t *testing.T) {
-	Convey("Given a StreamID", t, func() {
-		streamID := es.NewStreamID("customer-123")
-
-		Convey("And given an equal StreamID", func() {
-			equalStreamID := es.NewStreamID("customer-123")
-
-			Convey("When they are compared", func() {
-				streamIDsAreEqual := streamID.Equals(equalStreamID)
-
-				Convey("They should be equal", func() {
-					So(streamIDsAreEqual, ShouldBeTrue)
-				})
-			})
-		})
-
-		Convey("And given a different StreamID", func() {
-			differentStreamID := es.NewStreamID("customer-666")
-
-			Convey("When they are compared", func() {
-				streamIDsAreEqual := streamID.Equals(differentStreamID)
-
-				Convey("They should be equal", func() {
-					So(streamIDsAreEqual, ShouldBeFalse)
-				})
-			})
-		})
-	})
-}
