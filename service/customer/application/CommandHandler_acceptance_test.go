@@ -1,4 +1,4 @@
-package acceptance_test
+package application_test
 
 import (
 	"fmt"
@@ -11,11 +11,10 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/errors"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Test_CustomerLifecycleScenarios(t *testing.T) {
+func TestCommandHandlerScenarios(t *testing.T) {
 	Convey("Customer Lifecycle Scenarios", t, func() {
 		diContainer, err := infrastructure.SetUpDIContainer()
 		So(err, ShouldBeNil)
