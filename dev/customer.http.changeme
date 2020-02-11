@@ -1,6 +1,6 @@
 # copy this file to customer.http and replace CHANGE_ME with meaningful values
 
-POST http://localhost:8080/v1/customer
+POST http://localhost:8085/v1/customer
 Accept: */*
 Cache-Control: no-cache
 
@@ -12,7 +12,7 @@ Cache-Control: no-cache
 
 ###
 
-PUT http://localhost:8080/v1/customer/CHANGE_ME/emailaddress/confirm
+PUT http://localhost:8085/v1/customer/CHANGE_ME/emailaddress/confirm
 Accept: */*
 Cache-Control: no-cache
 
@@ -23,7 +23,7 @@ Cache-Control: no-cache
 
 ###
 
-PUT http://localhost:8080/v1/customer/CHANGE_ME/emailaddress
+PUT http://localhost:8085/v1/customer/CHANGE_ME/emailaddress
 Accept: */*
 Cache-Control: no-cache
 
@@ -33,6 +33,6 @@ Cache-Control: no-cache
 
 ###
 
-GET http://localhost:8080/v1/customer/swagger.json
+GET http://localhost:8085/v1/customer/swagger.json
 
 ###
