@@ -12,9 +12,9 @@ import (
 func TestRegister(t *testing.T) {
 	Convey("When a Customer is registered", t, func() {
 		register, err := commands.NewRegister(
-			"fiona@galagher.com",
-			"Fiona",
-			"Galagher",
+			"kevin@ball.com",
+			"Kevin",
+			"Ball",
 		)
 		So(err, ShouldBeNil)
 

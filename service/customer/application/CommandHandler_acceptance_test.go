@@ -22,9 +22,9 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		commandHandler := diContainer.GetCustomerCommandHandler()
 		customerEventStore := diContainer.GetCustomerEventStore()
 
-		emailAddress := "karen@jackson.com"
-		givenName := "Karen"
-		familyName := "Jackson"
+		emailAddress := "fiona@gallagher.net"
+		givenName := "Fiona"
+		familyName := "Gallagher"
 
 		register, err := commands.NewRegister(
 			emailAddress,
@@ -129,8 +129,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 						So(err, ShouldBeNil)
 
-						Convey("Then my changed email address should not be confirmed", func() {
-							MyChangedEmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+						Convey("Then my email address should be changed and unconfirmed", func() {
+							MyEmailAddressShouldBeChangedAndUnconfirmed(register.CustomerID(), customerEventStore)
 
 							Convey("When I try to change it again", func() {
 								changeEmailAddress, err := commands.NewChangeEmailAddress(
@@ -142,7 +142,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 								err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 								Convey("Then it should be ignored", func() {
 									So(err, ShouldBeNil)
-									MyChangedEmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+									MyEmailAddressShouldBeChangedAndUnconfirmed(register.CustomerID(), customerEventStore)
 								})
 							})
 						})
@@ -238,7 +238,7 @@ func MyChangedEmailAddressShouldBeConfirmed(customerID values.CustomerID, custom
 	So(eventStream[3], ShouldHaveSameTypeAs, events.EmailAddressConfirmed{})
 }
 
-func MyChangedEmailAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func MyEmailAddressShouldBeChangedAndUnconfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 3)
