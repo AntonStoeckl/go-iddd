@@ -4,6 +4,4 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 )
 
-type ForChangingEmailAddresses interface {
-	ChangeEmailAddress(command commands.ChangeEmailAddress) error
-}
+type ForChangingEmailAddresses func(command commands.ChangeEmailAddress) error
