@@ -151,7 +151,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 5: A Customer confirms a changed email address", func() {
+		Convey("\nSCENARIO 5: A Customer confirms her changed email address", func() {
 			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
