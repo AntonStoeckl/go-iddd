@@ -26,7 +26,7 @@ const (
 	rpcPort      = "5566"
 	ctxTimeout   = 10 * time.Second
 	restHostname = "localhost"
-	restPort     = "8080"
+	restPort     = "8085"
 )
 
 var (

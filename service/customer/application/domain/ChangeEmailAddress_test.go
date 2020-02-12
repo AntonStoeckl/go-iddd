@@ -14,9 +14,9 @@ import (
 func TestChangeEmailAddress(t *testing.T) {
 	Convey("Given a Customer with a confirmed emailAddress", t, func() {
 		id := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("john@doe.com")
+		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-		personName := values.RebuildPersonName("John", "Doe")
+		personName := values.RebuildPersonName("Kevin", "Ball")
 
 		currentStreamVersion := uint(1)
 		registered := events.ItWasRegistered(id, emailAddress, confirmationHash, personName, currentStreamVersion)

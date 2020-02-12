@@ -9,20 +9,20 @@ import (
 )
 
 type CustomerApp struct {
-	forRegisteringCustomers     customer.ForRegisteringCustomers
-	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses
-	forChangingEmailAddresses   customer.ForChangingEmailAddresses
+	register            customer.ForRegistering
+	confirmEmailAddress customer.ForConfirmingEmailAddresses
+	changeEmailAddress  customer.ForChangingEmailAddresses
 }
 
 func NewCustomerApp(
-	forRegisteringCustomers customer.ForRegisteringCustomers,
-	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses,
-	forChangingEmailAddresses customer.ForChangingEmailAddresses,
+	register customer.ForRegistering,
+	confirmEmailAddress customer.ForConfirmingEmailAddresses,
+	changeEmailAddress customer.ForChangingEmailAddresses,
 ) *CustomerApp {
 	app := &CustomerApp{
-		forRegisteringCustomers:     forRegisteringCustomers,
-		forConfirmingEmailAddresses: forConfirmingEmailAddresses,
-		forChangingEmailAddresses:   forChangingEmailAddresses,
+		register:            register,
+		confirmEmailAddress: confirmEmailAddress,
+		changeEmailAddress:  changeEmailAddress,
 	}
 
 	return app
@@ -31,22 +31,22 @@ func NewCustomerApp(
 func (app *CustomerApp) Commands() []cli.Command {
 	return []cli.Command{
 		{
-			Name:      "RegisterCustomer",
-			Aliases:   []string{"rc"},
-			Usage:     "CreateStreamFrom a Customer",
+			Name:      "Register",
+			Aliases:   []string{"reg"},
+			Usage:     "Register a Customer",
 			Action:    app.RegisterCustomer,
 			ArgsUsage: "emailAddress givenName familyName",
 		},
 		{
 			Name:      "ConfirmCustomerEmailAddress",
-			Aliases:   []string{"cocea"},
+			Aliases:   []string{"coea"},
 			Usage:     "Confirm a Customer's emailAddress",
 			Action:    app.ConfirmCustomerEmailAddress,
 			ArgsUsage: "id emailAddress confirmationHash",
 		},
 		{
 			Name:      "ChangeCustomerEmailAddress",
-			Aliases:   []string{"chcea"},
+			Aliases:   []string{"chea"},
 			Usage:     "Change a Customer's emailAddress",
 			Action:    app.ChangeCustomerEmailAddress,
 			ArgsUsage: "id emailAddress",
@@ -64,7 +64,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.forRegisteringCustomers.Register(command); err != nil {
+	if err := app.register(command); err != nil {
 		return err
 	}
 
@@ -87,7 +87,7 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.forConfirmingEmailAddresses.ConfirmEmailAddress(command); err != nil {
+	if err := app.confirmEmailAddress(command); err != nil {
 		return err
 	}
 
@@ -109,7 +109,7 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := app.forChangingEmailAddresses.ChangeEmailAddress(command); err != nil {
+	if err := app.changeEmailAddress(command); err != nil {
 		return err
 	}
 

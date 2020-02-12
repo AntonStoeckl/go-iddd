@@ -9,20 +9,20 @@ import (
 )
 
 type customerServer struct {
-	forRegisteringCustomers     customer.ForRegisteringCustomers
-	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses
-	forChangingEmailAddresses   customer.ForChangingEmailAddresses
+	register            customer.ForRegistering
+	confirmEmailAddress customer.ForConfirmingEmailAddresses
+	changeEmailAddress  customer.ForChangingEmailAddresses
 }
 
 func NewCustomerServer(
-	forRegisteringCustomers customer.ForRegisteringCustomers,
-	forConfirmingEmailAddresses customer.ForConfirmingEmailAddresses,
-	forChangingEmailAddresses customer.ForChangingEmailAddresses,
+	register customer.ForRegistering,
+	confirmEmailAddress customer.ForConfirmingEmailAddresses,
+	changeEmailAddress customer.ForChangingEmailAddresses,
 ) *customerServer {
 	server := &customerServer{
-		forRegisteringCustomers:     forRegisteringCustomers,
-		forConfirmingEmailAddresses: forConfirmingEmailAddresses,
-		forChangingEmailAddresses:   forChangingEmailAddresses,
+		register:            register,
+		confirmEmailAddress: confirmEmailAddress,
+		changeEmailAddress:  changeEmailAddress,
 	}
 
 	return server
@@ -38,7 +38,7 @@ func (server *customerServer) Register(
 		return nil, err
 	}
 
-	if err := server.forRegisteringCustomers.Register(command); err != nil {
+	if err := server.register(command); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func (server *customerServer) ConfirmEmailAddress(
 		return nil, err
 	}
 
-	if err := server.forConfirmingEmailAddresses.ConfirmEmailAddress(command); err != nil {
+	if err := server.confirmEmailAddress(command); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func (server *customerServer) ChangeEmailAddress(
 		return nil, err
 	}
 
-	if err := server.forChangingEmailAddresses.ChangeEmailAddress(command); err != nil {
+	if err := server.changeEmailAddress(command); err != nil {
 		return nil, err
 	}
 
