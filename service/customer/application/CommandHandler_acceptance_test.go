@@ -33,42 +33,46 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
+		issuedHash := register.ConfirmationHash().Hash()
+
 		Convey("\nSCENARIO 1: A prospective Customer registers", func() {
-			Convey(fmt.Sprintf("When I register as %s %s with %s", givenName, familyName, emailAddress), func() {
+			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 
-				Convey("Then I should have an account with an unconfirmed email address", func() {
+				Convey("Then she should have an unconfirmed account", func() {
 					So(err, ShouldBeNil)
-					MyAccountShouldBeRegistered(register.CustomerID(), customerEventStore)
+					AccountShouldBeRegisteredAndUnconfirmed(register.CustomerID(), customerEventStore)
 				})
 			})
 		})
 
 		Convey("\nSCENARIO 2: A Customer confirms her email address", func() {
-			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
-				Convey("When I confirm my email address with a valid confirmation hash", func() {
-					confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-						register.CustomerID().ID(),
-						register.EmailAddress().EmailAddress(),
-						register.ConfirmationHash().Hash(),
-					)
-					So(err, ShouldBeNil)
+				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", issuedHash), func() {
+					Convey(fmt.Sprintf("When she confirms her email address with confirmation hash [%s]", issuedHash), func() {
+						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+							register.CustomerID().ID(),
+							register.EmailAddress().EmailAddress(),
+							issuedHash,
+						)
+						So(err, ShouldBeNil)
 
-					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
-					So(err, ShouldBeNil)
+						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+						So(err, ShouldBeNil)
 
-					Convey("Then my email address should be confirmed", func() {
-						MyEmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+						Convey("Then her email address should be confirmed", func() {
+							EmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
 
-						Convey("When I try to confirm it again", func() {
-							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+							Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", issuedHash), func() {
+								err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
-							Convey("Then it should be ignored", func() {
-								So(err, ShouldBeNil)
-								MyEmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+								Convey("Then it should be ignored", func() {
+									So(err, ShouldBeNil)
+									EmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+								})
 							})
 						})
 					})
@@ -77,26 +81,30 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		})
 
 		Convey("\nSCENARIO 3: A Customer fails to confirm her email address", func() {
-			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
-				Convey("When I try to confirm my email address with an invalid confirmation hash", func() {
-					confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-						register.CustomerID().ID(),
-						register.EmailAddress().EmailAddress(),
-						values.GenerateConfirmationHash(register.EmailAddress().EmailAddress()).Hash(),
-					)
-					So(err, ShouldBeNil)
+				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", issuedHash), func() {
+					invalidHash := values.GenerateConfirmationHash(register.EmailAddress().EmailAddress()).Hash()
 
-					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+					Convey(fmt.Sprintf("When she tries to confirm her email address with invalid confirmation hash [%s]", invalidHash), func() {
+						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+							register.CustomerID().ID(),
+							register.EmailAddress().EmailAddress(),
+							invalidHash,
+						)
+						So(err, ShouldBeNil)
 
-					Convey("Then it should fail", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 
-						Convey("and my email address should be unconfirmed", func() {
-							MyEmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+						Convey("Then it should fail", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+
+							Convey("and her email address should be unconfirmed", func() {
+								EmailAddressShouldNotBeConfirmed(register.CustomerID(), customerEventStore)
+							})
 						})
 					})
 				})
@@ -104,11 +112,11 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		})
 
 		Convey("\nSCENARIO 4: A Customer changes her confirmed email address", func() {
-			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
-				Convey("and I confirmed my email address", func() {
+				Convey("and she confirmed her email address", func() {
 					confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 						register.CustomerID().ID(),
 						register.EmailAddress().EmailAddress(),
@@ -119,23 +127,25 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 					So(err, ShouldBeNil)
 
-					Convey("When I change my email address", func() {
+					changedEmailAddress := "fiona@pratt.net"
+
+					Convey(fmt.Sprintf("When she changes her email address to [%s]", changedEmailAddress), func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
-							"john@doe.com",
+							changedEmailAddress,
 						)
 						So(err, ShouldBeNil)
 
 						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 						So(err, ShouldBeNil)
 
-						Convey("Then my email address should be changed and unconfirmed", func() {
+						Convey("Then her email address should be changed and unconfirmed", func() {
 							MyEmailAddressShouldBeChangedAndUnconfirmed(register.CustomerID(), customerEventStore)
 
-							Convey("When I try to change it again", func() {
+							Convey(fmt.Sprintf("When she tries to change it again to [%s]", changedEmailAddress), func() {
 								changeEmailAddress, err := commands.NewChangeEmailAddress(
 									register.CustomerID().ID(),
-									"john@doe.com",
+									changedEmailAddress,
 								)
 								So(err, ShouldBeNil)
 
@@ -152,11 +162,11 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		})
 
 		Convey("\nSCENARIO 5: A Customer confirms her changed email address", func() {
-			Convey(fmt.Sprintf("Given I registered as %s %s with %s", givenName, familyName, emailAddress), func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				err := commandHandler.Register(register)
 				So(err, ShouldBeNil)
 
-				Convey("and I confirmed my email address", func() {
+				Convey("and she confirmed her email address", func() {
 					confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 						register.CustomerID().ID(),
 						register.EmailAddress().EmailAddress(),
@@ -167,29 +177,35 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 					So(err, ShouldBeNil)
 
-					Convey("and I changed my email address", func() {
+					changedEmailAddress := "fiona@pratt.net"
+
+					Convey(fmt.Sprintf("and she changed her email address to [%s]", changedEmailAddress), func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
-							"john@doe.com",
+							changedEmailAddress,
 						)
 						So(err, ShouldBeNil)
+
+						issuedHash := changeEmailAddress.ConfirmationHash().Hash()
 
 						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
 						So(err, ShouldBeNil)
 
-						Convey("When I confirm my changed email address", func() {
-							confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-								changeEmailAddress.CustomerID().ID(),
-								changeEmailAddress.EmailAddress().EmailAddress(),
-								changeEmailAddress.ConfirmationHash().Hash(),
-							)
-							So(err, ShouldBeNil)
+						Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", issuedHash), func() {
+							Convey(fmt.Sprintf("When she confirms her changed email address with confirmation hash [%s]", issuedHash), func() {
+								confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+									changeEmailAddress.CustomerID().ID(),
+									changeEmailAddress.EmailAddress().EmailAddress(),
+									issuedHash,
+								)
+								So(err, ShouldBeNil)
 
-							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
-							So(err, ShouldBeNil)
+								err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+								So(err, ShouldBeNil)
 
-							Convey("Then my changed email address should be confirmed", func() {
-								MyChangedEmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+								Convey("Then her changed email address should be confirmed", func() {
+									MyChangedEmailAddressShouldBeConfirmed(register.CustomerID(), customerEventStore)
+								})
 							})
 						})
 					})
@@ -205,14 +221,14 @@ func TestCommandHandlerScenarios(t *testing.T) {
 	})
 }
 
-func MyAccountShouldBeRegistered(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func AccountShouldBeRegisteredAndUnconfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 1)
 	So(eventStream[0], ShouldHaveSameTypeAs, events.Registered{})
 }
 
-func MyEmailAddressShouldBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func EmailAddressShouldBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 2)
@@ -220,7 +236,7 @@ func MyEmailAddressShouldBeConfirmed(customerID values.CustomerID, customerEvent
 	So(eventStream[1], ShouldHaveSameTypeAs, events.EmailAddressConfirmed{})
 }
 
-func MyEmailAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
+func EmailAddressShouldNotBeConfirmed(customerID values.CustomerID, customerEventStore *eventstore.CustomerEventStore) {
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 	So(eventStream, ShouldHaveLength, 2)
