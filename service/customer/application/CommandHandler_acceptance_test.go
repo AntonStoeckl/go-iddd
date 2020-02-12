@@ -127,12 +127,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 					So(err, ShouldBeNil)
 
-					changedEmailAddress := "fiona@pratt.net"
+					newEmailAddress := "fiona@pratt.net"
 
-					Convey(fmt.Sprintf("When she changes her email address to [%s]", changedEmailAddress), func() {
+					Convey(fmt.Sprintf("When she changes her email address to [%s]", newEmailAddress), func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
-							changedEmailAddress,
+							newEmailAddress,
 						)
 						So(err, ShouldBeNil)
 
@@ -142,10 +142,10 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						Convey("Then her email address should be changed and unconfirmed", func() {
 							MyEmailAddressShouldBeChangedAndUnconfirmed(register.CustomerID(), customerEventStore)
 
-							Convey(fmt.Sprintf("When she tries to change it again to [%s]", changedEmailAddress), func() {
+							Convey(fmt.Sprintf("When she tries to change it again to [%s]", newEmailAddress), func() {
 								changeEmailAddress, err := commands.NewChangeEmailAddress(
 									register.CustomerID().ID(),
-									changedEmailAddress,
+									newEmailAddress,
 								)
 								So(err, ShouldBeNil)
 
@@ -177,12 +177,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
 					So(err, ShouldBeNil)
 
-					changedEmailAddress := "fiona@pratt.net"
+					newEmailAddress := "fiona@pratt.net"
 
-					Convey(fmt.Sprintf("and she changed her email address to [%s]", changedEmailAddress), func() {
+					Convey(fmt.Sprintf("and she changed her email address to [%s]", newEmailAddress), func() {
 						changeEmailAddress, err := commands.NewChangeEmailAddress(
 							register.CustomerID().ID(),
-							changedEmailAddress,
+							newEmailAddress,
 						)
 						So(err, ShouldBeNil)
 
