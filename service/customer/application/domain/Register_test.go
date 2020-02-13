@@ -11,7 +11,7 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	Convey("Prepare test artefacts", t, func() {
+	Convey("Prepare test artifacts", t, func() {
 		register, err := commands.NewRegister(
 			"kevin@ball.com",
 			"Kevin",

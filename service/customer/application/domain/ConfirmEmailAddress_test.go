@@ -12,7 +12,7 @@ import (
 )
 
 func TestConfirmEmailAddress(t *testing.T) {
-	Convey("Prepare test artefacts", t, func() {
+	Convey("Prepare test artifacts", t, func() {
 		id := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
