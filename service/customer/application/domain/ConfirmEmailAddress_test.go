@@ -26,18 +26,18 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
-		emailAddressConfirmed := events.EmailAddressWasConfirmed(
-			registered.CustomerID(),
-			registered.EmailAddress(),
-			2,
-		)
-
 		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 			registered.CustomerID().ID(),
 			registered.EmailAddress().EmailAddress(),
 			registered.ConfirmationHash().Hash(),
 		)
 		So(err, ShouldBeNil)
+
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(
+			confirmEmailAddress.CustomerID(),
+			confirmEmailAddress.EmailAddress(),
+			2,
+		)
 
 		confirmEmailAddressWithInvalidHash, err := commands.NewConfirmEmailAddress(
 			registered.CustomerID().ID(),
@@ -74,7 +74,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 3: Try to Confirm a Customer's emailAddress twice with the right confirmationHash", func() {
+		Convey("\nSCENARIO 3: Try to confirm a Customer's emailAddress twice with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
