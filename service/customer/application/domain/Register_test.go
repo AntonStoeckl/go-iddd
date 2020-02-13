@@ -11,12 +11,22 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	Convey("When RegisterCustomer", t, func() {
-		register := buildRegisterForRegisterTest()
-		recordedEvents := domain.RegisterCustomer(register)
+	Convey("Prepare test artefacts", t, func() {
+		register, err := commands.NewRegister(
+			"kevin@ball.com",
+			"Kevin",
+			"Ball",
+		)
+		So(err, ShouldBeNil)
 
-		Convey("Then CustomerRegistered", func() {
-			ThenCustomerRegistered(recordedEvents, register)
+		Convey("\nSCENARIO: Register a Customer", func() {
+			Convey("When RegisterCustomer", func() {
+				recordedEvents := domain.RegisterCustomer(register)
+
+				Convey("Then CustomerRegistered", func() {
+					ThenCustomerRegistered(recordedEvents, register)
+				})
+			})
 		})
 	})
 }
@@ -30,15 +40,4 @@ func ThenCustomerRegistered(recordedEvents es.DomainEvents, register commands.Re
 	So(registered.ConfirmationHash().Equals(register.ConfirmationHash()), ShouldBeTrue)
 	So(registered.PersonName().Equals(register.PersonName()), ShouldBeTrue)
 	So(registered.StreamVersion(), ShouldEqual, uint(1))
-}
-
-func buildRegisterForRegisterTest() commands.Register {
-	register, err := commands.NewRegister(
-		"kevin@ball.com",
-		"Kevin",
-		"Ball",
-	)
-	So(err, ShouldBeNil)
-
-	return register
 }

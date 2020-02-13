@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/application/domain/values"
@@ -18,29 +17,56 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var (
-	commandHandler                     *application.CommandHandler
-	customerEventStore                 *eventstore.CustomerEventStore
-	customerID                         values.CustomerID
-	emailAddress                       string
-	givenName                          string
-	familyName                         string
-	confirmationHash                   string
-	invalidConfirmationHash            string
-	changedEmailAddress                string
-	changedConfirmationHash            string
-	register                           commands.Register
-	confirmEmailAddress                commands.ConfirmEmailAddress
-	confirmEmailAddressWithInvalidHash commands.ConfirmEmailAddress
-	changeEmailAddress                 commands.ChangeEmailAddress
-	confirmChangedEmailAddress         commands.ConfirmEmailAddress
-)
-
 func TestCommandHandlerScenarios(t *testing.T) {
-	Convey("Customer Lifecycle Scenarios", t, func() {
-		var err error
+	diContainer := setUpDiContainerForCommandHandlerScenarios()
+	customerEventStore := diContainer.GetCustomerEventStore()
+	commandHandler := diContainer.GetCustomerCommandHandler()
 
-		setUpForCommandHandlerScenarios()
+	Convey("Prepare test artifacts", t, func() {
+		emailAddress := "fiona@gallagher.net"
+		givenName := "Fiona"
+		familyName := "Gallagher"
+		invalidConfirmationHash := values.GenerateConfirmationHash("foo@bar.com").Hash()
+		changedEmailAddress := "fiona@pratt.net"
+
+		register, err := commands.NewRegister(
+			emailAddress,
+			givenName,
+			familyName,
+		)
+		So(err, ShouldBeNil)
+
+		customerID := register.CustomerID()
+		confirmationHash := register.ConfirmationHash().Hash()
+
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+			customerID.ID(),
+			emailAddress,
+			confirmationHash,
+		)
+		So(err, ShouldBeNil)
+
+		confirmEmailAddressWithInvalidHash, err := commands.NewConfirmEmailAddress(
+			customerID.ID(),
+			emailAddress,
+			invalidConfirmationHash,
+		)
+		So(err, ShouldBeNil)
+
+		changeEmailAddress, err := commands.NewChangeEmailAddress(
+			customerID.ID(),
+			changedEmailAddress,
+		)
+		So(err, ShouldBeNil)
+
+		changedConfirmationHash := changeEmailAddress.ConfirmationHash().Hash()
+
+		confirmChangedEmailAddress, err := commands.NewConfirmEmailAddress(
+			customerID.ID(),
+			changedEmailAddress,
+			changedConfirmationHash,
+		)
+		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO 1: A prospective Customer registers", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
@@ -48,14 +74,20 @@ func TestCommandHandlerScenarios(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then she should have an unconfirmed account", func() {
-					ThenEventStreamShouldBe(events.Registered{})
+					ThenEventStreamShouldBe(
+						es.DomainEvents{
+							events.Registered{},
+						},
+						customerEventStore,
+						customerID,
+					)
 				})
 			})
 		})
 
 		Convey("\nSCENARIO 2: A Customer confirms her email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey(fmt.Sprintf("When she confirms her email address with confirmation hash [%s]", confirmationHash), func() {
@@ -64,8 +96,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 						Convey("Then her email address should be confirmed", func() {
 							ThenEventStreamShouldBe(
-								events.Registered{},
-								events.EmailAddressConfirmed{},
+								es.DomainEvents{
+									events.Registered{},
+									events.EmailAddressConfirmed{},
+								},
+								customerEventStore,
+								customerID,
 							)
 						})
 					})
@@ -75,10 +111,10 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 3: A Customer fails to confirm her email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
-					Convey(fmt.Sprintf("When she tries to confirm her email address with invalid confirmation hash [%s]", invalidConfirmationHash), func() {
+					Convey(fmt.Sprintf("When she tries to confirm her email address with wrong confirmation hash [%s]", invalidConfirmationHash), func() {
 						err = commandHandler.ConfirmEmailAddress(confirmEmailAddressWithInvalidHash)
 						So(err, ShouldBeError)
 
@@ -87,8 +123,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 							Convey("and her email address should be unconfirmed", func() {
 								ThenEventStreamShouldBe(
-									events.Registered{},
-									events.EmailAddressConfirmationFailed{},
+									es.DomainEvents{
+										events.Registered{},
+										events.EmailAddressConfirmationFailed{},
+									},
+									customerEventStore,
+									customerID,
 								)
 							})
 						})
@@ -99,11 +139,11 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 4: A Customer confirms her email address twice", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey("and she confirmed her email address", func() {
-						GivenEmailAddressConfirmed(2)
+						GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
 
 						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
 							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
@@ -111,8 +151,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 							Convey("Then it should be ignored", func() {
 								ThenEventStreamShouldBe(
-									events.Registered{},
-									events.EmailAddressConfirmed{},
+									es.DomainEvents{
+										events.Registered{},
+										events.EmailAddressConfirmed{},
+									},
+									customerEventStore,
+									customerID,
 								)
 							})
 						})
@@ -123,7 +167,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 5: A Customer changes her email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("When she changes her email address to [%s]", changedEmailAddress), func() {
 					err = commandHandler.ChangeEmailAddress(changeEmailAddress)
@@ -131,8 +175,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 					Convey("Then her email address should be changed", func() {
 						ThenEventStreamShouldBe(
-							events.Registered{},
-							events.EmailAddressChanged{},
+							es.DomainEvents{
+								events.Registered{},
+								events.EmailAddressChanged{},
+							},
+							customerEventStore,
+							customerID,
 						)
 					})
 				})
@@ -141,10 +189,10 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 6: A Customer changes her email address twice", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("and she changed her email address to [%s]", changedEmailAddress), func() {
-					GivenEmailAddressChanged(2)
+					GivenEmailAddressChanged(changeEmailAddress, customerEventStore, 2)
 
 					Convey(fmt.Sprintf("When she tries to change it again to [%s]", changedEmailAddress), func() {
 						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
@@ -152,8 +200,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 						Convey("Then it should be ignored", func() {
 							ThenEventStreamShouldBe(
-								events.Registered{},
-								events.EmailAddressChanged{},
+								es.DomainEvents{
+									events.Registered{},
+									events.EmailAddressChanged{},
+								},
+								customerEventStore,
+								customerID,
 							)
 						})
 					})
@@ -163,13 +215,13 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 7: A Customer confirms her changed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				GivenCustomerRegistered()
+				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey("and she confirmed her email address", func() {
-					GivenEmailAddressConfirmed(2)
+					GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
 
 					Convey(fmt.Sprintf("and she changed her email address to [%s]", changedEmailAddress), func() {
-						GivenEmailAddressChanged(3)
+						GivenEmailAddressChanged(changeEmailAddress, customerEventStore, 3)
 
 						Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", changedConfirmationHash), func() {
 							Convey(fmt.Sprintf("When she confirms her changed email address with confirmation hash [%s]", changedConfirmationHash), func() {
@@ -178,10 +230,14 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 								Convey("Then her changed email address should be confirmed", func() {
 									ThenEventStreamShouldBe(
-										events.Registered{},
-										events.EmailAddressConfirmed{},
-										events.EmailAddressChanged{},
-										events.EmailAddressConfirmed{},
+										es.DomainEvents{
+											events.Registered{},
+											events.EmailAddressConfirmed{},
+											events.EmailAddressChanged{},
+											events.EmailAddressConfirmed{},
+										},
+										customerEventStore,
+										customerID,
 									)
 								})
 							})
@@ -198,49 +254,64 @@ func TestCommandHandlerScenarios(t *testing.T) {
 	})
 }
 
-func GivenCustomerRegistered() {
+func GivenCustomerRegistered(register commands.Register, customerEventStore *eventstore.CustomerEventStore) {
 	recordedEvents := es.DomainEvents{
 		events.ItWasRegistered(
-			customerID,
-			values.RebuildEmailAddress(emailAddress),
-			values.RebuildConfirmationHash(confirmationHash),
-			values.RebuildPersonName(givenName, familyName),
+			register.CustomerID(),
+			register.EmailAddress(),
+			register.ConfirmationHash(),
+			register.PersonName(),
 			1,
 		),
 	}
 
-	err := customerEventStore.CreateStreamFrom(recordedEvents, customerID)
+	err := customerEventStore.CreateStreamFrom(recordedEvents, register.CustomerID())
 	So(err, ShouldBeNil)
 }
 
-func GivenEmailAddressConfirmed(streamVersion uint) {
+func GivenEmailAddressConfirmed(
+	confirmEmailAddress commands.ConfirmEmailAddress,
+	customerEventStore *eventstore.CustomerEventStore,
+	streamVersion uint,
+) {
+
 	recordedEvents := es.DomainEvents{
 		events.EmailAddressWasConfirmed(
-			customerID,
-			values.RebuildEmailAddress(emailAddress),
+			confirmEmailAddress.CustomerID(),
+			confirmEmailAddress.EmailAddress(),
 			streamVersion,
 		),
 	}
 
-	err := customerEventStore.Add(recordedEvents, customerID)
+	err := customerEventStore.Add(recordedEvents, confirmEmailAddress.CustomerID())
 	So(err, ShouldBeNil)
 }
 
-func GivenEmailAddressChanged(streamVersion uint) {
+func GivenEmailAddressChanged(
+	changeEmailAddress commands.ChangeEmailAddress,
+	customerEventStore *eventstore.CustomerEventStore,
+	streamVersion uint,
+) {
+
 	recordedEvents := es.DomainEvents{
 		events.EmailAddressWasChanged(
-			customerID,
-			values.RebuildEmailAddress(changedEmailAddress),
-			values.RebuildConfirmationHash(changedConfirmationHash),
+			changeEmailAddress.CustomerID(),
+			changeEmailAddress.EmailAddress(),
+			changeEmailAddress.ConfirmationHash(),
 			streamVersion,
 		),
 	}
 
-	err := customerEventStore.Add(recordedEvents, customerID)
+	err := customerEventStore.Add(recordedEvents, changeEmailAddress.CustomerID())
 	So(err, ShouldBeNil)
 }
 
-func ThenEventStreamShouldBe(domainEvents ...es.DomainEvent) {
+func ThenEventStreamShouldBe(
+	domainEvents es.DomainEvents,
+	customerEventStore *eventstore.CustomerEventStore,
+	customerID values.CustomerID,
+) {
+
 	eventStream, err := customerEventStore.EventStreamFor(customerID)
 	So(err, ShouldBeNil)
 
@@ -251,82 +322,36 @@ func ThenEventStreamShouldBe(domainEvents ...es.DomainEvent) {
 	}
 }
 
-func setUpForCommandHandlerScenarios() {
-	var err error
-
-	diContainer := setUpDiContainerForCommandHandlerScenarios()
-	customerEventStore = diContainer.GetCustomerEventStore()
-	commandHandler = diContainer.GetCustomerCommandHandler()
-
-	emailAddress = "fiona@gallagher.net"
-	givenName = "Fiona"
-	familyName = "Gallagher"
-
-	register, err = commands.NewRegister(
-		emailAddress,
-		givenName,
-		familyName,
-	)
-	So(err, ShouldBeNil)
-
-	customerID = register.CustomerID()
-	confirmationHash = register.ConfirmationHash().Hash()
-
-	confirmEmailAddress, err = commands.NewConfirmEmailAddress(
-		customerID.ID(),
-		emailAddress,
-		confirmationHash,
-	)
-	So(err, ShouldBeNil)
-
-	invalidConfirmationHash = values.GenerateConfirmationHash(emailAddress).Hash()
-
-	confirmEmailAddressWithInvalidHash, err = commands.NewConfirmEmailAddress(
-		customerID.ID(),
-		emailAddress,
-		invalidConfirmationHash,
-	)
-	So(err, ShouldBeNil)
-
-	changedEmailAddress = "fiona@pratt.net"
-
-	changeEmailAddress, err = commands.NewChangeEmailAddress(
-		customerID.ID(),
-		changedEmailAddress,
-	)
-	So(err, ShouldBeNil)
-
-	changedConfirmationHash = changeEmailAddress.ConfirmationHash().Hash()
-
-	confirmChangedEmailAddress, err = commands.NewConfirmEmailAddress(
-		customerID.ID(),
-		changedEmailAddress,
-		changedConfirmationHash,
-	)
-	So(err, ShouldBeNil)
-}
-
 func setUpDiContainerForCommandHandlerScenarios() *cmd.DIContainer {
 	config, err := cmd.NewConfigFromEnv()
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 
 	db, err := sql.Open("postgres", config.Postgres.DSN)
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 
 	err = db.Ping()
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 
 	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 
 	err = migrator.Up()
-	So(err, ShouldBeNil)
+	if err != nil {
+		panic(err)
+	}
 
-	diContainer, err := cmd.NewDIContainer(
-		db,
-		events.UnmarshalCustomerEvent,
-	)
-	So(err, ShouldBeNil)
+	diContainer, err := cmd.NewDIContainer(db, events.UnmarshalCustomerEvent)
+	if err != nil {
+		panic(err)
+	}
 
 	return diContainer
 }
