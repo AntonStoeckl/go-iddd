@@ -8,7 +8,6 @@ import (
 )
 
 func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEmailAddress) es.DomainEvents {
-	var emailAddress values.EmailAddress
 	var confirmationHash values.ConfirmationHash
 	var isConfirmed bool
 	var currentStreamVersion uint
@@ -16,12 +15,10 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEm
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case events.Registered:
-			emailAddress = actualEvent.EmailAddress()
 			confirmationHash = actualEvent.ConfirmationHash()
 		case events.EmailAddressConfirmed:
 			isConfirmed = true
 		case events.EmailAddressChanged:
-			emailAddress = actualEvent.EmailAddress()
 			confirmationHash = actualEvent.ConfirmationHash()
 			isConfirmed = false
 		}
@@ -46,7 +43,7 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEm
 
 	event := events.EmailAddressWasConfirmed(
 		command.CustomerID(),
-		emailAddress,
+		command.EmailAddress(),
 		currentStreamVersion+1,
 	)
 
