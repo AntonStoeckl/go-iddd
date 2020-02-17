@@ -6,14 +6,13 @@ package customergrpc
 import (
 	context "context"
 	fmt "fmt"
-	math "math"
-
 	proto "github.com/golang/protobuf/proto"
 	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -287,7 +286,7 @@ func NewCustomerClient(cc *grpc.ClientConn) CustomerClient {
 
 func (c *customerClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	out := new(RegisterResponse)
-	err := c.cc.Invoke(ctx, "/customergrpc.Customer/CreateStreamFrom", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/customergrpc.Customer/Register", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +323,7 @@ type UnimplementedCustomerServer struct {
 }
 
 func (*UnimplementedCustomerServer) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateStreamFrom not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 func (*UnimplementedCustomerServer) ConfirmEmailAddress(ctx context.Context, req *ConfirmEmailAddressRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfirmEmailAddress not implemented")
@@ -347,7 +346,7 @@ func _Customer_Register_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/customergrpc.Customer/CreateStreamFrom",
+		FullMethod: "/customergrpc.Customer/Register",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CustomerServer).Register(ctx, req.(*RegisterRequest))
@@ -396,7 +395,7 @@ var _Customer_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*CustomerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateStreamFrom",
+			MethodName: "Register",
 			Handler:    _Customer_Register_Handler,
 		},
 		{

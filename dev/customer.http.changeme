@@ -3,6 +3,7 @@
 POST http://localhost:8085/v1/customer
 Accept: */*
 Cache-Control: no-cache
+Content-Type: application/json
 
 {
   "emailAddress": "CHANGE_ME",
@@ -15,6 +16,7 @@ Cache-Control: no-cache
 PUT http://localhost:8085/v1/customer/CHANGE_ME/emailaddress/confirm
 Accept: */*
 Cache-Control: no-cache
+Content-Type: application/json
 
 {
   "emailAddress": "CHANGE_ME",
@@ -26,6 +28,7 @@ Cache-Control: no-cache
 PUT http://localhost:8085/v1/customer/CHANGE_ME/emailaddress
 Accept: */*
 Cache-Control: no-cache
+Content-Type: application/json
 
 {
   "emailAddress": "CHANGE_ME"
