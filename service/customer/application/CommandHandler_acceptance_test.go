@@ -137,7 +137,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 4: A Customer confirms her email address twice", func() {
+		Convey("\nSCENARIO 4: A Customer confirms her email address again with the right confirmationHash", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				GivenCustomerRegistered(register, customerEventStore)
 
@@ -165,7 +165,38 @@ func TestCommandHandlerScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 5: A Customer changes her email address", func() {
+		Convey("\nSCENARIO 5: A Customer confirms her email address again, but with a wrong confirmation hash", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
+				GivenCustomerRegistered(register, customerEventStore)
+
+				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
+					Convey("and she confirmed her email address", func() {
+						GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
+
+						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
+							err = commandHandler.ConfirmEmailAddress(confirmEmailAddressWithInvalidHash)
+							So(err, ShouldBeError)
+
+							Convey("Then it should fail", func() {
+								So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+
+								ThenEventStreamShouldBe(
+									es.DomainEvents{
+										events.Registered{},
+										events.EmailAddressConfirmed{},
+										events.EmailAddressConfirmationFailed{},
+									},
+									customerEventStore,
+									customerID,
+								)
+							})
+						})
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO 6: A Customer changes her email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				GivenCustomerRegistered(register, customerEventStore)
 
@@ -187,7 +218,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 6: A Customer changes her email address twice", func() {
+		Convey("\nSCENARIO 7: A Customer changes her email address twice", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				GivenCustomerRegistered(register, customerEventStore)
 
@@ -213,7 +244,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 7: A Customer confirms her changed email address", func() {
+		Convey("\nSCENARIO 8: A Customer confirms her changed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
 				GivenCustomerRegistered(register, customerEventStore)
 

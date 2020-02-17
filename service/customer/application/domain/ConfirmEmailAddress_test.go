@@ -13,13 +13,13 @@ import (
 
 func TestConfirmEmailAddress(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		id := values.GenerateCustomerID()
+		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
 		registered := events.ItWasRegistered(
-			id,
+			customerID,
 			emailAddress,
 			confirmationHash,
 			personName,
@@ -54,7 +54,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
 					Convey("Then EmailAddressConfirmed", func() {
-						ThenEmailAddressConfirmed(recordedEvents, confirmEmailAddress)
+						ThenEmailAddressConfirmed(recordedEvents, confirmEmailAddress, 2)
 					})
 				})
 			})
@@ -68,13 +68,13 @@ func TestConfirmEmailAddress(t *testing.T) {
 					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddressWithInvalidHash)
 
 					Convey("Then EmailAddressConfirmationFailed", func() {
-						ThenEmailAddressConfirmationFailed(recordedEvents, confirmEmailAddressWithInvalidHash)
+						ThenEmailAddressConfirmationFailed(recordedEvents, confirmEmailAddressWithInvalidHash, 2)
 					})
 				})
 			})
 		})
 
-		Convey("\nSCENARIO 3: Try to confirm a Customer's emailAddress twice with the right confirmationHash", func() {
+		Convey("\nSCENARIO 3: Try to confirm a Customer's emailAddress again with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
@@ -91,24 +91,52 @@ func TestConfirmEmailAddress(t *testing.T) {
 				})
 			})
 		})
+
+		Convey("\nSCENARIO 4: Try to confirm a Customer's emailAddress again with a wrong confirmationHash", func() {
+			Convey("Given CustomerRegistered", func() {
+				eventStream := es.DomainEvents{registered}
+
+				Convey("and EmailAddressConfirmed", func() {
+					eventStream = append(eventStream, emailAddressConfirmed)
+
+					Convey("When ConfirmEmailAddress", func() {
+						recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddressWithInvalidHash)
+
+						Convey("Then EmailAddressConfirmationFailed", func() {
+							ThenEmailAddressConfirmationFailed(recordedEvents, confirmEmailAddressWithInvalidHash, 3)
+						})
+					})
+				})
+			})
+		})
 	})
 }
 
-func ThenEmailAddressConfirmed(recordedEvents es.DomainEvents, confirmEmailAddress commands.ConfirmEmailAddress) {
+func ThenEmailAddressConfirmed(
+	recordedEvents es.DomainEvents,
+	confirmEmailAddress commands.ConfirmEmailAddress,
+	streamVersion uint,
+) {
+
 	So(recordedEvents, ShouldHaveLength, 1)
 	emailAddressConfirmed, ok := recordedEvents[0].(events.EmailAddressConfirmed)
 	So(ok, ShouldBeTrue)
 	So(emailAddressConfirmed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
 	So(emailAddressConfirmed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
-	So(emailAddressConfirmed.StreamVersion(), ShouldEqual, 2)
+	So(emailAddressConfirmed.StreamVersion(), ShouldEqual, streamVersion)
 }
 
-func ThenEmailAddressConfirmationFailed(recordedEvents es.DomainEvents, confirmEmailAddress commands.ConfirmEmailAddress) {
+func ThenEmailAddressConfirmationFailed(
+	recordedEvents es.DomainEvents,
+	confirmEmailAddress commands.ConfirmEmailAddress,
+	streamVersion uint,
+) {
+
 	So(recordedEvents, ShouldHaveLength, 1)
 	emailAddressConfirmationFailed, ok := recordedEvents[0].(events.EmailAddressConfirmationFailed)
 	So(ok, ShouldBeTrue)
 	So(emailAddressConfirmationFailed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
 	So(emailAddressConfirmationFailed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
 	So(emailAddressConfirmationFailed.ConfirmationHash().Equals(confirmEmailAddress.ConfirmationHash()), ShouldBeTrue)
-	So(emailAddressConfirmationFailed.StreamVersion(), ShouldEqual, 2)
+	So(emailAddressConfirmationFailed.StreamVersion(), ShouldEqual, streamVersion)
 }

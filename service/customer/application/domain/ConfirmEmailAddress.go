@@ -29,19 +29,19 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEm
 		currentStreamVersion = event.StreamVersion()
 	}
 
-	if isConfirmed {
-		return nil
-	}
-
 	if !confirmationHash.Equals(command.ConfirmationHash()) {
 		event := events.EmailAddressConfirmationHasFailed(
 			command.CustomerID(),
-			emailAddress,
+			command.EmailAddress(),
 			command.ConfirmationHash(),
 			currentStreamVersion+1,
 		)
 
 		return es.DomainEvents{event}
+	}
+
+	if isConfirmed {
+		return nil
 	}
 
 	event := events.EmailAddressWasConfirmed(
