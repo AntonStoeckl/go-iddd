@@ -12,28 +12,28 @@ import (
 )
 
 func TestChangeEmailAddress(t *testing.T) {
-	customerID := values.GenerateCustomerID()
-	emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-	confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
-	personName := values.RebuildPersonName("Kevin", "Ball")
-	changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
-	changedConfirmationHash := values.GenerateConfirmationHash(changedEmailAddress.EmailAddress())
-
-	registered := events.ItWasRegistered(
-		customerID,
-		emailAddress,
-		confirmationHash,
-		personName,
-		1,
-	)
-
-	emailAddressConfirmed := events.EmailAddressWasConfirmed(
-		customerID,
-		emailAddress,
-		2,
-	)
-
 	Convey("Prepare test artifacts", t, func() {
+		customerID := values.GenerateCustomerID()
+		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		personName := values.RebuildPersonName("Kevin", "Ball")
+		changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
+		changedConfirmationHash := values.GenerateConfirmationHash(changedEmailAddress.EmailAddress())
+
+		registered := events.ItWasRegistered(
+			customerID,
+			emailAddress,
+			confirmationHash,
+			personName,
+			1,
+		)
+
+		emailAddressConfirmed := events.EmailAddressWasConfirmed(
+			customerID,
+			emailAddress,
+			2,
+		)
+
 		changeEmailAddress, err := commands.NewChangeEmailAddress(
 			customerID.ID(),
 			changedEmailAddress.EmailAddress(),
