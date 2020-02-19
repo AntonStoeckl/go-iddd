@@ -26,22 +26,22 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
-		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
-			registered.CustomerID().ID(),
-			registered.EmailAddress().EmailAddress(),
-			registered.ConfirmationHash().Hash(),
-		)
-		So(err, ShouldBeNil)
-
 		emailAddressConfirmed := events.EmailAddressWasConfirmed(
-			confirmEmailAddress.CustomerID(),
-			confirmEmailAddress.EmailAddress(),
+			customerID,
+			emailAddress,
 			2,
 		)
 
+		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+			customerID.ID(),
+			emailAddress.EmailAddress(),
+			confirmationHash.Hash(),
+		)
+		So(err, ShouldBeNil)
+
 		confirmEmailAddressWithInvalidHash, err := commands.NewConfirmEmailAddress(
-			registered.CustomerID().ID(),
-			registered.EmailAddress().EmailAddress(),
+			customerID.ID(),
+			emailAddress.EmailAddress(),
 			"invalid_hash",
 		)
 		So(err, ShouldBeNil)
