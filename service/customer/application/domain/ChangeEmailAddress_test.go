@@ -61,7 +61,27 @@ func TestChangeEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 2: Try to change a Customer's emailAddress to the same value twice", func() {
+		Convey("\nSCENARIO 2: Try to change a Customer's emailAddress to the value he registered with", func() {
+			Convey("Given CustomerRegistered", func() {
+				eventStream := es.DomainEvents{registered}
+
+				Convey("When ChangeEmailAddress", func() {
+					changeEmailAddress, err := commands.NewChangeEmailAddress(
+						customerID.ID(),
+						emailAddress.EmailAddress(),
+					)
+					So(err, ShouldBeNil)
+
+					recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+
+					Convey("Then no event", func() {
+						So(recordedEvents, ShouldBeEmpty)
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO 3: Try to change a Customer's emailAddress to the value it was already changed to", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
@@ -86,7 +106,7 @@ func TestChangeEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 3: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
+		Convey("\nSCENARIO 4: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
