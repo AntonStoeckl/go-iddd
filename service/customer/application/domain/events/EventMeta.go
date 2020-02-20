@@ -19,14 +19,13 @@ type EventMeta struct {
 	streamVersion uint
 }
 
-func BuildEventMeta(event es.DomainEvent, prefix string, streamVersion uint) EventMeta {
+func BuildEventMeta(event es.DomainEvent, streamVersion uint) EventMeta {
 	eventType := reflect.TypeOf(event).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
-	fullEventName := prefix + eventName
 
 	meta := EventMeta{
-		eventName:     fullEventName,
+		eventName:     eventName,
 		occurredAt:    time.Now().Format(metaTimestampFormat),
 		streamVersion: streamVersion,
 	}

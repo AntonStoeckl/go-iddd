@@ -13,9 +13,9 @@ func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeEmai
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
-		case events.Registered:
+		case events.CustomerRegistered:
 			emailAddress = actualEvent.EmailAddress()
-		case events.EmailAddressChanged:
+		case events.CustomerEmailAddressChanged:
 			emailAddress = actualEvent.EmailAddress()
 		}
 
@@ -26,7 +26,7 @@ func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeEmai
 		return nil
 	}
 
-	event := events.EmailAddressWasChanged(
+	event := events.CustomerEmailAddressWasChanged(
 		command.CustomerID(),
 		command.EmailAddress(),
 		command.ConfirmationHash(),

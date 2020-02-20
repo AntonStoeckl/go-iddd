@@ -63,7 +63,7 @@ func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.
 
 		for _, event := range recordedEvents {
 			switch actualEvent := event.(type) {
-			case events.EmailAddressConfirmationFailed:
+			case events.CustomerEmailAddressConfirmationFailed:
 				return errors.Mark(errors.New(actualEvent.EventName()), lib.ErrDomainConstraintsViolation)
 			}
 		}

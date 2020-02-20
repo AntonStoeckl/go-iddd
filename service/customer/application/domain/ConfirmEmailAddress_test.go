@@ -18,7 +18,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
-		registered := events.ItWasRegistered(
+		registered := events.CustomerWasRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -26,7 +26,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
-		emailAddressConfirmed := events.EmailAddressWasConfirmed(
+		emailAddressConfirmed := events.CustomerEmailAddressWasConfirmed(
 			customerID,
 			emailAddress,
 			2,
@@ -53,7 +53,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 				Convey("When ConfirmEmailAddress", func() {
 					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
-					Convey("Then EmailAddressConfirmed", func() {
+					Convey("Then CustomerEmailAddressConfirmed", func() {
 						ThenEmailAddressConfirmed(recordedEvents, confirmEmailAddress, 2)
 					})
 				})
@@ -67,7 +67,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 				Convey("When ConfirmEmailAddress", func() {
 					recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddressWithInvalidHash)
 
-					Convey("Then EmailAddressConfirmationFailed", func() {
+					Convey("Then CustomerEmailAddressConfirmationFailed", func() {
 						ThenEmailAddressConfirmationFailed(recordedEvents, confirmEmailAddressWithInvalidHash, 2)
 					})
 				})
@@ -78,7 +78,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
-				Convey("and EmailAddressConfirmed", func() {
+				Convey("and CustomerEmailAddressConfirmed", func() {
 					eventStream = append(eventStream, emailAddressConfirmed)
 
 					Convey("When ConfirmEmailAddress", func() {
@@ -96,13 +96,13 @@ func TestConfirmEmailAddress(t *testing.T) {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
-				Convey("and EmailAddressConfirmed", func() {
+				Convey("and CustomerEmailAddressConfirmed", func() {
 					eventStream = append(eventStream, emailAddressConfirmed)
 
 					Convey("When ConfirmEmailAddress", func() {
 						recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddressWithInvalidHash)
 
-						Convey("Then EmailAddressConfirmationFailed", func() {
+						Convey("Then CustomerEmailAddressConfirmationFailed", func() {
 							ThenEmailAddressConfirmationFailed(recordedEvents, confirmEmailAddressWithInvalidHash, 3)
 						})
 					})
@@ -119,7 +119,7 @@ func ThenEmailAddressConfirmed(
 ) {
 
 	So(recordedEvents, ShouldHaveLength, 1)
-	emailAddressConfirmed, ok := recordedEvents[0].(events.EmailAddressConfirmed)
+	emailAddressConfirmed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmed)
 	So(ok, ShouldBeTrue)
 	So(emailAddressConfirmed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
 	So(emailAddressConfirmed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
@@ -133,7 +133,7 @@ func ThenEmailAddressConfirmationFailed(
 ) {
 
 	So(recordedEvents, ShouldHaveLength, 1)
-	emailAddressConfirmationFailed, ok := recordedEvents[0].(events.EmailAddressConfirmationFailed)
+	emailAddressConfirmationFailed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmationFailed)
 	So(ok, ShouldBeTrue)
 	So(emailAddressConfirmationFailed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
 	So(emailAddressConfirmationFailed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)

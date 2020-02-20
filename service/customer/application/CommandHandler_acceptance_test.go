@@ -76,7 +76,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 				Convey("Then she should have an unconfirmed account", func() {
 					ThenEventStreamShouldBe(
 						es.DomainEvents{
-							events.Registered{},
+							events.CustomerRegistered{},
 						},
 						customerEventStore,
 						customerID,
@@ -97,8 +97,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						Convey("Then her email address should be confirmed", func() {
 							ThenEventStreamShouldBe(
 								es.DomainEvents{
-									events.Registered{},
-									events.EmailAddressConfirmed{},
+									events.CustomerRegistered{},
+									events.CustomerEmailAddressConfirmed{},
 								},
 								customerEventStore,
 								customerID,
@@ -124,8 +124,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 							Convey("and her email address should be unconfirmed", func() {
 								ThenEventStreamShouldBe(
 									es.DomainEvents{
-										events.Registered{},
-										events.EmailAddressConfirmationFailed{},
+										events.CustomerRegistered{},
+										events.CustomerEmailAddressConfirmationFailed{},
 									},
 									customerEventStore,
 									customerID,
@@ -152,8 +152,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 							Convey("Then it should be ignored", func() {
 								ThenEventStreamShouldBe(
 									es.DomainEvents{
-										events.Registered{},
-										events.EmailAddressConfirmed{},
+										events.CustomerRegistered{},
+										events.CustomerEmailAddressConfirmed{},
 									},
 									customerEventStore,
 									customerID,
@@ -182,9 +182,9 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 								ThenEventStreamShouldBe(
 									es.DomainEvents{
-										events.Registered{},
-										events.EmailAddressConfirmed{},
-										events.EmailAddressConfirmationFailed{},
+										events.CustomerRegistered{},
+										events.CustomerEmailAddressConfirmed{},
+										events.CustomerEmailAddressConfirmationFailed{},
 									},
 									customerEventStore,
 									customerID,
@@ -207,8 +207,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					Convey("Then her email address should be changed", func() {
 						ThenEventStreamShouldBe(
 							es.DomainEvents{
-								events.Registered{},
-								events.EmailAddressChanged{},
+								events.CustomerRegistered{},
+								events.CustomerEmailAddressChanged{},
 							},
 							customerEventStore,
 							customerID,
@@ -232,8 +232,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						Convey("Then it should be ignored", func() {
 							ThenEventStreamShouldBe(
 								es.DomainEvents{
-									events.Registered{},
-									events.EmailAddressChanged{},
+									events.CustomerRegistered{},
+									events.CustomerEmailAddressChanged{},
 								},
 								customerEventStore,
 								customerID,
@@ -262,10 +262,10 @@ func TestCommandHandlerScenarios(t *testing.T) {
 								Convey("Then her changed email address should be confirmed", func() {
 									ThenEventStreamShouldBe(
 										es.DomainEvents{
-											events.Registered{},
-											events.EmailAddressConfirmed{},
-											events.EmailAddressChanged{},
-											events.EmailAddressConfirmed{},
+											events.CustomerRegistered{},
+											events.CustomerEmailAddressConfirmed{},
+											events.CustomerEmailAddressChanged{},
+											events.CustomerEmailAddressConfirmed{},
 										},
 										customerEventStore,
 										customerID,
@@ -287,7 +287,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 func GivenCustomerRegistered(register commands.Register, customerEventStore *eventstore.CustomerEventStore) {
 	recordedEvents := es.DomainEvents{
-		events.ItWasRegistered(
+		events.CustomerWasRegistered(
 			register.CustomerID(),
 			register.EmailAddress(),
 			register.ConfirmationHash(),
@@ -307,7 +307,7 @@ func GivenEmailAddressConfirmed(
 ) {
 
 	recordedEvents := es.DomainEvents{
-		events.EmailAddressWasConfirmed(
+		events.CustomerEmailAddressWasConfirmed(
 			confirmEmailAddress.CustomerID(),
 			confirmEmailAddress.EmailAddress(),
 			streamVersion,
@@ -325,7 +325,7 @@ func GivenEmailAddressChanged(
 ) {
 
 	recordedEvents := es.DomainEvents{
-		events.EmailAddressWasChanged(
+		events.CustomerEmailAddressWasChanged(
 			changeEmailAddress.CustomerID(),
 			changeEmailAddress.EmailAddress(),
 			changeEmailAddress.ConfirmationHash(),

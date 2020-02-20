@@ -33,7 +33,7 @@ func TestRegister(t *testing.T) {
 
 func ThenCustomerRegistered(recordedEvents es.DomainEvents, register commands.Register) {
 	So(recordedEvents, ShouldHaveLength, 1)
-	registered, ok := recordedEvents[0].(events.Registered)
+	registered, ok := recordedEvents[0].(events.CustomerRegistered)
 	So(ok, ShouldBeTrue)
 	So(registered.CustomerID().Equals(register.CustomerID()), ShouldBeTrue)
 	So(registered.EmailAddress().Equals(register.EmailAddress()), ShouldBeTrue)

@@ -125,7 +125,7 @@ func TestCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
-				registered := events.ItWasRegistered(
+				registered := events.CustomerWasRegistered(
 					values.GenerateCustomerID(),
 					values.RebuildEmailAddress("john@doe.com"),
 					values.RebuildConfirmationHash("john@doe.com"),

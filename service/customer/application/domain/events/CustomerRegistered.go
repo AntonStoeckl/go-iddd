@@ -6,11 +6,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-const (
-	registeredAggregateName = "Customer"
-)
-
-type Registered struct {
+type CustomerRegistered struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
@@ -18,59 +14,55 @@ type Registered struct {
 	meta             EventMeta
 }
 
-func ItWasRegistered(
+func CustomerWasRegistered(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
 	personName values.PersonName,
 	streamVersion uint,
-) Registered {
+) CustomerRegistered {
 
-	registered := Registered{
+	event := CustomerRegistered{
 		customerID:       customerID,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
 		personName:       personName,
 	}
 
-	registered.meta = BuildEventMeta(
-		registered,
-		registeredAggregateName,
-		streamVersion,
-	)
+	event.meta = BuildEventMeta(event, streamVersion)
 
-	return registered
+	return event
 }
 
-func (registered Registered) CustomerID() values.CustomerID {
-	return registered.customerID
+func (event CustomerRegistered) CustomerID() values.CustomerID {
+	return event.customerID
 }
 
-func (registered Registered) EmailAddress() values.EmailAddress {
-	return registered.emailAddress
+func (event CustomerRegistered) EmailAddress() values.EmailAddress {
+	return event.emailAddress
 }
 
-func (registered Registered) ConfirmationHash() values.ConfirmationHash {
-	return registered.confirmationHash
+func (event CustomerRegistered) ConfirmationHash() values.ConfirmationHash {
+	return event.confirmationHash
 }
 
-func (registered Registered) PersonName() values.PersonName {
-	return registered.personName
+func (event CustomerRegistered) PersonName() values.PersonName {
+	return event.personName
 }
 
-func (registered Registered) EventName() string {
-	return registered.meta.eventName
+func (event CustomerRegistered) EventName() string {
+	return event.meta.eventName
 }
 
-func (registered Registered) OccurredAt() string {
-	return registered.meta.occurredAt
+func (event CustomerRegistered) OccurredAt() string {
+	return event.meta.occurredAt
 }
 
-func (registered Registered) StreamVersion() uint {
-	return registered.meta.streamVersion
+func (event CustomerRegistered) StreamVersion() uint {
+	return event.meta.streamVersion
 }
 
-func (registered Registered) MarshalJSON() ([]byte, error) {
+func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		CustomerID       string    `json:"customerID"`
 		EmailAddress     string    `json:"emailAddress"`
@@ -79,19 +71,19 @@ func (registered Registered) MarshalJSON() ([]byte, error) {
 		PersonFamilyName string    `json:"personFamilyName"`
 		Meta             EventMeta `json:"meta"`
 	}{
-		CustomerID:       registered.customerID.ID(),
-		EmailAddress:     registered.emailAddress.EmailAddress(),
-		ConfirmationHash: registered.confirmationHash.Hash(),
-		PersonGivenName:  registered.personName.GivenName(),
-		PersonFamilyName: registered.personName.FamilyName(),
-		Meta:             registered.meta,
+		CustomerID:       event.customerID.ID(),
+		EmailAddress:     event.emailAddress.EmailAddress(),
+		ConfirmationHash: event.confirmationHash.Hash(),
+		PersonGivenName:  event.personName.GivenName(),
+		PersonFamilyName: event.personName.FamilyName(),
+		Meta:             event.meta,
 	}
 
 	return jsoniter.Marshal(data)
 }
 
-func UnmarshalRegisteredFromJSON(data []byte, streamVersion uint) Registered {
-	registered := Registered{
+func UnmarshalCustomerRegisteredFromJSON(data []byte, streamVersion uint) CustomerRegistered {
+	event := CustomerRegistered{
 		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
 		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
@@ -102,5 +94,5 @@ func UnmarshalRegisteredFromJSON(data []byte, streamVersion uint) Registered {
 		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
-	return registered
+	return event
 }
