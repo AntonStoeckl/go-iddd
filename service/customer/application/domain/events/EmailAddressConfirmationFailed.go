@@ -2,23 +2,19 @@ package events
 
 import (
 	"go-iddd/service/customer/application/domain/values"
-	"reflect"
-	"strings"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
 const (
-	emailAddressConfirmationFailedAggregateName       = "Customer"
-	EmailAddressConfirmationFailedMetaTimestampFormat = time.RFC3339Nano
+	emailAddressConfirmationFailedAggregateName = "Customer"
 )
 
 type EmailAddressConfirmationFailed struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
-	meta             Meta
+	meta             EventMeta
 }
 
 func EmailAddressConfirmationHasFailed(
@@ -34,16 +30,11 @@ func EmailAddressConfirmationHasFailed(
 		confirmationHash: confirmationHash,
 	}
 
-	eventType := reflect.TypeOf(emailAddressConfirmationFailed).String()
-	eventTypeParts := strings.Split(eventType, ".")
-	eventName := eventTypeParts[len(eventTypeParts)-1]
-	fullEventName := emailAddressConfirmationFailedAggregateName + eventName
-
-	emailAddressConfirmationFailed.meta = Meta{
-		eventName:     fullEventName,
-		occurredAt:    time.Now().Format(EmailAddressConfirmationFailedMetaTimestampFormat),
-		streamVersion: streamVersion,
-	}
+	emailAddressConfirmationFailed.meta = BuildEventMeta(
+		emailAddressConfirmationFailed,
+		emailAddressConfirmationFailedAggregateName,
+		streamVersion,
+	)
 
 	return emailAddressConfirmationFailed
 }
@@ -74,10 +65,10 @@ func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) StreamVersi
 
 func (emailAddressConfirmationFailed EmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
 	data := struct {
-		CustomerID       string `json:"customerID"`
-		EmailAddress     string `json:"emailAddress"`
-		ConfirmationHash string `json:"confirmationHash"`
-		Meta             Meta   `json:"meta"`
+		CustomerID       string    `json:"customerID"`
+		EmailAddress     string    `json:"emailAddress"`
+		ConfirmationHash string    `json:"confirmationHash"`
+		Meta             EventMeta `json:"meta"`
 	}{
 		CustomerID:       emailAddressConfirmationFailed.customerID.ID(),
 		EmailAddress:     emailAddressConfirmationFailed.emailAddress.EmailAddress(),
@@ -93,7 +84,7 @@ func UnmarshalEmailAddressConfirmationFailedFromJSON(data []byte, streamVersion 
 		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
 		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
-		meta:             UnmarshalMetaFromJSON(data, streamVersion),
+		meta:             UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
 	return emailAddressConfirmationFailed

@@ -2,23 +2,19 @@ package events
 
 import (
 	"go-iddd/service/customer/application/domain/values"
-	"reflect"
-	"strings"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
 const (
-	emailAddressChangedAggregateName       = "Customer"
-	EmailAddressChangedMetaTimestampFormat = time.RFC3339Nano
+	emailAddressChangedAggregateName = "Customer"
 )
 
 type EmailAddressChanged struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
-	meta             Meta
+	meta             EventMeta
 }
 
 func EmailAddressWasChanged(
@@ -34,16 +30,11 @@ func EmailAddressWasChanged(
 		confirmationHash: confirmationHash,
 	}
 
-	eventType := reflect.TypeOf(emailAddressChanged).String()
-	eventTypeParts := strings.Split(eventType, ".")
-	eventName := eventTypeParts[len(eventTypeParts)-1]
-	fullEventName := emailAddressChangedAggregateName + eventName
-
-	emailAddressChanged.meta = Meta{
-		eventName:     fullEventName,
-		occurredAt:    time.Now().Format(EmailAddressChangedMetaTimestampFormat),
-		streamVersion: streamVersion,
-	}
+	emailAddressChanged.meta = BuildEventMeta(
+		emailAddressChanged,
+		emailAddressChangedAggregateName,
+		streamVersion,
+	)
 
 	return emailAddressChanged
 }
@@ -74,10 +65,10 @@ func (emailAddressChanged EmailAddressChanged) StreamVersion() uint {
 
 func (emailAddressChanged EmailAddressChanged) MarshalJSON() ([]byte, error) {
 	data := struct {
-		CustomerID       string `json:"customerID"`
-		EmailAddress     string `json:"emailAddress"`
-		ConfirmationHash string `json:"confirmationHash"`
-		Meta             Meta   `json:"meta"`
+		CustomerID       string    `json:"customerID"`
+		EmailAddress     string    `json:"emailAddress"`
+		ConfirmationHash string    `json:"confirmationHash"`
+		Meta             EventMeta `json:"meta"`
 	}{
 		CustomerID:       emailAddressChanged.customerID.ID(),
 		EmailAddress:     emailAddressChanged.emailAddress.EmailAddress(),
@@ -93,7 +84,7 @@ func UnmarshalEmailAddressChangedFromJSON(data []byte, streamVersion uint) Email
 		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
 		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
-		meta:             UnmarshalMetaFromJSON(data, streamVersion),
+		meta:             UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
 	return emailAddressChanged

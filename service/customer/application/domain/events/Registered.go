@@ -2,16 +2,12 @@ package events
 
 import (
 	"go-iddd/service/customer/application/domain/values"
-	"reflect"
-	"strings"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
 const (
-	registeredAggregateName       = "Customer"
-	RegisteredMetaTimestampFormat = time.RFC3339Nano
+	registeredAggregateName = "Customer"
 )
 
 type Registered struct {
@@ -19,7 +15,7 @@ type Registered struct {
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	personName       values.PersonName
-	meta             Meta
+	meta             EventMeta
 }
 
 func ItWasRegistered(
@@ -37,16 +33,11 @@ func ItWasRegistered(
 		personName:       personName,
 	}
 
-	eventType := reflect.TypeOf(registered).String()
-	eventTypeParts := strings.Split(eventType, ".")
-	eventName := eventTypeParts[len(eventTypeParts)-1]
-	fullEventName := registeredAggregateName + eventName
-
-	registered.meta = Meta{
-		eventName:     fullEventName,
-		occurredAt:    time.Now().Format(RegisteredMetaTimestampFormat),
-		streamVersion: streamVersion,
-	}
+	registered.meta = BuildEventMeta(
+		registered,
+		registeredAggregateName,
+		streamVersion,
+	)
 
 	return registered
 }
@@ -81,12 +72,12 @@ func (registered Registered) StreamVersion() uint {
 
 func (registered Registered) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		CustomerID       string `json:"customerID"`
-		EmailAddress     string `json:"emailAddress"`
-		ConfirmationHash string `json:"confirmationHash"`
-		PersonGivenName  string `json:"personGivenName"`
-		PersonFamilyName string `json:"personFamilyName"`
-		Meta             Meta   `json:"meta"`
+		CustomerID       string    `json:"customerID"`
+		EmailAddress     string    `json:"emailAddress"`
+		ConfirmationHash string    `json:"confirmationHash"`
+		PersonGivenName  string    `json:"personGivenName"`
+		PersonFamilyName string    `json:"personFamilyName"`
+		Meta             EventMeta `json:"meta"`
 	}{
 		CustomerID:       registered.customerID.ID(),
 		EmailAddress:     registered.emailAddress.EmailAddress(),
@@ -108,7 +99,7 @@ func UnmarshalRegisteredFromJSON(data []byte, streamVersion uint) Registered {
 			jsoniter.Get(data, "personGivenName").ToString(),
 			jsoniter.Get(data, "personFamilyName").ToString(),
 		),
-		meta: UnmarshalMetaFromJSON(data, streamVersion),
+		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
 	return registered

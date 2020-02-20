@@ -2,22 +2,18 @@ package events
 
 import (
 	"go-iddd/service/customer/application/domain/values"
-	"reflect"
-	"strings"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
 const (
-	emailAddressConfirmedAggregateName       = "Customer"
-	EmailAddressConfirmedMetaTimestampFormat = time.RFC3339Nano
+	emailAddressConfirmedAggregateName = "Customer"
 )
 
 type EmailAddressConfirmed struct {
 	customerID   values.CustomerID
 	emailAddress values.EmailAddress
-	meta         Meta
+	meta         EventMeta
 }
 
 func EmailAddressWasConfirmed(
@@ -31,16 +27,11 @@ func EmailAddressWasConfirmed(
 		emailAddress: emailAddress,
 	}
 
-	eventType := reflect.TypeOf(emailAddressConfirmed).String()
-	eventTypeParts := strings.Split(eventType, ".")
-	eventName := eventTypeParts[len(eventTypeParts)-1]
-	fullEventName := emailAddressConfirmedAggregateName + eventName
-
-	emailAddressConfirmed.meta = Meta{
-		eventName:     fullEventName,
-		occurredAt:    time.Now().Format(EmailAddressConfirmedMetaTimestampFormat),
-		streamVersion: streamVersion,
-	}
+	emailAddressConfirmed.meta = BuildEventMeta(
+		emailAddressConfirmed,
+		emailAddressConfirmedAggregateName,
+		streamVersion,
+	)
 
 	return emailAddressConfirmed
 }
@@ -67,9 +58,9 @@ func (emailAddressConfirmed EmailAddressConfirmed) StreamVersion() uint {
 
 func (emailAddressConfirmed EmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := &struct {
-		CustomerID   string `json:"customerID"`
-		EmailAddress string `json:"emailAddress"`
-		Meta         Meta   `json:"meta"`
+		CustomerID   string    `json:"customerID"`
+		EmailAddress string    `json:"emailAddress"`
+		Meta         EventMeta `json:"meta"`
 	}{
 		CustomerID:   emailAddressConfirmed.customerID.ID(),
 		EmailAddress: emailAddressConfirmed.emailAddress.EmailAddress(),
@@ -83,7 +74,7 @@ func UnmarshalEmailAddressConfirmedFromJSON(data []byte, streamVersion uint) Ema
 	emailAddressConfirmed := EmailAddressConfirmed{
 		customerID:   values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress: values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
-		meta:         UnmarshalMetaFromJSON(data, streamVersion),
+		meta:         UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
 	return emailAddressConfirmed
