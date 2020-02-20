@@ -42,7 +42,7 @@ func (app *CustomerApp) Commands() []cli.Command {
 			Aliases:   []string{"coea"},
 			Usage:     "Confirm a Customer's emailAddress",
 			Action:    app.ConfirmCustomerEmailAddress,
-			ArgsUsage: "id emailAddress confirmationHash",
+			ArgsUsage: "id confirmationHash",
 		},
 		{
 			Name:      "ChangeCustomerEmailAddress",
@@ -79,10 +79,9 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 
 func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 	id := ctx.Args().Get(0)
-	emailAddress := ctx.Args().Get(1)
-	confirmationHash := ctx.Args().Get(2)
+	confirmationHash := ctx.Args().Get(1)
 
-	command, err := commands.NewConfirmEmailAddress(id, emailAddress, confirmationHash)
+	command, err := commands.NewConfirmEmailAddress(id, confirmationHash)
 	if err != nil {
 		return err
 	}

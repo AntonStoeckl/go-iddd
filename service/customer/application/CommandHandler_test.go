@@ -82,7 +82,6 @@ func TestCommandHandler(t *testing.T) {
 			Convey("Given an unregistered Customer", func() {
 				confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 					values.GenerateCustomerID().ID(),
-					"john@doe.com",
 					values.GenerateConfirmationHash("john@doe.com").Hash(),
 				)
 				So(err, ShouldBeNil)
@@ -151,7 +150,6 @@ func TestCommandHandler(t *testing.T) {
 					Convey("When trying to confirm his emailAddress", func() {
 						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 							registered.CustomerID().ID(),
-							registered.EmailAddress().EmailAddress(),
 							registered.ConfirmationHash().Hash(),
 						)
 						So(err, ShouldBeNil)

@@ -41,14 +41,12 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 			customerID.ID(),
-			emailAddress,
 			confirmationHash,
 		)
 		So(err, ShouldBeNil)
 
 		confirmEmailAddressWithInvalidHash, err := commands.NewConfirmEmailAddress(
 			customerID.ID(),
-			emailAddress,
 			invalidConfirmationHash,
 		)
 		So(err, ShouldBeNil)
@@ -63,7 +61,6 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		confirmChangedEmailAddress, err := commands.NewConfirmEmailAddress(
 			customerID.ID(),
-			changedEmailAddress,
 			changedConfirmationHash,
 		)
 		So(err, ShouldBeNil)
@@ -143,7 +140,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey("and she confirmed her email address", func() {
-						GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
+						GivenEmailAddressConfirmed(confirmEmailAddress, register.EmailAddress(), customerEventStore, 2)
 
 						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
 							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
@@ -171,7 +168,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey("and she confirmed her email address", func() {
-						GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
+						GivenEmailAddressConfirmed(confirmEmailAddress, register.EmailAddress(), customerEventStore, 2)
 
 						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
 							err = commandHandler.ConfirmEmailAddress(confirmEmailAddressWithInvalidHash)
@@ -249,7 +246,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey("and she confirmed her email address", func() {
-					GivenEmailAddressConfirmed(confirmEmailAddress, customerEventStore, 2)
+					GivenEmailAddressConfirmed(confirmEmailAddress, changeEmailAddress.EmailAddress(), customerEventStore, 2)
 
 					Convey(fmt.Sprintf("and she changed her email address to [%s]", changedEmailAddress), func() {
 						GivenEmailAddressChanged(changeEmailAddress, customerEventStore, 3)
@@ -302,6 +299,7 @@ func GivenCustomerRegistered(register commands.Register, customerEventStore *eve
 
 func GivenEmailAddressConfirmed(
 	confirmEmailAddress commands.ConfirmEmailAddress,
+	currentEmailAddress values.EmailAddress,
 	customerEventStore *eventstore.CustomerEventStore,
 	streamVersion uint,
 ) {
@@ -309,7 +307,7 @@ func GivenEmailAddressConfirmed(
 	recordedEvents := es.DomainEvents{
 		events.CustomerEmailAddressWasConfirmed(
 			confirmEmailAddress.CustomerID(),
-			confirmEmailAddress.EmailAddress(),
+			currentEmailAddress,
 			streamVersion,
 		),
 	}

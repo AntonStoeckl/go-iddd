@@ -124,9 +124,6 @@
         "id": {
           "type": "string"
         },
-        "emailAddress": {
-          "type": "string"
-        },
         "confirmationHash": {
           "type": "string"
         }

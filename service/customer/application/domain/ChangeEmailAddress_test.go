@@ -18,7 +18,6 @@ func TestChangeEmailAddress(t *testing.T) {
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 		changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
-		changedConfirmationHash := values.GenerateConfirmationHash(changedEmailAddress.EmailAddress())
 
 		registered := events.CustomerWasRegistered(
 			customerID,
@@ -40,9 +39,10 @@ func TestChangeEmailAddress(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
+		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
+
 		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
 			customerID.ID(),
-			changedEmailAddress.EmailAddress(),
 			changedConfirmationHash.Hash(),
 		)
 		So(err, ShouldBeNil)
@@ -55,7 +55,14 @@ func TestChangeEmailAddress(t *testing.T) {
 					recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
 
 					Convey("Then CustomerEmailAddressChanged", func() {
-						ThenEmailAddressChanged(recordedEvents, changeEmailAddress, 2)
+						So(recordedEvents, ShouldHaveLength, 1)
+						emailAddressChanged, ok := recordedEvents[0].(events.CustomerEmailAddressChanged)
+						So(ok, ShouldBeTrue)
+						So(emailAddressChanged, ShouldNotBeNil)
+						So(emailAddressChanged.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(emailAddressChanged.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
+						So(emailAddressChanged.ConfirmationHash().Equals(changedConfirmationHash), ShouldBeTrue)
+						So(emailAddressChanged.StreamVersion(), ShouldEqual, 2)
 					})
 				})
 			})
@@ -127,7 +134,12 @@ func TestChangeEmailAddress(t *testing.T) {
 							recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
 
 							Convey("Then CustomerEmailAddressConfirmed", func() {
-								ThenChangedEmailAddressConfirmed(recordedEvents, confirmEmailAddress, 4)
+								So(recordedEvents, ShouldHaveLength, 1)
+								emailAddressConfirmed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmed)
+								So(ok, ShouldBeTrue)
+								So(emailAddressConfirmed.CustomerID().Equals(customerID), ShouldBeTrue)
+								So(emailAddressConfirmed.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
+								So(emailAddressConfirmed.StreamVersion(), ShouldEqual, 4)
 							})
 						})
 					})
@@ -135,34 +147,4 @@ func TestChangeEmailAddress(t *testing.T) {
 			})
 		})
 	})
-}
-
-func ThenEmailAddressChanged(
-	recordedEvents es.DomainEvents,
-	changeEmailAddress commands.ChangeEmailAddress,
-	streamVersion uint,
-) {
-
-	So(recordedEvents, ShouldHaveLength, 1)
-	emailAddressChanged, ok := recordedEvents[0].(events.CustomerEmailAddressChanged)
-	So(ok, ShouldBeTrue)
-	So(emailAddressChanged, ShouldNotBeNil)
-	So(emailAddressChanged.CustomerID().Equals(changeEmailAddress.CustomerID()), ShouldBeTrue)
-	So(emailAddressChanged.EmailAddress().Equals(changeEmailAddress.EmailAddress()), ShouldBeTrue)
-	So(emailAddressChanged.ConfirmationHash().Equals(changeEmailAddress.ConfirmationHash()), ShouldBeTrue)
-	So(emailAddressChanged.StreamVersion(), ShouldEqual, streamVersion)
-}
-
-func ThenChangedEmailAddressConfirmed(
-	recordedEvents es.DomainEvents,
-	confirmEmailAddress commands.ConfirmEmailAddress,
-	streamVersion uint,
-) {
-
-	So(recordedEvents, ShouldHaveLength, 1)
-	emailAddressConfirmed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmed)
-	So(ok, ShouldBeTrue)
-	So(emailAddressConfirmed.CustomerID().Equals(confirmEmailAddress.CustomerID()), ShouldBeTrue)
-	So(emailAddressConfirmed.EmailAddress().Equals(confirmEmailAddress.EmailAddress()), ShouldBeTrue)
-	So(emailAddressConfirmed.StreamVersion(), ShouldEqual, streamVersion)
 }

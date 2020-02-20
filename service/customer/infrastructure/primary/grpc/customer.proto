@@ -43,8 +43,7 @@ message RegisterResponse {
 
 message ConfirmEmailAddressRequest {
     string id = 1;
-    string emailAddress = 2;
-    string confirmationHash = 3;
+    string confirmationHash = 2;
 }
 
 // ChangeEmailAddress

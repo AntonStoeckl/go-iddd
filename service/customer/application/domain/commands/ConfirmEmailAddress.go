@@ -11,23 +11,16 @@ import (
 
 type ConfirmEmailAddress struct {
 	customerID       values.CustomerID
-	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	isValid          bool
 }
 
 func NewConfirmEmailAddress(
 	customerID string,
-	emailAddress string,
 	confirmationHash string,
 ) (ConfirmEmailAddress, error) {
 
 	customerIDValue, err := values.BuildCustomerID(customerID)
-	if err != nil {
-		return ConfirmEmailAddress{}, err
-	}
-
-	emailAddressValue, err := values.BuildEmailAddress(emailAddress)
 	if err != nil {
 		return ConfirmEmailAddress{}, err
 	}
@@ -39,7 +32,6 @@ func NewConfirmEmailAddress(
 
 	confirmEmailAddress := ConfirmEmailAddress{
 		customerID:       customerIDValue,
-		emailAddress:     emailAddressValue,
 		confirmationHash: confirmationHashValue,
 		isValid:          true,
 	}
@@ -49,10 +41,6 @@ func NewConfirmEmailAddress(
 
 func (confirmEmailAddress ConfirmEmailAddress) CustomerID() values.CustomerID {
 	return confirmEmailAddress.customerID
-}
-
-func (confirmEmailAddress ConfirmEmailAddress) EmailAddress() values.EmailAddress {
-	return confirmEmailAddress.emailAddress
 }
 
 func (confirmEmailAddress ConfirmEmailAddress) ConfirmationHash() values.ConfirmationHash {
