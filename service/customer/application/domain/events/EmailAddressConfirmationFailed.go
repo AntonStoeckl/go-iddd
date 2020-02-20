@@ -37,7 +37,6 @@ func EmailAddressConfirmationHasFailed(
 	eventType := reflect.TypeOf(emailAddressConfirmationFailed).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
-	eventName = strings.Title(eventName)
 	fullEventName := emailAddressConfirmationFailedAggregateName + eventName
 
 	emailAddressConfirmationFailed.meta = Meta{

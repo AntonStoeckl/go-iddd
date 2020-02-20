@@ -34,7 +34,6 @@ func EmailAddressWasConfirmed(
 	eventType := reflect.TypeOf(emailAddressConfirmed).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
-	eventName = strings.Title(eventName)
 	fullEventName := emailAddressConfirmedAggregateName + eventName
 
 	emailAddressConfirmed.meta = Meta{

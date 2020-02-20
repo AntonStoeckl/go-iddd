@@ -37,7 +37,6 @@ func EmailAddressWasChanged(
 	eventType := reflect.TypeOf(emailAddressChanged).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
-	eventName = strings.Title(eventName)
 	fullEventName := emailAddressChangedAggregateName + eventName
 
 	emailAddressChanged.meta = Meta{

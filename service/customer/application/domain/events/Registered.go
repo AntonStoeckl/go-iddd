@@ -40,7 +40,6 @@ func ItWasRegistered(
 	eventType := reflect.TypeOf(registered).String()
 	eventTypeParts := strings.Split(eventType, ".")
 	eventName := eventTypeParts[len(eventTypeParts)-1]
-	eventName = strings.Title(eventName)
 	fullEventName := registeredAggregateName + eventName
 
 	registered.meta = Meta{
