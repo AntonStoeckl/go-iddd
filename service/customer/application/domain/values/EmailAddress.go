@@ -16,7 +16,7 @@ type EmailAddress struct {
 }
 
 func BuildEmailAddress(input string) (EmailAddress, error) {
-	if matched := emailAddressRegExp.MatchString(input); matched != true {
+	if matched := emailAddressRegExp.MatchString(input); !matched {
 		err := lib.MarkAndWrapError(
 			errors.New("input has invalid format"),
 			lib.ErrInputIsInvalid,
