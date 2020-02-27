@@ -205,7 +205,7 @@ func mustStartREST() {
 }
 
 func waitForStopSignal() {
-	s, _ := <-stopSignalChannel
+	s := <-stopSignalChannel
 
 	switch s.(type) {
 	case os.Signal:
