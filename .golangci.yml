@@ -206,7 +206,7 @@ linters-settings:
     for-loops: false # Report preallocation suggestions on for loops, false by default
   rowserrcheck:
     packages:
-      - github.com/jmoiron/sqlx
+      - database/sql
   unparam:
     # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
     # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
