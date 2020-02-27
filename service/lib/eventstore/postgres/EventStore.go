@@ -35,6 +35,8 @@ func (eventStore *EventStore) AppendEventsToStream(
 	events es.DomainEvents,
 ) error {
 
+	var err error
+
 	wrapWithMsg := "eventStore.AppendEventsToStream"
 
 	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
@@ -47,7 +49,9 @@ func (eventStore *EventStore) AppendEventsToStream(
 	}
 
 	for _, event := range events {
-		eventJson, err := jsoniter.Marshal(event)
+		var eventJson []byte
+
+		eventJson, err = jsoniter.Marshal(event)
 		if err != nil {
 			return lib.MarkAndWrapError(err, lib.ErrMarshalingFailed, wrapWithMsg)
 		}
