@@ -1,7 +1,7 @@
 package values
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"go-iddd/service/lib"
 	"math/rand"
@@ -17,8 +17,8 @@ type ConfirmationHash struct {
 
 func GenerateConfirmationHash(using string) ConfirmationHash {
 	randomInt := rand.New(rand.NewSource(time.Now().UnixNano())).Int()
-	md5Sum := md5.Sum([]byte(using + strconv.Itoa(randomInt)))
-	value := fmt.Sprintf("%x", md5Sum)
+	sha256Sum := sha256.Sum256([]byte(using + strconv.Itoa(randomInt)))
+	value := fmt.Sprintf("%x", sha256Sum)
 
 	return ConfirmationHash{value: value}
 }
