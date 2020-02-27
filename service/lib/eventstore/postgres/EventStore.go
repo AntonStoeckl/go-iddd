@@ -118,6 +118,10 @@ func (eventStore *EventStore) LoadEventStream(
 	var domainEvent es.DomainEvent
 
 	for eventRows.Next() {
+		if eventRows.Err() != nil {
+			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		}
+
 		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
 			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 		}
