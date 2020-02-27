@@ -29,3 +29,11 @@ generate_mocked_ForStoringCustomerEvents:
 generate_all_mocks: \
 	generate_mocked_EventStore \
 	generate_mocked_ForStoringCustomerEvents
+
+# https://github.com/golangci/golangci-lint
+install-golangci-lint:
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(shell go env GOPATH)/bin v1.23.6
+
+# https://github.com/psampaz/go-mod-outdated
+outdated-list:
+	go list -u -m -json all | go-mod-outdated -update -direct
