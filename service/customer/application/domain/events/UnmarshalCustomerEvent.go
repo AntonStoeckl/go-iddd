@@ -17,10 +17,12 @@ func UnmarshalCustomerEvent(name string, payload []byte, streamVersion uint) (es
 		return UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(payload, streamVersion), nil
 	case "CustomerEmailAddressChanged":
 		return UnmarshalCustomerEmailAddressChangedFromJSON(payload, streamVersion), nil
-	default:
-		return nil, errors.Mark(
-			errors.Wrapf(errors.New("event is unknown"), "unmarshalDomainEvent [%s] failed", name),
-			lib.ErrUnmarshalingFailed,
-		)
 	}
+
+	err := errors.Mark(
+		errors.Wrapf(errors.New("event is unknown"), "unmarshalDomainEvent [%s] failed", name),
+		lib.ErrUnmarshalingFailed,
+	)
+
+	return nil, err
 }
