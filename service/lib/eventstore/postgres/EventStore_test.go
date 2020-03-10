@@ -15,6 +15,9 @@ import (
 
 func Test_EventStore_AppendEventsToStream(t *testing.T) {
 	Convey("Setup", t, func() {
+		var err error
+		var eventStream es.DomainEvents
+
 		diContainer, err := test.SetUpDIContainer()
 		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
@@ -30,11 +33,11 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 					test.CreateSomeEvent(id, 2),
 				}
 
-				err := eventStore.AppendEventsToStream(streamID, appendedEvents)
+				err = eventStore.AppendEventsToStream(streamID, appendedEvents)
 				So(err, ShouldBeNil)
 
 				Convey("It should contain the expected 2 events", func() {
-					eventStream, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+					eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 					So(err, ShouldBeNil)
 					So(eventStream, ShouldHaveLength, 2)
 					So(eventStream, ShouldResemble, appendedEvents)
@@ -46,11 +49,11 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 							test.CreateSomeEvent(id, 4),
 						)
 
-						err := eventStore.AppendEventsToStream(streamID, appendedEvents[2:4])
+						err = eventStore.AppendEventsToStream(streamID, appendedEvents[2:4])
 						So(err, ShouldBeNil)
 
 						Convey("It should contain the expected 4 events", func() {
-							eventStream, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+							eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 							So(err, ShouldBeNil)
 							So(eventStream, ShouldHaveLength, 4)
 							So(eventStream, ShouldResemble, appendedEvents)
@@ -139,6 +142,9 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 func Test_EventStore_LoadEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
+		var err error
+		var eventStream es.DomainEvents
+
 		diContainer, err := test.SetUpDIContainer()
 		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
@@ -149,7 +155,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 
 		Convey("Given an empty event stream", func() {
 			Convey("When it is loaded", func() {
-				eventStream, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+				eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 
 				Convey("It should contain 0 events", func() {
 					So(err, ShouldBeNil)
@@ -170,7 +176,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When it is fully loaded", func() {
-				eventStream, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+				eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 
 				Convey("It should contain the expected 4 events", func() {
 					So(err, ShouldBeNil)
@@ -180,7 +186,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 			})
 
 			Convey("When it is partially loaded (2 events starting from version 2)", func() {
-				eventStream, err := eventStore.LoadEventStream(streamID, 2, 2)
+				eventStream, err = eventStore.LoadEventStream(streamID, 2, 2)
 
 				Convey("It should contain the expected 2 events", func() {
 					So(err, ShouldBeNil)
@@ -213,7 +219,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When the event stream is loaded", func() {
-				eventStream, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+				eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 
 				Convey("It should contain the expected 3 events properly ordered by stream versions", func() {
 					So(err, ShouldBeNil)
@@ -233,7 +239,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When the event stream is loaded", func() {
-				_, err := eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
+				_, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
