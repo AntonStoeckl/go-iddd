@@ -4,4 +4,4 @@ import (
 	"go-iddd/service/customer/application/domain/commands"
 )
 
-type ForRegistering func(command commands.RegisterCustomer) error
+type ForRegisteringCustomers func(command commands.RegisterCustomer) error

@@ -9,15 +9,15 @@ import (
 )
 
 type customerServer struct {
-	register            customer.ForRegistering
-	confirmEmailAddress customer.ForConfirmingEmailAddresses
-	changeEmailAddress  customer.ForChangingEmailAddresses
+	register            customer.ForRegisteringCustomers
+	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses
+	changeEmailAddress  customer.ForChangingCustomerEmailAddresses
 }
 
 func NewCustomerServer(
-	register customer.ForRegistering,
-	confirmEmailAddress customer.ForConfirmingEmailAddresses,
-	changeEmailAddress customer.ForChangingEmailAddresses,
+	register customer.ForRegisteringCustomers,
+	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses,
+	changeEmailAddress customer.ForChangingCustomerEmailAddresses,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,
