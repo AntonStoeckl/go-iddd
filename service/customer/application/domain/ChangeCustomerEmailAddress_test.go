@@ -43,7 +43,7 @@ func TestChangeCustomerEmailAddress(t *testing.T) {
 
 		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
 
-		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
 			customerID.ID(),
 			changedConfirmationHash.Hash(),
 		)

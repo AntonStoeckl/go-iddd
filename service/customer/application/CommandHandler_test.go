@@ -31,7 +31,7 @@ func TestCommandHandler(t *testing.T) {
 			})
 
 			Convey("When a Customer's emailAddress is confirmed with an invalid command", func() {
-				err := commandHandler.ConfirmCustomerEmailAddress(commands.ConfirmEmailAddress{})
+				err := commandHandler.ConfirmCustomerEmailAddress(commands.ConfirmCustomerEmailAddress{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -80,19 +80,19 @@ func TestCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Customer does not exist", func() {
 			Convey("Given an unregistered Customer", func() {
-				confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+				confirmCustomerEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
 					values.GenerateCustomerID().ID(),
 					values.GenerateConfirmationHash("john@doe.com").Hash(),
 				)
 				So(err, ShouldBeNil)
 
 				customerEventStore.
-					On("EventStreamFor", confirmEmailAddress.CustomerID()).
+					On("EventStreamFor", confirmCustomerEmailAddress.CustomerID()).
 					Return(es.DomainEvents{}, lib.ErrNotFound).
 					Once()
 
 				Convey("When his emailAddress is confirmed", func() {
-					err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
+					err = commandHandler.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress)
 
 					Convey("Then it should fail", func() {
 						So(err, ShouldBeError)
@@ -148,13 +148,13 @@ func TestCommandHandler(t *testing.T) {
 						Once()
 
 					Convey("When trying to confirm his emailAddress", func() {
-						confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+						confirmCustomerEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
 							registered.CustomerID().ID(),
 							registered.ConfirmationHash().Hash(),
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
+						err = commandHandler.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress)
 
 						Convey("Then it should fail", func() {
 							So(err, ShouldBeError)
@@ -163,13 +163,13 @@ func TestCommandHandler(t *testing.T) {
 					})
 
 					Convey("When trying to change his emailAddress", func() {
-						changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
+						changeCustomerEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 							registered.CustomerID().ID(),
 							registered.EmailAddress().EmailAddress(),
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ChangeCustomerEmailAddress(changeEmailAddress)
+						err = commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddress)
 
 						Convey("Then it should fail", func() {
 							So(err, ShouldBeError)

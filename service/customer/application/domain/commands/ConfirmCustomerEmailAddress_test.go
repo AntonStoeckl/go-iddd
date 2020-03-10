@@ -10,9 +10,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewConfirmEmailAddressWithInvalidInput(t *testing.T) {
-	Convey("When a new ConfirmEmailAddress command is created with an empty customerID", t, func() {
-		_, err := commands.NewConfirmEmailAddress(
+func TestBuildConfirmCustomerEmailAddressWithInvalidInput(t *testing.T) {
+	Convey("When a ConfirmCustomerEmailAddress command is built with an empty customerID", t, func() {
+		_, err := commands.BuildConfirmCustomerEmailAddress(
 			"",
 			values.GenerateConfirmationHash("john@doe.com").Hash(),
 		)
@@ -23,8 +23,8 @@ func TestNewConfirmEmailAddressWithInvalidInput(t *testing.T) {
 		})
 	})
 
-	Convey("When a new ConfirmEmailAddress command is created with an empty confirmationHash", t, func() {
-		_, err := commands.NewConfirmEmailAddress(
+	Convey("When a ConfirmCustomerEmailAddress command is built with an empty confirmationHash", t, func() {
+		_, err := commands.BuildConfirmCustomerEmailAddress(
 			values.GenerateCustomerID().ID(),
 			"",
 		)

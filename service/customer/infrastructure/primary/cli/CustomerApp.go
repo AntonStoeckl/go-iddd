@@ -81,7 +81,7 @@ func (app *CustomerApp) ConfirmCustomerEmailAddress(ctx *cli.Context) error {
 	id := ctx.Args().Get(0)
 	confirmationHash := ctx.Args().Get(1)
 
-	command, err := commands.NewConfirmEmailAddress(id, confirmationHash)
+	command, err := commands.BuildConfirmCustomerEmailAddress(id, confirmationHash)
 	if err != nil {
 		return err
 	}

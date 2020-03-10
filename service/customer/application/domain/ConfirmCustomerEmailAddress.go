@@ -7,7 +7,7 @@ import (
 	"go-iddd/service/lib/es"
 )
 
-func ConfirmCustomerEmailAddress(eventStream es.DomainEvents, command commands.ConfirmEmailAddress) es.DomainEvents {
+func ConfirmCustomerEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCustomerEmailAddress) es.DomainEvents {
 	var emailAddress values.EmailAddress
 	var confirmationHash values.ConfirmationHash
 	var isConfirmed bool

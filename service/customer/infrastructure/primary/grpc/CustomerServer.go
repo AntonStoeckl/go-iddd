@@ -52,7 +52,7 @@ func (server *customerServer) ConfirmEmailAddress(
 	req *ConfirmEmailAddressRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.NewConfirmEmailAddress(req.Id, req.ConfirmationHash)
+	command, err := commands.BuildConfirmCustomerEmailAddress(req.Id, req.ConfirmationHash)
 	if err != nil {
 		return nil, err
 	}

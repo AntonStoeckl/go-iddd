@@ -22,15 +22,15 @@ func NewCommandHandler(customerEvents ForStoringCustomerEvents) *CommandHandler 
 	}
 }
 
-func (handler *CommandHandler) RegisterCustomer(register commands.RegisterCustomer) error {
-	if err := register.ShouldBeValid(); err != nil {
+func (handler *CommandHandler) RegisterCustomer(command commands.RegisterCustomer) error {
+	if err := command.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.RegisterCustomer")
 	}
 
 	doRegister := func() error {
-		recordedEvents := domain.RegisterCustomer(register)
+		recordedEvents := domain.RegisterCustomer(command)
 
-		if err := handler.customerEvents.CreateStreamFrom(recordedEvents, register.CustomerID()); err != nil {
+		if err := handler.customerEvents.CreateStreamFrom(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -44,20 +44,20 @@ func (handler *CommandHandler) RegisterCustomer(register commands.RegisterCustom
 	return nil
 }
 
-func (handler *CommandHandler) ConfirmCustomerEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
-	if err := confirmEmailAddress.ShouldBeValid(); err != nil {
+func (handler *CommandHandler) ConfirmCustomerEmailAddress(command commands.ConfirmCustomerEmailAddress) error {
+	if err := command.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.ConfirmCustomerEmailAddress")
 	}
 
 	doConfirmEmailAddress := func() error {
-		eventStream, err := handler.customerEvents.EventStreamFor(confirmEmailAddress.CustomerID())
+		eventStream, err := handler.customerEvents.EventStreamFor(command.CustomerID())
 		if err != nil {
 			return err
 		}
 
-		recordedEvents := domain.ConfirmCustomerEmailAddress(eventStream, confirmEmailAddress)
+		recordedEvents := domain.ConfirmCustomerEmailAddress(eventStream, command)
 
-		if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID()); err != nil {
+		if err := handler.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -78,20 +78,20 @@ func (handler *CommandHandler) ConfirmCustomerEmailAddress(confirmEmailAddress c
 	return nil
 }
 
-func (handler *CommandHandler) ChangeCustomerEmailAddress(changeEmailAddress commands.ChangeCustomerEmailAddress) error {
-	if err := changeEmailAddress.ShouldBeValid(); err != nil {
+func (handler *CommandHandler) ChangeCustomerEmailAddress(command commands.ChangeCustomerEmailAddress) error {
+	if err := command.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.ChangeCustomerEmailAddress")
 	}
 
 	doChangeEmailAddress := func() error {
-		eventStream, err := handler.customerEvents.EventStreamFor(changeEmailAddress.CustomerID())
+		eventStream, err := handler.customerEvents.EventStreamFor(command.CustomerID())
 		if err != nil {
 			return err
 		}
 
-		recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, changeEmailAddress)
+		recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, command)
 
-		if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID()); err != nil {
+		if err := handler.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 

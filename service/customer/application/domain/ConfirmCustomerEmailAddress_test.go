@@ -33,13 +33,13 @@ func TestConfirmCustomerEmailAddress(t *testing.T) {
 			2,
 		)
 
-		confirmEmailAddress, err := commands.NewConfirmEmailAddress(
+		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
 			customerID.ID(),
 			confirmationHash.Hash(),
 		)
 		So(err, ShouldBeNil)
 
-		confirmEmailAddressWithInvalidHash, err := commands.NewConfirmEmailAddress(
+		confirmEmailAddressWithInvalidHash, err := commands.BuildConfirmCustomerEmailAddress(
 			customerID.ID(),
 			invalidConfirmationHash.Hash(),
 		)
