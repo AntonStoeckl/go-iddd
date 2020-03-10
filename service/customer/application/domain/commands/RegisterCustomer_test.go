@@ -9,7 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewRegisterWithInvalidInput(t *testing.T) {
+func TestBuildRegisterWithInvalidInput(t *testing.T) {
 	Convey("When a RegisterCustomer command is built with an invalid emailAddress", t, func() {
 		_, err := commands.BuildRegisterCustomer("foo@bar", "John", "Doe")
 
