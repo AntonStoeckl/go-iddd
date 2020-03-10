@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/lib"
 	"reflect"
 	"strings"

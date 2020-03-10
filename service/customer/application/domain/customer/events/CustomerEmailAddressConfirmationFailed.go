@@ -1,26 +1,26 @@
 package events
 
 import (
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/values"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
-type CustomerEmailAddressChanged struct {
+type CustomerEmailAddressConfirmationFailed struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	meta             EventMeta
 }
 
-func CustomerEmailAddressWasChanged(
+func CustomerEmailAddressConfirmationHasFailed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
 	streamVersion uint,
-) CustomerEmailAddressChanged {
+) CustomerEmailAddressConfirmationFailed {
 
-	event := CustomerEmailAddressChanged{
+	event := CustomerEmailAddressConfirmationFailed{
 		customerID:       customerID,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
@@ -31,31 +31,31 @@ func CustomerEmailAddressWasChanged(
 	return event
 }
 
-func (event CustomerEmailAddressChanged) CustomerID() values.CustomerID {
+func (event CustomerEmailAddressConfirmationFailed) CustomerID() values.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressChanged) EmailAddress() values.EmailAddress {
+func (event CustomerEmailAddressConfirmationFailed) EmailAddress() values.EmailAddress {
 	return event.emailAddress
 }
 
-func (event CustomerEmailAddressChanged) ConfirmationHash() values.ConfirmationHash {
+func (event CustomerEmailAddressConfirmationFailed) ConfirmationHash() values.ConfirmationHash {
 	return event.confirmationHash
 }
 
-func (event CustomerEmailAddressChanged) EventName() string {
+func (event CustomerEmailAddressConfirmationFailed) EventName() string {
 	return event.meta.eventName
 }
 
-func (event CustomerEmailAddressChanged) OccurredAt() string {
+func (event CustomerEmailAddressConfirmationFailed) OccurredAt() string {
 	return event.meta.occurredAt
 }
 
-func (event CustomerEmailAddressChanged) StreamVersion() uint {
+func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
 	return event.meta.streamVersion
 }
 
-func (event CustomerEmailAddressChanged) MarshalJSON() ([]byte, error) {
+func (event CustomerEmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
 	data := struct {
 		CustomerID       string    `json:"customerID"`
 		EmailAddress     string    `json:"emailAddress"`
@@ -71,8 +71,8 @@ func (event CustomerEmailAddressChanged) MarshalJSON() ([]byte, error) {
 	return jsoniter.Marshal(data)
 }
 
-func UnmarshalCustomerEmailAddressChangedFromJSON(data []byte, streamVersion uint) CustomerEmailAddressChanged {
-	event := CustomerEmailAddressChanged{
+func UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(data []byte, streamVersion uint) CustomerEmailAddressConfirmationFailed {
+	event := CustomerEmailAddressConfirmationFailed{
 		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
 		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),

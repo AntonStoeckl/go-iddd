@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/events"
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/customer/events"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
@@ -23,6 +23,8 @@ func TestCommandHandlerScenarios(t *testing.T) {
 	commandHandler := diContainer.GetCustomerCommandHandler()
 
 	Convey("Prepare test artifacts", t, func() {
+		var err error
+
 		emailAddress := "fiona@gallagher.net"
 		givenName := "Fiona"
 		familyName := "Gallagher"
@@ -67,7 +69,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 1: A prospective Customer registers", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				err := commandHandler.RegisterCustomer(registerCustomer)
+				err = commandHandler.RegisterCustomer(registerCustomer)
 				So(err, ShouldBeNil)
 
 				Convey("Then she should have an unconfirmed account", func() {

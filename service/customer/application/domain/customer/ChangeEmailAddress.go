@@ -1,13 +1,13 @@
-package domain
+package customer
 
 import (
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/events"
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/customer/events"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/lib/es"
 )
 
-func ChangeCustomerEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) es.DomainEvents {
+func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) es.DomainEvents {
 	var emailAddress values.EmailAddress
 	var currentStreamVersion uint
 

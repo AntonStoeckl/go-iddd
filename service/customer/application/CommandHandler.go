@@ -1,9 +1,9 @@
 package application
 
 import (
-	"go-iddd/service/customer/application/domain"
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/events"
+	"go-iddd/service/customer/application/domain/customer"
+	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/customer/events"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/cqrs"
 
@@ -28,7 +28,7 @@ func (handler *CommandHandler) RegisterCustomer(command commands.RegisterCustome
 	}
 
 	doRegister := func() error {
-		recordedEvents := domain.RegisterCustomer(command)
+		recordedEvents := customer.Register(command)
 
 		if err := handler.customerEvents.CreateStreamFrom(recordedEvents, command.CustomerID()); err != nil {
 			return err
@@ -55,7 +55,7 @@ func (handler *CommandHandler) ConfirmCustomerEmailAddress(command commands.Conf
 			return err
 		}
 
-		recordedEvents := domain.ConfirmCustomerEmailAddress(eventStream, command)
+		recordedEvents := customer.ConfirmEmailAddress(eventStream, command)
 
 		if err := handler.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
@@ -89,7 +89,7 @@ func (handler *CommandHandler) ChangeCustomerEmailAddress(command commands.Chang
 			return err
 		}
 
-		recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, command)
+		recordedEvents := customer.ChangeEmailAddress(eventStream, command)
 
 		if err := handler.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err

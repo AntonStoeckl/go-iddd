@@ -1,7 +1,7 @@
 package eventstore
 
 import (
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"math"

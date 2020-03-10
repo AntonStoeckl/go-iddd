@@ -1,29 +1,32 @@
 package events
 
 import (
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/values"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
-type CustomerEmailAddressConfirmationFailed struct {
+type CustomerRegistered struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
+	personName       values.PersonName
 	meta             EventMeta
 }
 
-func CustomerEmailAddressConfirmationHasFailed(
+func CustomerWasRegistered(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
+	personName values.PersonName,
 	streamVersion uint,
-) CustomerEmailAddressConfirmationFailed {
+) CustomerRegistered {
 
-	event := CustomerEmailAddressConfirmationFailed{
+	event := CustomerRegistered{
 		customerID:       customerID,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
+		personName:       personName,
 	}
 
 	event.meta = BuildEventMeta(event, streamVersion)
@@ -31,52 +34,64 @@ func CustomerEmailAddressConfirmationHasFailed(
 	return event
 }
 
-func (event CustomerEmailAddressConfirmationFailed) CustomerID() values.CustomerID {
+func (event CustomerRegistered) CustomerID() values.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressConfirmationFailed) EmailAddress() values.EmailAddress {
+func (event CustomerRegistered) EmailAddress() values.EmailAddress {
 	return event.emailAddress
 }
 
-func (event CustomerEmailAddressConfirmationFailed) ConfirmationHash() values.ConfirmationHash {
+func (event CustomerRegistered) ConfirmationHash() values.ConfirmationHash {
 	return event.confirmationHash
 }
 
-func (event CustomerEmailAddressConfirmationFailed) EventName() string {
+func (event CustomerRegistered) PersonName() values.PersonName {
+	return event.personName
+}
+
+func (event CustomerRegistered) EventName() string {
 	return event.meta.eventName
 }
 
-func (event CustomerEmailAddressConfirmationFailed) OccurredAt() string {
+func (event CustomerRegistered) OccurredAt() string {
 	return event.meta.occurredAt
 }
 
-func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
+func (event CustomerRegistered) StreamVersion() uint {
 	return event.meta.streamVersion
 }
 
-func (event CustomerEmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
-	data := struct {
+func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
+	data := &struct {
 		CustomerID       string    `json:"customerID"`
 		EmailAddress     string    `json:"emailAddress"`
 		ConfirmationHash string    `json:"confirmationHash"`
+		PersonGivenName  string    `json:"personGivenName"`
+		PersonFamilyName string    `json:"personFamilyName"`
 		Meta             EventMeta `json:"meta"`
 	}{
 		CustomerID:       event.customerID.ID(),
 		EmailAddress:     event.emailAddress.EmailAddress(),
 		ConfirmationHash: event.confirmationHash.Hash(),
+		PersonGivenName:  event.personName.GivenName(),
+		PersonFamilyName: event.personName.FamilyName(),
 		Meta:             event.meta,
 	}
 
 	return jsoniter.Marshal(data)
 }
 
-func UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(data []byte, streamVersion uint) CustomerEmailAddressConfirmationFailed {
-	event := CustomerEmailAddressConfirmationFailed{
+func UnmarshalCustomerRegisteredFromJSON(data []byte, streamVersion uint) CustomerRegistered {
+	event := CustomerRegistered{
 		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
 		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
 		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
-		meta:             UnmarshalEventMetaFromJSON(data, streamVersion),
+		personName: values.RebuildPersonName(
+			jsoniter.Get(data, "personGivenName").ToString(),
+			jsoniter.Get(data, "personFamilyName").ToString(),
+		),
+		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 
 	return event

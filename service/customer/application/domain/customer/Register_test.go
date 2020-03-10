@@ -1,16 +1,16 @@
-package domain_test
+package customer_test
 
 import (
-	"go-iddd/service/customer/application/domain"
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/events"
+	"go-iddd/service/customer/application/domain/customer"
+	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/customer/events"
 	"go-iddd/service/lib/es"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRegisterCustomer(t *testing.T) {
+func TestRegister(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		registerCustomer, err := commands.BuildRegisterCustomer(
 			"kevin@ball.com",
@@ -21,7 +21,7 @@ func TestRegisterCustomer(t *testing.T) {
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {
-				recordedEvents := domain.RegisterCustomer(registerCustomer)
+				recordedEvents := customer.Register(registerCustomer)
 
 				Convey("Then CustomerRegistered", func() {
 					ThenCustomerRegistered(recordedEvents, registerCustomer)

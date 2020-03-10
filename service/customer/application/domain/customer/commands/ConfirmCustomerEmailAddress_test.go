@@ -1,8 +1,8 @@
 package commands_test
 
 import (
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/lib"
 	"testing"
 

@@ -2,7 +2,7 @@ package values_test
 
 import (
 	"fmt"
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/domain/customer/values"
 	"go-iddd/service/lib"
 	"testing"
 	"time"
