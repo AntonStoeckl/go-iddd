@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application/domain/customer/events"
+	"go-iddd/service/customer/application/writemodel/domain/customer/events"
 	"go-iddd/service/lib/eventstore/postgres/database"
 	"os"
 

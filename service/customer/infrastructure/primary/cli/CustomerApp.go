@@ -2,22 +2,22 @@ package customercli
 
 import (
 	"fmt"
-	"go-iddd/service/customer"
-	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
 
 	"github.com/urfave/cli"
 )
 
 type CustomerApp struct {
-	register            customer.ForRegisteringCustomers
-	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses
-	changeEmailAddress  customer.ForChangingCustomerEmailAddresses
+	register            application.ForRegisteringCustomers
+	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses
+	changeEmailAddress  application.ForChangingCustomerEmailAddresses
 }
 
 func NewCustomerApp(
-	register customer.ForRegisteringCustomers,
-	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses,
-	changeEmailAddress customer.ForChangingCustomerEmailAddresses,
+	register application.ForRegisteringCustomers,
+	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses,
+	changeEmailAddress application.ForChangingCustomerEmailAddresses,
 ) *CustomerApp {
 	app := &CustomerApp{
 		register:            register,

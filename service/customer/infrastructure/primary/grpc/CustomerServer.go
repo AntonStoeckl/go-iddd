@@ -2,22 +2,22 @@ package customergrpc
 
 import (
 	"context"
-	"go-iddd/service/customer"
-	"go-iddd/service/customer/application/domain/customer/commands"
+	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
 
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
 type customerServer struct {
-	register            customer.ForRegisteringCustomers
-	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses
-	changeEmailAddress  customer.ForChangingCustomerEmailAddresses
+	register            application.ForRegisteringCustomers
+	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses
+	changeEmailAddress  application.ForChangingCustomerEmailAddresses
 }
 
 func NewCustomerServer(
-	register customer.ForRegisteringCustomers,
-	confirmEmailAddress customer.ForConfirmingCustomerEmailAddresses,
-	changeEmailAddress customer.ForChangingCustomerEmailAddresses,
+	register application.ForRegisteringCustomers,
+	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses,
+	changeEmailAddress application.ForChangingCustomerEmailAddresses,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,

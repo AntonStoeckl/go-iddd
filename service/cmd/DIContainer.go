@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/writemodel"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
@@ -20,7 +20,7 @@ type DIContainer struct {
 	unmarshalDomainEvent   es.UnmarshalDomainEvent
 	eventStore             *postgres.EventStore
 	customerEventStore     *eventstore.CustomerEventStore
-	customerCommandHandler *application.CommandHandler
+	customerCommandHandler *writemodel.CustomerCommandHandler
 	customerServer         customergrpc.CustomerServer
 	customerApp            *customercli.CustomerApp
 }
@@ -78,9 +78,9 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 	return container.customerEventStore
 }
 
-func (container DIContainer) GetCustomerCommandHandler() *application.CommandHandler {
+func (container DIContainer) GetCustomerCommandHandler() *writemodel.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
-		container.customerCommandHandler = application.NewCommandHandler(
+		container.customerCommandHandler = writemodel.NewCustomerCommandHandler(
 			container.GetCustomerEventStore(),
 		)
 	}
