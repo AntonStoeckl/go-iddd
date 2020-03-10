@@ -12,7 +12,7 @@ import (
 
 func TestRegisterCustomer(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		register, err := commands.NewRegister(
+		registerCustomer, err := commands.BuildRegisterCustomer(
 			"kevin@ball.com",
 			"Kevin",
 			"Ball",
@@ -21,17 +21,17 @@ func TestRegisterCustomer(t *testing.T) {
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {
-				recordedEvents := domain.RegisterCustomer(register)
+				recordedEvents := domain.RegisterCustomer(registerCustomer)
 
 				Convey("Then CustomerRegistered", func() {
-					ThenCustomerRegistered(recordedEvents, register)
+					ThenCustomerRegistered(recordedEvents, registerCustomer)
 				})
 			})
 		})
 	})
 }
 
-func ThenCustomerRegistered(recordedEvents es.DomainEvents, register commands.Register) {
+func ThenCustomerRegistered(recordedEvents es.DomainEvents, register commands.RegisterCustomer) {
 	So(recordedEvents, ShouldHaveLength, 1)
 	registered, ok := recordedEvents[0].(events.CustomerRegistered)
 	So(ok, ShouldBeTrue)

@@ -6,7 +6,7 @@ import (
 	"go-iddd/service/lib/es"
 )
 
-func RegisterCustomer(with commands.Register) es.DomainEvents {
+func RegisterCustomer(with commands.RegisterCustomer) es.DomainEvents {
 	return es.DomainEvents{
 		events.CustomerWasRegistered(
 			with.CustomerID(),

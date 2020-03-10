@@ -9,7 +9,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-type Register struct {
+type RegisterCustomer struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
@@ -17,23 +17,23 @@ type Register struct {
 	isValid          bool
 }
 
-func NewRegister(
+func BuildRegisterCustomer(
 	emailAddress string,
 	givenName string,
 	familyName string,
-) (Register, error) {
+) (RegisterCustomer, error) {
 
 	emailAddressValue, err := values.BuildEmailAddress(emailAddress)
 	if err != nil {
-		return Register{}, err
+		return RegisterCustomer{}, err
 	}
 
 	personNameValue, err := values.BuildPersonName(givenName, familyName)
 	if err != nil {
-		return Register{}, err
+		return RegisterCustomer{}, err
 	}
 
-	register := Register{
+	register := RegisterCustomer{
 		customerID:       values.GenerateCustomerID(),
 		emailAddress:     emailAddressValue,
 		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
@@ -44,23 +44,23 @@ func NewRegister(
 	return register, nil
 }
 
-func (register Register) CustomerID() values.CustomerID {
+func (register RegisterCustomer) CustomerID() values.CustomerID {
 	return register.customerID
 }
 
-func (register Register) EmailAddress() values.EmailAddress {
+func (register RegisterCustomer) EmailAddress() values.EmailAddress {
 	return register.emailAddress
 }
 
-func (register Register) ConfirmationHash() values.ConfirmationHash {
+func (register RegisterCustomer) ConfirmationHash() values.ConfirmationHash {
 	return register.confirmationHash
 }
 
-func (register Register) PersonName() values.PersonName {
+func (register RegisterCustomer) PersonName() values.PersonName {
 	return register.personName
 }
 
-func (register Register) ShouldBeValid() error {
+func (register RegisterCustomer) ShouldBeValid() error {
 	if !register.isValid {
 		err := errors.Newf("%s: is not valid", register.commandName())
 
@@ -70,7 +70,7 @@ func (register Register) ShouldBeValid() error {
 	return nil
 }
 
-func (register Register) commandName() string {
+func (register RegisterCustomer) commandName() string {
 	commandType := reflect.TypeOf(register).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]

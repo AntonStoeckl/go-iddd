@@ -59,7 +59,7 @@ func (app *CustomerApp) RegisterCustomer(ctx *cli.Context) error {
 	givenName := ctx.Args().Get(1)
 	familyName := ctx.Args().Get(2)
 
-	command, err := commands.NewRegister(emailAddress, givenName, familyName)
+	command, err := commands.BuildRegisterCustomer(emailAddress, givenName, familyName)
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		invalidConfirmationHash := values.GenerateConfirmationHash("foo@bar.com").Hash()
 		changedEmailAddress := "fiona@pratt.net"
 
-		register, err := commands.NewRegister(
+		register, err := commands.BuildRegisterCustomer(
 			emailAddress,
 			givenName,
 			familyName,
@@ -282,7 +282,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 	})
 }
 
-func GivenCustomerRegistered(register commands.Register, customerEventStore *eventstore.CustomerEventStore) {
+func GivenCustomerRegistered(register commands.RegisterCustomer, customerEventStore *eventstore.CustomerEventStore) {
 	recordedEvents := es.DomainEvents{
 		events.CustomerWasRegistered(
 			register.CustomerID(),

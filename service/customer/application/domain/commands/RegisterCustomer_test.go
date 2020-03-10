@@ -10,8 +10,8 @@ import (
 )
 
 func TestNewRegisterWithInvalidInput(t *testing.T) {
-	Convey("When a new Register command is created with an invalid emailAddress", t, func() {
-		_, err := commands.NewRegister("foo@bar", "John", "Doe")
+	Convey("When a RegisterCustomer command is built with an invalid emailAddress", t, func() {
+		_, err := commands.BuildRegisterCustomer("foo@bar", "John", "Doe")
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)
@@ -19,8 +19,8 @@ func TestNewRegisterWithInvalidInput(t *testing.T) {
 		})
 	})
 
-	Convey("When a new Register command is created with an empty givenName", t, func() {
-		_, err := commands.NewRegister("john@doe.com", "", "Doe")
+	Convey("When a RegisterCustomer command is built with an empty givenName", t, func() {
+		_, err := commands.BuildRegisterCustomer("john@doe.com", "", "Doe")
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)
@@ -28,8 +28,8 @@ func TestNewRegisterWithInvalidInput(t *testing.T) {
 		})
 	})
 
-	Convey("When a new Register command is created with an empty familyName", t, func() {
-		_, err := commands.NewRegister("john@doe.com", "John", "")
+	Convey("When a RegisterCustomer command is built with an empty familyName", t, func() {
+		_, err := commands.BuildRegisterCustomer("john@doe.com", "John", "")
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)

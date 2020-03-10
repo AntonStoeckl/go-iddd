@@ -22,7 +22,7 @@ func NewCommandHandler(customerEvents ForStoringCustomerEvents) *CommandHandler 
 	}
 }
 
-func (handler *CommandHandler) RegisterCustomer(register commands.Register) error {
+func (handler *CommandHandler) RegisterCustomer(register commands.RegisterCustomer) error {
 	if err := register.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.RegisterCustomer")
 	}

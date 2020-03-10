@@ -33,7 +33,7 @@ func (server *customerServer) Register(
 	req *RegisterRequest,
 ) (*RegisterResponse, error) {
 
-	command, err := commands.NewRegister(req.EmailAddress, req.GivenName, req.FamilyName)
+	command, err := commands.BuildRegisterCustomer(req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {
 		return nil, err
 	}

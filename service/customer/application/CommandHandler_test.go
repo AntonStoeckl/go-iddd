@@ -22,7 +22,7 @@ func TestCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Invalid Commands", func() {
 			Convey("When a Customer is registered with an invalid Command", func() {
-				err := commandHandler.RegisterCustomer(commands.Register{})
+				err := commandHandler.RegisterCustomer(commands.RegisterCustomer{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -51,7 +51,7 @@ func TestCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Duplicate Customer ID", func() {
 			Convey("Given a registered Customer", func() {
-				register, err := commands.NewRegister(
+				register, err := commands.BuildRegisterCustomer(
 					"john@doe.com",
 					"John",
 					"Doe",
