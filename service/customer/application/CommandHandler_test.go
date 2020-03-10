@@ -22,7 +22,7 @@ func TestCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Invalid Commands", func() {
 			Convey("When a Customer is registered with an invalid Command", func() {
-				err := commandHandler.Register(commands.Register{})
+				err := commandHandler.RegisterCustomer(commands.Register{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -31,7 +31,7 @@ func TestCommandHandler(t *testing.T) {
 			})
 
 			Convey("When a Customer's emailAddress is confirmed with an invalid command", func() {
-				err := commandHandler.ConfirmEmailAddress(commands.ConfirmEmailAddress{})
+				err := commandHandler.ConfirmCustomerEmailAddress(commands.ConfirmEmailAddress{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -40,7 +40,7 @@ func TestCommandHandler(t *testing.T) {
 			})
 
 			Convey("When a Customer's emailAddress is changed with an invalid command", func() {
-				err := commandHandler.ChangeEmailAddress(commands.ChangeEmailAddress{})
+				err := commandHandler.ChangeCustomerEmailAddress(commands.ChangeEmailAddress{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -68,7 +68,7 @@ func TestCommandHandler(t *testing.T) {
 					Once()
 
 				Convey("When he is registered again with duplicate ID", func() {
-					err = commandHandler.Register(register)
+					err = commandHandler.RegisterCustomer(register)
 
 					Convey("Then it should fail", func() {
 						So(err, ShouldBeError)
@@ -92,7 +92,7 @@ func TestCommandHandler(t *testing.T) {
 					Once()
 
 				Convey("When his emailAddress is confirmed", func() {
-					err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+					err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
 
 					Convey("Then it should fail", func() {
 						So(err, ShouldBeError)
@@ -112,7 +112,7 @@ func TestCommandHandler(t *testing.T) {
 					Once()
 
 				Convey("When his emailAddress is changed", func() {
-					err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+					err = commandHandler.ChangeCustomerEmailAddress(changeEmailAddress)
 
 					Convey("Then it should fail", func() {
 						So(err, ShouldBeError)
@@ -154,7 +154,7 @@ func TestCommandHandler(t *testing.T) {
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+						err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
 
 						Convey("Then it should fail", func() {
 							So(err, ShouldBeError)
@@ -169,7 +169,7 @@ func TestCommandHandler(t *testing.T) {
 						)
 						So(err, ShouldBeNil)
 
-						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+						err = commandHandler.ChangeCustomerEmailAddress(changeEmailAddress)
 
 						Convey("Then it should fail", func() {
 							So(err, ShouldBeError)

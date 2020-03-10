@@ -22,9 +22,9 @@ func NewCommandHandler(customerEvents ForStoringCustomerEvents) *CommandHandler 
 	}
 }
 
-func (handler *CommandHandler) Register(register commands.Register) error {
+func (handler *CommandHandler) RegisterCustomer(register commands.Register) error {
 	if err := register.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.Register")
+		return errors.Wrap(err, "commandHandler.RegisterCustomer")
 	}
 
 	doRegister := func() error {
@@ -44,7 +44,7 @@ func (handler *CommandHandler) Register(register commands.Register) error {
 	return nil
 }
 
-func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
+func (handler *CommandHandler) ConfirmCustomerEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
 	if err := confirmEmailAddress.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.ConfirmCustomerEmailAddress")
 	}
@@ -78,7 +78,7 @@ func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.
 	return nil
 }
 
-func (handler *CommandHandler) ChangeEmailAddress(changeEmailAddress commands.ChangeEmailAddress) error {
+func (handler *CommandHandler) ChangeCustomerEmailAddress(changeEmailAddress commands.ChangeEmailAddress) error {
 	if err := changeEmailAddress.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.ChangeCustomerEmailAddress")
 	}

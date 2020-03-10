@@ -67,7 +67,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 1: A prospective Customer registers", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", givenName, familyName, emailAddress), func() {
-				err := commandHandler.Register(register)
+				err := commandHandler.RegisterCustomer(register)
 				So(err, ShouldBeNil)
 
 				Convey("Then she should have an unconfirmed account", func() {
@@ -88,7 +88,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey(fmt.Sprintf("When she confirms her email address with confirmation hash [%s]", confirmationHash), func() {
-						err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+						err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
 						So(err, ShouldBeNil)
 
 						Convey("Then her email address should be confirmed", func() {
@@ -112,7 +112,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 				Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", confirmationHash), func() {
 					Convey(fmt.Sprintf("When she tries to confirm her email address with wrong confirmation hash [%s]", invalidConfirmationHash), func() {
-						err = commandHandler.ConfirmEmailAddress(confirmEmailAddressWithInvalidHash)
+						err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddressWithInvalidHash)
 						So(err, ShouldBeError)
 
 						Convey("Then it should fail", func() {
@@ -143,7 +143,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						GivenEmailAddressConfirmed(confirmEmailAddress, register.EmailAddress(), customerEventStore, 2)
 
 						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
-							err = commandHandler.ConfirmEmailAddress(confirmEmailAddress)
+							err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddress)
 							So(err, ShouldBeNil)
 
 							Convey("Then it should be ignored", func() {
@@ -171,7 +171,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 						GivenEmailAddressConfirmed(confirmEmailAddress, register.EmailAddress(), customerEventStore, 2)
 
 						Convey(fmt.Sprintf("When she tries to confirm it again with confirmation hash [%s]", confirmationHash), func() {
-							err = commandHandler.ConfirmEmailAddress(confirmEmailAddressWithInvalidHash)
+							err = commandHandler.ConfirmCustomerEmailAddress(confirmEmailAddressWithInvalidHash)
 							So(err, ShouldBeError)
 
 							Convey("Then it should fail", func() {
@@ -198,7 +198,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 				GivenCustomerRegistered(register, customerEventStore)
 
 				Convey(fmt.Sprintf("When she changes her email address to [%s]", changedEmailAddress), func() {
-					err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+					err = commandHandler.ChangeCustomerEmailAddress(changeEmailAddress)
 					So(err, ShouldBeNil)
 
 					Convey("Then her email address should be changed", func() {
@@ -223,7 +223,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 					GivenEmailAddressChanged(changeEmailAddress, customerEventStore, 2)
 
 					Convey(fmt.Sprintf("When she tries to change it again to [%s]", changedEmailAddress), func() {
-						err = commandHandler.ChangeEmailAddress(changeEmailAddress)
+						err = commandHandler.ChangeCustomerEmailAddress(changeEmailAddress)
 						So(err, ShouldBeNil)
 
 						Convey("Then it should be ignored", func() {
@@ -253,7 +253,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 
 						Convey(fmt.Sprintf("and she was issued a confirmation hash [%s]", changedConfirmationHash), func() {
 							Convey(fmt.Sprintf("When she confirms her changed email address with confirmation hash [%s]", changedConfirmationHash), func() {
-								err = commandHandler.ConfirmEmailAddress(confirmChangedEmailAddress)
+								err = commandHandler.ConfirmCustomerEmailAddress(confirmChangedEmailAddress)
 								So(err, ShouldBeNil)
 
 								Convey("Then her changed email address should be confirmed", func() {

@@ -91,9 +91,9 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CommandHan
 func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
 	if container.customerServer == nil {
 		container.customerServer = customergrpc.NewCustomerServer(
-			container.GetCustomerCommandHandler().Register,
-			container.GetCustomerCommandHandler().ConfirmEmailAddress,
-			container.GetCustomerCommandHandler().ChangeEmailAddress,
+			container.GetCustomerCommandHandler().RegisterCustomer,
+			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
+			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
 		)
 	}
 
@@ -103,9 +103,9 @@ func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
 func (container DIContainer) GetCustomerApp() *customercli.CustomerApp {
 	if container.customerApp == nil {
 		container.customerApp = customercli.NewCustomerApp(
-			container.GetCustomerCommandHandler().Register,
-			container.GetCustomerCommandHandler().ConfirmEmailAddress,
-			container.GetCustomerCommandHandler().ChangeEmailAddress,
+			container.GetCustomerCommandHandler().RegisterCustomer,
+			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
+			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
 		)
 	}
 
