@@ -46,7 +46,7 @@ func (handler *CommandHandler) Register(register commands.Register) error {
 
 func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.ConfirmEmailAddress) error {
 	if err := confirmEmailAddress.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.ConfirmEmailAddress")
+		return errors.Wrap(err, "commandHandler.ConfirmCustomerEmailAddress")
 	}
 
 	doConfirmEmailAddress := func() error {
@@ -55,7 +55,7 @@ func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.
 			return err
 		}
 
-		recordedEvents := domain.ConfirmEmailAddress(eventStream, confirmEmailAddress)
+		recordedEvents := domain.ConfirmCustomerEmailAddress(eventStream, confirmEmailAddress)
 
 		if err := handler.customerEvents.Add(recordedEvents, confirmEmailAddress.CustomerID()); err != nil {
 			return err
