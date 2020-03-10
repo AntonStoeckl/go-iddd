@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRegister(t *testing.T) {
+func TestRegisterCustomer(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		register, err := commands.NewRegister(
 			"kevin@ball.com",
