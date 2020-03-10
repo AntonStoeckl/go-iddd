@@ -9,29 +9,29 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-type ChangeEmailAddress struct {
+type ChangeCustomerEmailAddress struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	isValid          bool
 }
 
-func NewChangeEmailAddress(
+func BuildChangeCustomerEmailAddress(
 	customerID string,
 	emailAddress string,
-) (ChangeEmailAddress, error) {
+) (ChangeCustomerEmailAddress, error) {
 
 	customerIDValue, err := values.BuildCustomerID(customerID)
 	if err != nil {
-		return ChangeEmailAddress{}, err
+		return ChangeCustomerEmailAddress{}, err
 	}
 
 	emailAddressValue, err := values.BuildEmailAddress(emailAddress)
 	if err != nil {
-		return ChangeEmailAddress{}, err
+		return ChangeCustomerEmailAddress{}, err
 	}
 
-	changeEmailAddress := ChangeEmailAddress{
+	changeEmailAddress := ChangeCustomerEmailAddress{
 		customerID:       customerIDValue,
 		emailAddress:     emailAddressValue,
 		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
@@ -41,19 +41,19 @@ func NewChangeEmailAddress(
 	return changeEmailAddress, nil
 }
 
-func (changeEmailAddress ChangeEmailAddress) CustomerID() values.CustomerID {
+func (changeEmailAddress ChangeCustomerEmailAddress) CustomerID() values.CustomerID {
 	return changeEmailAddress.customerID
 }
 
-func (changeEmailAddress ChangeEmailAddress) EmailAddress() values.EmailAddress {
+func (changeEmailAddress ChangeCustomerEmailAddress) EmailAddress() values.EmailAddress {
 	return changeEmailAddress.emailAddress
 }
 
-func (changeEmailAddress ChangeEmailAddress) ConfirmationHash() values.ConfirmationHash {
+func (changeEmailAddress ChangeCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
 	return changeEmailAddress.confirmationHash
 }
 
-func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {
+func (changeEmailAddress ChangeCustomerEmailAddress) ShouldBeValid() error {
 	if !changeEmailAddress.isValid {
 		err := errors.Newf("%s: is not valid", changeEmailAddress.commandName())
 
@@ -63,7 +63,7 @@ func (changeEmailAddress ChangeEmailAddress) ShouldBeValid() error {
 	return nil
 }
 
-func (changeEmailAddress ChangeEmailAddress) commandName() string {
+func (changeEmailAddress ChangeCustomerEmailAddress) commandName() string {
 	commandType := reflect.TypeOf(changeEmailAddress).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]

@@ -40,7 +40,7 @@ func TestCommandHandler(t *testing.T) {
 			})
 
 			Convey("When a Customer's emailAddress is changed with an invalid command", func() {
-				err := commandHandler.ChangeCustomerEmailAddress(commands.ChangeEmailAddress{})
+				err := commandHandler.ChangeCustomerEmailAddress(commands.ChangeCustomerEmailAddress{})
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -100,7 +100,7 @@ func TestCommandHandler(t *testing.T) {
 					})
 				})
 
-				changeEmailAddress, err := commands.NewChangeEmailAddress(
+				changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 					values.GenerateCustomerID().ID(),
 					"john@doe.com",
 				)
@@ -163,7 +163,7 @@ func TestCommandHandler(t *testing.T) {
 					})
 
 					Convey("When trying to change his emailAddress", func() {
-						changeEmailAddress, err := commands.NewChangeEmailAddress(
+						changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 							registered.CustomerID().ID(),
 							registered.EmailAddress().EmailAddress(),
 						)

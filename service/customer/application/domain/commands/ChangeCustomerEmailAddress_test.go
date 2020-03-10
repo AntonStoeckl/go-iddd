@@ -10,9 +10,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewChangeEmailAddressWithInvalidInput(t *testing.T) {
-	Convey("When a new ChangeEmailAddress command is created with an empty customerID", t, func() {
-		_, err := commands.NewChangeEmailAddress(
+func TestBuildChangeEmailAddressWithInvalidInput(t *testing.T) {
+	Convey("When a ChangeCustomerEmailAddress command is built with an empty customerID", t, func() {
+		_, err := commands.BuildChangeCustomerEmailAddress(
 			"",
 			"john@doe.com",
 		)
@@ -23,8 +23,8 @@ func TestNewChangeEmailAddressWithInvalidInput(t *testing.T) {
 		})
 	})
 
-	Convey("When a new ChangeEmailAddress command is created with an invalid emailAddress", t, func() {
-		_, err := commands.NewChangeEmailAddress(
+	Convey("When a ChangeCustomerEmailAddress command is built with an invalid emailAddress", t, func() {
+		_, err := commands.BuildChangeCustomerEmailAddress(
 			values.GenerateCustomerID().ID(),
 			"foo@bar",
 		)

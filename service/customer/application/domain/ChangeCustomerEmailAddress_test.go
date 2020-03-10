@@ -35,7 +35,7 @@ func TestChangeCustomerEmailAddress(t *testing.T) {
 			2,
 		)
 
-		changeEmailAddress, err := commands.NewChangeEmailAddress(
+		changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 			customerID.ID(),
 			changedEmailAddress.EmailAddress(),
 		)
@@ -75,7 +75,7 @@ func TestChangeCustomerEmailAddress(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					changeEmailAddress, err = commands.NewChangeEmailAddress(
+					changeEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
 						customerID.ID(),
 						emailAddress.EmailAddress(),
 					)

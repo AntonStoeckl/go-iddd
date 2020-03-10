@@ -78,7 +78,7 @@ func (handler *CommandHandler) ConfirmCustomerEmailAddress(confirmEmailAddress c
 	return nil
 }
 
-func (handler *CommandHandler) ChangeCustomerEmailAddress(changeEmailAddress commands.ChangeEmailAddress) error {
+func (handler *CommandHandler) ChangeCustomerEmailAddress(changeEmailAddress commands.ChangeCustomerEmailAddress) error {
 	if err := changeEmailAddress.ShouldBeValid(); err != nil {
 		return errors.Wrap(err, "commandHandler.ChangeCustomerEmailAddress")
 	}

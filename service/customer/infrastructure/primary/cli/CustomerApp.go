@@ -103,7 +103,7 @@ func (app *CustomerApp) ChangeCustomerEmailAddress(ctx *cli.Context) error {
 	id := ctx.Args().Get(0)
 	emailAddress := ctx.Args().Get(1)
 
-	command, err := commands.NewChangeEmailAddress(id, emailAddress)
+	command, err := commands.BuildChangeCustomerEmailAddress(id, emailAddress)
 	if err != nil {
 		return err
 	}

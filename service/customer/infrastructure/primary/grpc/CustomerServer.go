@@ -71,7 +71,7 @@ func (server *customerServer) ChangeEmailAddress(
 	req *ChangeEmailAddressRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.NewChangeEmailAddress(req.Id, req.EmailAddress)
+	command, err := commands.BuildChangeCustomerEmailAddress(req.Id, req.EmailAddress)
 	if err != nil {
 		return nil, err
 	}

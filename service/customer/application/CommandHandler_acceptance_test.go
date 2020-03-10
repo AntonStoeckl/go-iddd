@@ -51,7 +51,7 @@ func TestCommandHandlerScenarios(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		changeEmailAddress, err := commands.NewChangeEmailAddress(
+		changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 			customerID.ID(),
 			changedEmailAddress,
 		)
@@ -317,7 +317,7 @@ func GivenEmailAddressConfirmed(
 }
 
 func GivenEmailAddressChanged(
-	changeEmailAddress commands.ChangeEmailAddress,
+	changeEmailAddress commands.ChangeCustomerEmailAddress,
 	customerEventStore *eventstore.CustomerEventStore,
 	streamVersion uint,
 ) {

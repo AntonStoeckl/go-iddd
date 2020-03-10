@@ -7,7 +7,7 @@ import (
 	"go-iddd/service/lib/es"
 )
 
-func ChangeCustomerEmailAddress(eventStream es.DomainEvents, command commands.ChangeEmailAddress) es.DomainEvents {
+func ChangeCustomerEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) es.DomainEvents {
 	var emailAddress values.EmailAddress
 	var currentStreamVersion uint
 
