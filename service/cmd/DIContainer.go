@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"go-iddd/service/customer/application/readmodel"
 	"go-iddd/service/customer/application/writemodel"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
@@ -21,6 +22,7 @@ type DIContainer struct {
 	eventStore             *postgres.EventStore
 	customerEventStore     *eventstore.CustomerEventStore
 	customerCommandHandler *writemodel.CustomerCommandHandler
+	customerQueryHandler   *readmodel.CustomerQueryHandler
 	customerServer         customergrpc.CustomerServer
 	customerApp            *customercli.CustomerApp
 }
@@ -48,6 +50,7 @@ func (container DIContainer) init() {
 	container.getEventStore()
 	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
+	container.GetCustomerQueryHandler()
 	container.GetCustomerServer()
 	container.GetCustomerApp()
 }
@@ -86,6 +89,16 @@ func (container DIContainer) GetCustomerCommandHandler() *writemodel.CustomerCom
 	}
 
 	return container.customerCommandHandler
+}
+
+func (container DIContainer) GetCustomerQueryHandler() *readmodel.CustomerQueryHandler {
+	if container.customerQueryHandler == nil {
+		container.customerQueryHandler = readmodel.NewCustomerQueryHandler(
+			container.GetCustomerEventStore(),
+		)
+	}
+
+	return container.customerQueryHandler
 }
 
 func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {

@@ -18,7 +18,7 @@ import (
 )
 
 func TestCommandHandlerScenarios(t *testing.T) {
-	diContainer := setUpDiContainerForCommandHandlerScenarios()
+	diContainer := setUpDiContainerForCustomerCommandHandlerScenarios()
 	customerEventStore := diContainer.GetCustomerEventStore()
 	commandHandler := diContainer.GetCustomerCommandHandler()
 
@@ -353,7 +353,7 @@ func ThenEventStreamShouldBe(
 	}
 }
 
-func setUpDiContainerForCommandHandlerScenarios() *cmd.DIContainer {
+func setUpDiContainerForCustomerCommandHandlerScenarios() *cmd.DIContainer {
 	config, err := cmd.NewConfigFromEnv()
 	if err != nil {
 		panic(err)
