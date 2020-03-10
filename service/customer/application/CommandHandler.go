@@ -80,7 +80,7 @@ func (handler *CommandHandler) ConfirmEmailAddress(confirmEmailAddress commands.
 
 func (handler *CommandHandler) ChangeEmailAddress(changeEmailAddress commands.ChangeEmailAddress) error {
 	if err := changeEmailAddress.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "commandHandler.ChangeEmailAddress")
+		return errors.Wrap(err, "commandHandler.ChangeCustomerEmailAddress")
 	}
 
 	doChangeEmailAddress := func() error {
@@ -89,7 +89,7 @@ func (handler *CommandHandler) ChangeEmailAddress(changeEmailAddress commands.Ch
 			return err
 		}
 
-		recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+		recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, changeEmailAddress)
 
 		if err := handler.customerEvents.Add(recordedEvents, changeEmailAddress.CustomerID()); err != nil {
 			return err

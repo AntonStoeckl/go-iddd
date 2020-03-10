@@ -11,8 +11,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestChangeEmailAddress(t *testing.T) {
+func TestChangeCustomerEmailAddress(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
+		var err error
+
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
@@ -51,8 +53,8 @@ func TestChangeEmailAddress(t *testing.T) {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
-				Convey("When ChangeEmailAddress", func() {
-					recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+				Convey("When ChangeCustomerEmailAddress", func() {
+					recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, changeEmailAddress)
 
 					Convey("Then CustomerEmailAddressChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -72,14 +74,14 @@ func TestChangeEmailAddress(t *testing.T) {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{registered}
 
-				Convey("When ChangeEmailAddress", func() {
-					changeEmailAddress, err := commands.NewChangeEmailAddress(
+				Convey("When ChangeCustomerEmailAddress", func() {
+					changeEmailAddress, err = commands.NewChangeEmailAddress(
 						customerID.ID(),
 						emailAddress.EmailAddress(),
 					)
 					So(err, ShouldBeNil)
 
-					recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+					recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, changeEmailAddress)
 
 					Convey("Then no event", func() {
 						So(recordedEvents, ShouldBeEmpty)
@@ -102,8 +104,8 @@ func TestChangeEmailAddress(t *testing.T) {
 
 					eventStream = append(eventStream, emailAddressChanged)
 
-					Convey("When ChangeEmailAddress", func() {
-						recordedEvents := domain.ChangeEmailAddress(eventStream, changeEmailAddress)
+					Convey("When ChangeCustomerEmailAddress", func() {
+						recordedEvents := domain.ChangeCustomerEmailAddress(eventStream, changeEmailAddress)
 
 						Convey("Then no event", func() {
 							So(recordedEvents, ShouldBeEmpty)
