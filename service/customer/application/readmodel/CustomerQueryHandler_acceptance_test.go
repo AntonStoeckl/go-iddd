@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/readmodel/domain/customer"
-	"go-iddd/service/customer/application/readmodel/domain/customer/queries"
-	"go-iddd/service/customer/application/writemodel/domain/customer/events"
-	"go-iddd/service/customer/application/writemodel/domain/customer/values"
+	eventsReadModel "go-iddd/service/customer/application/readmodel/domain/customer/events"
+	valuesReadModel "go-iddd/service/customer/application/readmodel/domain/customer/values"
+	eventsWriteModel "go-iddd/service/customer/application/writemodel/domain/customer/events"
+	valuesWriteModel "go-iddd/service/customer/application/writemodel/domain/customer/values"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
@@ -15,31 +16,32 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/errors"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCustomerQueryHandlerScenarios(t *testing.T) {
 	diContainer := setUpDiContainerForCustomerQueryHandlerScenarios()
-	customerEventStore := diContainer.GetCustomerEventStore()
+	customerEventStoreForWriteModel := diContainer.GetCustomerEventStoreForWriteModel()
 	queryHandler := diContainer.GetCustomerQueryHandler()
 
 	Convey("Prepare test artifacts", t, func() {
-		customerID := values.GenerateCustomerID()
+		var err error
+		var customerView customer.View
+
+		customerIDWriteModel := valuesWriteModel.GenerateCustomerID()
+		customerIDReadModel := valuesReadModel.RebuildCustomerID(customerIDWriteModel.ID())
 		theEmailAddress := "fiona@gallagher.net"
-		emailAddress := values.RebuildEmailAddress(theEmailAddress)
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		emailAddress := valuesWriteModel.RebuildEmailAddress(theEmailAddress)
+		confirmationHash := valuesWriteModel.GenerateConfirmationHash(emailAddress.EmailAddress())
 		theGivenName := "Fiona"
 		theFamilyName := "Galagher"
-		personName := values.RebuildPersonName(theGivenName, theFamilyName)
+		personName := valuesWriteModel.RebuildPersonName(theGivenName, theFamilyName)
 		theNewEmailAddress := "fiona@pratt.net"
-		newEmailAddress := values.RebuildEmailAddress(theNewEmailAddress)
-		newConfirmationHash := values.GenerateConfirmationHash(newEmailAddress.EmailAddress())
-
-		customerByIDQuery := queries.BuildCustomerByID(customerID.ID())
+		newEmailAddress := valuesWriteModel.RebuildEmailAddress(theNewEmailAddress)
+		newConfirmationHash := valuesWriteModel.GenerateConfirmationHash(newEmailAddress.EmailAddress())
 
 		expectedCustomerView := customer.View{
-			ID:                      customerID.ID(),
+			ID:                      customerIDReadModel.ID(),
 			EmailAddress:            emailAddress.EmailAddress(),
 			IsEmailAddressConfirmed: false,
 			GivenName:               personName.GivenName(),
@@ -49,10 +51,10 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Retrieving a registered Customer", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", theGivenName, theFamilyName, theEmailAddress), func() {
-				GivenCustomerRegistered(customerID, emailAddress, confirmationHash, personName, customerEventStore)
+				GivenCustomerRegistered(customerIDWriteModel, emailAddress, confirmationHash, personName, customerEventStoreForWriteModel)
 
 				Convey("When the Customer is retrieved by ID", func() {
-					customerView, err := queryHandler.CustomerViewByID(customerByIDQuery)
+					customerView, err = queryHandler.CustomerViewByID(customerIDReadModel)
 					So(err, ShouldBeNil)
 
 					Convey("Then the Customer view should be as expected", func() {
@@ -64,13 +66,13 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Retrieving a registered Customer with a confirmed emailAddress", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", theGivenName, theFamilyName, theEmailAddress), func() {
-				GivenCustomerRegistered(customerID, emailAddress, confirmationHash, personName, customerEventStore)
+				GivenCustomerRegistered(customerIDWriteModel, emailAddress, confirmationHash, personName, customerEventStoreForWriteModel)
 
 				Convey("And given she confirmed her emailAddress", func() {
-					GivenEmailAddressConfirmed(customerID, emailAddress, 2, customerEventStore)
+					GivenEmailAddressConfirmed(customerIDWriteModel, emailAddress, 2, customerEventStoreForWriteModel)
 
 					Convey("When the Customer is retrieved by ID", func() {
-						customerView, err := queryHandler.CustomerViewByID(customerByIDQuery)
+						customerView, err = queryHandler.CustomerViewByID(customerIDReadModel)
 						So(err, ShouldBeNil)
 
 						Convey("Then the Customer view should be as expected", func() {
@@ -86,16 +88,16 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Retrieving a registered Customer with an emailAddress that was confirmed and then changed", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", theGivenName, theFamilyName, theEmailAddress), func() {
-				GivenCustomerRegistered(customerID, emailAddress, confirmationHash, personName, customerEventStore)
+				GivenCustomerRegistered(customerIDWriteModel, emailAddress, confirmationHash, personName, customerEventStoreForWriteModel)
 
 				Convey("And given she confirmed her emailAddress", func() {
-					GivenEmailAddressConfirmed(customerID, emailAddress, 2, customerEventStore)
+					GivenEmailAddressConfirmed(customerIDWriteModel, emailAddress, 2, customerEventStoreForWriteModel)
 
 					Convey("And given she changed her emailAddress", func() {
-						GivenEmailAddressChanged(customerID, newEmailAddress, newConfirmationHash, 3, customerEventStore)
+						GivenEmailAddressChanged(customerIDWriteModel, newEmailAddress, newConfirmationHash, 3, customerEventStoreForWriteModel)
 
 						Convey("When the Customer is retrieved by ID", func() {
-							customerView, err := queryHandler.CustomerViewByID(customerByIDQuery)
+							customerView, err = queryHandler.CustomerViewByID(customerIDReadModel)
 							So(err, ShouldBeNil)
 
 							Convey("Then the Customer view should be as expected", func() {
@@ -112,8 +114,7 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Trying to retrieve a Customer which does not exist", func() {
 			Convey("When the Customer is retrieved by ID", func() {
-				customerByIDQuery = queries.BuildCustomerByID(values.GenerateCustomerID().ID())
-				customerView, err := queryHandler.CustomerViewByID(customerByIDQuery)
+				customerView, err := queryHandler.CustomerViewByID(valuesReadModel.GenerateCustomerID())
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -122,19 +123,24 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 				})
 			})
 		})
+
+		Reset(func() {
+			err := customerEventStoreForWriteModel.Delete(customerIDWriteModel)
+			So(err, ShouldBeNil)
+		})
 	})
 }
 
 func GivenCustomerRegistered(
-	id values.CustomerID,
-	emailAddress values.EmailAddress,
-	hash values.ConfirmationHash,
-	name values.PersonName,
+	id valuesWriteModel.CustomerID,
+	emailAddress valuesWriteModel.EmailAddress,
+	hash valuesWriteModel.ConfirmationHash,
+	name valuesWriteModel.PersonName,
 	customerEventStore *eventstore.CustomerEventStore,
 ) {
 
 	recordedEvents := es.DomainEvents{
-		events.CustomerWasRegistered(
+		eventsWriteModel.CustomerWasRegistered(
 			id,
 			emailAddress,
 			hash,
@@ -148,14 +154,14 @@ func GivenCustomerRegistered(
 }
 
 func GivenEmailAddressConfirmed(
-	id values.CustomerID,
-	emailAddress values.EmailAddress,
+	id valuesWriteModel.CustomerID,
+	emailAddress valuesWriteModel.EmailAddress,
 	streamVersion uint,
 	customerEventStore *eventstore.CustomerEventStore,
 ) {
 
 	recordedEvents := es.DomainEvents{
-		events.CustomerEmailAddressWasConfirmed(
+		eventsWriteModel.CustomerEmailAddressWasConfirmed(
 			id,
 			emailAddress,
 			streamVersion,
@@ -167,15 +173,15 @@ func GivenEmailAddressConfirmed(
 }
 
 func GivenEmailAddressChanged(
-	id values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
+	id valuesWriteModel.CustomerID,
+	emailAddress valuesWriteModel.EmailAddress,
+	confirmationHash valuesWriteModel.ConfirmationHash,
 	streamVersion uint,
 	customerEventStore *eventstore.CustomerEventStore,
 ) {
 
 	recordedEvents := es.DomainEvents{
-		events.CustomerEmailAddressWasChanged(
+		eventsWriteModel.CustomerEmailAddressWasChanged(
 			id,
 			emailAddress,
 			confirmationHash,
@@ -213,7 +219,12 @@ func setUpDiContainerForCustomerQueryHandlerScenarios() *cmd.DIContainer {
 		panic(err)
 	}
 
-	diContainer, err := cmd.NewDIContainer(db, events.UnmarshalCustomerEvent)
+	diContainer, err := cmd.NewDIContainer(
+		db,
+		eventsWriteModel.UnmarshalCustomerEvent,
+		eventsReadModel.UnmarshalCustomerEvent,
+	)
+
 	if err != nil {
 		panic(err)
 	}

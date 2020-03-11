@@ -6,7 +6,8 @@ import (
 	"go-iddd/service/customer/application/writemodel"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
+	eventstoreForReadModel "go-iddd/service/customer/infrastructure/secondary/forreadingcustomereventstreams/eventstore"
+	eventstoreForWriteModel "go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"go-iddd/service/lib/eventstore/postgres"
@@ -17,19 +18,23 @@ import (
 const eventStoreTableName = "eventstore"
 
 type DIContainer struct {
-	postgresDBConn         *sql.DB
-	unmarshalDomainEvent   es.UnmarshalDomainEvent
-	eventStore             *postgres.EventStore
-	customerEventStore     *eventstore.CustomerEventStore
-	customerCommandHandler *writemodel.CustomerCommandHandler
-	customerQueryHandler   *readmodel.CustomerQueryHandler
-	customerServer         customergrpc.CustomerServer
-	customerApp            *customercli.CustomerApp
+	postgresDBConn                    *sql.DB
+	unmarshalDomainEventForWriteModel es.UnmarshalDomainEvent
+	unmarshalDomainEventForReadModel  es.UnmarshalDomainEvent
+	eventStoreForWriteModel           *postgres.EventStore
+	eventStoreForReadModel            *postgres.EventStore
+	customerEventStoreForWriteModel   *eventstoreForWriteModel.CustomerEventStore
+	customerEventStoreForReadModel    *eventstoreForReadModel.CustomerEventStore
+	customerCommandHandler            *writemodel.CustomerCommandHandler
+	customerQueryHandler              *readmodel.CustomerQueryHandler
+	customerServer                    customergrpc.CustomerServer
+	customerApp                       *customercli.CustomerApp
 }
 
 func NewDIContainer(
 	postgresDBConn *sql.DB,
-	unmarshalDomainEvent es.UnmarshalDomainEvent,
+	unmarshalDomainEventForWriteModel es.UnmarshalDomainEvent,
+	unmarshalDomainEventForReadModel es.UnmarshalDomainEvent,
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
@@ -37,8 +42,9 @@ func NewDIContainer(
 	}
 
 	container := &DIContainer{
-		postgresDBConn:       postgresDBConn,
-		unmarshalDomainEvent: unmarshalDomainEvent,
+		postgresDBConn:                    postgresDBConn,
+		unmarshalDomainEventForWriteModel: unmarshalDomainEventForWriteModel,
+		unmarshalDomainEventForReadModel:  unmarshalDomainEventForReadModel,
 	}
 
 	container.init()
@@ -47,8 +53,10 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.getEventStore()
-	container.GetCustomerEventStore()
+	container.getEventStoreForWriteModel()
+	container.getEventStoreForReadModel()
+	container.GetCustomerEventStoreForWriteModel()
+	container.GetCustomerEventStoreForReadModel()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
 	container.GetCustomerServer()
@@ -59,32 +67,54 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) getEventStore() *postgres.EventStore {
-	if container.eventStore == nil {
-		container.eventStore = postgres.NewEventStore(
+func (container DIContainer) getEventStoreForWriteModel() *postgres.EventStore {
+	if container.eventStoreForWriteModel == nil {
+		container.eventStoreForWriteModel = postgres.NewEventStore(
 			container.postgresDBConn,
 			eventStoreTableName,
-			container.unmarshalDomainEvent,
+			container.unmarshalDomainEventForWriteModel,
 		)
 	}
 
-	return container.eventStore
+	return container.eventStoreForWriteModel
 }
 
-func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
-	if container.customerEventStore == nil {
-		container.customerEventStore = eventstore.NewCustomerEventStore(
-			container.getEventStore(),
+func (container DIContainer) getEventStoreForReadModel() *postgres.EventStore {
+	if container.eventStoreForReadModel == nil {
+		container.eventStoreForReadModel = postgres.NewEventStore(
+			container.postgresDBConn,
+			eventStoreTableName,
+			container.unmarshalDomainEventForReadModel,
 		)
 	}
 
-	return container.customerEventStore
+	return container.eventStoreForReadModel
+}
+
+func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstoreForWriteModel.CustomerEventStore {
+	if container.customerEventStoreForWriteModel == nil {
+		container.customerEventStoreForWriteModel = eventstoreForWriteModel.NewCustomerEventStore(
+			container.getEventStoreForWriteModel(),
+		)
+	}
+
+	return container.customerEventStoreForWriteModel
+}
+
+func (container DIContainer) GetCustomerEventStoreForReadModel() *eventstoreForReadModel.CustomerEventStore {
+	if container.customerEventStoreForReadModel == nil {
+		container.customerEventStoreForReadModel = eventstoreForReadModel.NewCustomerEventStore(
+			container.getEventStoreForReadModel(),
+		)
+	}
+
+	return container.customerEventStoreForReadModel
 }
 
 func (container DIContainer) GetCustomerCommandHandler() *writemodel.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
 		container.customerCommandHandler = writemodel.NewCustomerCommandHandler(
-			container.GetCustomerEventStore(),
+			container.GetCustomerEventStoreForWriteModel(),
 		)
 	}
 
@@ -94,7 +124,7 @@ func (container DIContainer) GetCustomerCommandHandler() *writemodel.CustomerCom
 func (container DIContainer) GetCustomerQueryHandler() *readmodel.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
 		container.customerQueryHandler = readmodel.NewCustomerQueryHandler(
-			container.GetCustomerEventStore(),
+			container.GetCustomerEventStoreForReadModel(),
 		)
 	}
 

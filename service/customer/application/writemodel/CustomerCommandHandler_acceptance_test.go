@@ -19,7 +19,7 @@ import (
 
 func TestCustomerCommandHandlerScenarios(t *testing.T) {
 	diContainer := setUpDiContainerForCustomerCommandHandlerScenarios()
-	customerEventStore := diContainer.GetCustomerEventStore()
+	customerEventStore := diContainer.GetCustomerEventStoreForWriteModel()
 	commandHandler := diContainer.GetCustomerCommandHandler()
 
 	Convey("Prepare test artifacts", t, func() {
@@ -379,7 +379,12 @@ func setUpDiContainerForCustomerCommandHandlerScenarios() *cmd.DIContainer {
 		panic(err)
 	}
 
-	diContainer, err := cmd.NewDIContainer(db, events.UnmarshalCustomerEvent)
+	unusedUnmarshalFunc := func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
+		var event es.DomainEvent
+		return event, nil
+	}
+
+	diContainer, err := cmd.NewDIContainer(db, events.UnmarshalCustomerEvent, unusedUnmarshalFunc)
 	if err != nil {
 		panic(err)
 	}
