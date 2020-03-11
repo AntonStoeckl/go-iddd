@@ -1,10 +1,10 @@
-package events
+package customer
 
 import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-type CustomerRegistered struct {
+type Registered struct {
 	customerID    string
 	emailAddress  string
 	givenName     string
@@ -14,38 +14,38 @@ type CustomerRegistered struct {
 	streamVersion uint
 }
 
-func (event CustomerRegistered) CustomerID() string {
+func (event Registered) CustomerID() string {
 	return event.customerID
 }
 
-func (event CustomerRegistered) EmailAddress() string {
+func (event Registered) EmailAddress() string {
 	return event.emailAddress
 }
 
-func (event CustomerRegistered) GivenName() string {
+func (event Registered) GivenName() string {
 	return event.givenName
 }
 
-func (event CustomerRegistered) FamilyName() string {
+func (event Registered) FamilyName() string {
 	return event.familyName
 }
 
-func (event CustomerRegistered) EventName() string {
+func (event Registered) EventName() string {
 	return event.eventName
 }
 
-func (event CustomerRegistered) OccurredAt() string {
+func (event Registered) OccurredAt() string {
 	return event.occurredAt
 }
 
-func (event CustomerRegistered) StreamVersion() uint {
+func (event Registered) StreamVersion() uint {
 	return event.streamVersion
 }
 
-func UnmarshalCustomerRegisteredFromJSON(data []byte, streamVersion uint) CustomerRegistered {
+func UnmarshalCustomerRegisteredFromJSON(data []byte, streamVersion uint) Registered {
 	json := jsoniter.ConfigFastest
 
-	event := CustomerRegistered{
+	event := Registered{
 		customerID:    json.Get(data, "customerID").ToString(),
 		emailAddress:  json.Get(data, "emailAddress").ToString(),
 		givenName:     json.Get(data, "personGivenName").ToString(),

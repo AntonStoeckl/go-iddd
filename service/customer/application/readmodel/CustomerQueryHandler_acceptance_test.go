@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/readmodel/domain/customer"
-	eventsReadModel "go-iddd/service/customer/application/readmodel/domain/customer/events"
-	valuesReadModel "go-iddd/service/customer/application/readmodel/domain/customer/values"
 	eventsWriteModel "go-iddd/service/customer/application/writemodel/domain/customer/events"
 	valuesWriteModel "go-iddd/service/customer/application/writemodel/domain/customer/values"
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
@@ -29,7 +27,7 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 		var customerView customer.View
 
 		customerIDWriteModel := valuesWriteModel.GenerateCustomerID()
-		customerIDReadModel := valuesReadModel.RebuildCustomerID(customerIDWriteModel.ID())
+		customerIDReadModel := customer.RebuildID(customerIDWriteModel.ID())
 		theEmailAddress := "fiona@gallagher.net"
 		emailAddress := valuesWriteModel.RebuildEmailAddress(theEmailAddress)
 		confirmationHash := valuesWriteModel.GenerateConfirmationHash(emailAddress.EmailAddress())
@@ -114,7 +112,7 @@ func TestCustomerQueryHandlerScenarios(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Trying to retrieve a Customer which does not exist", func() {
 			Convey("When the Customer is retrieved by ID", func() {
-				customerView, err := queryHandler.CustomerViewByID(valuesReadModel.GenerateCustomerID())
+				customerView, err := queryHandler.CustomerViewByID(customer.GenerateID())
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -222,7 +220,7 @@ func setUpDiContainerForCustomerQueryHandlerScenarios() *cmd.DIContainer {
 	diContainer, err := cmd.NewDIContainer(
 		db,
 		eventsWriteModel.UnmarshalCustomerEvent,
-		eventsReadModel.UnmarshalCustomerEvent,
+		customer.UnmarshalCustomerEvent,
 	)
 
 	if err != nil {

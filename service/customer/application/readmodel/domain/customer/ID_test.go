@@ -1,7 +1,7 @@
-package values_test
+package customer_test
 
 import (
-	"go-iddd/service/customer/application/readmodel/domain/customer/values"
+	"go-iddd/service/customer/application/readmodel/domain/customer"
 	"go-iddd/service/lib"
 	"sync"
 	"testing"
@@ -10,13 +10,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGenerateCustomerID(t *testing.T) {
-	Convey("When an CustomerID is generated", t, func() {
-		customerID := values.GenerateCustomerID()
+func TestGenerateID(t *testing.T) {
+	Convey("When an ID is generated", t, func() {
+		customerID := customer.GenerateID()
 
 		Convey("It should succeed", func() {
 			So(customerID, ShouldNotBeZeroValue)
-			So(customerID, ShouldHaveSameTypeAs, values.CustomerID{})
+			So(customerID, ShouldHaveSameTypeAs, customer.ID{})
 			So(customerID.ID(), ShouldNotBeBlank)
 		})
 	})
@@ -31,7 +31,7 @@ func TestGenerateCustomerID(t *testing.T) {
 
 		for i := 0; i < numRoutines; i++ {
 			group.Add(1)
-			go generateManyCustomerIDs(customerIDs, &group, &mutex, amountPerRoutine)
+			go generateManyIDs(customerIDs, &group, &mutex, amountPerRoutine)
 			totalAmount += amountPerRoutine
 		}
 
@@ -43,11 +43,11 @@ func TestGenerateCustomerID(t *testing.T) {
 	})
 }
 
-func generateManyCustomerIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
+func generateManyIDs(ids map[string]int, group *sync.WaitGroup, mutex *sync.Mutex, amountPerRoutine int) {
 	generatedIDs := make(map[string]int)
 
 	for i := 0; i < amountPerRoutine; i++ {
-		id := values.GenerateCustomerID()
+		id := customer.GenerateID()
 		generatedIDs[id.ID()] = i
 	}
 
@@ -60,17 +60,17 @@ func generateManyCustomerIDs(ids map[string]int, group *sync.WaitGroup, mutex *s
 	group.Done()
 }
 
-func TestBuildCustomerID(t *testing.T) {
+func TestBuildID(t *testing.T) {
 	Convey("Given that the supplied id is valid", t, func() {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
 
-		Convey("When an CustomerID is built", func() {
-			customerID, err := values.BuildCustomerID(idValue)
+		Convey("When an ID is built", func() {
+			customerID, err := customer.BuildID(idValue)
 
 			Convey("It should succeed", func() {
 				So(err, ShouldBeNil)
 				So(customerID, ShouldNotBeZeroValue)
-				So(customerID, ShouldHaveSameTypeAs, values.CustomerID{})
+				So(customerID, ShouldHaveSameTypeAs, customer.ID{})
 				So(customerID.ID(), ShouldEqual, idValue)
 			})
 		})
@@ -79,8 +79,8 @@ func TestBuildCustomerID(t *testing.T) {
 	Convey("Given that the supplied id is not valid", t, func() {
 		idValue := ""
 
-		Convey("When an CustomerID is built", func() {
-			customerID, err := values.BuildCustomerID(idValue)
+		Convey("When an ID is built", func() {
+			customerID, err := customer.BuildID(idValue)
 
 			Convey("It should fail", func() {
 				So(err, ShouldBeError)
@@ -91,27 +91,27 @@ func TestBuildCustomerID(t *testing.T) {
 	})
 }
 
-func TestRebuildCustomerID(t *testing.T) {
-	Convey("When an CustomerID is rebuilt", t, func() {
+func TestRebuildID(t *testing.T) {
+	Convey("When an ID is rebuilt", t, func() {
 		idValue := "b5f1a1b1-5d03-4e08-8365-259791228be3"
-		customerID := values.RebuildCustomerID(idValue)
+		customerID := customer.RebuildID(idValue)
 
 		Convey("It should succeed", func() {
 			So(customerID, ShouldNotBeZeroValue)
-			So(customerID, ShouldHaveSameTypeAs, values.CustomerID{})
+			So(customerID, ShouldHaveSameTypeAs, customer.ID{})
 			So(customerID.ID(), ShouldEqual, idValue)
 		})
 	})
 }
 
 func TestCustomerIDEquals(t *testing.T) {
-	Convey("Given an Identifier of type CustomerID", t, func() {
+	Convey("Given an Identifier of type ID", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
-		customerID, err := values.BuildCustomerID(idValue)
+		customerID, err := customer.BuildID(idValue)
 		So(err, ShouldBeNil)
 
-		Convey("And given an equal CustomerID", func() {
-			equalId, err := values.BuildCustomerID(idValue)
+		Convey("And given an equal ID", func() {
+			equalId, err := customer.BuildID(idValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {
@@ -123,9 +123,9 @@ func TestCustomerIDEquals(t *testing.T) {
 			})
 		})
 
-		Convey("And given an CustomerID with different value", func() {
+		Convey("And given an ID with different value", func() {
 			differentIdValue := "5b6e0bc9-aa69-4dd9-be1c-d54bee80f565"
-			differentId, err := values.BuildCustomerID(differentIdValue)
+			differentId, err := customer.BuildID(differentIdValue)
 			So(err, ShouldBeNil)
 
 			Convey("When they are compared", func() {

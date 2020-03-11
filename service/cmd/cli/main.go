@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"go-iddd/service/cmd"
-	eventsReadModel "go-iddd/service/customer/application/readmodel/domain/customer/events"
-	eventsWriteModel "go-iddd/service/customer/application/writemodel/domain/customer/events"
+	"go-iddd/service/customer/application/readmodel/domain/customer"
+	"go-iddd/service/customer/application/writemodel/domain/customer/events"
 	"go-iddd/service/lib/eventstore/postgres/database"
 	"os"
 
@@ -87,8 +87,8 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
-			eventsWriteModel.UnmarshalCustomerEvent,
-			eventsReadModel.UnmarshalCustomerEvent,
+			events.UnmarshalCustomerEvent,
+			customer.UnmarshalCustomerEvent,
 		)
 
 		if err != nil {

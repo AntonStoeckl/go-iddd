@@ -1,7 +1,7 @@
 package eventstore
 
 import (
-	"go-iddd/service/customer/application/readmodel/domain/customer/values"
+	"go-iddd/service/customer/application/readmodel/domain/customer"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"math"
@@ -19,7 +19,7 @@ func NewCustomerEventStore(eventStore es.EventStore) *CustomerEventStore {
 	return &CustomerEventStore{eventStore: eventStore}
 }
 
-func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
+func (customer *CustomerEventStore) EventStreamFor(id customer.ID) (es.DomainEvents, error) {
 	eventStream, err := customer.eventStore.LoadEventStream(customer.streamID(id), 0, math.MaxUint32)
 	if err != nil {
 		return nil, errors.Wrap(err, "customerEventStore.EventStreamFor")
@@ -33,6 +33,6 @@ func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.Dom
 	return eventStream, nil
 }
 
-func (customer *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
+func (customer *CustomerEventStore) streamID(id customer.ID) es.StreamID {
 	return es.NewStreamID(streamPrefix + "-" + id.ID())
 }

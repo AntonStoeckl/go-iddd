@@ -1,34 +1,34 @@
-package events
+package customer
 
 import jsoniter "github.com/json-iterator/go"
 
-type CustomerEmailAddressChanged struct {
+type EmailAddressChanged struct {
 	emailAddress  string
 	eventName     string
 	occurredAt    string
 	streamVersion uint
 }
 
-func (event CustomerEmailAddressChanged) EmailAddress() string {
+func (event EmailAddressChanged) EmailAddress() string {
 	return event.emailAddress
 }
 
-func (event CustomerEmailAddressChanged) EventName() string {
+func (event EmailAddressChanged) EventName() string {
 	return event.eventName
 }
 
-func (event CustomerEmailAddressChanged) OccurredAt() string {
+func (event EmailAddressChanged) OccurredAt() string {
 	return event.occurredAt
 }
 
-func (event CustomerEmailAddressChanged) StreamVersion() uint {
+func (event EmailAddressChanged) StreamVersion() uint {
 	return event.streamVersion
 }
 
-func UnmarshalCustomerEmailAddressChangedFromJSON(data []byte, streamVersion uint) CustomerEmailAddressChanged {
+func UnmarshalCustomerEmailAddressChangedFromJSON(data []byte, streamVersion uint) EmailAddressChanged {
 	json := jsoniter.ConfigFastest
 
-	event := CustomerEmailAddressChanged{
+	event := EmailAddressChanged{
 		emailAddress:  json.Get(data, "emailAddress").ToString(),
 		eventName:     json.Get(data, "meta").Get("eventName").ToString(),
 		occurredAt:    json.Get(data, "meta").Get("occurredAt").ToString(),

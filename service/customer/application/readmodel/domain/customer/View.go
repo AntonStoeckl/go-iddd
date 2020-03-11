@@ -1,7 +1,6 @@
 package customer
 
 import (
-	"go-iddd/service/customer/application/readmodel/domain/customer/events"
 	"go-iddd/service/lib/es"
 )
 
@@ -19,14 +18,14 @@ func BuildViewFrom(eventStream es.DomainEvents) View {
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
-		case events.CustomerRegistered:
+		case Registered:
 			customerView.ID = actualEvent.CustomerID()
 			customerView.EmailAddress = actualEvent.EmailAddress()
 			customerView.GivenName = actualEvent.GivenName()
 			customerView.FamilyName = actualEvent.FamilyName()
-		case events.CustomerEmailAddressConfirmed:
+		case EmailAddressConfirmed:
 			customerView.IsEmailAddressConfirmed = true
-		case events.CustomerEmailAddressChanged:
+		case EmailAddressChanged:
 			customerView.EmailAddress = actualEvent.EmailAddress()
 			customerView.IsEmailAddressConfirmed = false
 		}

@@ -2,7 +2,6 @@ package readmodel
 
 import (
 	"go-iddd/service/customer/application/readmodel/domain/customer"
-	"go-iddd/service/customer/application/readmodel/domain/customer/values"
 
 	"github.com/cockroachdb/errors"
 )
@@ -17,7 +16,7 @@ func NewCustomerQueryHandler(customerEvents ForReadingCustomerEventStreams) *Cus
 	}
 }
 
-func (h *CustomerQueryHandler) CustomerViewByID(customerID values.CustomerID) (customer.View, error) {
+func (h *CustomerQueryHandler) CustomerViewByID(customerID customer.ID) (customer.View, error) {
 	eventStream, err := h.customerEvents.EventStreamFor(customerID)
 	if err != nil {
 		return customer.View{}, errors.Wrap(err, "customerQueryHandler.CustomerViewByID")

@@ -1,4 +1,4 @@
-package events
+package customer
 
 import (
 	"go-iddd/service/lib"
