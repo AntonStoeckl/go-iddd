@@ -17,7 +17,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCommandHandlerScenarios(t *testing.T) {
+func TestCustomerCommandHandlerScenarios(t *testing.T) {
 	diContainer := setUpDiContainerForCustomerCommandHandlerScenarios()
 	customerEventStore := diContainer.GetCustomerEventStore()
 	commandHandler := diContainer.GetCustomerCommandHandler()

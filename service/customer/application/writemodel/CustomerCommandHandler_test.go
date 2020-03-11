@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCommandHandler(t *testing.T) {
+func TestCustomerCommandHandler(t *testing.T) {
 	Convey("Setup", t, func() {
 		customerEventStore := new(mocked.ForStoringCustomerEvents)
 		commandHandler := writemodel.NewCustomerCommandHandler(customerEventStore)
