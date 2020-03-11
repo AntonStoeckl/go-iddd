@@ -39,10 +39,6 @@ func (id CustomerID) ID() string {
 	return id.value
 }
 
-func (id CustomerID) String() string {
-	return id.value
-}
-
 func (id CustomerID) Equals(other CustomerID) bool {
 	return id.ID() == other.ID()
 }
