@@ -1,7 +1,6 @@
 package writemodel_test
 
 import (
-	"database/sql"
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
@@ -10,7 +9,6 @@ import (
 	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
-	"go-iddd/service/lib/eventstore/postgres/database"
 	"testing"
 
 	"github.com/cockroachdb/errors"
@@ -18,7 +16,11 @@ import (
 )
 
 func TestCustomerCommandHandlerScenarios(t *testing.T) {
-	diContainer := setUpDiContainerForCustomerCommandHandlerScenarios()
+	diContainer, err := cmd.Bootstrap()
+	if err != nil {
+		panic(err)
+	}
+
 	customerEventStore := diContainer.GetCustomerEventStoreForWriteModel()
 	commandHandler := diContainer.GetCustomerCommandHandler()
 
@@ -351,43 +353,4 @@ func ThenEventStreamShouldBe(
 	for idx, event := range domainEvents {
 		So(eventStream[idx], ShouldHaveSameTypeAs, event)
 	}
-}
-
-func setUpDiContainerForCustomerCommandHandlerScenarios() *cmd.DIContainer {
-	config, err := cmd.NewConfigFromEnv()
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	if err != nil {
-		panic(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
-	if err != nil {
-		panic(err)
-	}
-
-	err = migrator.Up()
-	if err != nil {
-		panic(err)
-	}
-
-	unusedUnmarshalFunc := func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
-		var event es.DomainEvent
-		return event, nil
-	}
-
-	diContainer, err := cmd.NewDIContainer(db, events.UnmarshalCustomerEvent, unusedUnmarshalFunc)
-	if err != nil {
-		panic(err)
-	}
-
-	return diContainer
 }

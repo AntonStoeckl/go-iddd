@@ -18,17 +18,15 @@ import (
 const eventStoreTableName = "eventstore"
 
 type DIContainer struct {
-	postgresDBConn                    *sql.DB
-	unmarshalDomainEventForWriteModel es.UnmarshalDomainEvent
-	unmarshalDomainEventForReadModel  es.UnmarshalDomainEvent
-	eventStoreForWriteModel           *postgres.EventStore
-	eventStoreForReadModel            *postgres.EventStore
-	customerEventStoreForWriteModel   *eventstoreForWriteModel.CustomerEventStore
-	customerEventStoreForReadModel    *eventstoreForReadModel.CustomerEventStore
-	customerCommandHandler            *writemodel.CustomerCommandHandler
-	customerQueryHandler              *readmodel.CustomerQueryHandler
-	customerServer                    customergrpc.CustomerServer
-	customerApp                       *customercli.CustomerApp
+	postgresDBConn                      *sql.DB
+	unmarshalCustomerEventForWriteModel es.UnmarshalDomainEvent
+	unmarshalCustomerEventForReadModel  es.UnmarshalDomainEvent
+	customerEventStoreForWriteModel     *eventstoreForWriteModel.CustomerEventStore
+	customerEventStoreForReadModel      *eventstoreForReadModel.CustomerEventStore
+	customerCommandHandler              *writemodel.CustomerCommandHandler
+	customerQueryHandler                *readmodel.CustomerQueryHandler
+	customerServer                      customergrpc.CustomerServer
+	customerApp                         *customercli.CustomerApp
 }
 
 func NewDIContainer(
@@ -38,13 +36,13 @@ func NewDIContainer(
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
-		return nil, errors.Mark(errors.New("newContainer: postgres DB connection must not be nil"), lib.ErrTechnical)
+		return nil, errors.Mark(errors.New("newDIContainer: postgres DB connection must not be nil"), lib.ErrTechnical)
 	}
 
 	container := &DIContainer{
-		postgresDBConn:                    postgresDBConn,
-		unmarshalDomainEventForWriteModel: unmarshalDomainEventForWriteModel,
-		unmarshalDomainEventForReadModel:  unmarshalDomainEventForReadModel,
+		postgresDBConn:                      postgresDBConn,
+		unmarshalCustomerEventForWriteModel: unmarshalDomainEventForWriteModel,
+		unmarshalCustomerEventForReadModel:  unmarshalDomainEventForReadModel,
 	}
 
 	container.init()
@@ -53,8 +51,6 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.getEventStoreForWriteModel()
-	container.getEventStoreForReadModel()
 	container.GetCustomerEventStoreForWriteModel()
 	container.GetCustomerEventStoreForReadModel()
 	container.GetCustomerCommandHandler()
@@ -67,34 +63,14 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) getEventStoreForWriteModel() *postgres.EventStore {
-	if container.eventStoreForWriteModel == nil {
-		container.eventStoreForWriteModel = postgres.NewEventStore(
-			container.postgresDBConn,
-			eventStoreTableName,
-			container.unmarshalDomainEventForWriteModel,
-		)
-	}
-
-	return container.eventStoreForWriteModel
-}
-
-func (container DIContainer) getEventStoreForReadModel() *postgres.EventStore {
-	if container.eventStoreForReadModel == nil {
-		container.eventStoreForReadModel = postgres.NewEventStore(
-			container.postgresDBConn,
-			eventStoreTableName,
-			container.unmarshalDomainEventForReadModel,
-		)
-	}
-
-	return container.eventStoreForReadModel
-}
-
 func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstoreForWriteModel.CustomerEventStore {
 	if container.customerEventStoreForWriteModel == nil {
 		container.customerEventStoreForWriteModel = eventstoreForWriteModel.NewCustomerEventStore(
-			container.getEventStoreForWriteModel(),
+			postgres.NewEventStore(
+				container.postgresDBConn,
+				eventStoreTableName,
+				container.unmarshalCustomerEventForWriteModel,
+			),
 		)
 	}
 
@@ -104,7 +80,11 @@ func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstoreFor
 func (container DIContainer) GetCustomerEventStoreForReadModel() *eventstoreForReadModel.CustomerEventStore {
 	if container.customerEventStoreForReadModel == nil {
 		container.customerEventStoreForReadModel = eventstoreForReadModel.NewCustomerEventStore(
-			container.getEventStoreForReadModel(),
+			postgres.NewEventStore(
+				container.postgresDBConn,
+				eventStoreTableName,
+				container.unmarshalCustomerEventForReadModel,
+			),
 		)
 	}
 

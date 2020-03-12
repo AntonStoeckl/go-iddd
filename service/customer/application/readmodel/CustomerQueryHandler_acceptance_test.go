@@ -1,15 +1,12 @@
 package readmodel_test
 
 import (
-	"database/sql"
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/readmodel/domain/customer"
 	"go-iddd/service/customer/application/writemodel"
 	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
-	"go-iddd/service/customer/application/writemodel/domain/customer/events"
 	"go-iddd/service/lib"
-	"go-iddd/service/lib/eventstore/postgres/database"
 	"testing"
 
 	"github.com/cockroachdb/errors"
@@ -17,7 +14,11 @@ import (
 )
 
 func TestCustomerQueryHandlerScenarios(t *testing.T) {
-	diContainer := setUpDiContainerForCustomerQueryHandlerScenarios()
+	diContainer, err := cmd.Bootstrap()
+	if err != nil {
+		panic(err)
+	}
+
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
 
@@ -168,43 +169,4 @@ func GivenEmailAddressChanged(
 
 	err := commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddress)
 	So(err, ShouldBeNil)
-}
-
-func setUpDiContainerForCustomerQueryHandlerScenarios() *cmd.DIContainer {
-	config, err := cmd.NewConfigFromEnv()
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open("postgres", config.Postgres.DSN)
-	if err != nil {
-		panic(err)
-	}
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
-	if err != nil {
-		panic(err)
-	}
-
-	err = migrator.Up()
-	if err != nil {
-		panic(err)
-	}
-
-	diContainer, err := cmd.NewDIContainer(
-		db,
-		events.UnmarshalCustomerEvent,
-		customer.UnmarshalCustomerEvent,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return diContainer
 }
