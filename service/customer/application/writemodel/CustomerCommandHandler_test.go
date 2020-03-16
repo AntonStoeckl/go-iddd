@@ -5,7 +5,7 @@ import (
 	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
 	"go-iddd/service/customer/application/writemodel/domain/customer/events"
 	"go-iddd/service/customer/application/writemodel/domain/customer/values"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/mocked"
+	"go-iddd/service/customer/infrastructure/secondary/mocked"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"testing"

@@ -56,11 +56,11 @@ func (_m *ForStoringCustomerEvents) Delete(id values.CustomerID) error {
 }
 
 // EventStreamFor provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
+func (_m *ForStoringCustomerEvents) EventStreamFor(id es.AggregateID) (es.DomainEvents, error) {
 	ret := _m.Called(id)
 
 	var r0 es.DomainEvents
-	if rf, ok := ret.Get(0).(func(values.CustomerID) es.DomainEvents); ok {
+	if rf, ok := ret.Get(0).(func(es.AggregateID) es.DomainEvents); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
@@ -69,7 +69,7 @@ func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.Dom
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(values.CustomerID) error); ok {
+	if rf, ok := ret.Get(1).(func(es.AggregateID) error); ok {
 		r1 = rf(id)
 	} else {
 		r1 = ret.Error(1)

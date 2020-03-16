@@ -6,8 +6,7 @@ import (
 	"go-iddd/service/customer/application/writemodel"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	eventstoreForReadModel "go-iddd/service/customer/infrastructure/secondary/forreadingcustomereventstreams/eventstore"
-	eventstoreForWriteModel "go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
+	"go-iddd/service/customer/infrastructure/secondary/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"go-iddd/service/lib/eventstore/postgres"
@@ -21,8 +20,8 @@ type DIContainer struct {
 	postgresDBConn                      *sql.DB
 	unmarshalCustomerEventForWriteModel es.UnmarshalDomainEvent
 	unmarshalCustomerEventForReadModel  es.UnmarshalDomainEvent
-	customerEventStoreForWriteModel     *eventstoreForWriteModel.CustomerEventStore
-	customerEventStoreForReadModel      *eventstoreForReadModel.CustomerEventStore
+	customerEventStoreForWriteModel     *eventstore.CustomerEventStore
+	customerEventStoreForReadModel      *eventstore.CustomerEventStore
 	customerCommandHandler              *writemodel.CustomerCommandHandler
 	customerQueryHandler                *readmodel.CustomerQueryHandler
 	customerServer                      customergrpc.CustomerServer
@@ -63,9 +62,9 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstoreForWriteModel.CustomerEventStore {
+func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstore.CustomerEventStore {
 	if container.customerEventStoreForWriteModel == nil {
-		container.customerEventStoreForWriteModel = eventstoreForWriteModel.NewCustomerEventStore(
+		container.customerEventStoreForWriteModel = eventstore.NewCustomerEventStore(
 			postgres.NewEventStore(
 				container.postgresDBConn,
 				eventStoreTableName,
@@ -77,9 +76,9 @@ func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstoreFor
 	return container.customerEventStoreForWriteModel
 }
 
-func (container DIContainer) GetCustomerEventStoreForReadModel() *eventstoreForReadModel.CustomerEventStore {
+func (container DIContainer) GetCustomerEventStoreForReadModel() *eventstore.CustomerEventStore {
 	if container.customerEventStoreForReadModel == nil {
-		container.customerEventStoreForReadModel = eventstoreForReadModel.NewCustomerEventStore(
+		container.customerEventStoreForReadModel = eventstore.NewCustomerEventStore(
 			postgres.NewEventStore(
 				container.postgresDBConn,
 				eventStoreTableName,

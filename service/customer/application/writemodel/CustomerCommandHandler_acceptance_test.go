@@ -6,7 +6,7 @@ import (
 	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
 	"go-iddd/service/customer/application/writemodel/domain/customer/events"
 	"go-iddd/service/customer/application/writemodel/domain/customer/values"
-	"go-iddd/service/customer/infrastructure/secondary/forstoringcustomerevents/eventstore"
+	"go-iddd/service/customer/infrastructure/secondary/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"
 	"testing"
