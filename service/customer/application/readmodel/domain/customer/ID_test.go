@@ -98,7 +98,7 @@ func TestRebuildID(t *testing.T) {
 	})
 }
 
-func TestCustomerIDEquals(t *testing.T) {
+func TestIDEquals(t *testing.T) {
 	Convey("When an ID is compared with another ID of equal value", t, func() {
 		idValue := "64bcf656-da30-4f5a-b0b5-aead60965aa3"
 		customerID := customer.RebuildID(idValue)
