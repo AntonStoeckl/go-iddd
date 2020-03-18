@@ -19,7 +19,7 @@ func NewCustomerEventStore(eventStore es.EventStore) *CustomerEventStore {
 	return &CustomerEventStore{eventStore: eventStore}
 }
 
-func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
+func (customer *CustomerEventStore) EventStreamFor(id es.AggregateID) (es.DomainEvents, error) {
 	eventStream, err := customer.eventStore.LoadEventStream(customer.streamID(id), 0, math.MaxUint32)
 	if err != nil {
 		return nil, errors.Wrap(err, "customerEventStore.EventStreamFor")
@@ -62,6 +62,6 @@ func (customer *CustomerEventStore) Delete(id values.CustomerID) error {
 	return nil
 }
 
-func (customer *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
+func (customer *CustomerEventStore) streamID(id es.AggregateID) es.StreamID {
 	return es.NewStreamID(streamPrefix + "-" + id.ID())
 }
