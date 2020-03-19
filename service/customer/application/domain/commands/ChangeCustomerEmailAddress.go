@@ -41,21 +41,21 @@ func BuildChangeCustomerEmailAddress(
 	return changeEmailAddress, nil
 }
 
-func (changeEmailAddress ChangeCustomerEmailAddress) CustomerID() values.CustomerID {
-	return changeEmailAddress.customerID
+func (command ChangeCustomerEmailAddress) CustomerID() values.CustomerID {
+	return command.customerID
 }
 
-func (changeEmailAddress ChangeCustomerEmailAddress) EmailAddress() values.EmailAddress {
-	return changeEmailAddress.emailAddress
+func (command ChangeCustomerEmailAddress) EmailAddress() values.EmailAddress {
+	return command.emailAddress
 }
 
-func (changeEmailAddress ChangeCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
-	return changeEmailAddress.confirmationHash
+func (command ChangeCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
+	return command.confirmationHash
 }
 
-func (changeEmailAddress ChangeCustomerEmailAddress) ShouldBeValid() error {
-	if !changeEmailAddress.isValid {
-		err := errors.Newf("%s: is not valid", changeEmailAddress.commandName())
+func (command ChangeCustomerEmailAddress) ShouldBeValid() error {
+	if !command.isValid {
+		err := errors.Newf("%s: is not valid", command.commandName())
 
 		return errors.Mark(err, lib.ErrCommandIsInvalid)
 	}
@@ -63,8 +63,8 @@ func (changeEmailAddress ChangeCustomerEmailAddress) ShouldBeValid() error {
 	return nil
 }
 
-func (changeEmailAddress ChangeCustomerEmailAddress) commandName() string {
-	commandType := reflect.TypeOf(changeEmailAddress).String()
+func (command ChangeCustomerEmailAddress) commandName() string {
+	commandType := reflect.TypeOf(command).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 

@@ -39,17 +39,17 @@ func BuildConfirmCustomerEmailAddress(
 	return confirmEmailAddress, nil
 }
 
-func (confirmEmailAddress ConfirmCustomerEmailAddress) CustomerID() values.CustomerID {
-	return confirmEmailAddress.customerID
+func (command ConfirmCustomerEmailAddress) CustomerID() values.CustomerID {
+	return command.customerID
 }
 
-func (confirmEmailAddress ConfirmCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
-	return confirmEmailAddress.confirmationHash
+func (command ConfirmCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
+	return command.confirmationHash
 }
 
-func (confirmEmailAddress ConfirmCustomerEmailAddress) ShouldBeValid() error {
-	if !confirmEmailAddress.isValid {
-		err := errors.Newf("%s: is not valid", confirmEmailAddress.commandName())
+func (command ConfirmCustomerEmailAddress) ShouldBeValid() error {
+	if !command.isValid {
+		err := errors.Newf("%s: is not valid", command.commandName())
 
 		return errors.Mark(err, lib.ErrCommandIsInvalid)
 	}
@@ -57,8 +57,8 @@ func (confirmEmailAddress ConfirmCustomerEmailAddress) ShouldBeValid() error {
 	return nil
 }
 
-func (confirmEmailAddress ConfirmCustomerEmailAddress) commandName() string {
-	commandType := reflect.TypeOf(confirmEmailAddress).String()
+func (command ConfirmCustomerEmailAddress) commandName() string {
+	commandType := reflect.TypeOf(command).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 

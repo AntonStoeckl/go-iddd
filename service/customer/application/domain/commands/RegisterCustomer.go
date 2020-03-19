@@ -44,25 +44,25 @@ func BuildRegisterCustomer(
 	return register, nil
 }
 
-func (register RegisterCustomer) CustomerID() values.CustomerID {
-	return register.customerID
+func (command RegisterCustomer) CustomerID() values.CustomerID {
+	return command.customerID
 }
 
-func (register RegisterCustomer) EmailAddress() values.EmailAddress {
-	return register.emailAddress
+func (command RegisterCustomer) EmailAddress() values.EmailAddress {
+	return command.emailAddress
 }
 
-func (register RegisterCustomer) ConfirmationHash() values.ConfirmationHash {
-	return register.confirmationHash
+func (command RegisterCustomer) ConfirmationHash() values.ConfirmationHash {
+	return command.confirmationHash
 }
 
-func (register RegisterCustomer) PersonName() values.PersonName {
-	return register.personName
+func (command RegisterCustomer) PersonName() values.PersonName {
+	return command.personName
 }
 
-func (register RegisterCustomer) ShouldBeValid() error {
-	if !register.isValid {
-		err := errors.Newf("%s: is not valid", register.commandName())
+func (command RegisterCustomer) ShouldBeValid() error {
+	if !command.isValid {
+		err := errors.Newf("%s: is not valid", command.commandName())
 
 		return errors.Mark(err, lib.ErrCommandIsInvalid)
 	}
@@ -70,8 +70,8 @@ func (register RegisterCustomer) ShouldBeValid() error {
 	return nil
 }
 
-func (register RegisterCustomer) commandName() string {
-	commandType := reflect.TypeOf(register).String()
+func (command RegisterCustomer) commandName() string {
+	commandType := reflect.TypeOf(command).String()
 	commandTypeParts := strings.Split(commandType, ".")
 	commandName := commandTypeParts[len(commandTypeParts)-1]
 
