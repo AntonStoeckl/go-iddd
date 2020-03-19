@@ -3,10 +3,11 @@ package application_test
 import (
 	"fmt"
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/command"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/customer"
 	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/application/query"
 	"go-iddd/service/lib"
 	"testing"
 
@@ -328,7 +329,7 @@ func TestCustomerScenarios(t *testing.T) {
 
 func givenCustomerRegistered(
 	registerCustomer commands.RegisterCustomer,
-	commandHandler *application.CustomerCommandHandler,
+	commandHandler *command.CustomerCommandHandler,
 ) {
 
 	err := commandHandler.RegisterCustomer(registerCustomer)
@@ -337,7 +338,7 @@ func givenCustomerRegistered(
 
 func givenCustomerEmailAddressWasConfirmed(
 	confirmCustomerEmailAddress commands.ConfirmCustomerEmailAddress,
-	commandHandler *application.CustomerCommandHandler,
+	commandHandler *command.CustomerCommandHandler,
 ) {
 
 	err := commandHandler.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress)
@@ -346,7 +347,7 @@ func givenCustomerEmailAddressWasConfirmed(
 
 func givenCustomerEmailAddressWasChanged(
 	changeCustomerEmailAddress commands.ChangeCustomerEmailAddress,
-	commandHandler *application.CustomerCommandHandler,
+	commandHandler *command.CustomerCommandHandler,
 ) {
 
 	err := commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddress)
@@ -364,7 +365,7 @@ func givenCustomerAccountWasDeleted(
 }
 
 func retrieveAccountData(
-	queryHandler *application.CustomerQueryHandler,
+	queryHandler *query.CustomerQueryHandler,
 	id values.CustomerID,
 ) customer.View {
 

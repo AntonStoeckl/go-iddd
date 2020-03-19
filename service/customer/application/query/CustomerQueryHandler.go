@@ -1,4 +1,4 @@
-package application
+package query
 
 import (
 	"go-iddd/service/customer/application/domain/customer"

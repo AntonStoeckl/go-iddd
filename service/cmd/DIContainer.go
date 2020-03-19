@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/command"
+	"go-iddd/service/customer/application/query"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/customer/infrastructure/secondary/eventstore"
@@ -19,8 +20,8 @@ type DIContainer struct {
 	postgresDBConn         *sql.DB
 	unmarshalCustomerEvent es.UnmarshalDomainEvent
 	customerEventStore     *eventstore.CustomerEventStore
-	customerCommandHandler *application.CustomerCommandHandler
-	customerQueryHandler   *application.CustomerQueryHandler
+	customerCommandHandler *command.CustomerCommandHandler
+	customerQueryHandler   *query.CustomerQueryHandler
 	customerServer         customergrpc.CustomerServer
 	customerApp            *customercli.CustomerApp
 }
@@ -70,9 +71,9 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 	return container.customerEventStore
 }
 
-func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
+func (container DIContainer) GetCustomerCommandHandler() *command.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
-		container.customerCommandHandler = application.NewCustomerCommandHandler(
+		container.customerCommandHandler = command.NewCustomerCommandHandler(
 			container.GetCustomerEventStore(),
 		)
 	}
@@ -80,9 +81,9 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCo
 	return container.customerCommandHandler
 }
 
-func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
+func (container DIContainer) GetCustomerQueryHandler() *query.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
-		container.customerQueryHandler = application.NewCustomerQueryHandler(
+		container.customerQueryHandler = query.NewCustomerQueryHandler(
 			container.GetCustomerEventStore(),
 		)
 	}

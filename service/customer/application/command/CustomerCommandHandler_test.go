@@ -1,8 +1,8 @@
-package application_test
+package command_test
 
 import (
 	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application"
+	"go-iddd/service/customer/application/command"
 	"go-iddd/service/customer/application/domain/commands"
 	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/customer/infrastructure/secondary/mocked"
@@ -24,7 +24,7 @@ func TestCustomerCommandHandler(t *testing.T) {
 	commandHandler := diContainer.GetCustomerCommandHandler()
 
 	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
-	commandHandlerWithMock := application.NewCustomerCommandHandler(customerEventStoreMock)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
