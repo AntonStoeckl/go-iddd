@@ -2,8 +2,7 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/application/readmodel"
-	"go-iddd/service/customer/application/writemodel"
+	"go-iddd/service/customer/application"
 	customercli "go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
 	"go-iddd/service/customer/infrastructure/secondary/eventstore"
@@ -17,21 +16,18 @@ import (
 const eventStoreTableName = "eventstore"
 
 type DIContainer struct {
-	postgresDBConn                      *sql.DB
-	unmarshalCustomerEventForWriteModel es.UnmarshalDomainEvent
-	unmarshalCustomerEventForReadModel  es.UnmarshalDomainEvent
-	customerEventStoreForWriteModel     *eventstore.CustomerEventStore
-	customerEventStoreForReadModel      *eventstore.CustomerEventStore
-	customerCommandHandler              *writemodel.CustomerCommandHandler
-	customerQueryHandler                *readmodel.CustomerQueryHandler
-	customerServer                      customergrpc.CustomerServer
-	customerApp                         *customercli.CustomerApp
+	postgresDBConn         *sql.DB
+	unmarshalCustomerEvent es.UnmarshalDomainEvent
+	customerEventStore     *eventstore.CustomerEventStore
+	customerCommandHandler *application.CustomerCommandHandler
+	customerQueryHandler   *application.CustomerQueryHandler
+	customerServer         customergrpc.CustomerServer
+	customerApp            *customercli.CustomerApp
 }
 
 func NewDIContainer(
 	postgresDBConn *sql.DB,
 	unmarshalDomainEventForWriteModel es.UnmarshalDomainEvent,
-	unmarshalDomainEventForReadModel es.UnmarshalDomainEvent,
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
@@ -39,9 +35,8 @@ func NewDIContainer(
 	}
 
 	container := &DIContainer{
-		postgresDBConn:                      postgresDBConn,
-		unmarshalCustomerEventForWriteModel: unmarshalDomainEventForWriteModel,
-		unmarshalCustomerEventForReadModel:  unmarshalDomainEventForReadModel,
+		postgresDBConn:         postgresDBConn,
+		unmarshalCustomerEvent: unmarshalDomainEventForWriteModel,
 	}
 
 	container.init()
@@ -50,8 +45,7 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.GetCustomerEventStoreForWriteModel()
-	container.GetCustomerEventStoreForReadModel()
+	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
 	container.GetCustomerServer()
@@ -62,48 +56,34 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetCustomerEventStoreForWriteModel() *eventstore.CustomerEventStore {
-	if container.customerEventStoreForWriteModel == nil {
-		container.customerEventStoreForWriteModel = eventstore.NewCustomerEventStore(
+func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
+	if container.customerEventStore == nil {
+		container.customerEventStore = eventstore.NewCustomerEventStore(
 			postgres.NewEventStore(
 				container.postgresDBConn,
 				eventStoreTableName,
-				container.unmarshalCustomerEventForWriteModel,
+				container.unmarshalCustomerEvent,
 			),
 		)
 	}
 
-	return container.customerEventStoreForWriteModel
+	return container.customerEventStore
 }
 
-func (container DIContainer) GetCustomerEventStoreForReadModel() *eventstore.CustomerEventStore {
-	if container.customerEventStoreForReadModel == nil {
-		container.customerEventStoreForReadModel = eventstore.NewCustomerEventStore(
-			postgres.NewEventStore(
-				container.postgresDBConn,
-				eventStoreTableName,
-				container.unmarshalCustomerEventForReadModel,
-			),
-		)
-	}
-
-	return container.customerEventStoreForReadModel
-}
-
-func (container DIContainer) GetCustomerCommandHandler() *writemodel.CustomerCommandHandler {
+func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
-		container.customerCommandHandler = writemodel.NewCustomerCommandHandler(
-			container.GetCustomerEventStoreForWriteModel(),
+		container.customerCommandHandler = application.NewCustomerCommandHandler(
+			container.GetCustomerEventStore(),
 		)
 	}
 
 	return container.customerCommandHandler
 }
 
-func (container DIContainer) GetCustomerQueryHandler() *readmodel.CustomerQueryHandler {
+func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
-		container.customerQueryHandler = readmodel.NewCustomerQueryHandler(
-			container.GetCustomerEventStoreForReadModel(),
+		container.customerQueryHandler = application.NewCustomerQueryHandler(
+			container.GetCustomerEventStore(),
 		)
 	}
 

@@ -1,7 +1,7 @@
 package eventstore_test
 
 import (
-	"go-iddd/service/customer/application/writemodel/domain/customer/values"
+	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/infrastructure/secondary/eventstore"
 	"go-iddd/service/lib"
 	"go-iddd/service/lib/es"

@@ -1,7 +1,7 @@
 package application
 
 import (
-	"go-iddd/service/customer/application/writemodel/domain/customer/commands"
+	"go-iddd/service/customer/application/domain/commands"
 )
 
 type ForConfirmingCustomerEmailAddresses func(command commands.ConfirmCustomerEmailAddress) error

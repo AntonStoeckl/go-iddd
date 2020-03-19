@@ -2,8 +2,7 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/application/readmodel/domain/customer"
-	"go-iddd/service/customer/application/writemodel/domain/customer/events"
+	"go-iddd/service/customer/application/domain/events"
 	"go-iddd/service/lib/eventstore/postgres/database"
 )
 
@@ -33,11 +32,7 @@ func Bootstrap() (*DIContainer, error) {
 		return nil, err
 	}
 
-	diContainer, err := NewDIContainer(
-		db,
-		events.UnmarshalCustomerEvent,
-		customer.UnmarshalCustomerEvent,
-	)
+	diContainer, err := NewDIContainer(db, events.UnmarshalCustomerEvent)
 
 	if err != nil {
 		return nil, err
