@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestBuildChangeEmailAddressWithInvalidInput(t *testing.T) {
+func TestBuildChangeCustomerEmailAddressWithInvalidInput(t *testing.T) {
 	Convey("When a ChangeCustomerEmailAddress command is built with an empty customerID", t, func() {
 		_, err := commands.BuildChangeCustomerEmailAddress(
 			"",
