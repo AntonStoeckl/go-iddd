@@ -21,7 +21,7 @@ generate_mocked_EventStore:
 generate_mocked_ForStoringCustomerEvents:
 	@mockery \
 		-name ForStoringCustomerEvents \
-		-dir service/customer/application \
+		-dir service/customer/application/command \
 		-outpkg mocked \
 		-output service/customer/infrastructure/secondary/mocked \
 		-note "+build test"
