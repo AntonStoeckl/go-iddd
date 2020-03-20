@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"go-iddd/service/cmd"
 	"go-iddd/service/customer/application/command"
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/customer"
-	"go-iddd/service/customer/application/domain/values"
 	"go-iddd/service/customer/application/query"
+	"go-iddd/service/customer/domain/customer"
+	"go-iddd/service/customer/domain/customer/commands"
+	"go-iddd/service/customer/domain/customer/values"
 	"go-iddd/service/lib"
 	"testing"
 

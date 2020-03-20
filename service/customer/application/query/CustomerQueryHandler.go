@@ -1,8 +1,8 @@
 package query
 
 import (
-	"go-iddd/service/customer/application/domain/customer"
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/domain/customer"
+	"go-iddd/service/customer/domain/customer/values"
 
 	"github.com/cockroachdb/errors"
 )

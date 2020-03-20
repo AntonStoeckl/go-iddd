@@ -1,7 +1,7 @@
 package events
 
 import (
-	"go-iddd/service/customer/application/domain/values"
+	"go-iddd/service/customer/domain/customer/values"
 
 	jsoniter "github.com/json-iterator/go"
 )

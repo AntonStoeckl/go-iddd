@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"go-iddd/service/customer/application/domain/commands"
-	"go-iddd/service/customer/application/domain/events"
+	"go-iddd/service/customer/domain/customer/commands"
+	"go-iddd/service/customer/domain/customer/events"
 	"go-iddd/service/lib/es"
 )
 
