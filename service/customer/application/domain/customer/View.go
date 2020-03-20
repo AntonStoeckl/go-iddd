@@ -29,6 +29,9 @@ func BuildViewFrom(eventStream es.DomainEvents) View {
 		case events.CustomerEmailAddressChanged:
 			customerView.EmailAddress = actualEvent.EmailAddress().EmailAddress()
 			customerView.IsEmailAddressConfirmed = false
+		case events.CustomerNameChanged:
+			customerView.GivenName = actualEvent.PersonName().GivenName()
+			customerView.FamilyName = actualEvent.PersonName().FamilyName()
 		}
 
 		customerView.Version = event.StreamVersion()

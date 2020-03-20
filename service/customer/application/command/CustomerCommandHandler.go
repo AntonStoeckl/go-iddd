@@ -104,3 +104,30 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(command commands.Cha
 
 	return nil
 }
+
+func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCustomerName) error {
+	if err := command.ShouldBeValid(); err != nil {
+		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+	}
+
+	doChangeName := func() error {
+		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
+		if err != nil {
+			return err
+		}
+
+		recordedEvents := customer.ChangeName(eventStream, command)
+
+		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := cqrs.RetryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
+		return err
+	}
+
+	return nil
+}

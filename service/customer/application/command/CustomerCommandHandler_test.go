@@ -46,7 +46,14 @@ func TestCustomerCommandHandler(t *testing.T) {
 
 		changeCustomerEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
 			customerID.ID(),
-			registerCustomer.EmailAddress().EmailAddress(),
+			"john+changed@doe.com",
+		)
+		So(err, ShouldBeNil)
+
+		changeCustomerName, err := commands.BuildChangeCustomerName(
+			customerID.ID(),
+			"James",
+			"Dope",
 		)
 		So(err, ShouldBeNil)
 
@@ -101,6 +108,22 @@ func TestCustomerCommandHandler(t *testing.T) {
 			})
 		})
 
+		Convey("\nSCENARIO: Invalid command to change a Customer's name", func() {
+			Convey("Given a registered Customer", func() {
+				err = commandHandler.RegisterCustomer(registerCustomer)
+				So(err, ShouldBeNil)
+
+				Convey("When he tries to change his name with an invalid command", func() {
+					err = commandHandler.ChangeCustomerName(commands.ChangeCustomerName{})
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
+					})
+				})
+			})
+		})
+
 		Convey("\nSCENARIO: Duplicate Customer ID", func() {
 			Convey("Given a registered Customer", func() {
 				err = commandHandler.RegisterCustomer(registerCustomer)
@@ -145,6 +168,15 @@ func TestCustomerCommandHandler(t *testing.T) {
 
 					Convey("When he tries to change his email address", func() {
 						err = commandHandlerWithMock.ChangeCustomerEmailAddress(changeCustomerEmailAddress)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his name", func() {
+						err = commandHandlerWithMock.ChangeCustomerName(changeCustomerName)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
