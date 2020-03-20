@@ -3,8 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"go-iddd/service/lib"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

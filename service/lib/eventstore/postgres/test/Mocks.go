@@ -3,9 +3,9 @@
 package test
 
 import (
-	"go-iddd/service/lib/es"
 	"time"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
 )

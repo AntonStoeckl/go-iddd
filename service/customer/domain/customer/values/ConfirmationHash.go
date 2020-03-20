@@ -3,11 +3,11 @@ package values
 import (
 	"crypto/sha256"
 	"fmt"
-	"go-iddd/service/lib"
 	"math/rand"
 	"strconv"
 	"time"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 

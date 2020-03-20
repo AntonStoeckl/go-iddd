@@ -1,8 +1,7 @@
 package values
 
 import (
-	"go-iddd/service/lib"
-
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 

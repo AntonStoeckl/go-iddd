@@ -1,11 +1,11 @@
 package eventstore
 
 import (
-	"go-iddd/service/customer/domain/customer/values"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/es"
 	"math"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
 

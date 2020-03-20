@@ -1,9 +1,8 @@
 package query
 
 import (
-	"go-iddd/service/customer/domain/customer"
-	"go-iddd/service/customer/domain/customer/values"
-
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/cockroachdb/errors"
 )
 

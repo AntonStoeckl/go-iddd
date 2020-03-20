@@ -3,9 +3,9 @@
 package test
 
 import (
-	"go-iddd/service/lib"
 	"os"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 

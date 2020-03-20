@@ -1,13 +1,13 @@
 package eventstore_test
 
 import (
-	"go-iddd/service/customer/domain/customer/values"
-	"go-iddd/service/customer/infrastructure/secondary/eventstore"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/es"
-	"go-iddd/service/lib/eventstore/mocked"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"

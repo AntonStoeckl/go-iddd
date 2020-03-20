@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib/eventstore/postgres/database"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
 
 func Bootstrap() (*DIContainer, error) {

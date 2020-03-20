@@ -2,9 +2,9 @@ package customercli
 
 import (
 	"fmt"
-	"go-iddd/service/customer/application"
-	"go-iddd/service/customer/domain/customer/commands"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/urfave/cli"
 )
 

@@ -1,9 +1,9 @@
 package customer
 
 import (
-	"go-iddd/service/customer/domain/customer/commands"
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 func Register(with commands.RegisterCustomer) es.DomainEvents {

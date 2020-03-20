@@ -2,10 +2,10 @@ package postgres
 
 import (
 	"database/sql"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/es"
 	"strings"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/lib/pq"
 )

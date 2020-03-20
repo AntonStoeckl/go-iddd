@@ -1,9 +1,9 @@
 package es_test
 
 import (
-	"go-iddd/service/lib/es"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

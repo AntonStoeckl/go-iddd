@@ -1,11 +1,11 @@
 package events
 
 import (
-	"go-iddd/service/lib/es"
 	"reflect"
 	"strings"
 	"time"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 )
 

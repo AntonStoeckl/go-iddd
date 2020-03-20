@@ -1,9 +1,9 @@
 package events
 
 import (
-	"go-iddd/service/lib"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )

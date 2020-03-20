@@ -1,12 +1,11 @@
 package command
 
 import (
-	"go-iddd/service/customer/domain/customer"
-	"go-iddd/service/customer/domain/customer/commands"
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/cqrs"
-
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/cqrs"
 	"github.com/cockroachdb/errors"
 )
 

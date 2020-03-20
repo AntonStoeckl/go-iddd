@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type View struct {

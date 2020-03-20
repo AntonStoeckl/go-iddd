@@ -1,10 +1,10 @@
 package commands_test
 
 import (
-	"go-iddd/service/customer/domain/customer/commands"
-	"go-iddd/service/lib"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )

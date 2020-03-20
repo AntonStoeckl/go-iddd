@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"database/sql"
-	"go-iddd/service/customer/application/command"
-	"go-iddd/service/customer/application/query"
-	customercli "go-iddd/service/customer/infrastructure/primary/cli"
-	customergrpc "go-iddd/service/customer/infrastructure/primary/grpc"
-	"go-iddd/service/customer/infrastructure/secondary/eventstore"
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/es"
-	"go-iddd/service/lib/eventstore/postgres"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
+	customercli "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/cli"
+	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
 	"github.com/cockroachdb/errors"
 )
 

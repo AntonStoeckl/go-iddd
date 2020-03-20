@@ -1,12 +1,12 @@
 package customer_test
 
 import (
-	"go-iddd/service/customer/domain/customer"
-	"go-iddd/service/customer/domain/customer/commands"
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib/es"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

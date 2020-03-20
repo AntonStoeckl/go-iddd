@@ -1,4 +1,4 @@
-module go-iddd
+module github.com/AntonStoeckl/go-iddd
 
 go 1.13
 

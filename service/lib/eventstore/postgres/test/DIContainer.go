@@ -4,9 +4,10 @@ package test
 
 import (
 	"database/sql"
-	"go-iddd/service/lib/es"
-	"go-iddd/service/lib/eventstore/postgres"
-	"go-iddd/service/lib/eventstore/postgres/database"
+
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
 
 const (

@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"go-iddd/service/cmd"
-	"go-iddd/service/customer/domain/customer/events"
-	"go-iddd/service/lib/eventstore/postgres/database"
 	"os"
 
+	"github.com/AntonStoeckl/go-iddd/service/cmd"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"

@@ -1,11 +1,11 @@
 package values_test
 
 import (
-	"go-iddd/service/customer/domain/customer/values"
-	"go-iddd/service/lib"
 	"sync"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )

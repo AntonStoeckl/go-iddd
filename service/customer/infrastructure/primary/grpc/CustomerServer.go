@@ -2,9 +2,9 @@ package customergrpc
 
 import (
 	"context"
-	"go-iddd/service/customer/application"
-	"go-iddd/service/customer/domain/customer/commands"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 

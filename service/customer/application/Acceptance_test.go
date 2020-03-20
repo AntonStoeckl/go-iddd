@@ -2,15 +2,15 @@ package application_test
 
 import (
 	"fmt"
-	"go-iddd/service/cmd"
-	"go-iddd/service/customer/application/command"
-	"go-iddd/service/customer/application/query"
-	"go-iddd/service/customer/domain/customer"
-	"go-iddd/service/customer/domain/customer/commands"
-	"go-iddd/service/customer/domain/customer/values"
-	"go-iddd/service/lib"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/cmd"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )

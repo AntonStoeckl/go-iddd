@@ -1,8 +1,8 @@
 package query
 
 import (
-	"go-iddd/service/customer/domain/customer/values"
-	"go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type ForReadingCustomerEventStreams interface {

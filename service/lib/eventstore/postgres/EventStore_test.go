@@ -1,13 +1,13 @@
 package postgres_test
 
 import (
-	"go-iddd/service/lib"
-	"go-iddd/service/lib/es"
-	"go-iddd/service/lib/eventstore/postgres"
-	"go-iddd/service/lib/eventstore/postgres/test"
 	"math"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/test"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 	. "github.com/smartystreets/goconvey/convey"
