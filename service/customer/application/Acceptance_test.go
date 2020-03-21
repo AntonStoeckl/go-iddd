@@ -73,6 +73,7 @@ func TestCustomerScenarios(t *testing.T) {
 			newGivenName,
 			newFamilyName,
 		)
+		So(err, ShouldBeNil)
 
 		expectedCustomerView := customer.View{
 			ID:                      customerID.ID(),
