@@ -67,14 +67,20 @@ func (event CustomerEmailAddressConfirmationFailed) MarshalJSON() ([]byte, error
 		Meta:             event.meta,
 	}
 
-	return jsoniter.Marshal(data)
+	return jsoniter.ConfigFastest.Marshal(data)
 }
 
-func UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(data []byte, streamVersion uint) CustomerEmailAddressConfirmationFailed {
+func UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(
+	data []byte,
+	streamVersion uint,
+) CustomerEmailAddressConfirmationFailed {
+
+	anyData := jsoniter.ConfigFastest.Get(data)
+
 	event := CustomerEmailAddressConfirmationFailed{
-		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
-		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
-		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
+		customerID:       values.RebuildCustomerID(anyData.Get("customerID").ToString()),
+		emailAddress:     values.RebuildEmailAddress(anyData.Get("emailAddress").ToString()),
+		confirmationHash: values.RebuildConfirmationHash(anyData.Get("confirmationHash").ToString()),
 		meta:             UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
 

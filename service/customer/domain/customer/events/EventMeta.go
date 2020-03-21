@@ -42,11 +42,15 @@ func (meta EventMeta) MarshalJSON() ([]byte, error) {
 		OccurredAt: meta.occurredAt,
 	}
 
-	return jsoniter.Marshal(data)
+	return jsoniter.ConfigFastest.Marshal(data)
 }
 
-func UnmarshalEventMetaFromJSON(data []byte, streamVersion uint) EventMeta {
-	anyMeta := jsoniter.Get(data, "meta")
+func UnmarshalEventMetaFromJSON(
+	data []byte,
+	streamVersion uint,
+) EventMeta {
+
+	anyMeta := jsoniter.ConfigFastest.Get(data, "meta")
 
 	meta := EventMeta{
 		eventName:     anyMeta.Get("eventName").ToString(),

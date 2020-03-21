@@ -78,17 +78,23 @@ func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
 		Meta:             event.meta,
 	}
 
-	return jsoniter.Marshal(data)
+	return jsoniter.ConfigFastest.Marshal(data)
 }
 
-func UnmarshalCustomerRegisteredFromJSON(data []byte, streamVersion uint) CustomerRegistered {
+func UnmarshalCustomerRegisteredFromJSON(
+	data []byte,
+	streamVersion uint,
+) CustomerRegistered {
+
+	anyData := jsoniter.ConfigFastest.Get(data)
+
 	event := CustomerRegistered{
-		customerID:       values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
-		emailAddress:     values.RebuildEmailAddress(jsoniter.Get(data, "emailAddress").ToString()),
-		confirmationHash: values.RebuildConfirmationHash(jsoniter.Get(data, "confirmationHash").ToString()),
+		customerID:       values.RebuildCustomerID(anyData.Get("customerID").ToString()),
+		emailAddress:     values.RebuildEmailAddress(anyData.Get("emailAddress").ToString()),
+		confirmationHash: values.RebuildConfirmationHash(anyData.Get("confirmationHash").ToString()),
 		personName: values.RebuildPersonName(
-			jsoniter.Get(data, "personGivenName").ToString(),
-			jsoniter.Get(data, "personFamilyName").ToString(),
+			anyData.Get("personGivenName").ToString(),
+			anyData.Get("personFamilyName").ToString(),
 		),
 		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
 	}

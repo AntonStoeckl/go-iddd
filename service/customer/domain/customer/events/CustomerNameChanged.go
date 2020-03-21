@@ -60,15 +60,21 @@ func (event CustomerNameChanged) MarshalJSON() ([]byte, error) {
 		Meta:       event.meta,
 	}
 
-	return jsoniter.Marshal(data)
+	return jsoniter.ConfigFastest.Marshal(data)
 }
 
-func UnmarshalCustomerNameChangedFromJSON(data []byte, streamVersion uint) CustomerNameChanged {
+func UnmarshalCustomerNameChangedFromJSON(
+	data []byte,
+	streamVersion uint,
+) CustomerNameChanged {
+
+	anyData := jsoniter.ConfigFastest.Get(data)
+
 	event := CustomerNameChanged{
-		customerID: values.RebuildCustomerID(jsoniter.Get(data, "customerID").ToString()),
+		customerID: values.RebuildCustomerID(anyData.Get("customerID").ToString()),
 		personName: values.RebuildPersonName(
-			jsoniter.Get(data, "givenName").ToString(),
-			jsoniter.Get(data, "familyName").ToString(),
+			anyData.Get("givenName").ToString(),
+			anyData.Get("familyName").ToString(),
 		),
 		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
 	}
