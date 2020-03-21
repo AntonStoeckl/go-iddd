@@ -3,6 +3,11 @@ package application_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 )
@@ -72,31 +77,41 @@ func BenchmarkCustomerScenario(b *testing.B) {
 		b.FailNow()
 	}
 
-	if err = commandHandler.RegisterCustomer(registerCustomer); err != nil {
+	changeCustomerNameBack, err := commands.BuildChangeCustomerName(
+		registerCustomer.CustomerID().ID(),
+		givenName,
+		familyName,
+	)
+
+	if err != nil {
 		b.FailNow()
 	}
 
-	if err = commandHandler.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress); err != nil {
-		b.FailNow()
-	}
+	prepareForBenchmark(b,
+		commandHandler,
+		registerCustomer,
+		confirmCustomerEmailAddress,
+		changeCustomerEmailAddress,
+		changeCustomerEmailAddressBack,
+	)
 
-	if err = commandHandler.ChangeCustomerName(changeCustomerName); err != nil {
-		b.FailNow()
-	}
+	/**************************************************/
 
-	b.Run("ChangeEmailAddress", func(b *testing.B) {
+	b.Run("ChangeName", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			if n%2 == 0 {
-				if err = commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddress); err != nil {
+				if err = commandHandler.ChangeCustomerName(changeCustomerName); err != nil {
 					b.FailNow()
 				}
 			} else {
-				if err = commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddressBack); err != nil {
+				if err = commandHandler.ChangeCustomerName(changeCustomerNameBack); err != nil {
 					b.FailNow()
 				}
 			}
 		}
 	})
+
+	/**************************************************/
 
 	b.Run("CustomerViewByID", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
@@ -106,7 +121,52 @@ func BenchmarkCustomerScenario(b *testing.B) {
 		}
 	})
 
-	if err = diContainer.GetCustomerEventStore().Delete(registerCustomer.CustomerID()); err != nil {
+	cleanUpAfterBenchmark(
+		b,
+		diContainer.GetCustomerEventStore(),
+		registerCustomer.CustomerID(),
+	)
+}
+
+func prepareForBenchmark(
+	b *testing.B,
+	commandHandler *command.CustomerCommandHandler,
+	registerCustomer commands.RegisterCustomer,
+	confirmCustomerEmailAddress commands.ConfirmCustomerEmailAddress,
+	changeCustomerEmailAddress commands.ChangeCustomerEmailAddress,
+	changeCustomerEmailAddressBack commands.ChangeCustomerEmailAddress,
+) {
+
+	var err error
+
+	if err = commandHandler.RegisterCustomer(registerCustomer); err != nil {
+		b.FailNow()
+	}
+
+	if err = commandHandler.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress); err != nil {
+		b.FailNow()
+	}
+
+	for n := 0; n < 100; n++ {
+		if n%2 == 0 {
+			if err = commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddress); err != nil {
+				b.FailNow()
+			}
+		} else {
+			if err = commandHandler.ChangeCustomerEmailAddress(changeCustomerEmailAddressBack); err != nil {
+				b.FailNow()
+			}
+		}
+	}
+}
+
+func cleanUpAfterBenchmark(
+	b *testing.B,
+	eventstore *eventstore.CustomerEventStore,
+	id values.CustomerID,
+) {
+
+	if err := eventstore.Delete(id); err != nil {
 		b.FailNow()
 	}
 }
