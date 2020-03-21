@@ -13,6 +13,15 @@ type CustomerRegistered struct {
 	meta             EventMeta
 }
 
+type CustomerRegisteredForJSON struct {
+	CustomerID       string    `json:"customerID"`
+	EmailAddress     string    `json:"emailAddress"`
+	ConfirmationHash string    `json:"confirmationHash"`
+	PersonGivenName  string    `json:"personGivenName"`
+	PersonFamilyName string    `json:"personFamilyName"`
+	Meta             EventMeta `json:"meta"`
+}
+
 func CustomerWasRegistered(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
@@ -50,11 +59,11 @@ func (event CustomerRegistered) PersonName() values.PersonName {
 }
 
 func (event CustomerRegistered) EventName() string {
-	return event.meta.eventName
+	return event.meta.EventName
 }
 
 func (event CustomerRegistered) OccurredAt() string {
-	return event.meta.occurredAt
+	return event.meta.OccurredAt
 }
 
 func (event CustomerRegistered) StreamVersion() uint {
@@ -62,14 +71,7 @@ func (event CustomerRegistered) StreamVersion() uint {
 }
 
 func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
-	data := &struct {
-		CustomerID       string    `json:"customerID"`
-		EmailAddress     string    `json:"emailAddress"`
-		ConfirmationHash string    `json:"confirmationHash"`
-		PersonGivenName  string    `json:"personGivenName"`
-		PersonFamilyName string    `json:"personFamilyName"`
-		Meta             EventMeta `json:"meta"`
-	}{
+	data := CustomerRegisteredForJSON{
 		CustomerID:       event.customerID.ID(),
 		EmailAddress:     event.emailAddress.EmailAddress(),
 		ConfirmationHash: event.confirmationHash.Hash(),
@@ -86,17 +88,19 @@ func UnmarshalCustomerRegisteredFromJSON(
 	streamVersion uint,
 ) CustomerRegistered {
 
-	anyData := jsoniter.ConfigFastest.Get(data)
+	unmarshaledData := &CustomerRegisteredForJSON{}
+
+	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
 
 	event := CustomerRegistered{
-		customerID:       values.RebuildCustomerID(anyData.Get("customerID").ToString()),
-		emailAddress:     values.RebuildEmailAddress(anyData.Get("emailAddress").ToString()),
-		confirmationHash: values.RebuildConfirmationHash(anyData.Get("confirmationHash").ToString()),
+		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
+		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
 		personName: values.RebuildPersonName(
-			anyData.Get("personGivenName").ToString(),
-			anyData.Get("personFamilyName").ToString(),
+			unmarshaledData.PersonGivenName,
+			unmarshaledData.PersonFamilyName,
 		),
-		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
+		meta: EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

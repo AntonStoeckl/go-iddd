@@ -11,6 +11,12 @@ type CustomerEmailAddressConfirmed struct {
 	meta         EventMeta
 }
 
+type CustomerEmailAddressConfirmedForJSON struct {
+	CustomerID   string    `json:"customerID"`
+	EmailAddress string    `json:"emailAddress"`
+	Meta         EventMeta `json:"meta"`
+}
+
 func CustomerEmailAddressWasConfirmed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
@@ -36,11 +42,11 @@ func (event CustomerEmailAddressConfirmed) EmailAddress() values.EmailAddress {
 }
 
 func (event CustomerEmailAddressConfirmed) EventName() string {
-	return event.meta.eventName
+	return event.meta.EventName
 }
 
 func (event CustomerEmailAddressConfirmed) OccurredAt() string {
-	return event.meta.occurredAt
+	return event.meta.OccurredAt
 }
 
 func (event CustomerEmailAddressConfirmed) StreamVersion() uint {
@@ -48,11 +54,7 @@ func (event CustomerEmailAddressConfirmed) StreamVersion() uint {
 }
 
 func (event CustomerEmailAddressConfirmed) MarshalJSON() ([]byte, error) {
-	data := &struct {
-		CustomerID   string    `json:"customerID"`
-		EmailAddress string    `json:"emailAddress"`
-		Meta         EventMeta `json:"meta"`
-	}{
+	data := CustomerEmailAddressConfirmedForJSON{
 		CustomerID:   event.customerID.ID(),
 		EmailAddress: event.emailAddress.EmailAddress(),
 		Meta:         event.meta,
@@ -66,12 +68,14 @@ func UnmarshalCustomerEmailAddressConfirmedFromJSON(
 	streamVersion uint,
 ) CustomerEmailAddressConfirmed {
 
-	anyData := jsoniter.ConfigFastest.Get(data)
+	unmarshaledData := &CustomerEmailAddressConfirmedForJSON{}
+
+	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
 
 	event := CustomerEmailAddressConfirmed{
-		customerID:   values.RebuildCustomerID(anyData.Get("customerID").ToString()),
-		emailAddress: values.RebuildEmailAddress(anyData.Get("emailAddress").ToString()),
-		meta:         UnmarshalEventMetaFromJSON(data, streamVersion),
+		customerID:   values.RebuildCustomerID(unmarshaledData.CustomerID),
+		emailAddress: values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		meta:         EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

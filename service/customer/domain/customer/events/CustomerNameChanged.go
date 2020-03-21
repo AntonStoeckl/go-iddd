@@ -1,14 +1,22 @@
 package events
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	jsoniter "github.com/json-iterator/go"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 )
 
 type CustomerNameChanged struct {
 	customerID values.CustomerID
 	personName values.PersonName
 	meta       EventMeta
+}
+
+type CustomerNameChangedForJSON struct {
+	CustomerID string    `json:"customerID"`
+	GivenName  string    `json:"givenName"`
+	FamilyName string    `json:"familyName"`
+	Meta       EventMeta `json:"meta"`
 }
 
 func CustomerNameWasChanged(
@@ -36,11 +44,11 @@ func (event CustomerNameChanged) PersonName() values.PersonName {
 }
 
 func (event CustomerNameChanged) EventName() string {
-	return event.meta.eventName
+	return event.meta.EventName
 }
 
 func (event CustomerNameChanged) OccurredAt() string {
-	return event.meta.occurredAt
+	return event.meta.OccurredAt
 }
 
 func (event CustomerNameChanged) StreamVersion() uint {
@@ -48,12 +56,7 @@ func (event CustomerNameChanged) StreamVersion() uint {
 }
 
 func (event CustomerNameChanged) MarshalJSON() ([]byte, error) {
-	data := struct {
-		CustomerID string    `json:"customerID"`
-		GivenName  string    `json:"givenName"`
-		FamilyName string    `json:"familyName"`
-		Meta       EventMeta `json:"meta"`
-	}{
+	data := CustomerNameChangedForJSON{
 		CustomerID: event.customerID.ID(),
 		GivenName:  event.personName.GivenName(),
 		FamilyName: event.personName.FamilyName(),
@@ -68,15 +71,17 @@ func UnmarshalCustomerNameChangedFromJSON(
 	streamVersion uint,
 ) CustomerNameChanged {
 
-	anyData := jsoniter.ConfigFastest.Get(data)
+	unmarshaledData := &CustomerNameChangedForJSON{}
+
+	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
 
 	event := CustomerNameChanged{
-		customerID: values.RebuildCustomerID(anyData.Get("customerID").ToString()),
+		customerID: values.RebuildCustomerID(unmarshaledData.CustomerID),
 		personName: values.RebuildPersonName(
-			anyData.Get("givenName").ToString(),
-			anyData.Get("familyName").ToString(),
+			unmarshaledData.GivenName,
+			unmarshaledData.FamilyName,
 		),
-		meta: UnmarshalEventMetaFromJSON(data, streamVersion),
+		meta: EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

@@ -1,8 +1,9 @@
 package events
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	jsoniter "github.com/json-iterator/go"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 )
 
 type CustomerEmailAddressChanged struct {
@@ -10,6 +11,13 @@ type CustomerEmailAddressChanged struct {
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	meta             EventMeta
+}
+
+type CustomerEmailAddressChangedForJSON struct {
+	CustomerID       string    `json:"customerID"`
+	EmailAddress     string    `json:"emailAddress"`
+	ConfirmationHash string    `json:"confirmationHash"`
+	Meta             EventMeta `json:"meta"`
 }
 
 func CustomerEmailAddressWasChanged(
@@ -43,11 +51,11 @@ func (event CustomerEmailAddressChanged) ConfirmationHash() values.ConfirmationH
 }
 
 func (event CustomerEmailAddressChanged) EventName() string {
-	return event.meta.eventName
+	return event.meta.EventName
 }
 
 func (event CustomerEmailAddressChanged) OccurredAt() string {
-	return event.meta.occurredAt
+	return event.meta.OccurredAt
 }
 
 func (event CustomerEmailAddressChanged) StreamVersion() uint {
@@ -55,12 +63,7 @@ func (event CustomerEmailAddressChanged) StreamVersion() uint {
 }
 
 func (event CustomerEmailAddressChanged) MarshalJSON() ([]byte, error) {
-	data := struct {
-		CustomerID       string    `json:"customerID"`
-		EmailAddress     string    `json:"emailAddress"`
-		ConfirmationHash string    `json:"confirmationHash"`
-		Meta             EventMeta `json:"meta"`
-	}{
+	data := CustomerEmailAddressChangedForJSON{
 		CustomerID:       event.customerID.ID(),
 		EmailAddress:     event.emailAddress.EmailAddress(),
 		ConfirmationHash: event.confirmationHash.Hash(),
@@ -75,13 +78,15 @@ func UnmarshalCustomerEmailAddressChangedFromJSON(
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
-	anyData := jsoniter.ConfigFastest.Get(data)
+	unmarshaledData := &CustomerEmailAddressChangedForJSON{}
+
+	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
 
 	event := CustomerEmailAddressChanged{
-		customerID:       values.RebuildCustomerID(anyData.Get("customerID").ToString()),
-		emailAddress:     values.RebuildEmailAddress(anyData.Get("emailAddress").ToString()),
-		confirmationHash: values.RebuildConfirmationHash(anyData.Get("confirmationHash").ToString()),
-		meta:             UnmarshalEventMetaFromJSON(data, streamVersion),
+		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
+		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		meta:             EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event
