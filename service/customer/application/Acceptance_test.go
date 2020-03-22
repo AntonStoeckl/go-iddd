@@ -75,6 +75,9 @@ func TestCustomerScenarios(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
+		deleteCustomer, err := commands.BuildCDeleteCustomer(customerID.ID())
+		So(err, ShouldBeNil)
+
 		expectedCustomerView := customer.View{
 			ID:                      customerID.ID(),
 			EmailAddress:            emailAddress,
@@ -273,8 +276,7 @@ func TestCustomerScenarios(t *testing.T) {
 				givenCustomerRegistered(registerCustomer, commandHandler)
 
 				Convey("When she deletes her account", func() {
-					// TODO: introduce a command to (soft?) delete an account
-					err = diContainer.GetCustomerEventStore().Delete(customerID)
+					err = commandHandler.DeleteCustomer(deleteCustomer)
 					So(err, ShouldBeNil)
 
 					Convey("And when she tries to retrieve her account data", func() {

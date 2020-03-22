@@ -11,6 +11,7 @@ type View struct {
 	IsEmailAddressConfirmed bool
 	GivenName               string
 	FamilyName              string
+	IsDeleted               bool
 	Version                 uint
 }
 
@@ -32,6 +33,8 @@ func BuildViewFrom(eventStream es.DomainEvents) View {
 		case events.CustomerNameChanged:
 			customerView.GivenName = actualEvent.PersonName().GivenName()
 			customerView.FamilyName = actualEvent.PersonName().FamilyName()
+		case events.CustomerDeleted:
+			customerView.IsDeleted = true
 		}
 
 		customerView.Version = event.StreamVersion()

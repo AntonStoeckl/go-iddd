@@ -18,6 +18,8 @@ func UnmarshalCustomerEvent(name string, payload []byte, streamVersion uint) (es
 		return UnmarshalCustomerEmailAddressChangedFromJSON(payload, streamVersion), nil
 	case "CustomerNameChanged":
 		return UnmarshalCustomerNameChangedFromJSON(payload, streamVersion), nil
+	case "CustomerDeleted":
+		return UnmarshalCustomerDeletedFromJSON(payload, streamVersion), nil
 	}
 
 	err := errors.Mark(

@@ -57,6 +57,9 @@ func TestCustomerCommandHandler(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
+		deleteCustomer, err := commands.BuildCDeleteCustomer(customerID.ID())
+		So(err, ShouldBeNil)
+
 		registered := events.CustomerWasRegistered(
 			customerID,
 			registerCustomer.EmailAddress(),
@@ -124,6 +127,22 @@ func TestCustomerCommandHandler(t *testing.T) {
 			})
 		})
 
+		Convey("\nSCENARIO: Invalid command to delete a Customer's account", func() {
+			Convey("Given a registered Customer", func() {
+				err = commandHandler.RegisterCustomer(registerCustomer)
+				So(err, ShouldBeNil)
+
+				Convey("When he tries to delete his account with an invalid command", func() {
+					err = commandHandler.DeleteCustomer(commands.DeleteCustomer{})
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
+					})
+				})
+			})
+		})
+
 		Convey("\nSCENARIO: Duplicate Customer ID", func() {
 			Convey("Given a registered Customer", func() {
 				err = commandHandler.RegisterCustomer(registerCustomer)
@@ -142,12 +161,58 @@ func TestCustomerCommandHandler(t *testing.T) {
 
 		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
-				customerEventStoreMock.
-					On("EventStreamFor", customerID).
-					Return(es.DomainEvents{registered}, nil).
-					Once()
+				Convey("and assuming the event stream can't be read", func() {
+					customerEventStoreMock.
+						On(
+							"EventStreamFor",
+							customerID,
+						).
+						Return(nil, lib.ErrTechnical).
+						Once()
+
+					Convey("When he tries to confirm his email address", func() {
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(confirmCustomerEmailAddress)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his email address", func() {
+						err = commandHandlerWithMock.ChangeCustomerEmailAddress(changeCustomerEmailAddress)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his name", func() {
+						err = commandHandlerWithMock.ChangeCustomerName(changeCustomerName)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to delete his account", func() {
+						err = commandHandlerWithMock.DeleteCustomer(deleteCustomer)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+				})
 
 				Convey("and assuming the recorded events can't be stored", func() {
+					customerEventStoreMock.
+						On("EventStreamFor", customerID).
+						Return(es.DomainEvents{registered}, nil).
+						Once()
+
 					customerEventStoreMock.
 						On(
 							"Add",
@@ -177,6 +242,15 @@ func TestCustomerCommandHandler(t *testing.T) {
 
 					Convey("When he tries to change his name", func() {
 						err = commandHandlerWithMock.ChangeCustomerName(changeCustomerName)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to delete his account", func() {
+						err = commandHandlerWithMock.DeleteCustomer(deleteCustomer)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
