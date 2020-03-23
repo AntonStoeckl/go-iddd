@@ -1,7 +1,6 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
@@ -16,28 +15,16 @@ type View struct {
 }
 
 func BuildViewFrom(eventStream es.DomainEvents) View {
-	customerView := View{}
+	state := buildCustomerStateFrom(eventStream)
 
-	for _, event := range eventStream {
-		switch actualEvent := event.(type) {
-		case events.CustomerRegistered:
-			customerView.ID = actualEvent.CustomerID().ID()
-			customerView.EmailAddress = actualEvent.EmailAddress().EmailAddress()
-			customerView.GivenName = actualEvent.PersonName().GivenName()
-			customerView.FamilyName = actualEvent.PersonName().FamilyName()
-		case events.CustomerEmailAddressConfirmed:
-			customerView.IsEmailAddressConfirmed = true
-		case events.CustomerEmailAddressChanged:
-			customerView.EmailAddress = actualEvent.EmailAddress().EmailAddress()
-			customerView.IsEmailAddressConfirmed = false
-		case events.CustomerNameChanged:
-			customerView.GivenName = actualEvent.PersonName().GivenName()
-			customerView.FamilyName = actualEvent.PersonName().FamilyName()
-		case events.CustomerDeleted:
-			customerView.IsDeleted = true
-		}
-
-		customerView.Version = event.StreamVersion()
+	customerView := View{
+		ID:                      state.id.ID(),
+		EmailAddress:            state.emailAddress.EmailAddress(),
+		IsEmailAddressConfirmed: state.isEmailAddressConfirmed,
+		GivenName:               state.personName.GivenName(),
+		FamilyName:              state.personName.FamilyName(),
+		IsDeleted:               state.isDeleted,
+		Version:                 state.currentStreamVersion,
 	}
 
 	return customerView

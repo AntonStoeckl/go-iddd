@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
@@ -14,8 +13,6 @@ import (
 
 func TestDelete(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		var err error
-
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
@@ -29,15 +26,12 @@ func TestDelete(t *testing.T) {
 			1,
 		)
 
-		deleteCustomer, err := commands.BuildCDeleteCustomer(customerID.ID())
-		So(err, ShouldBeNil)
-
 		Convey("\nSCENARIO 1: Delete a Customer's account", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("When DeleteCustomer", func() {
-					recordedEvents := customer.Delete(eventStream, deleteCustomer)
+					recordedEvents := customer.Delete(eventStream)
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -59,7 +53,7 @@ func TestDelete(t *testing.T) {
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {
-						recordedEvents := customer.Delete(eventStream, deleteCustomer)
+						recordedEvents := customer.Delete(eventStream)
 
 						Convey("Then no Event", func() {
 							So(recordedEvents, ShouldBeEmpty)

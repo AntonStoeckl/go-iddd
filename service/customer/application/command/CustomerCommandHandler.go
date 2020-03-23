@@ -154,7 +154,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(command commands.DeleteCustomer)
 			return err
 		}
 
-		recordedEvents := customer.Delete(eventStream, command)
+		recordedEvents := customer.Delete(eventStream)
 
 		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
