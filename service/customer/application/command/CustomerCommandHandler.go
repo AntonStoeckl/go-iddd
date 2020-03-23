@@ -66,9 +66,8 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.Co
 		}
 
 		for _, event := range recordedEvents {
-			switch actualEvent := event.(type) {
-			case events.CustomerEmailAddressConfirmationFailed:
-				return errors.Mark(errors.New(actualEvent.EventName()), lib.ErrDomainConstraintsViolation)
+			if event.IndicatesAnError() {
+				return errors.Mark(errors.New(event.EventName()), lib.ErrDomainConstraintsViolation)
 			}
 		}
 
