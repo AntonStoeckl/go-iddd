@@ -58,6 +58,10 @@ func (event CustomerEmailAddressChanged) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
+func (event CustomerEmailAddressChanged) IndicatesAnError() bool {
+	return false
+}
+
 func (event CustomerEmailAddressChanged) StreamVersion() uint {
 	return event.meta.streamVersion
 }

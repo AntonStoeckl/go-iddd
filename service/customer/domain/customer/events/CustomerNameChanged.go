@@ -51,6 +51,10 @@ func (event CustomerNameChanged) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
+func (event CustomerNameChanged) IndicatesAnError() bool {
+	return false
+}
+
 func (event CustomerNameChanged) StreamVersion() uint {
 	return event.meta.streamVersion
 }

@@ -49,6 +49,10 @@ func (event CustomerEmailAddressConfirmed) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
+func (event CustomerEmailAddressConfirmed) IndicatesAnError() bool {
+	return false
+}
+
 func (event CustomerEmailAddressConfirmed) StreamVersion() uint {
 	return event.meta.streamVersion
 }

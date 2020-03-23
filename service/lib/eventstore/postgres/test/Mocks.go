@@ -38,29 +38,33 @@ func CreateSomeEvent(forId SomeID, withVersion uint) SomeEvent {
 	}
 }
 
-func (someEvent SomeEvent) EventName() string {
-	return someEvent.name
+func (event SomeEvent) EventName() string {
+	return event.name
 }
 
-func (someEvent SomeEvent) OccurredAt() string {
-	return someEvent.occurredAt
+func (event SomeEvent) OccurredAt() string {
+	return event.occurredAt
 }
 
-func (someEvent SomeEvent) StreamVersion() uint {
-	return someEvent.version
+func (event SomeEvent) IndicatesAnError() bool {
+	return false
 }
 
-func (someEvent SomeEvent) MarshalJSON() ([]byte, error) {
+func (event SomeEvent) StreamVersion() uint {
+	return event.version
+}
+
+func (event SomeEvent) MarshalJSON() ([]byte, error) {
 	data := &struct {
 		ID         string `json:"customerID"`
 		Name       string `json:"name"`
 		Version    uint   `json:"version"`
 		OccurredAt string `json:"occurredAt"`
 	}{
-		ID:         someEvent.id.Value,
-		Name:       someEvent.name,
-		Version:    someEvent.version,
-		OccurredAt: someEvent.occurredAt,
+		ID:         event.id.Value,
+		Name:       event.name,
+		Version:    event.version,
+		OccurredAt: event.occurredAt,
 	}
 
 	return jsoniter.Marshal(data)
@@ -95,19 +99,23 @@ func CreateBrokenMarshalingEvent(forId SomeID, withVersion uint) BrokenMarshalin
 	}
 }
 
-func (brokenMarshalingEvent BrokenMarshalingEvent) EventName() string {
-	return brokenMarshalingEvent.name
+func (event BrokenMarshalingEvent) EventName() string {
+	return event.name
 }
 
-func (brokenMarshalingEvent BrokenMarshalingEvent) OccurredAt() string {
-	return brokenMarshalingEvent.occurredAt
+func (event BrokenMarshalingEvent) OccurredAt() string {
+	return event.occurredAt
 }
 
-func (brokenMarshalingEvent BrokenMarshalingEvent) StreamVersion() uint {
-	return brokenMarshalingEvent.version
+func (event BrokenMarshalingEvent) IndicatesAnError() bool {
+	return false
 }
 
-func (brokenMarshalingEvent BrokenMarshalingEvent) MarshalJSON() ([]byte, error) {
+func (event BrokenMarshalingEvent) StreamVersion() uint {
+	return event.version
+}
+
+func (event BrokenMarshalingEvent) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("mocked marshaling error")
 }
 
@@ -129,16 +137,20 @@ func CreateBrokenUnmarshalingEvent(forId SomeID, withVersion uint) BrokenUnmarsh
 	}
 }
 
-func (brokenUnmarshalingEvent BrokenUnmarshalingEvent) EventName() string {
-	return brokenUnmarshalingEvent.name
+func (event BrokenUnmarshalingEvent) EventName() string {
+	return event.name
 }
 
-func (brokenUnmarshalingEvent BrokenUnmarshalingEvent) OccurredAt() string {
-	return brokenUnmarshalingEvent.occurredAt
+func (event BrokenUnmarshalingEvent) OccurredAt() string {
+	return event.occurredAt
 }
 
-func (brokenUnmarshalingEvent BrokenUnmarshalingEvent) StreamVersion() uint {
-	return brokenUnmarshalingEvent.version
+func (event BrokenUnmarshalingEvent) IndicatesAnError() bool {
+	return false
+}
+
+func (event BrokenUnmarshalingEvent) StreamVersion() uint {
+	return event.version
 }
 
 /*** Unmarshal mocked events ***/
