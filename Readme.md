@@ -72,6 +72,12 @@ Content-Type: application/json
   "emailAddress": "john+changed@doe.com"
 }
 
+### Delete a Customer
+DELETE http://localhost:8085/v1/customer/{{id}}
+Accept: application/json
+Cache-Control: no-cache
+Content-Type: application/json
+
 ### Get the Swagger documentation
 GET http://localhost:8085/v1/customer/swagger.json
 

@@ -12,17 +12,20 @@ type customerServer struct {
 	register            application.ForRegisteringCustomers
 	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses
 	changeEmailAddress  application.ForChangingCustomerEmailAddresses
+	delete              application.ForDeletingCustomers
 }
 
 func NewCustomerServer(
 	register application.ForRegisteringCustomers,
 	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses,
 	changeEmailAddress application.ForChangingCustomerEmailAddresses,
+	delete application.ForDeletingCustomers,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,
 		confirmEmailAddress: confirmEmailAddress,
 		changeEmailAddress:  changeEmailAddress,
+		delete:              delete,
 	}
 
 	return server
@@ -77,6 +80,25 @@ func (server *customerServer) ChangeEmailAddress(
 	}
 
 	if err := server.changeEmailAddress(command); err != nil {
+		return nil, err
+	}
+
+	_ = ctx // currently not used
+
+	return &empty.Empty{}, nil
+}
+
+func (server *customerServer) Delete(
+	ctx context.Context,
+	req *DeleteRequest,
+) (*empty.Empty, error) {
+
+	command, err := commands.BuildCDeleteCustomer(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := server.delete(command); err != nil {
 		return nil, err
 	}
 

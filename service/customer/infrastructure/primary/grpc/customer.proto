@@ -25,6 +25,12 @@ service Customer {
             body: "*"
         };
     }
+
+    rpc Delete (DeleteRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/customer/{id}"
+        };
+    }
 }
 
 // Register
@@ -51,4 +57,10 @@ message ConfirmEmailAddressRequest {
 message ChangeEmailAddressRequest {
     string id = 1;
     string emailAddress = 2;
+}
+
+// Delete
+
+message DeleteRequest {
+    string id = 1;
 }
