@@ -11,7 +11,7 @@ import (
 
 func TestBuildDeleteCustomerWithInvalidInput(t *testing.T) {
 	Convey("When a DeleteCustomer command is built with an empty customerID", t, func() {
-		_, err := commands.BuildCDeleteCustomer("")
+		_, err := commands.BuildDeleteCustomer("")
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)

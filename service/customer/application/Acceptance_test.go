@@ -75,7 +75,7 @@ func TestCustomerScenarios(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		deleteCustomer, err := commands.BuildCDeleteCustomer(customerID.ID())
+		deleteCustomer, err := commands.BuildDeleteCustomer(customerID.ID())
 		So(err, ShouldBeNil)
 
 		expectedCustomerView := customer.View{

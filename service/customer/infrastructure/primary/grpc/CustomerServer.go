@@ -120,7 +120,7 @@ func (server *customerServer) Delete(
 	req *DeleteRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.BuildCDeleteCustomer(req.Id)
+	command, err := commands.BuildDeleteCustomer(req.Id)
 	if err != nil {
 		return nil, err
 	}

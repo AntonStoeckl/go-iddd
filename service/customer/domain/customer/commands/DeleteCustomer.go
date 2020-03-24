@@ -14,7 +14,7 @@ type DeleteCustomer struct {
 	isValid    bool
 }
 
-func BuildCDeleteCustomer(
+func BuildDeleteCustomer(
 	customerID string,
 ) (DeleteCustomer, error) {
 
