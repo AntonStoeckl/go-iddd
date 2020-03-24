@@ -3,6 +3,9 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/cockroachdb/errors"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
@@ -14,6 +17,7 @@ import (
 func TestChangeName(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		var err error
+		var recordedEvents es.DomainEvents
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
@@ -41,7 +45,8 @@ func TestChangeName(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("When ChangeCustomerName", func() {
-					recordedEvents := customer.ChangeName(eventStream, changeName)
+					recordedEvents, err = customer.ChangeName(eventStream, changeName)
+					So(err, ShouldBeNil)
 
 					Convey("Then CustomerNameChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -68,7 +73,8 @@ func TestChangeName(t *testing.T) {
 					)
 					So(err, ShouldBeNil)
 
-					recordedEvents := customer.ChangeName(eventStream, changeName)
+					recordedEvents, err = customer.ChangeName(eventStream, changeName)
+					So(err, ShouldBeNil)
 
 					Convey("Then no event", func() {
 						So(recordedEvents, ShouldBeEmpty)
@@ -91,10 +97,33 @@ func TestChangeName(t *testing.T) {
 					eventStream = append(eventStream, nameChanged)
 
 					Convey("When ChangeCustomerName", func() {
-						recordedEvents := customer.ChangeName(eventStream, changeName)
+						recordedEvents, err = customer.ChangeName(eventStream, changeName)
+						So(err, ShouldBeNil)
 
 						Convey("Then no event", func() {
 							So(recordedEvents, ShouldBeEmpty)
+						})
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO 4: Try to change a Customer's name when the account was deleted", func() {
+			Convey("Given CustomerRegistered", func() {
+				eventStream := es.DomainEvents{customerWasRegistered}
+
+				Convey("Given CustomerDeleted", func() {
+					eventStream = append(
+						eventStream,
+						events.CustomerWasDeleted(customerID, 2),
+					)
+
+					Convey("When ChangeCustomerName", func() {
+						_, err := customer.ChangeName(eventStream, changeName)
+
+						Convey("Then it should report an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 						})
 					})
 				})

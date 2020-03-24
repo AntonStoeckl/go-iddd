@@ -3,10 +3,8 @@ package command
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/cqrs"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
 
@@ -38,7 +36,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(command commands.RegisterCusto
 	}
 
 	if err := cqrs.RetryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
-		return err
+		return errors.Wrap(err, "customerCommandHandler.RegisterCustomer")
 	}
 
 	return nil
@@ -55,11 +53,10 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.Co
 			return err
 		}
 
-		if err := h.assertNotDeleted(eventStream); err != nil {
-			return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+		recordedEvents, err := customer.ConfirmEmailAddress(eventStream, command)
+		if err != nil {
+			return err
 		}
-
-		recordedEvents := customer.ConfirmEmailAddress(eventStream, command)
 
 		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
@@ -75,7 +72,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.Co
 	}
 
 	if err := cqrs.RetryCommand(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
-		return err
+		return errors.Wrap(err, "customerCommandHandler.ConfirmCustomerEmailAddress")
 	}
 
 	return nil
@@ -92,11 +89,10 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(command commands.Cha
 			return err
 		}
 
-		if err := h.assertNotDeleted(eventStream); err != nil {
-			return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+		recordedEvents, err := customer.ChangeEmailAddress(eventStream, command)
+		if err != nil {
+			return err
 		}
-
-		recordedEvents := customer.ChangeEmailAddress(eventStream, command)
 
 		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
@@ -106,7 +102,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(command commands.Cha
 	}
 
 	if err := cqrs.RetryCommand(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
-		return err
+		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerEmailAddress")
 	}
 
 	return nil
@@ -123,11 +119,10 @@ func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCusto
 			return err
 		}
 
-		if err := h.assertNotDeleted(eventStream); err != nil {
-			return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+		recordedEvents, err := customer.ChangeName(eventStream, command)
+		if err != nil {
+			return err
 		}
-
-		recordedEvents := customer.ChangeName(eventStream, command)
 
 		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
 			return err
@@ -137,7 +132,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCusto
 	}
 
 	if err := cqrs.RetryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
-		return err
+		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
 	}
 
 	return nil
@@ -145,7 +140,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCusto
 
 func (h *CustomerCommandHandler) DeleteCustomer(command commands.DeleteCustomer) error {
 	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+		return errors.Wrap(err, "customerCommandHandler.DeleteCustomer")
 	}
 
 	doChangeName := func() error {
@@ -164,18 +159,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(command commands.DeleteCustomer)
 	}
 
 	if err := cqrs.RetryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *CustomerCommandHandler) assertNotDeleted(eventStream es.DomainEvents) error {
-	for _, event := range eventStream {
-		switch event.(type) {
-		case events.CustomerDeleted:
-			return errors.Mark(errors.New("customer not found"), lib.ErrNotFound)
-		}
+		return errors.Wrap(err, "customerCommandHandler.DeleteCustomer")
 	}
 
 	return nil

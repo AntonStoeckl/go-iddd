@@ -3,6 +3,9 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/cockroachdb/errors"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
@@ -14,6 +17,7 @@ import (
 func TestChangeEmailAddress(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		var err error
+		var recordedEvents es.DomainEvents
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
@@ -54,7 +58,8 @@ func TestChangeEmailAddress(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					recordedEvents := customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					So(err, ShouldBeNil)
 
 					Convey("Then CustomerEmailAddressChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -81,7 +86,8 @@ func TestChangeEmailAddress(t *testing.T) {
 					)
 					So(err, ShouldBeNil)
 
-					recordedEvents := customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					So(err, ShouldBeNil)
 
 					Convey("Then no event", func() {
 						So(recordedEvents, ShouldBeEmpty)
@@ -105,7 +111,8 @@ func TestChangeEmailAddress(t *testing.T) {
 					eventStream = append(eventStream, emailAddressChanged)
 
 					Convey("When ChangeCustomerEmailAddress", func() {
-						recordedEvents := customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+						recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+						So(err, ShouldBeNil)
 
 						Convey("Then no event", func() {
 							So(recordedEvents, ShouldBeEmpty)
@@ -133,7 +140,8 @@ func TestChangeEmailAddress(t *testing.T) {
 						eventStream = append(eventStream, emailAddressChanged)
 
 						Convey("When ConfirmCustomerEmailAddress", func() {
-							recordedEvents := customer.ConfirmEmailAddress(eventStream, confirmEmailAddress)
+							recordedEvents, err = customer.ConfirmEmailAddress(eventStream, confirmEmailAddress)
+							So(err, ShouldBeNil)
 
 							Convey("Then CustomerEmailAddressConfirmed", func() {
 								So(recordedEvents, ShouldHaveLength, 1)
@@ -143,6 +151,28 @@ func TestChangeEmailAddress(t *testing.T) {
 								So(emailAddressConfirmed.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
 								So(emailAddressConfirmed.StreamVersion(), ShouldEqual, 4)
 							})
+						})
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO 5: Try to change a Customer's emailAddress when the account was deleted", func() {
+			Convey("Given CustomerRegistered", func() {
+				eventStream := es.DomainEvents{customerWasRegistered}
+
+				Convey("Given CustomerDeleted", func() {
+					eventStream = append(
+						eventStream,
+						events.CustomerWasDeleted(customerID, 2),
+					)
+
+					Convey("When ChangeCustomerEmailAddress", func() {
+						_, err := customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+
+						Convey("Then it should report an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 						})
 					})
 				})

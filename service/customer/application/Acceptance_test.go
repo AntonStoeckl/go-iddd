@@ -287,6 +287,18 @@ func TestCustomerScenarios(t *testing.T) {
 							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 							So(customerView, ShouldBeZeroValue)
 						})
+
+						Convey("And when she tries to delete her account again", func() {
+							err = commandHandler.DeleteCustomer(deleteCustomer)
+							So(err, ShouldBeNil)
+
+							Convey("Then her account should still be deleted", func() {
+								customerView, err := queryHandler.CustomerViewByID(customerID)
+								So(err, ShouldBeError)
+								So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+								So(customerView, ShouldBeZeroValue)
+							})
+						})
 					})
 
 					Convey("And when she tries to confirm her email address", func() {

@@ -17,29 +17,29 @@ type state struct {
 }
 
 func buildCustomerStateFrom(eventStream es.DomainEvents) state {
-	state := state{}
+	customer := state{}
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case events.CustomerRegistered:
-			state.id = actualEvent.CustomerID()
-			state.personName = actualEvent.PersonName()
-			state.emailAddress = actualEvent.EmailAddress()
-			state.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
+			customer.id = actualEvent.CustomerID()
+			customer.personName = actualEvent.PersonName()
+			customer.emailAddress = actualEvent.EmailAddress()
+			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
 		case events.CustomerEmailAddressConfirmed:
-			state.isEmailAddressConfirmed = true
+			customer.isEmailAddressConfirmed = true
 		case events.CustomerEmailAddressChanged:
-			state.emailAddress = actualEvent.EmailAddress()
-			state.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
-			state.isEmailAddressConfirmed = false
+			customer.emailAddress = actualEvent.EmailAddress()
+			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
+			customer.isEmailAddressConfirmed = false
 		case events.CustomerNameChanged:
-			state.personName = actualEvent.PersonName()
+			customer.personName = actualEvent.PersonName()
 		case events.CustomerDeleted:
-			state.isDeleted = true
+			customer.isDeleted = true
 		}
 
-		state.currentStreamVersion = event.StreamVersion()
+		customer.currentStreamVersion = event.StreamVersion()
 	}
 
-	return state
+	return customer
 }
