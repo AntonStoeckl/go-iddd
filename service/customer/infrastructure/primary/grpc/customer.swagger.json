@@ -42,6 +42,28 @@
       }
     },
     "/v1/customer/{id}": {
+      "get": {
+        "operationId": "RetrieveView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/customergrpcRetrieveViewResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Customer"
+        ]
+      },
       "delete": {
         "operationId": "Delete",
         "responses": {
@@ -218,6 +240,28 @@
       "properties": {
         "id": {
           "type": "string"
+        }
+      }
+    },
+    "customergrpcRetrieveViewResponse": {
+      "type": "object",
+      "properties": {
+        "emailAddress": {
+          "type": "string"
+        },
+        "isEmailAddressConfirmed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "familyName": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string",
+          "format": "uint64"
         }
       }
     }

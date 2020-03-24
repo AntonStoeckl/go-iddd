@@ -99,6 +99,7 @@ func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
 			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
 			container.GetCustomerCommandHandler().ChangeCustomerName,
 			container.GetCustomerCommandHandler().DeleteCustomer,
+			container.GetCustomerQueryHandler().CustomerViewByID,
 		)
 	}
 

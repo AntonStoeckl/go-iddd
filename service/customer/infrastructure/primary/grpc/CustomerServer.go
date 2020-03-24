@@ -3,6 +3,8 @@ package customergrpc
 import (
 	"context"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/application"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -14,6 +16,7 @@ type customerServer struct {
 	changeEmailAddress  application.ForChangingCustomerEmailAddresses
 	changeName          application.ForChangingCustomerNames
 	delete              application.ForDeletingCustomers
+	retrieveView        application.ForRetrievingCustomerViews
 }
 
 func NewCustomerServer(
@@ -22,6 +25,7 @@ func NewCustomerServer(
 	changeEmailAddress application.ForChangingCustomerEmailAddresses,
 	changeName application.ForChangingCustomerNames,
 	delete application.ForDeletingCustomers,
+	retrieveView application.ForRetrievingCustomerViews,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,
@@ -29,6 +33,7 @@ func NewCustomerServer(
 		changeEmailAddress:  changeEmailAddress,
 		changeName:          changeName,
 		delete:              delete,
+		retrieveView:        retrieveView,
 	}
 
 	return server
@@ -127,4 +132,32 @@ func (server *customerServer) Delete(
 	_ = ctx // currently not used
 
 	return &empty.Empty{}, nil
+}
+
+func (server *customerServer) RetrieveView(
+	ctx context.Context,
+	req *RetrieveViewRequest,
+) (*RetrieveViewResponse, error) {
+
+	id, err := values.BuildCustomerID(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	view, err := server.retrieveView(id)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RetrieveViewResponse{
+		EmailAddress:            view.EmailAddress,
+		IsEmailAddressConfirmed: view.IsEmailAddressConfirmed,
+		GivenName:               view.GivenName,
+		FamilyName:              view.FamilyName,
+		Version:                 uint64(view.Version),
+	}
+
+	_ = ctx // currently not used
+
+	return response, nil
 }

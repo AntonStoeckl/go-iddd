@@ -38,9 +38,15 @@ service Customer {
             delete: "/v1/customer/{id}"
         };
     }
+
+    rpc RetrieveView (RetrieveViewRequest) returns (RetrieveViewResponse) {
+        option (google.api.http) = {
+            get: "/v1/customer/{id}"
+        };
+    }
 }
 
-// Register
+// Register Customer
 
 message RegisterRequest {
     string emailAddress = 1;
@@ -52,21 +58,21 @@ message RegisterResponse {
     string id = 1;
 }
 
-// Confirm EmailAddress
+// Confirm Customer EmailAddress
 
 message ConfirmEmailAddressRequest {
     string id = 1;
     string confirmationHash = 2;
 }
 
-// Change EmailAddress
+// Change Customer EmailAddress
 
 message ChangeEmailAddressRequest {
     string id = 1;
     string emailAddress = 2;
 }
 
-// Change Name
+// Change Customer Name
 
 message ChangeNameRequest {
     string id = 1;
@@ -74,8 +80,22 @@ message ChangeNameRequest {
     string familyName = 3;
 }
 
-// Delete
+// Delete Customer
 
 message DeleteRequest {
     string id = 1;
+}
+
+// Retrieve Customer View
+
+message RetrieveViewRequest {
+    string id = 1;
+}
+
+message RetrieveViewResponse {
+    string emailAddress = 1;
+    bool isEmailAddressConfirmed = 2;
+    string givenName = 3;
+    string familyName = 4;
+    uint64 version = 5;
 }
