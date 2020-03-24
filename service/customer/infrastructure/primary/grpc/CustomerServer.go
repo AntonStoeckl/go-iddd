@@ -12,6 +12,7 @@ type customerServer struct {
 	register            application.ForRegisteringCustomers
 	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses
 	changeEmailAddress  application.ForChangingCustomerEmailAddresses
+	changeName          application.ForChangingCustomerNames
 	delete              application.ForDeletingCustomers
 }
 
@@ -19,12 +20,14 @@ func NewCustomerServer(
 	register application.ForRegisteringCustomers,
 	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses,
 	changeEmailAddress application.ForChangingCustomerEmailAddresses,
+	changeName application.ForChangingCustomerNames,
 	delete application.ForDeletingCustomers,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,
 		confirmEmailAddress: confirmEmailAddress,
 		changeEmailAddress:  changeEmailAddress,
+		changeName:          changeName,
 		delete:              delete,
 	}
 
@@ -80,6 +83,25 @@ func (server *customerServer) ChangeEmailAddress(
 	}
 
 	if err := server.changeEmailAddress(command); err != nil {
+		return nil, err
+	}
+
+	_ = ctx // currently not used
+
+	return &empty.Empty{}, nil
+}
+
+func (server *customerServer) ChangeName(
+	ctx context.Context,
+	req *ChangeNameRequest,
+) (*empty.Empty, error) {
+
+	command, err := commands.BuildChangeCustomerName(req.Id, req.GivenName, req.FamilyName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := server.changeName(command); err != nil {
 		return nil, err
 	}
 

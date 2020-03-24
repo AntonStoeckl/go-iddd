@@ -26,6 +26,13 @@ service Customer {
         };
     }
 
+    rpc ChangeName (ChangeNameRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/v1/customer/{id}/name"
+            body: "*"
+        };
+    }
+
     rpc Delete (DeleteRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/v1/customer/{id}"
@@ -45,18 +52,26 @@ message RegisterResponse {
     string id = 1;
 }
 
-// ConfirmEmailAddress
+// Confirm EmailAddress
 
 message ConfirmEmailAddressRequest {
     string id = 1;
     string confirmationHash = 2;
 }
 
-// ChangeEmailAddress
+// Change EmailAddress
 
 message ChangeEmailAddressRequest {
     string id = 1;
     string emailAddress = 2;
+}
+
+// Change Name
+
+message ChangeNameRequest {
+    string id = 1;
+    string givenName = 2;
+    string familyName = 3;
 }
 
 // Delete

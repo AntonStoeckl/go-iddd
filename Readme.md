@@ -72,6 +72,17 @@ Content-Type: application/json
   "emailAddress": "john+changed@doe.com"
 }
 
+### Change a Customer's name
+PUT http://localhost:8085/v1/customer/{{id}}/name
+Accept: application/json
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "givenName": "Joana",
+  "familyName": "Doe"
+}
+
 ### Delete a Customer
 DELETE http://localhost:8085/v1/customer/{{id}}
 Accept: application/json

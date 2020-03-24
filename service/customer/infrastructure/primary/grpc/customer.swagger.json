@@ -128,6 +128,38 @@
           "Customer"
         ]
       }
+    },
+    "/v1/customer/{id}/name": {
+      "put": {
+        "operationId": "ChangeName",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/customergrpcChangeNameRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Customer"
+        ]
+      }
     }
   },
   "definitions": {
@@ -138,6 +170,20 @@
           "type": "string"
         },
         "emailAddress": {
+          "type": "string"
+        }
+      }
+    },
+    "customergrpcChangeNameRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "familyName": {
           "type": "string"
         }
       }
