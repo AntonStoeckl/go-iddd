@@ -63,8 +63,8 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.Co
 		}
 
 		for _, event := range recordedEvents {
-			if event.IndicatesAnError() {
-				return errors.Mark(errors.New(event.EventName()), lib.ErrDomainConstraintsViolation)
+			if isError, reason := event.IndicatesAnError(); isError {
+				return errors.Mark(errors.New(reason), lib.ErrDomainConstraintsViolation)
 			}
 		}
 

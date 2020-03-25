@@ -9,6 +9,7 @@ type CustomerEmailAddressConfirmationFailed struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
+	reason           string
 	meta             EventMeta
 }
 
@@ -16,6 +17,7 @@ type CustomerEmailAddressConfirmationFailedForJSON struct {
 	CustomerID       string    `json:"customerID"`
 	EmailAddress     string    `json:"emailAddress"`
 	ConfirmationHash string    `json:"confirmationHash"`
+	Reason           string    `json:"reason"`
 	Meta             EventMeta `json:"meta"`
 }
 
@@ -23,6 +25,7 @@ func CustomerEmailAddressConfirmationHasFailed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
+	reason string,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmationFailed {
 
@@ -30,6 +33,7 @@ func CustomerEmailAddressConfirmationHasFailed(
 		customerID:       customerID,
 		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
+		reason:           reason,
 	}
 
 	event.meta = BuildEventMeta(event, streamVersion)
@@ -57,8 +61,8 @@ func (event CustomerEmailAddressConfirmationFailed) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() bool {
-	return true
+func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() (bool, string) {
+	return true, event.reason
 }
 
 func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {

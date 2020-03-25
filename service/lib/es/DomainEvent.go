@@ -3,6 +3,6 @@ package es
 type DomainEvent interface {
 	EventName() string
 	OccurredAt() string
-	IndicatesAnError() bool
+	IndicatesAnError() (bool, string)
 	StreamVersion() uint
 }

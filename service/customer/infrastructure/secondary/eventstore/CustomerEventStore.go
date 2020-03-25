@@ -26,7 +26,7 @@ func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.Dom
 	}
 
 	if len(eventStream) == 0 {
-		err := errors.New("found empty event stream")
+		err := errors.New("customer not found")
 		return nil, lib.MarkAndWrapError(err, lib.ErrNotFound, "customerEventStore.EventStreamFor")
 	}
 

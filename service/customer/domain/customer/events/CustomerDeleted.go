@@ -41,8 +41,8 @@ func (event CustomerDeleted) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerDeleted) IndicatesAnError() bool {
-	return false
+func (event CustomerDeleted) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event CustomerDeleted) StreamVersion() uint {

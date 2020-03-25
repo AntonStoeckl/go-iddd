@@ -46,8 +46,8 @@ func (event SomeEvent) OccurredAt() string {
 	return event.occurredAt
 }
 
-func (event SomeEvent) IndicatesAnError() bool {
-	return false
+func (event SomeEvent) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event SomeEvent) StreamVersion() uint {
@@ -107,8 +107,8 @@ func (event BrokenMarshalingEvent) OccurredAt() string {
 	return event.occurredAt
 }
 
-func (event BrokenMarshalingEvent) IndicatesAnError() bool {
-	return false
+func (event BrokenMarshalingEvent) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event BrokenMarshalingEvent) StreamVersion() uint {
@@ -145,8 +145,8 @@ func (event BrokenUnmarshalingEvent) OccurredAt() string {
 	return event.occurredAt
 }
 
-func (event BrokenUnmarshalingEvent) IndicatesAnError() bool {
-	return false
+func (event BrokenUnmarshalingEvent) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event BrokenUnmarshalingEvent) StreamVersion() uint {

@@ -8,6 +8,8 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
+const failureReasonWrongHash = "wrong confirmation hash supplied"
+
 func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCustomerEmailAddress) (es.DomainEvents, error) {
 	state := buildCustomerStateFrom(eventStream)
 
@@ -22,6 +24,7 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCu
 			state.id,
 			state.emailAddress,
 			command.ConfirmationHash(),
+			failureReasonWrongHash,
 			state.currentStreamVersion+1,
 		)
 

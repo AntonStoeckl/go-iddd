@@ -35,10 +35,14 @@ func TestDelete(t *testing.T) {
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						nameChanged, ok := recordedEvents[0].(events.CustomerDeleted)
+						customerDeleted, ok := recordedEvents[0].(events.CustomerDeleted)
 						So(ok, ShouldBeTrue)
-						So(nameChanged, ShouldNotBeNil)
-						So(nameChanged.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(customerDeleted, ShouldNotBeNil)
+						So(customerDeleted.CustomerID().Equals(customerID), ShouldBeTrue)
+						isError, reason := customerDeleted.IndicatesAnError()
+						So(isError, ShouldBeFalse)
+						So(reason, ShouldBeBlank)
+						So(customerDeleted.StreamVersion(), ShouldEqual, uint(2))
 					})
 				})
 			})
