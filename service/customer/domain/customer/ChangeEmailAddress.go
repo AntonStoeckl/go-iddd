@@ -25,6 +25,7 @@ func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCust
 		state.id,
 		command.EmailAddress(),
 		command.ConfirmationHash(),
+		state.emailAddress,
 		state.currentStreamVersion+1,
 	)
 

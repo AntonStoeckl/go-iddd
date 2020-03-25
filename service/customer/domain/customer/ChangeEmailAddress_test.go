@@ -69,6 +69,7 @@ func TestChangeEmailAddress(t *testing.T) {
 						So(emailAddressChanged.CustomerID().Equals(customerID), ShouldBeTrue)
 						So(emailAddressChanged.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
 						So(emailAddressChanged.ConfirmationHash().Equals(changedConfirmationHash), ShouldBeTrue)
+						So(emailAddressChanged.PreviousEmailAddress().Equals(emailAddress), ShouldBeTrue)
 						isError, reason := emailAddressChanged.IndicatesAnError()
 						So(isError, ShouldBeFalse)
 						So(reason, ShouldBeBlank)
@@ -108,6 +109,7 @@ func TestChangeEmailAddress(t *testing.T) {
 						customerID,
 						changedEmailAddress,
 						changedConfirmationHash,
+						emailAddress,
 						2,
 					)
 
@@ -137,6 +139,7 @@ func TestChangeEmailAddress(t *testing.T) {
 							customerID,
 							changedEmailAddress,
 							changedConfirmationHash,
+							emailAddress,
 							3,
 						)
 

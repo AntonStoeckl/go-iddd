@@ -7,30 +7,34 @@ import (
 )
 
 type CustomerEmailAddressChanged struct {
-	customerID       values.CustomerID
-	emailAddress     values.EmailAddress
-	confirmationHash values.ConfirmationHash
-	meta             EventMeta
+	customerID           values.CustomerID
+	emailAddress         values.EmailAddress
+	confirmationHash     values.ConfirmationHash
+	previousEmailAddress values.EmailAddress
+	meta                 EventMeta
 }
 
 type CustomerEmailAddressChangedForJSON struct {
-	CustomerID       string    `json:"customerID"`
-	EmailAddress     string    `json:"emailAddress"`
-	ConfirmationHash string    `json:"confirmationHash"`
-	Meta             EventMeta `json:"meta"`
+	CustomerID           string    `json:"customerID"`
+	EmailAddress         string    `json:"emailAddress"`
+	ConfirmationHash     string    `json:"confirmationHash"`
+	PreviousEmailAddress string    `json:"previousEailAddress"`
+	Meta                 EventMeta `json:"meta"`
 }
 
 func CustomerEmailAddressWasChanged(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
+	previousEmailAddress values.EmailAddress,
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
 	event := CustomerEmailAddressChanged{
-		customerID:       customerID,
-		emailAddress:     emailAddress,
-		confirmationHash: confirmationHash,
+		customerID:           customerID,
+		emailAddress:         emailAddress,
+		confirmationHash:     confirmationHash,
+		previousEmailAddress: previousEmailAddress,
 	}
 
 	event.meta = BuildEventMeta(event, streamVersion)
@@ -48,6 +52,10 @@ func (event CustomerEmailAddressChanged) EmailAddress() values.EmailAddress {
 
 func (event CustomerEmailAddressChanged) ConfirmationHash() values.ConfirmationHash {
 	return event.confirmationHash
+}
+
+func (event CustomerEmailAddressChanged) PreviousEmailAddress() values.EmailAddress {
+	return event.previousEmailAddress
 }
 
 func (event CustomerEmailAddressChanged) EventName() string {
