@@ -1,6 +1,7 @@
 package eventstore
 
 import (
+	"database/sql"
 	"math"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -12,56 +13,86 @@ import (
 const streamPrefix = "customer"
 
 type CustomerEventStore struct {
+	db         *sql.DB
 	eventStore es.EventStore
 }
 
-func NewCustomerEventStore(eventStore es.EventStore) *CustomerEventStore {
-	return &CustomerEventStore{eventStore: eventStore}
+func NewCustomerEventStore(eventStore es.EventStore, db *sql.DB) *CustomerEventStore {
+	return &CustomerEventStore{eventStore: eventStore, db: db}
 }
 
-func (customer *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
-	eventStream, err := customer.eventStore.LoadEventStream(customer.streamID(id), 0, math.MaxUint32)
+func (store *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
+	wrapWithMsg := "customerEventStore.EventStreamFor"
+
+	eventStream, err := store.eventStore.LoadEventStream(store.streamID(id), 0, math.MaxUint32)
 	if err != nil {
-		return nil, errors.Wrap(err, "customerEventStore.EventStreamFor")
+		return nil, errors.Wrap(err, wrapWithMsg)
 	}
 
 	if len(eventStream) == 0 {
 		err := errors.New("customer not found")
-		return nil, lib.MarkAndWrapError(err, lib.ErrNotFound, "customerEventStore.EventStreamFor")
+		return nil, lib.MarkAndWrapError(err, lib.ErrNotFound, wrapWithMsg)
 	}
 
 	return eventStream, nil
 }
 
-func (customer *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID) error {
-	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents); err != nil {
+func (store *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID) error {
+	var err error
+	wrapWithMsg := "customerEventStore.CreateStreamFrom"
+
+	tx, err := store.db.Begin()
+	if err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
+	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
+		_ = tx.Rollback()
+
 		if errors.Is(err, lib.ErrConcurrencyConflict) {
-			err = errors.New("found duplicate customer")
-			return lib.MarkAndWrapError(err, lib.ErrDuplicate, "customerEventStore.CreateStreamFrom")
+			return lib.MarkAndWrapError(errors.New("found duplicate customer"), lib.ErrDuplicate, wrapWithMsg)
 		}
 
-		return errors.Wrap(err, "customerEventStore.CreateStreamFrom")
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
 	return nil
 }
 
-func (customer *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.CustomerID) error {
-	if err := customer.eventStore.AppendEventsToStream(customer.streamID(id), recordedEvents); err != nil {
+func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.CustomerID) error {
+	var err error
+	wrapWithMsg := "customerEventStore.Add"
+
+	tx, err := store.db.Begin()
+	if err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
+	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
+		_ = tx.Rollback()
+
 		return errors.Wrap(err, "customerEventStore.Add")
 	}
 
+	if err = tx.Commit(); err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
 	return nil
 }
 
-func (customer *CustomerEventStore) Delete(id values.CustomerID) error {
-	if err := customer.eventStore.PurgeEventStream(customer.streamID(id)); err != nil {
+func (store *CustomerEventStore) Delete(id values.CustomerID) error {
+	if err := store.eventStore.PurgeEventStream(store.streamID(id)); err != nil {
 		return errors.Wrap(err, "customerEventStore.Delete")
 	}
 
 	return nil
 }
 
-func (customer *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
+func (store *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
 	return es.NewStreamID(streamPrefix + "-" + id.ID())
 }

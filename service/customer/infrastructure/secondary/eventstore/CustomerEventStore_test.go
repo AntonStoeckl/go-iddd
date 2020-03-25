@@ -8,6 +8,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
@@ -15,10 +16,17 @@ import (
 
 func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T) {
 	Convey("Setup", t, func() {
-		id := values.GenerateCustomerID()
 		var recordedEvents es.DomainEvents
+
+		id := values.GenerateCustomerID()
+
 		eventStore := new(mocked.EventStore)
-		customers := eventstore.NewCustomerEventStore(eventStore)
+
+		dbMock, sqlMock, err := sqlmock.New()
+		_ = sqlMock
+		So(err, ShouldBeNil)
+
+		customers := eventstore.NewCustomerEventStore(eventStore, dbMock)
 
 		Convey("Given a technical error from the EventStore when EventStreamFor is called", func() {
 			eventStore.
@@ -40,14 +48,8 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 		})
 
-		Convey("Given a technical error from the EventStore when AppendEventsToStream is called", func() {
-			eventStore.
-				On(
-					"AppendEventsToStream",
-					mock.AnythingOfType("es.StreamID"),
-					recordedEvents,
-				).
-				Return(lib.ErrTechnical)
+		Convey("Given a DB transaction can't be started", func() {
+			sqlMock.ExpectBegin().WillReturnError(errors.Newf("mocked error: begin tx failed"))
 
 			Convey("When a Customer is registered", func() {
 				err := customers.CreateStreamFrom(recordedEvents, id)
@@ -66,6 +68,76 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
 				})
 			})
+
+			So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
+		})
+
+		Convey("Given a DB transaction can't be committed", func() {
+			eventStore.
+				On(
+					"AppendEventsToStream",
+					mock.AnythingOfType("es.StreamID"),
+					recordedEvents,
+					mock.AnythingOfType("*sql.Tx"),
+				).
+				Return(nil)
+
+			sqlMock.ExpectBegin()
+			sqlMock.ExpectCommit().WillReturnError(errors.Newf("mocked error: commit tx failed"))
+
+			Convey("When a Customer is registered", func() {
+				err := customers.CreateStreamFrom(recordedEvents, id)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+			})
+
+			Convey("When changes of a Customer are persisted", func() {
+				err := customers.Add(recordedEvents, id)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+			})
+
+			So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
+		})
+
+		Convey("Given a technical error from the EventStore when AppendEventsToStream is called", func() {
+			eventStore.
+				On(
+					"AppendEventsToStream",
+					mock.AnythingOfType("es.StreamID"),
+					recordedEvents,
+					mock.AnythingOfType("*sql.Tx"),
+				).
+				Return(lib.ErrTechnical)
+
+			sqlMock.ExpectBegin()
+			sqlMock.ExpectRollback()
+
+			Convey("When a Customer is registered", func() {
+				err := customers.CreateStreamFrom(recordedEvents, id)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+			})
+
+			Convey("When changes of a Customer are persisted", func() {
+				err := customers.Add(recordedEvents, id)
+
+				Convey("It should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+			})
+
+			So(sqlMock.ExpectationsWereMet(), ShouldBeNil)
 		})
 
 		Convey("Given a technical error from the EventStore when PurgeEventStream is called", func() {

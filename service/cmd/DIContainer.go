@@ -62,6 +62,7 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 				eventStoreTableName,
 				container.unmarshalCustomerEvent,
 			),
+			container.postgresDBConn,
 		)
 	}
 

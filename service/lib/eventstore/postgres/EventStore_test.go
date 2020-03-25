@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"database/sql"
 	"math"
 	"testing"
 
@@ -16,6 +17,7 @@ import (
 func Test_EventStore_AppendEventsToStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		var err error
+		var tx *sql.Tx
 		var eventStream es.DomainEvents
 
 		diContainer, err := test.SetUpDIContainer()
@@ -33,7 +35,13 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 					test.CreateSomeEvent(id, 2),
 				}
 
-				err = eventStore.AppendEventsToStream(streamID, appendedEvents)
+				tx, err = db.Begin()
+				So(err, ShouldBeNil)
+
+				err = eventStore.AppendEventsToStream(streamID, appendedEvents, tx)
+				So(err, ShouldBeNil)
+
+				err = tx.Commit()
 				So(err, ShouldBeNil)
 
 				Convey("It should contain the expected 2 events", func() {
@@ -49,7 +57,13 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 							test.CreateSomeEvent(id, 4),
 						)
 
-						err = eventStore.AppendEventsToStream(streamID, appendedEvents[2:4])
+						tx, err = db.Begin()
+						So(err, ShouldBeNil)
+
+						err = eventStore.AppendEventsToStream(streamID, appendedEvents[2:4], tx)
+						So(err, ShouldBeNil)
+
+						err = tx.Commit()
 						So(err, ShouldBeNil)
 
 						Convey("It should contain the expected 4 events", func() {
@@ -69,34 +83,51 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 			Convey("When 2 events with conflicting stream version are appended", func() {
 				event := test.CreateSomeEvent(id, 1)
 
+				tx, err = db.Begin()
+				So(err, ShouldBeNil)
+
 				err = eventStore.AppendEventsToStream(
 					streamID,
 					es.DomainEvents{event, event},
+					tx,
 				)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrConcurrencyConflict), ShouldBeTrue)
+
+					err = tx.Rollback()
+					So(err, ShouldBeNil)
 				})
 			})
 
 			Convey("When events which can't be marshaled to json are appended", func() {
 				event := test.CreateBrokenMarshalingEvent(id, 1)
 
+				tx, err = db.Begin()
+				So(err, ShouldBeNil)
+
 				err = eventStore.AppendEventsToStream(
 					streamID,
 					es.DomainEvents{event},
+					tx,
 				)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
 					So(errors.Is(err, lib.ErrMarshalingFailed), ShouldBeTrue)
+
+					err = tx.Rollback()
+					So(err, ShouldBeNil)
 				})
 			})
 		})
 
-		Convey("Given the DB connection was closed", func() {
-			err := db.Close()
+		Convey("Given the DB transaction was closed", func() {
+			tx, err = db.Begin()
+			So(err, ShouldBeNil)
+
+			err = tx.Rollback()
 			So(err, ShouldBeNil)
 
 			Convey("When events are appended", func() {
@@ -105,6 +136,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 				err = eventStore.AppendEventsToStream(
 					streamID,
 					es.DomainEvents{event},
+					tx,
 				)
 
 				Convey("It should fail", func() {
@@ -127,13 +159,20 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 			event2 := test.CreateSomeEvent(id, 2)
 
 			Convey("When events are appended", func() {
+				tx, err = db.Begin()
+				So(err, ShouldBeNil)
+
 				err = eventStore.AppendEventsToStream(
 					streamID,
 					es.DomainEvents{event1, event2},
+					tx,
 				)
 
 				Convey("It should fail", func() {
 					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+
+					err = tx.Rollback()
+					So(err, ShouldBeNil)
 				})
 			})
 		})
@@ -143,6 +182,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 func Test_EventStore_LoadEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		var err error
+		var tx *sql.Tx
 		var eventStream es.DomainEvents
 
 		diContainer, err := test.SetUpDIContainer()
@@ -172,7 +212,13 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 				test.CreateSomeEvent(id, 4),
 			}
 
-			err := eventStore.AppendEventsToStream(streamID, expectedEvents)
+			tx, err = db.Begin()
+			So(err, ShouldBeNil)
+
+			err = eventStore.AppendEventsToStream(streamID, expectedEvents, tx)
+			So(err, ShouldBeNil)
+
+			err = tx.Commit()
 			So(err, ShouldBeNil)
 
 			Convey("When it is fully loaded", func() {
@@ -208,14 +254,21 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 				test.CreateSomeEvent(id, 3),
 			}
 
-			err := eventStore.AppendEventsToStream(
+			tx, err = db.Begin()
+			So(err, ShouldBeNil)
+
+			err = eventStore.AppendEventsToStream(
 				streamID,
 				es.DomainEvents{
 					expectedEvents[2],
 					expectedEvents[0],
 					expectedEvents[1],
 				},
+				tx,
 			)
+			So(err, ShouldBeNil)
+
+			err = tx.Commit()
 			So(err, ShouldBeNil)
 
 			Convey("When the event stream is loaded", func() {
@@ -235,7 +288,14 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 
 		Convey("Given the eventStore contains an event which can't be unmarshaled", func() {
 			event := test.CreateBrokenUnmarshalingEvent(id, 1)
-			err := eventStore.AppendEventsToStream(streamID, es.DomainEvents{event})
+
+			tx, err = db.Begin()
+			So(err, ShouldBeNil)
+
+			err = eventStore.AppendEventsToStream(streamID, es.DomainEvents{event}, tx)
+			So(err, ShouldBeNil)
+
+			err = tx.Commit()
 			So(err, ShouldBeNil)
 
 			Convey("When the event stream is loaded", func() {
@@ -270,6 +330,9 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 
 func Test_EventStore_PurgeEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
+		var err error
+		var tx *sql.Tx
+
 		diContainer, err := test.SetUpDIContainer()
 		So(err, ShouldBeNil)
 		db := diContainer.GetPostgresDBConn()
@@ -279,14 +342,21 @@ func Test_EventStore_PurgeEventStream(t *testing.T) {
 		streamID := es.NewStreamID("customer" + "-" + id.ID())
 
 		Convey("Given an event stream with 3 events", func() {
-			err := eventStore.AppendEventsToStream(
+			tx, err = db.Begin()
+			So(err, ShouldBeNil)
+
+			err = eventStore.AppendEventsToStream(
 				streamID,
 				es.DomainEvents{
 					test.CreateSomeEvent(id, 1),
 					test.CreateSomeEvent(id, 2),
 					test.CreateSomeEvent(id, 3),
 				},
+				tx,
 			)
+			So(err, ShouldBeNil)
+
+			err = tx.Commit()
 			So(err, ShouldBeNil)
 
 			Convey("When the event stream is purged", func() {
