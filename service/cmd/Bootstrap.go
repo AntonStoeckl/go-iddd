@@ -3,6 +3,8 @@ package cmd
 import (
 	"database/sql"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
@@ -23,12 +25,22 @@ func Bootstrap() (*DIContainer, error) {
 		return nil, err
 	}
 
-	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
+	migratorEventstore, err := database.NewMigrator(db, config.Postgres.MigrationsPathEventstore)
 	if err != nil {
 		return nil, err
 	}
 
-	err = migrator.Up()
+	err = migratorEventstore.Up()
+	if err != nil {
+		return nil, err
+	}
+
+	migratorCustomer, err := postgres.NewMigrator(db, config.Postgres.MigrationsPathCustomer)
+	if err != nil {
+		return nil, err
+	}
+
+	err = migratorCustomer.Up()
 	if err != nil {
 		return nil, err
 	}

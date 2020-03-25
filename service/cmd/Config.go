@@ -9,8 +9,9 @@ import (
 
 type Config struct {
 	Postgres struct {
-		DSN            string
-		MigrationsPath string
+		DSN                      string
+		MigrationsPathEventstore string
+		MigrationsPathCustomer   string
 	}
 }
 
@@ -24,7 +25,11 @@ func NewConfigFromEnv() (*Config, error) {
 		return nil, errors.Wrap(err, wrapMsg)
 	}
 
-	if conf.Postgres.MigrationsPath, err = conf.fromEnv("POSTGRES_MIGRATIONS_PATH"); err != nil {
+	if conf.Postgres.MigrationsPathEventstore, err = conf.fromEnv("POSTGRES_MIGRATIONS_PATH_EVENTSTORE"); err != nil {
+		return nil, errors.Wrap(err, wrapMsg)
+	}
+
+	if conf.Postgres.MigrationsPathCustomer, err = conf.fromEnv("POSTGRES_MIGRATIONS_PATH_CUSTOMER"); err != nil {
 		return nil, errors.Wrap(err, wrapMsg)
 	}
 

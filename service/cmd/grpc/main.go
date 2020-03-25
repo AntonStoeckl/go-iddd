@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
@@ -93,16 +95,29 @@ func mustOpenPostgresDBConnection() {
 }
 
 func mustRunDBMigrations() {
-	migrator, err := database.NewMigrator(postgresDBConn, config.Postgres.MigrationsPath)
+	migratorEventstore, err := database.NewMigrator(postgresDBConn, config.Postgres.MigrationsPathEventstore)
 	if err != nil {
-		logger.Errorf("failed to create DB migrator: %s", err)
+		logger.Errorf("failed to create DB migrator for eventstore: %s", err)
 		shutdown()
 		return
 	}
 
-	err = migrator.WithLogger(logger).Up()
+	err = migratorEventstore.WithLogger(logger).Up()
 	if err != nil {
-		logger.Errorf("failed to run DB migrator: %s", err)
+		logger.Errorf("failed to run DB migrator for eventstore: %s", err)
+		shutdown()
+	}
+
+	migratorCustomer, err := postgres.NewMigrator(postgresDBConn, config.Postgres.MigrationsPathCustomer)
+	if err != nil {
+		logger.Errorf("failed to create DB migrator for customer: %s", err)
+		shutdown()
+		return
+	}
+
+	err = migratorCustomer.WithLogger(logger).Up()
+	if err != nil {
+		logger.Errorf("failed to run DB migrator for customer: %s", err)
 		shutdown()
 	}
 }

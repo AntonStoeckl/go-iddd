@@ -36,7 +36,7 @@ func SetUpDIContainer() (*DIContainer, error) {
 		return nil, err
 	}
 
-	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPath)
+	migrator, err := database.NewMigrator(db, config.Postgres.MigrationsPathEventstore)
 	if err != nil {
 		return nil, err
 	}
