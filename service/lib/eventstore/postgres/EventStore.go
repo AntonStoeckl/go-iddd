@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"strings"
 
+	"github.com/cockroachdb/errors"
+
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
@@ -62,19 +64,7 @@ func (eventStore *EventStore) AppendEventsToStream(
 		)
 
 		if err != nil {
-			defaultErr := lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
-
-			switch actualErr := err.(type) {
-			case *pq.Error:
-				switch actualErr.Code {
-				case "23505":
-					return lib.MarkAndWrapError(err, lib.ErrConcurrencyConflict, wrapWithMsg)
-				default:
-					return defaultErr // some other postgres error (e.g. table does not exist)
-				}
-			default:
-				return defaultErr // some other DB error (e.g. tx already closed, no connection)
-			}
+			return errors.Wrap(eventStore.mapPostgresErrors(err), wrapWithMsg)
 		}
 	}
 
@@ -137,4 +127,20 @@ func (eventStore *EventStore) PurgeEventStream(streamID es.StreamID) error {
 	}
 
 	return nil
+}
+
+func (eventStore *EventStore) mapPostgresErrors(err error) error {
+	defaultErr := errors.Mark(err, lib.ErrTechnical)
+
+	switch actualErr := err.(type) {
+	case *pq.Error:
+		switch actualErr.Code {
+		case "23505":
+			return errors.Mark(err, lib.ErrConcurrencyConflict)
+		default:
+			return defaultErr // some other postgres error (e.g. table does not exist)
+		}
+	default:
+		return defaultErr // some other DB error (e.g. tx already closed, no connection)
+	}
 }
