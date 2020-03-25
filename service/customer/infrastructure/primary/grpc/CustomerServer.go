@@ -45,11 +45,11 @@ func (server *customerServer) Register(
 
 	command, err := commands.BuildRegisterCustomer(req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	if err := server.register(command); err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
@@ -64,11 +64,11 @@ func (server *customerServer) ConfirmEmailAddress(
 
 	command, err := commands.BuildConfirmCustomerEmailAddress(req.Id, req.ConfirmationHash)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	if err := server.confirmEmailAddress(command); err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
@@ -83,11 +83,11 @@ func (server *customerServer) ChangeEmailAddress(
 
 	command, err := commands.BuildChangeCustomerEmailAddress(req.Id, req.EmailAddress)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	if err := server.changeEmailAddress(command); err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
@@ -102,11 +102,11 @@ func (server *customerServer) ChangeName(
 
 	command, err := commands.BuildChangeCustomerName(req.Id, req.GivenName, req.FamilyName)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	if err := server.changeName(command); err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
@@ -121,11 +121,11 @@ func (server *customerServer) Delete(
 
 	command, err := commands.BuildDeleteCustomer(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	if err := server.delete(command); err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
@@ -140,12 +140,12 @@ func (server *customerServer) RetrieveView(
 
 	id, err := values.BuildCustomerID(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	view, err := server.retrieveView(id)
 	if err != nil {
-		return nil, err
+		return nil, MapToGRPCErrors(err)
 	}
 
 	response := &RetrieveViewResponse{

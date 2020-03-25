@@ -169,7 +169,10 @@ func mustStartREST() {
 		shutdown()
 	}
 
-	rmux := runtime.NewServeMux()
+	rmux := runtime.NewServeMux(
+		runtime.WithProtoErrorHandler(customergrpc.CustomHTTPError),
+	)
+
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 
 	if err = customergrpc.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {

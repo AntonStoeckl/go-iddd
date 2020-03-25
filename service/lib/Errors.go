@@ -3,16 +3,19 @@ package lib
 import "github.com/cockroachdb/errors"
 
 var (
-	ErrInputIsInvalid             = errors.New("input is invalid")
-	ErrMarshalingFailed           = errors.New("marshaling failed")
-	ErrUnmarshalingFailed         = errors.New("unmarshaling failed")
-	ErrCommandIsInvalid           = errors.New("command is invalid")
+	ErrInputIsInvalid = errors.New("input is invalid")
+	ErrNotFound       = errors.New("not found")
+	ErrDuplicate      = errors.New("duplicate")
+
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
-	ErrConcurrencyConflict        = errors.New("concurrency conflict")
-	ErrMaxRetriesExceeded         = errors.New("max retries exceeded")
-	ErrNotFound                   = errors.New("not found")
-	ErrDuplicate                  = errors.New("duplicate")
-	ErrTechnical                  = errors.New("technical")
+
+	ErrMaxRetriesExceeded  = errors.New("max retries exceeded")
+	ErrConcurrencyConflict = errors.New("concurrency conflict")
+
+	ErrMarshalingFailed   = errors.New("marshaling failed")
+	ErrUnmarshalingFailed = errors.New("unmarshaling failed")
+	ErrCommandIsInvalid   = errors.New("command is invalid")
+	ErrTechnical          = errors.New("technical")
 )
 
 func MarkAndWrapError(original error, markAs error, wrapWith string) error {
