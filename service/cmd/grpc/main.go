@@ -142,7 +142,7 @@ func mustStartGRPC() {
 	}
 
 	grpcServer = grpc.NewServer()
-	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerServer())
+	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerGRPCServer())
 	reflection.Register(grpcServer)
 
 	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)

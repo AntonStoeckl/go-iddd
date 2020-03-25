@@ -5,7 +5,6 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
-	customercli "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/cli"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
@@ -22,8 +21,7 @@ type DIContainer struct {
 	customerEventStore     *eventstore.CustomerEventStore
 	customerCommandHandler *command.CustomerCommandHandler
 	customerQueryHandler   *query.CustomerQueryHandler
-	customerServer         customergrpc.CustomerServer
-	customerApp            *customercli.CustomerApp
+	customerGRPCServer     customergrpc.CustomerServer
 }
 
 func NewDIContainer(
@@ -49,8 +47,7 @@ func (container DIContainer) init() {
 	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
-	container.GetCustomerServer()
-	container.GetCustomerApp()
+	container.GetCustomerGRPCServer()
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
@@ -91,9 +88,9 @@ func (container DIContainer) GetCustomerQueryHandler() *query.CustomerQueryHandl
 	return container.customerQueryHandler
 }
 
-func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
-	if container.customerServer == nil {
-		container.customerServer = customergrpc.NewCustomerServer(
+func (container DIContainer) GetCustomerGRPCServer() customergrpc.CustomerServer {
+	if container.customerGRPCServer == nil {
+		container.customerGRPCServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
 			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
 			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
@@ -103,17 +100,5 @@ func (container DIContainer) GetCustomerServer() customergrpc.CustomerServer {
 		)
 	}
 
-	return container.customerServer
-}
-
-func (container DIContainer) GetCustomerApp() *customercli.CustomerApp {
-	if container.customerApp == nil {
-		container.customerApp = customercli.NewCustomerApp(
-			container.GetCustomerCommandHandler().RegisterCustomer,
-			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
-			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
-		)
-	}
-
-	return container.customerApp
+	return container.customerGRPCServer
 }
