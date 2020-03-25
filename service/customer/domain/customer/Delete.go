@@ -14,6 +14,7 @@ func Delete(eventStream es.DomainEvents) es.DomainEvents {
 
 	event := events.CustomerWasDeleted(
 		state.id,
+		state.emailAddress,
 		state.currentStreamVersion+1,
 	)
 

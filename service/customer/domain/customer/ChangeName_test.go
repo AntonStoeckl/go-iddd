@@ -118,7 +118,7 @@ func TestChangeName(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.CustomerWasDeleted(customerID, 2),
+						events.CustomerWasDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ChangeCustomerName", func() {

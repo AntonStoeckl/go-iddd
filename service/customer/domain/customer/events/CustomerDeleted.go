@@ -6,22 +6,26 @@ import (
 )
 
 type CustomerDeleted struct {
-	customerID values.CustomerID
-	meta       EventMeta
+	customerID   values.CustomerID
+	emailAddress values.EmailAddress
+	meta         EventMeta
 }
 
 type CustomerDeletedForJSON struct {
-	CustomerID string    `json:"customerID"`
-	Meta       EventMeta `json:"meta"`
+	CustomerID   string    `json:"customerID"`
+	EmailAddress string    `json:"emailAddress"`
+	Meta         EventMeta `json:"meta"`
 }
 
 func CustomerWasDeleted(
 	customerID values.CustomerID,
+	emailAddress values.EmailAddress,
 	streamVersion uint,
 ) CustomerDeleted {
 
 	event := CustomerDeleted{
-		customerID: customerID,
+		customerID:   customerID,
+		emailAddress: emailAddress,
 	}
 
 	event.meta = BuildEventMeta(event, streamVersion)
@@ -31,6 +35,10 @@ func CustomerWasDeleted(
 
 func (event CustomerDeleted) CustomerID() values.CustomerID {
 	return event.customerID
+}
+
+func (event CustomerDeleted) EmailAddress() values.EmailAddress {
+	return event.emailAddress
 }
 
 func (event CustomerDeleted) EventName() string {
@@ -51,8 +59,9 @@ func (event CustomerDeleted) StreamVersion() uint {
 
 func (event CustomerDeleted) MarshalJSON() ([]byte, error) {
 	data := CustomerDeletedForJSON{
-		CustomerID: event.customerID.ID(),
-		Meta:       event.meta,
+		CustomerID:   event.customerID.ID(),
+		EmailAddress: event.emailAddress.EmailAddress(),
+		Meta:         event.meta,
 	}
 
 	return jsoniter.ConfigFastest.Marshal(data)
@@ -68,8 +77,9 @@ func UnmarshalCustomerDeletedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
 
 	event := CustomerDeleted{
-		customerID: values.RebuildCustomerID(unmarshaledData.CustomerID),
-		meta:       EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		customerID:   values.RebuildCustomerID(unmarshaledData.CustomerID),
+		emailAddress: values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		meta:         EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

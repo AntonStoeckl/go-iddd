@@ -39,6 +39,7 @@ func TestDelete(t *testing.T) {
 						So(ok, ShouldBeTrue)
 						So(customerDeleted, ShouldNotBeNil)
 						So(customerDeleted.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(customerDeleted.EmailAddress().Equals(emailAddress), ShouldBeTrue)
 						isError, reason := customerDeleted.IndicatesAnError()
 						So(isError, ShouldBeFalse)
 						So(reason, ShouldBeBlank)
@@ -53,7 +54,7 @@ func TestDelete(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("and CustomerDeleted", func() {
-					customerDeleted := events.CustomerWasDeleted(customerID, 2)
+					customerDeleted := events.CustomerWasDeleted(customerID, emailAddress, 2)
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {
