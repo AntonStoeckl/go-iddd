@@ -16,19 +16,17 @@ import (
 )
 
 func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T) {
-	eventStore := new(libMocked.EventStore)
-
-	uniqueEmailAddresses := new(customerMocked.ForAssertingUniqueEmailAddresses)
-	uniqueEmailAddresses.On("Assert", mock.Anything, mock.Anything).Return(nil)
-
-	dbMock, sqlMock, err := sqlmock.New()
-	if err != nil {
-		panic(err)
-	}
-
-	customers := eventstore.NewCustomerEventStore(eventStore, uniqueEmailAddresses, dbMock)
-
 	Convey("Setup", t, func() {
+		eventStore := new(libMocked.EventStore)
+
+		uniqueEmailAddresses := new(customerMocked.ForAssertingUniqueEmailAddresses)
+		uniqueEmailAddresses.On("Assert", mock.Anything, mock.Anything).Return(nil)
+
+		dbMock, sqlMock, err := sqlmock.New()
+		So(err, ShouldBeNil)
+
+		customers := eventstore.NewCustomerEventStore(eventStore, uniqueEmailAddresses, dbMock)
+
 		var recordedEvents es.DomainEvents
 		id := values.GenerateCustomerID()
 
