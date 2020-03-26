@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"math"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
@@ -16,13 +14,13 @@ const streamPrefix = "customer"
 
 type CustomerEventStore struct {
 	eventStore           es.EventStore
-	uniqueEmailAddresses ForCheckingUniqueEmailAddresses
+	uniqueEmailAddresses ForAssertingUniqueEmailAddresses
 	db                   *sql.DB
 }
 
 func NewCustomerEventStore(
 	eventStore es.EventStore,
-	uniqueEmailAddresses ForCheckingUniqueEmailAddresses,
+	uniqueEmailAddresses ForAssertingUniqueEmailAddresses,
 	db *sql.DB,
 ) *CustomerEventStore {
 
@@ -58,15 +56,10 @@ func (store *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	for _, event := range recordedEvents {
-		switch actualEvent := event.(type) {
-		case events.CustomerRegistered:
-			if err = store.uniqueEmailAddresses.AddUniqueEmailAddress(actualEvent.EmailAddress(), tx); err != nil {
-				_ = tx.Rollback()
+	if err = store.uniqueEmailAddresses.Assert(recordedEvents, tx); err != nil {
+		_ = tx.Rollback()
 
-				return errors.Wrap(err, wrapWithMsg)
-			}
-		}
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
@@ -95,21 +88,10 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	for _, event := range recordedEvents {
-		switch actualEvent := event.(type) {
-		case events.CustomerEmailAddressChanged:
-			if err = store.uniqueEmailAddresses.ReplaceUniqueEmailAddress(actualEvent.PreviousEmailAddress(), actualEvent.EmailAddress(), tx); err != nil {
-				_ = tx.Rollback()
+	if err = store.uniqueEmailAddresses.Assert(recordedEvents, tx); err != nil {
+		_ = tx.Rollback()
 
-				return errors.Wrap(err, wrapWithMsg)
-			}
-		case events.CustomerDeleted:
-			if err = store.uniqueEmailAddresses.RemoveUniqueEmailAddress(actualEvent.EmailAddress(), tx); err != nil {
-				_ = tx.Rollback()
-
-				return errors.Wrap(err, wrapWithMsg)
-			}
-		}
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {

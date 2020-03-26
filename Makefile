@@ -26,9 +26,9 @@ generate_mocked_ForStoringCustomerEvents:
 		-output service/customer/infrastructure/secondary/mocked \
 		-note "+build test"
 
-generate_mocked_ForCheckingUniqueEmailAddresses:
+generate_mocked_ForAssertingUniqueEmailAddresses:
 	@mockery \
-		-name ForCheckingUniqueEmailAddresses \
+		-name ForAssertingUniqueEmailAddresses \
 		-dir service/customer/infrastructure/secondary/eventstore \
 		-outpkg mocked \
 		-output service/customer/infrastructure/secondary/mocked \
@@ -36,7 +36,8 @@ generate_mocked_ForCheckingUniqueEmailAddresses:
 
 generate_all_mocks: \
 	generate_mocked_EventStore \
-	generate_mocked_ForStoringCustomerEvents
+	generate_mocked_ForStoringCustomerEvents \
+	generate_mocked_ForAssertingUniqueEmailAddresses
 
 lint:
 	golangci-lint run --build-tags test ./...

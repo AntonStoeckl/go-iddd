@@ -20,13 +20,13 @@ const (
 )
 
 type DIContainer struct {
-	postgresDBConn            *sql.DB
-	unmarshalCustomerEvent    es.UnmarshalDomainEvent
-	uniqueEmailAddressChecker *customerPostgres.UniqueEmailAddressChecker
-	customerEventStore        *eventstore.CustomerEventStore
-	customerCommandHandler    *command.CustomerCommandHandler
-	customerQueryHandler      *query.CustomerQueryHandler
-	customerGRPCServer        customergrpc.CustomerServer
+	postgresDBConn              *sql.DB
+	unmarshalCustomerEvent      es.UnmarshalDomainEvent
+	assertsUniqueEmailAddresses *customerPostgres.AssertsUniqueEmailAddresses
+	customerEventStore          *eventstore.CustomerEventStore
+	customerCommandHandler      *command.CustomerCommandHandler
+	customerQueryHandler        *query.CustomerQueryHandler
+	customerGRPCServer          customergrpc.CustomerServer
 }
 
 func NewDIContainer(
@@ -49,7 +49,7 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.GetUniqueEmailAddressChecker()
+	container.GetAssertsUniqueEmailAddresses()
 	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
@@ -60,12 +60,12 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetUniqueEmailAddressChecker() *customerPostgres.UniqueEmailAddressChecker {
-	if container.uniqueEmailAddressChecker == nil {
-		container.uniqueEmailAddressChecker = customerPostgres.NewUniqueEmailAddressChecker(uniqueEmailAddressesTableName)
+func (container DIContainer) GetAssertsUniqueEmailAddresses() *customerPostgres.AssertsUniqueEmailAddresses {
+	if container.assertsUniqueEmailAddresses == nil {
+		container.assertsUniqueEmailAddresses = customerPostgres.NewAssertsUniqueEmailAddresses(uniqueEmailAddressesTableName)
 	}
 
-	return container.uniqueEmailAddressChecker
+	return container.assertsUniqueEmailAddresses
 }
 
 func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
@@ -76,7 +76,7 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 				eventStoreTableName,
 				container.unmarshalCustomerEvent,
 			),
-			container.GetUniqueEmailAddressChecker(),
+			container.GetAssertsUniqueEmailAddresses(),
 			container.postgresDBConn,
 		)
 	}
