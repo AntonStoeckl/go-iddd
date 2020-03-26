@@ -92,9 +92,6 @@ func TestCustomerScenarios(t *testing.T) {
 			})
 
 			Reset(func() {
-				err = commandHandler.DeleteCustomer(aa.deleteDuplicateCustomer)
-				So(err, ShouldBeNil)
-
 				err = diContainer.GetCustomerEventStore().Delete(aa.deleteDuplicateCustomer.CustomerID())
 				So(err, ShouldBeNil)
 			})
@@ -267,9 +264,6 @@ func TestCustomerScenarios(t *testing.T) {
 			})
 
 			Reset(func() {
-				err = commandHandler.DeleteCustomer(aa.deleteDuplicateCustomer)
-				So(err, ShouldBeNil)
-
 				err = diContainer.GetCustomerEventStore().Delete(aa.deleteDuplicateCustomer.CustomerID())
 				So(err, ShouldBeNil)
 			})
@@ -368,9 +362,6 @@ func TestCustomerScenarios(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = commandHandler.DeleteCustomer(aa.deleteCustomer)
-			So(err, ShouldBeNil)
-
 			err = diContainer.GetCustomerEventStore().Delete(aa.customerID)
 			So(err, ShouldBeNil)
 		})

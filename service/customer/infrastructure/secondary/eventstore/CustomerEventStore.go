@@ -108,8 +108,26 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 }
 
 func (store *CustomerEventStore) Delete(id values.CustomerID) error {
+	var err error
+	wrapWithMsg := "customerEventStore.Delete"
+
+	tx, err := store.db.Begin()
+	if err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
+	if err = store.uniqueEmailAddresses.Remove(id, tx); err != nil {
+		_ = tx.Rollback()
+
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+	}
+
 	if err := store.eventStore.PurgeEventStream(store.streamID(id)); err != nil {
-		return errors.Wrap(err, "customerEventStore.Delete")
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil

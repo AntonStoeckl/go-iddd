@@ -288,11 +288,6 @@ func TestCustomerCommandHandler(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = commandHandler.DeleteCustomer(ca.deleteCustomer)
-			if !errors.Is(err, lib.ErrNotFound) {
-				So(err, ShouldBeNil)
-			}
-
 			err = diContainer.GetCustomerEventStore().Delete(ca.customerID)
 			So(err, ShouldBeNil)
 		})

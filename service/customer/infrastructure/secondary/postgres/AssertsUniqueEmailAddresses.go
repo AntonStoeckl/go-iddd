@@ -27,7 +27,7 @@ func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEven
 	for _, event := range recordedEvents {
 		switch actualEvent := event.(type) {
 		case events.CustomerRegistered:
-			if err := asserter.add(actualEvent.EmailAddress(), tx); err != nil {
+			if err := asserter.add(actualEvent.EmailAddress(), actualEvent.CustomerID(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		case events.CustomerEmailAddressChanged:
@@ -44,17 +44,35 @@ func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEven
 	return nil
 }
 
+func (asserter *AssertsUniqueEmailAddresses) Remove(customerID values.CustomerID, tx *sql.Tx) error {
+	queryTemplate := `DELETE FROM %tablename% WHERE customer_id = $1`
+	query := strings.Replace(queryTemplate, "%tablename%", asserter.tableName, 1)
+
+	_, err := tx.Exec(
+		query,
+		customerID.ID(),
+	)
+
+	if err != nil {
+		return asserter.mapUniqueEmailAddressErrors(err)
+	}
+
+	return nil
+}
+
 func (asserter *AssertsUniqueEmailAddresses) add(
 	emailAddress values.EmailAddress,
+	customerID values.CustomerID,
 	tx *sql.Tx,
 ) error {
 
-	queryTemplate := `INSERT INTO %tablename% VALUES ($1)`
+	queryTemplate := `INSERT INTO %tablename% VALUES ($1, $2)`
 	query := strings.Replace(queryTemplate, "%tablename%", asserter.tableName, 1)
 
 	_, err := tx.Exec(
 		query,
 		emailAddress.EmailAddress(),
+		customerID.ID(),
 	)
 
 	if err != nil {

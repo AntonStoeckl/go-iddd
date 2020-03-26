@@ -86,6 +86,15 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
 				})
 			})
+
+			Convey("When the unique email address of a Customer is removed", func() {
+				err := assertsUniqueEmailAddresses.Remove(customerRegistered.CustomerID(), tx)
+
+				Convey("Then it should fail", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+				})
+			})
 		})
 	})
 }
