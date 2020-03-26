@@ -5,9 +5,10 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
+	customerMocked "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/mocked"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"
+	libMocked "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
@@ -20,13 +21,15 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 
 		id := values.GenerateCustomerID()
 
-		eventStore := new(mocked.EventStore)
+		eventStore := new(libMocked.EventStore)
+
+		uniqEmailAddressChecker := new(customerMocked.ForCheckingUniqueEmailAddresses)
 
 		dbMock, sqlMock, err := sqlmock.New()
 		_ = sqlMock
 		So(err, ShouldBeNil)
 
-		customers := eventstore.NewCustomerEventStore(eventStore, dbMock)
+		customers := eventstore.NewCustomerEventStore(eventStore, uniqEmailAddressChecker, dbMock)
 
 		Convey("Given a technical error from the EventStore when EventStreamFor is called", func() {
 			eventStore.

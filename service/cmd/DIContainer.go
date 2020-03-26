@@ -7,21 +7,26 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
+	customerPostgres "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
+	libPostgres "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
 	"github.com/cockroachdb/errors"
 )
 
-const eventStoreTableName = "eventstore"
+const (
+	eventStoreTableName           = "eventstore"
+	uniqueEmailAddressesTableName = "unique_email_addresses"
+)
 
 type DIContainer struct {
-	postgresDBConn         *sql.DB
-	unmarshalCustomerEvent es.UnmarshalDomainEvent
-	customerEventStore     *eventstore.CustomerEventStore
-	customerCommandHandler *command.CustomerCommandHandler
-	customerQueryHandler   *query.CustomerQueryHandler
-	customerGRPCServer     customergrpc.CustomerServer
+	postgresDBConn            *sql.DB
+	unmarshalCustomerEvent    es.UnmarshalDomainEvent
+	uniqueEmailAddressChecker *customerPostgres.UniqueEmailAddressChecker
+	customerEventStore        *eventstore.CustomerEventStore
+	customerCommandHandler    *command.CustomerCommandHandler
+	customerQueryHandler      *query.CustomerQueryHandler
+	customerGRPCServer        customergrpc.CustomerServer
 }
 
 func NewDIContainer(
@@ -44,6 +49,7 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
+	container.GetUniqueEmailAddressChecker()
 	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
@@ -54,14 +60,23 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
+func (container DIContainer) GetUniqueEmailAddressChecker() *customerPostgres.UniqueEmailAddressChecker {
+	if container.uniqueEmailAddressChecker == nil {
+		container.uniqueEmailAddressChecker = customerPostgres.NewUniqueEmailAddressChecker(uniqueEmailAddressesTableName)
+	}
+
+	return container.uniqueEmailAddressChecker
+}
+
 func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
 	if container.customerEventStore == nil {
 		container.customerEventStore = eventstore.NewCustomerEventStore(
-			postgres.NewEventStore(
+			libPostgres.NewEventStore(
 				container.postgresDBConn,
 				eventStoreTableName,
 				container.unmarshalCustomerEvent,
 			),
+			container.GetUniqueEmailAddressChecker(),
 			container.postgresDBConn,
 		)
 	}

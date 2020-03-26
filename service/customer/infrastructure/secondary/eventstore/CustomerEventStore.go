@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
@@ -16,12 +15,22 @@ import (
 const streamPrefix = "customer"
 
 type CustomerEventStore struct {
-	db         *sql.DB
-	eventStore es.EventStore
+	eventStore           es.EventStore
+	uniqueEmailAddresses ForCheckingUniqueEmailAddresses
+	db                   *sql.DB
 }
 
-func NewCustomerEventStore(eventStore es.EventStore, db *sql.DB) *CustomerEventStore {
-	return &CustomerEventStore{eventStore: eventStore, db: db}
+func NewCustomerEventStore(
+	eventStore es.EventStore,
+	uniqueEmailAddresses ForCheckingUniqueEmailAddresses,
+	db *sql.DB,
+) *CustomerEventStore {
+
+	return &CustomerEventStore{
+		eventStore:           eventStore,
+		uniqueEmailAddresses: uniqueEmailAddresses,
+		db:                   db,
+	}
 }
 
 func (store *CustomerEventStore) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
@@ -52,10 +61,10 @@ func (store *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents
 	for _, event := range recordedEvents {
 		switch actualEvent := event.(type) {
 		case events.CustomerRegistered:
-			if err = postgres.AddUniqueEmailAddress(actualEvent.EmailAddress(), tx); err != nil {
+			if err = store.uniqueEmailAddresses.AddUniqueEmailAddress(actualEvent.EmailAddress(), tx); err != nil {
 				_ = tx.Rollback()
 
-				return lib.MarkAndWrapError(errors.New("found duplicate email address"), lib.ErrDuplicate, wrapWithMsg)
+				return errors.Wrap(err, wrapWithMsg)
 			}
 		}
 	}
@@ -89,15 +98,16 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 	for _, event := range recordedEvents {
 		switch actualEvent := event.(type) {
 		case events.CustomerEmailAddressChanged:
-			if err = postgres.ReplaceUniqueEmailAddress(
-				actualEvent.PreviousEmailAddress(),
-				actualEvent.EmailAddress(),
-				tx,
-			); err != nil {
-
+			if err = store.uniqueEmailAddresses.ReplaceUniqueEmailAddress(actualEvent.PreviousEmailAddress(), actualEvent.EmailAddress(), tx); err != nil {
 				_ = tx.Rollback()
 
-				return lib.MarkAndWrapError(errors.New("found duplicate email address"), lib.ErrDuplicate, wrapWithMsg)
+				return errors.Wrap(err, wrapWithMsg)
+			}
+		case events.CustomerDeleted:
+			if err = store.uniqueEmailAddresses.RemoveUniqueEmailAddress(actualEvent.EmailAddress(), tx); err != nil {
+				_ = tx.Rollback()
+
+				return errors.Wrap(err, wrapWithMsg)
 			}
 		}
 	}
@@ -105,7 +115,7 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
 		_ = tx.Rollback()
 
-		return errors.Wrap(err, "customerEventStore.Add")
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	if err = tx.Commit(); err != nil {

@@ -46,6 +46,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	cleanUpAfterBenchmark(
 		b,
 		diContainer.GetCustomerEventStore(),
+		commandHandler,
 		ba.registerCustomer.CustomerID(),
 	)
 }
@@ -72,6 +73,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 	cleanUpAfterBenchmark(
 		b,
 		diContainer.GetCustomerEventStore(),
+		commandHandler,
 		ba.registerCustomer.CustomerID(),
 	)
 }
@@ -179,8 +181,19 @@ func prepareForBenchmark(
 func cleanUpAfterBenchmark(
 	b *testing.B,
 	eventstore *eventstore.CustomerEventStore,
+	commandHandler *command.CustomerCommandHandler,
 	id values.CustomerID,
 ) {
+
+	deleteCustomer, err := commands.BuildDeleteCustomer(id.ID())
+
+	if err != nil {
+		b.FailNow()
+	}
+
+	if err := commandHandler.DeleteCustomer(deleteCustomer); err != nil {
+		b.FailNow()
+	}
 
 	if err := eventstore.Delete(id); err != nil {
 		b.FailNow()

@@ -26,6 +26,14 @@ generate_mocked_ForStoringCustomerEvents:
 		-output service/customer/infrastructure/secondary/mocked \
 		-note "+build test"
 
+generate_mocked_ForCheckingUniqueEmailAddresses:
+	@mockery \
+		-name ForCheckingUniqueEmailAddresses \
+		-dir service/customer/infrastructure/secondary/eventstore \
+		-outpkg mocked \
+		-output service/customer/infrastructure/secondary/mocked \
+		-note "+build test"
+
 generate_all_mocks: \
 	generate_mocked_EventStore \
 	generate_mocked_ForStoringCustomerEvents
