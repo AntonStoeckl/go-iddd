@@ -17,12 +17,18 @@ func NewCustomerQueryHandler(customerEvents ForReadingCustomerEventStreams) *Cus
 	}
 }
 
-func (h *CustomerQueryHandler) CustomerViewByID(customerID values.CustomerID) (customer.View, error) {
+func (h *CustomerQueryHandler) CustomerViewByID(customerID string) (customer.View, error) {
 	var err error
+	var customerIDValue values.CustomerID
+	wrapWithMsg := "customerQueryHandler.CustomerViewByID"
 
-	eventStream, err := h.customerEvents.EventStreamFor(customerID)
+	if customerIDValue, err = values.BuildCustomerID(customerID); err != nil {
+		return customer.View{}, errors.Wrap(err, wrapWithMsg)
+	}
+
+	eventStream, err := h.customerEvents.EventStreamFor(customerIDValue)
 	if err != nil {
-		return customer.View{}, errors.Wrap(err, "customerQueryHandler.CustomerViewByID")
+		return customer.View{}, errors.Wrap(err, wrapWithMsg)
 	}
 
 	customerView := customer.BuildViewFrom(eventStream)
@@ -30,7 +36,7 @@ func (h *CustomerQueryHandler) CustomerViewByID(customerID values.CustomerID) (c
 	if customerView.IsDeleted {
 		err := errors.New("customer not found")
 
-		return customer.View{}, lib.MarkAndWrapError(err, lib.ErrNotFound, "customerQueryHandler.CustomerViewByID")
+		return customer.View{}, lib.MarkAndWrapError(err, lib.ErrNotFound, wrapWithMsg)
 	}
 
 	return customerView, nil

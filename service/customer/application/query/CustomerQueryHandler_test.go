@@ -22,7 +22,7 @@ func TestCustomerQueryHandler(t *testing.T) {
 		Convey("Given a Customer never registered", func() {
 			Convey("When he tries to retrieve his account data", func() {
 				customerID := values.GenerateCustomerID()
-				view, err := queryHandler.CustomerViewByID(customerID)
+				view, err := queryHandler.CustomerViewByID(customerID.ID())
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)

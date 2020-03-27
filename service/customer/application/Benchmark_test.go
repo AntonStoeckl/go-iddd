@@ -64,7 +64,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 
 	b.Run("CustomerViewByID", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
-			if _, err := queryHandler.CustomerViewByID(ba.registerCustomer.CustomerID()); err != nil {
+			if _, err := queryHandler.CustomerViewByID(ba.registerCustomer.CustomerID().ID()); err != nil {
 				b.FailNow()
 			}
 		}

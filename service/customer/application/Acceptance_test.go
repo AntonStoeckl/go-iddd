@@ -310,7 +310,7 @@ func TestCustomerScenarios(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey("And when she tries to retrieve her account data", func() {
-						actualCustomerView, err = queryHandler.CustomerViewByID(aa.customerID)
+						actualCustomerView, err = queryHandler.CustomerViewByID(aa.customerID.ID())
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -323,7 +323,7 @@ func TestCustomerScenarios(t *testing.T) {
 							So(err, ShouldBeNil)
 
 							Convey("Then her account should still be deleted", func() {
-								actualCustomerView, err = queryHandler.CustomerViewByID(aa.customerID)
+								actualCustomerView, err = queryHandler.CustomerViewByID(aa.customerID.ID())
 								So(err, ShouldBeError)
 								So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 								So(actualCustomerView, ShouldBeZeroValue)
@@ -400,7 +400,7 @@ func retrieveAccountData(
 	id values.CustomerID,
 ) customer.View {
 
-	customerView, err := queryHandler.CustomerViewByID(id)
+	customerView, err := queryHandler.CustomerViewByID(id.ID())
 	So(err, ShouldBeNil)
 
 	return customerView

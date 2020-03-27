@@ -5,7 +5,6 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/application"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -138,12 +137,7 @@ func (server *customerServer) RetrieveView(
 	req *RetrieveViewRequest,
 ) (*RetrieveViewResponse, error) {
 
-	id, err := values.BuildCustomerID(req.Id)
-	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	view, err := server.retrieveView(id)
+	view, err := server.retrieveView(req.Id)
 	if err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
