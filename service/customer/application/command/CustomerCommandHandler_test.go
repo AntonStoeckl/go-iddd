@@ -27,7 +27,7 @@ type commandHandlerTestArtifacts struct {
 	customerRegistered events.CustomerRegistered
 }
 
-func TestCustomerCommandHandler(t *testing.T) {
+func TestCustomerCommandHandler_InvalidInput(t *testing.T) {
 	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
 	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
 
@@ -137,6 +137,16 @@ func TestCustomerCommandHandler(t *testing.T) {
 				})
 			})
 		})
+	})
+}
+
+func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
+	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+
+	Convey("Prepare test artifacts", t, func() {
+		var err error
+		ca := buildArtifactsForCommandHandlerTest()
 
 		Convey("\nSCENARIO: Concurrency conflict in CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
@@ -194,6 +204,16 @@ func TestCustomerCommandHandler(t *testing.T) {
 				})
 			})
 		})
+	})
+}
+
+func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testing.T) {
+	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+
+	Convey("Prepare test artifacts", t, func() {
+		var err error
+		ca := buildArtifactsForCommandHandlerTest()
 
 		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
@@ -296,7 +316,6 @@ func TestCustomerCommandHandler(t *testing.T) {
 				})
 			})
 		})
-
 	})
 }
 
