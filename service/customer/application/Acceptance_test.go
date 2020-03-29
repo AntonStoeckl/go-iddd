@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/mocked"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
@@ -386,6 +389,126 @@ func TestCustomerAcceptanceScenarios(t *testing.T) {
 
 			err = diContainer.GetCustomerEventStore().Delete(otherCustomerID)
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
+	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+
+	Convey("Prepare test artifacts", t, func() {
+		var err error
+
+		aa := acceptanceTestArtifacts{
+			emailAddress: "fiona@gallagher.net",
+			givenName:    "Fiona",
+			familyName:   "Galagher",
+		}
+
+		customerID := values.GenerateCustomerID()
+		confirmationHash := values.GenerateConfirmationHash(aa.emailAddress)
+		invalidEmailAddress := "fiona@galagher.c"
+
+		Convey("\nSCENARIO: A Customer supplies invalid input", func() {
+			Convey(fmt.Sprintf("When she tries to register with an invalid email address [%s]", invalidEmailAddress), func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to register with an empty givenName", func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(aa.emailAddress, "", aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to register with an empty familyName", func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(aa.emailAddress, aa.givenName, "")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to confirm her email address with an empty id", func() {
+				err = commandHandlerWithMock.ConfirmCustomerEmailAddress("", confirmationHash.Hash())
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to confirm her email address with an empty confirmation hash", func() {
+				err = commandHandlerWithMock.ConfirmCustomerEmailAddress(customerID.ID(), "")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to change her email address with an empty id", func() {
+				err = commandHandlerWithMock.ChangeCustomerEmailAddress("", aa.emailAddress)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey(fmt.Sprintf("When she tries to change her email address with an invalid email address [%s]", invalidEmailAddress), func() {
+				err = commandHandlerWithMock.ChangeCustomerEmailAddress(customerID.ID(), invalidEmailAddress)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to change her name with an empty id", func() {
+				err = commandHandlerWithMock.ChangeCustomerName("", aa.givenName, aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to change her name with an empty given name", func() {
+				err = commandHandlerWithMock.ChangeCustomerName(customerID.ID(), "", aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to change her name with an empty family name", func() {
+				err = commandHandlerWithMock.ChangeCustomerName(customerID.ID(), aa.givenName, "")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to delete her account with an empty id", func() {
+				err = commandHandlerWithMock.DeleteCustomer("")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
 		})
 	})
 }
