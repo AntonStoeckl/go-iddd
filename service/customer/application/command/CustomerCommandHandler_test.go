@@ -1,11 +1,10 @@
 package command_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/mocked"
@@ -16,216 +15,125 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type commandHandlerTestArtifacts struct {
+	emailAddress       string
+	givenName          string
+	familyName         string
+	newEmailAddress    string
+	newGivenName       string
+	newFamilyName      string
+	customerID         values.CustomerID
+	confirmationHash   values.ConfirmationHash
+	customerRegistered events.CustomerRegistered
+}
+
 func TestCustomerCommandHandler(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-
 	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
 	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-
 		ca := buildArtifactsForCommandHandlerTest()
 
-		Convey("\nSCENARIO: Invalid command to register a prospective Customer", func() {
-			Convey("When a Customer registers with an invalid Command", func() {
-				err = commandHandler.RegisterCustomer(commands.RegisterCustomer{})
+		Convey("\nSCENARIO: A Customer supplies invalid input", func() {
+			invalidEmailAddress := "fiona@galagher.c"
 
-				Convey("Then he should receive an error", func() {
+			Convey(fmt.Sprintf("When she tries to register with an invalid email address [%s]", invalidEmailAddress), func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(invalidEmailAddress, ca.givenName, ca.familyName)
+
+				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Invalid command to confirm a Customer's email address", func() {
-			Convey("Given a registered Customer", func() {
-				err = commandHandler.RegisterCustomer(ca.registerCustomer)
-				So(err, ShouldBeNil)
+			Convey("When she tries to register with an empty givenName", func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(ca.emailAddress, "", ca.familyName)
 
-				Convey("When he tries to confirm his email address with an invalid command", func() {
-					err = commandHandler.ConfirmCustomerEmailAddress(commands.ConfirmCustomerEmailAddress{})
-
-					Convey("Then he should receive an error", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Invalid command to change a Customer's email address", func() {
-			Convey("Given a registered Customer", func() {
-				err = commandHandler.RegisterCustomer(ca.registerCustomer)
-				So(err, ShouldBeNil)
+			Convey("When she tries to register with an empty familyName", func() {
+				_, err = commandHandlerWithMock.RegisterCustomer(ca.emailAddress, ca.givenName, "")
 
-				Convey("When he tries to change his email address with an invalid command", func() {
-					err = commandHandler.ChangeCustomerEmailAddress(commands.ChangeCustomerEmailAddress{})
-
-					Convey("Then he should receive an error", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Invalid command to change a Customer's name", func() {
-			Convey("Given a registered Customer", func() {
-				err = commandHandler.RegisterCustomer(ca.registerCustomer)
-				So(err, ShouldBeNil)
+			Convey("When she tries to confirm her email address with an empty id", func() {
+				err = commandHandlerWithMock.ConfirmCustomerEmailAddress("", ca.confirmationHash.Hash())
 
-				Convey("When he tries to change his name with an invalid command", func() {
-					err = commandHandler.ChangeCustomerName(commands.ChangeCustomerName{})
-
-					Convey("Then he should receive an error", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Invalid command to delete a Customer's account", func() {
-			Convey("Given a registered Customer", func() {
-				err = commandHandler.RegisterCustomer(ca.registerCustomer)
-				So(err, ShouldBeNil)
+			Convey("When she tries to confirm her email address with an empty confirmation hash", func() {
+				err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), "")
 
-				Convey("When he tries to delete his account with an invalid command", func() {
-					err = commandHandler.DeleteCustomer(commands.DeleteCustomer{})
-
-					Convey("Then he should receive an error", func() {
-						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrCommandIsInvalid), ShouldBeTrue)
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Duplicate Customer ID", func() {
-			Convey("Given a registered Customer", func() {
-				err = commandHandler.RegisterCustomer(ca.registerCustomer)
-				So(err, ShouldBeNil)
+			Convey("When she tries to change her email address with an empty id", func() {
+				err = commandHandlerWithMock.ChangeCustomerEmailAddress("", ca.emailAddress)
 
-				Convey("And given he changed his email address", func() {
-					err = commandHandler.ChangeCustomerEmailAddress(ca.changeCustomerEmailAddress)
-					So(err, ShouldBeNil)
-
-					Convey("When another prospective Customer tries to register and got a duplicate ID", func() {
-						err = commandHandler.RegisterCustomer(ca.registerCustomer)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
-						})
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
-		})
 
-		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
-			Convey("Given a registered Customer", func() {
-				Convey("and assuming the event stream can't be read", func() {
-					customerEventStoreMock.
-						On(
-							"EventStreamFor",
-							ca.customerID,
-						).
-						Return(nil, lib.ErrTechnical).
-						Once()
+			Convey(fmt.Sprintf("When she tries to change her email address with an invalid email address [%s]", invalidEmailAddress), func() {
+				err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.ID(), invalidEmailAddress)
 
-					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.confirmCustomerEmailAddress)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.changeCustomerEmailAddress)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.changeCustomerName)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.deleteCustomer)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
+			})
 
-				Convey("and assuming the recorded events can't be stored", func() {
-					customerEventStoreMock.
-						On("EventStreamFor", ca.customerID).
-						Return(es.DomainEvents{ca.customerRegistered}, nil).
-						Once()
+			Convey("When she tries to change her name with an empty id", func() {
+				err = commandHandlerWithMock.ChangeCustomerName("", ca.givenName, ca.familyName)
 
-					customerEventStoreMock.
-						On(
-							"Add",
-							mock.AnythingOfType("es.DomainEvents"),
-							ca.customerID,
-						).
-						Return(lib.ErrTechnical).
-						Once()
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
 
-					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.confirmCustomerEmailAddress)
+			Convey("When she tries to change her name with an empty given name", func() {
+				err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), "", ca.familyName)
 
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
 
-					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.changeCustomerEmailAddress)
+			Convey("When she tries to change her name with an empty family name", func() {
+				err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), ca.givenName, "")
 
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
 
-					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.changeCustomerName)
+			Convey("When she tries to delete her account with an empty id", func() {
+				err = commandHandlerWithMock.DeleteCustomer("")
 
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.deleteCustomer)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
 		})
@@ -257,7 +165,7 @@ func TestCustomerCommandHandler(t *testing.T) {
 						Once()
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.confirmCustomerEmailAddress)
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
 
 						Convey("Then it should succeed after retry", func() {
 							So(err, ShouldBeNil)
@@ -276,7 +184,7 @@ func TestCustomerCommandHandler(t *testing.T) {
 						Times(10)
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.confirmCustomerEmailAddress)
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -287,65 +195,130 @@ func TestCustomerCommandHandler(t *testing.T) {
 			})
 		})
 
-		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(ca.customerID)
-			So(err, ShouldBeNil)
+		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
+			Convey("Given a registered Customer", func() {
+				Convey("and assuming the event stream can't be read", func() {
+					customerEventStoreMock.
+						On(
+							"EventStreamFor",
+							ca.customerID,
+						).
+						Return(nil, lib.ErrTechnical).
+						Once()
+
+					Convey("When he tries to confirm his email address", func() {
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his email address", func() {
+						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.ID(), ca.newEmailAddress)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his name", func() {
+						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), ca.givenName, ca.familyName)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to delete his account", func() {
+						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.ID())
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+				})
+
+				Convey("and assuming the recorded events can't be stored", func() {
+					customerEventStoreMock.
+						On("EventStreamFor", ca.customerID).
+						Return(es.DomainEvents{ca.customerRegistered}, nil).
+						Once()
+
+					customerEventStoreMock.
+						On(
+							"Add",
+							mock.AnythingOfType("es.DomainEvents"),
+							ca.customerID,
+						).
+						Return(lib.ErrTechnical).
+						Once()
+
+					Convey("When he tries to confirm his email address", func() {
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his email address", func() {
+						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.ID(), ca.newEmailAddress)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to change his name", func() {
+						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), ca.givenName, ca.familyName)
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+
+					Convey("When he tries to delete his account", func() {
+						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.ID())
+
+						Convey("Then he should receive an error", func() {
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+						})
+					})
+				})
+			})
 		})
+
 	})
 }
 
-type commandHandlerTestArtifacts struct {
-	customerID                  values.CustomerID
-	registerCustomer            commands.RegisterCustomer
-	confirmCustomerEmailAddress commands.ConfirmCustomerEmailAddress
-	changeCustomerEmailAddress  commands.ChangeCustomerEmailAddress
-	changeCustomerName          commands.ChangeCustomerName
-	deleteCustomer              commands.DeleteCustomer
-	customerRegistered          events.CustomerRegistered
-}
-
 func buildArtifactsForCommandHandlerTest() commandHandlerTestArtifacts {
-	var err error
-
 	ca := commandHandlerTestArtifacts{}
 
-	ca.registerCustomer, err = commands.BuildRegisterCustomer(
-		"john@doe.com",
-		"John",
-		"Doe",
-	)
-	So(err, ShouldBeNil)
+	ca.emailAddress = "fiona@gallagher.net"
+	ca.givenName = "Fiona"
+	ca.familyName = "Galagher"
+	ca.newEmailAddress = "fiona@pratt.net"
+	ca.newGivenName = "Fiona"
+	ca.newFamilyName = "Pratt"
 
-	ca.customerID = ca.registerCustomer.CustomerID()
-
-	ca.confirmCustomerEmailAddress, err = commands.BuildConfirmCustomerEmailAddress(
-		ca.customerID.ID(),
-		ca.registerCustomer.ConfirmationHash().Hash(),
-	)
-	So(err, ShouldBeNil)
-
-	ca.changeCustomerEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
-		ca.customerID.ID(),
-		"john+changed@doe.com",
-	)
-	So(err, ShouldBeNil)
-
-	ca.changeCustomerName, err = commands.BuildChangeCustomerName(
-		ca.customerID.ID(),
-		"James",
-		"Dope",
-	)
-	So(err, ShouldBeNil)
-
-	ca.deleteCustomer, err = commands.BuildDeleteCustomer(ca.customerID.ID())
-	So(err, ShouldBeNil)
+	ca.customerID = values.GenerateCustomerID()
+	ca.confirmationHash = values.GenerateConfirmationHash(ca.emailAddress)
 
 	ca.customerRegistered = events.CustomerWasRegistered(
 		ca.customerID,
-		ca.registerCustomer.EmailAddress(),
-		ca.registerCustomer.ConfirmationHash(),
-		ca.registerCustomer.PersonName(),
-		uint(1),
+		values.RebuildEmailAddress(ca.emailAddress),
+		ca.confirmationHash,
+		values.RebuildPersonName(ca.givenName, ca.familyName),
+		1,
 	)
 
 	return ca

@@ -1,7 +1,5 @@
 package application
 
-import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-)
+import "github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 
-type ForRegisteringCustomers func(command commands.RegisterCustomer) error
+type ForRegisteringCustomers func(emailAddress, givenName, familyName string) (values.CustomerID, error)

@@ -1,12 +1,7 @@
 package commands
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/cockroachdb/errors"
 )
 
 type RegisterCustomer struct {
@@ -14,7 +9,6 @@ type RegisterCustomer struct {
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	personName       values.PersonName
-	isValid          bool
 }
 
 func BuildRegisterCustomer(
@@ -38,7 +32,6 @@ func BuildRegisterCustomer(
 		emailAddress:     emailAddressValue,
 		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
 		personName:       personNameValue,
-		isValid:          true,
 	}
 
 	return register, nil
@@ -58,22 +51,4 @@ func (command RegisterCustomer) ConfirmationHash() values.ConfirmationHash {
 
 func (command RegisterCustomer) PersonName() values.PersonName {
 	return command.personName
-}
-
-func (command RegisterCustomer) ShouldBeValid() error {
-	if !command.isValid {
-		err := errors.Newf("%s: is not valid", command.commandName())
-
-		return errors.Mark(err, lib.ErrCommandIsInvalid)
-	}
-
-	return nil
-}
-
-func (command RegisterCustomer) commandName() string {
-	commandType := reflect.TypeOf(command).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
 }

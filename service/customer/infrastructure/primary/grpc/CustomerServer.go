@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/application"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -42,18 +41,14 @@ func (server *customerServer) Register(
 	req *RegisterRequest,
 ) (*RegisterResponse, error) {
 
-	command, err := commands.BuildRegisterCustomer(req.EmailAddress, req.GivenName, req.FamilyName)
+	customerID, err := server.register(req.EmailAddress, req.GivenName, req.FamilyName)
 	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	if err := server.register(command); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
 	_ = ctx // currently not used
 
-	return &RegisterResponse{Id: command.CustomerID().ID()}, nil
+	return &RegisterResponse{Id: customerID.ID()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(
@@ -61,12 +56,7 @@ func (server *customerServer) ConfirmEmailAddress(
 	req *ConfirmEmailAddressRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.BuildConfirmCustomerEmailAddress(req.Id, req.ConfirmationHash)
-	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	if err := server.confirmEmailAddress(command); err != nil {
+	if err := server.confirmEmailAddress(req.Id, req.ConfirmationHash); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
@@ -80,12 +70,7 @@ func (server *customerServer) ChangeEmailAddress(
 	req *ChangeEmailAddressRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.BuildChangeCustomerEmailAddress(req.Id, req.EmailAddress)
-	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	if err := server.changeEmailAddress(command); err != nil {
+	if err := server.changeEmailAddress(req.Id, req.EmailAddress); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
@@ -99,12 +84,7 @@ func (server *customerServer) ChangeName(
 	req *ChangeNameRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.BuildChangeCustomerName(req.Id, req.GivenName, req.FamilyName)
-	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	if err := server.changeName(command); err != nil {
+	if err := server.changeName(req.Id, req.GivenName, req.FamilyName); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
@@ -118,12 +98,7 @@ func (server *customerServer) Delete(
 	req *DeleteRequest,
 ) (*empty.Empty, error) {
 
-	command, err := commands.BuildDeleteCustomer(req.Id)
-	if err != nil {
-		return nil, MapToGRPCErrors(err)
-	}
-
-	if err := server.delete(command); err != nil {
+	if err := server.delete(req.Id); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 

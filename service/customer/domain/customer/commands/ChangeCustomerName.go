@@ -1,18 +1,12 @@
 package commands
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/cockroachdb/errors"
 )
 
 type ChangeCustomerName struct {
 	customerID values.CustomerID
 	personName values.PersonName
-	isValid    bool
 }
 
 func BuildChangeCustomerName(
@@ -34,7 +28,6 @@ func BuildChangeCustomerName(
 	changeEmailAddress := ChangeCustomerName{
 		customerID: customerIDValue,
 		personName: personNameValue,
-		isValid:    true,
 	}
 
 	return changeEmailAddress, nil
@@ -46,22 +39,4 @@ func (command ChangeCustomerName) CustomerID() values.CustomerID {
 
 func (command ChangeCustomerName) PersonName() values.PersonName {
 	return command.personName
-}
-
-func (command ChangeCustomerName) ShouldBeValid() error {
-	if !command.isValid {
-		err := errors.Newf("%s: is not valid", command.commandName())
-
-		return errors.Mark(err, lib.ErrCommandIsInvalid)
-	}
-
-	return nil
-}
-
-func (command ChangeCustomerName) commandName() string {
-	commandType := reflect.TypeOf(command).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
 }

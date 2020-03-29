@@ -1,19 +1,13 @@
 package commands
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/cockroachdb/errors"
 )
 
 type ChangeCustomerEmailAddress struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
-	isValid          bool
 }
 
 func BuildChangeCustomerEmailAddress(
@@ -35,7 +29,6 @@ func BuildChangeCustomerEmailAddress(
 		customerID:       customerIDValue,
 		emailAddress:     emailAddressValue,
 		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
-		isValid:          true,
 	}
 
 	return changeEmailAddress, nil
@@ -51,22 +44,4 @@ func (command ChangeCustomerEmailAddress) EmailAddress() values.EmailAddress {
 
 func (command ChangeCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
 	return command.confirmationHash
-}
-
-func (command ChangeCustomerEmailAddress) ShouldBeValid() error {
-	if !command.isValid {
-		err := errors.Newf("%s: is not valid", command.commandName())
-
-		return errors.Mark(err, lib.ErrCommandIsInvalid)
-	}
-
-	return nil
-}
-
-func (command ChangeCustomerEmailAddress) commandName() string {
-	commandType := reflect.TypeOf(command).String()
-	commandTypeParts := strings.Split(commandType, ".")
-	commandName := commandTypeParts[len(commandTypeParts)-1]
-
-	return strings.Title(commandName)
 }

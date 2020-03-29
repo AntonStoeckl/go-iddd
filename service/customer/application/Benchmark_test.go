@@ -5,18 +5,18 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
 )
 
 type benchmarkTestArtifacts struct {
-	registerCustomer               commands.RegisterCustomer
-	confirmCustomerEmailAddress    commands.ConfirmCustomerEmailAddress
-	changeCustomerEmailAddress     commands.ChangeCustomerEmailAddress
-	changeCustomerEmailAddressBack commands.ChangeCustomerEmailAddress
-	changeCustomerName             commands.ChangeCustomerName
-	changeCustomerNameBack         commands.ChangeCustomerName
+	customerID      values.CustomerID
+	emailAddress    string
+	givenName       string
+	familyName      string
+	newEmailAddress string
+	newGivenName    string
+	newFamilyName   string
 }
 
 func BenchmarkCustomerCommand(b *testing.B) {
@@ -26,17 +26,17 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	}
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
-	ba := buildArtifactsForBenchmarkTest(b)
-	prepareForBenchmark(b, commandHandler, ba)
+	ba := buildArtifactsForBenchmarkTest()
+	prepareForBenchmark(b, commandHandler, &ba)
 
 	b.Run("ChangeName", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			if n%2 == 0 {
-				if err = commandHandler.ChangeCustomerName(ba.changeCustomerName); err != nil {
+				if err = commandHandler.ChangeCustomerName(ba.customerID.ID(), ba.newGivenName, ba.newFamilyName); err != nil {
 					b.FailNow()
 				}
 			} else {
-				if err = commandHandler.ChangeCustomerName(ba.changeCustomerNameBack); err != nil {
+				if err = commandHandler.ChangeCustomerName(ba.customerID.ID(), ba.givenName, ba.familyName); err != nil {
 					b.FailNow()
 				}
 			}
@@ -47,7 +47,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 		b,
 		diContainer.GetCustomerEventStore(),
 		commandHandler,
-		ba.registerCustomer.CustomerID(),
+		ba.customerID,
 	)
 }
 
@@ -59,12 +59,12 @@ func BenchmarkCustomerQuery(b *testing.B) {
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
-	ba := buildArtifactsForBenchmarkTest(b)
-	prepareForBenchmark(b, commandHandler, ba)
+	ba := buildArtifactsForBenchmarkTest()
+	prepareForBenchmark(b, commandHandler, &ba)
 
 	b.Run("CustomerViewByID", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
-			if _, err := queryHandler.CustomerViewByID(ba.registerCustomer.CustomerID().ID()); err != nil {
+			if _, err := queryHandler.CustomerViewByID(ba.customerID.ID()); err != nil {
 				b.FailNow()
 			}
 		}
@@ -74,77 +74,19 @@ func BenchmarkCustomerQuery(b *testing.B) {
 		b,
 		diContainer.GetCustomerEventStore(),
 		commandHandler,
-		ba.registerCustomer.CustomerID(),
+		ba.customerID,
 	)
 }
 
-func buildArtifactsForBenchmarkTest(b *testing.B) benchmarkTestArtifacts {
-	var err error
+func buildArtifactsForBenchmarkTest() benchmarkTestArtifacts {
 	var ba benchmarkTestArtifacts
 
-	emailAddress := "fiona@gallagher.net"
-	givenName := "Fiona"
-	familyName := "Galagher"
-	newEmailAddress := "fiona@pratt.net"
-	newGivenName := "Fiona"
-	newFamilyName := "Pratt"
-
-	ba.registerCustomer, err = commands.BuildRegisterCustomer(
-		emailAddress,
-		givenName,
-		familyName,
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	ba.confirmCustomerEmailAddress, err = commands.BuildConfirmCustomerEmailAddress(
-		ba.registerCustomer.CustomerID().ID(),
-		ba.registerCustomer.ConfirmationHash().Hash(),
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	ba.changeCustomerEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
-		ba.registerCustomer.CustomerID().ID(),
-		newEmailAddress,
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	ba.changeCustomerEmailAddressBack, err = commands.BuildChangeCustomerEmailAddress(
-		ba.registerCustomer.CustomerID().ID(),
-		emailAddress,
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	ba.changeCustomerName, err = commands.BuildChangeCustomerName(
-		ba.registerCustomer.CustomerID().ID(),
-		newGivenName,
-		newFamilyName,
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	ba.changeCustomerNameBack, err = commands.BuildChangeCustomerName(
-		ba.registerCustomer.CustomerID().ID(),
-		givenName,
-		familyName,
-	)
-
-	if err != nil {
-		b.FailNow()
-	}
+	ba.emailAddress = "fiona@gallagher.net"
+	ba.givenName = "Fiona"
+	ba.familyName = "Galagher"
+	ba.newEmailAddress = "fiona@pratt.net"
+	ba.newGivenName = "Fiona"
+	ba.newFamilyName = "Pratt"
 
 	return ba
 }
@@ -152,26 +94,22 @@ func buildArtifactsForBenchmarkTest(b *testing.B) benchmarkTestArtifacts {
 func prepareForBenchmark(
 	b *testing.B,
 	commandHandler *command.CustomerCommandHandler,
-	ba benchmarkTestArtifacts,
+	ba *benchmarkTestArtifacts,
 ) {
 
 	var err error
 
-	if err = commandHandler.RegisterCustomer(ba.registerCustomer); err != nil {
-		b.FailNow()
-	}
-
-	if err = commandHandler.ConfirmCustomerEmailAddress(ba.confirmCustomerEmailAddress); err != nil {
+	if ba.customerID, err = commandHandler.RegisterCustomer(ba.emailAddress, ba.givenName, ba.familyName); err != nil {
 		b.FailNow()
 	}
 
 	for n := 0; n < 100; n++ {
 		if n%2 == 0 {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.changeCustomerEmailAddress); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.ID(), ba.newEmailAddress); err != nil {
 				b.FailNow()
 			}
 		} else {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.changeCustomerEmailAddressBack); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.ID(), ba.emailAddress); err != nil {
 				b.FailNow()
 			}
 		}
@@ -185,13 +123,7 @@ func cleanUpAfterBenchmark(
 	id values.CustomerID,
 ) {
 
-	deleteCustomer, err := commands.BuildDeleteCustomer(id.ID())
-
-	if err != nil {
-		b.FailNow()
-	}
-
-	if err := commandHandler.DeleteCustomer(deleteCustomer); err != nil {
+	if err := commandHandler.DeleteCustomer(id.ID()); err != nil {
 		b.FailNow()
 	}
 

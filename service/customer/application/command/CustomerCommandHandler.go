@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/cqrs"
 	"github.com/cockroachdb/errors"
@@ -20,31 +21,48 @@ func NewCustomerCommandHandler(customerEvents ForStoringCustomerEvents) *Custome
 	}
 }
 
-func (h *CustomerCommandHandler) RegisterCustomer(command commands.RegisterCustomer) error {
-	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.RegisterCustomer")
+func (h *CustomerCommandHandler) RegisterCustomer(
+	emailAddress string,
+	givenName string,
+	familyName string,
+) (values.CustomerID, error) {
+
+	var err error
+	var command commands.RegisterCustomer
+	wrapWithMsg := "customerCommandHandler.RegisterCustomer"
+
+	if command, err = commands.BuildRegisterCustomer(emailAddress, givenName, familyName); err != nil {
+		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
 	doRegister := func() error {
 		recordedEvents := customer.Register(command)
 
-		if err := h.customerEvents.CreateStreamFrom(recordedEvents, command.CustomerID()); err != nil {
+		if err = h.customerEvents.CreateStreamFrom(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
 		return nil
 	}
 
-	if err := cqrs.RetryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.RegisterCustomer")
+	if err = cqrs.RetryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
+		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
-	return nil
+	return command.CustomerID(), nil
 }
 
-func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.ConfirmCustomerEmailAddress) error {
-	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ConfirmCustomerEmailAddress")
+func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
+	customerID string,
+	confirmationHash string,
+) error {
+
+	var err error
+	var command commands.ConfirmCustomerEmailAddress
+	wrapWithMsg := "customerCommandHandler.ConfirmCustomerEmailAddress"
+
+	if command, err = commands.BuildConfirmCustomerEmailAddress(customerID, confirmationHash); err != nil {
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	doConfirmEmailAddress := func() error {
@@ -72,15 +90,23 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(command commands.Co
 	}
 
 	if err := cqrs.RetryCommand(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ConfirmCustomerEmailAddress")
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil
 }
 
-func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(command commands.ChangeCustomerEmailAddress) error {
-	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerEmailAddress")
+func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
+	customerID string,
+	emailAddress string,
+) error {
+
+	var err error
+	var command commands.ChangeCustomerEmailAddress
+	wrapWithMsg := "customerCommandHandler.ChangeCustomerEmailAddress"
+
+	if command, err = commands.BuildChangeCustomerEmailAddress(customerID, emailAddress); err != nil {
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	doChangeEmailAddress := func() error {
@@ -102,15 +128,24 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(command commands.Cha
 	}
 
 	if err := cqrs.RetryCommand(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerEmailAddress")
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil
 }
 
-func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCustomerName) error {
-	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+func (h *CustomerCommandHandler) ChangeCustomerName(
+	customerID string,
+	givenName string,
+	familyName string,
+) error {
+
+	var err error
+	var command commands.ChangeCustomerName
+	wrapWithMsg := "customerCommandHandler.ChangeCustomerName"
+
+	if command, err = commands.BuildChangeCustomerName(customerID, givenName, familyName); err != nil {
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	doChangeName := func() error {
@@ -132,18 +167,22 @@ func (h *CustomerCommandHandler) ChangeCustomerName(command commands.ChangeCusto
 	}
 
 	if err := cqrs.RetryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.ChangeCustomerName")
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil
 }
 
-func (h *CustomerCommandHandler) DeleteCustomer(command commands.DeleteCustomer) error {
-	if err := command.ShouldBeValid(); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.DeleteCustomer")
+func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
+	var err error
+	var command commands.DeleteCustomer
+	wrapWithMsg := "customerCommandHandler.DeleteCustomer"
+
+	if command, err = commands.BuildDeleteCustomer(customerID); err != nil {
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	doChangeName := func() error {
+	doDelete := func() error {
 		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
 		if err != nil {
 			return err
@@ -158,8 +197,8 @@ func (h *CustomerCommandHandler) DeleteCustomer(command commands.DeleteCustomer)
 		return nil
 	}
 
-	if err := cqrs.RetryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
-		return errors.Wrap(err, "customerCommandHandler.DeleteCustomer")
+	if err := cqrs.RetryCommand(doDelete, maxCustomerCommandHandlerRetries); err != nil {
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil
