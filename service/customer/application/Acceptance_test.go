@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/mocked"
-
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
@@ -578,8 +575,13 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 }
 
 func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
-	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
-	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+	diContainer, err := cmd.Bootstrap()
+	if err != nil {
+		panic(err)
+	}
+
+	commandHandler := diContainer.GetCustomerCommandHandler()
+	queryHandler := diContainer.GetCustomerQueryHandler()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -596,7 +598,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 
 		Convey("\nSCENARIO: A Customer supplies invalid input", func() {
 			Convey(fmt.Sprintf("When she tries to register with an invalid email address [%s]", invalidEmailAddress), func() {
-				_, err = commandHandlerWithMock.RegisterCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+				_, err = commandHandler.RegisterCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -605,7 +607,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to register with an empty givenName", func() {
-				_, err = commandHandlerWithMock.RegisterCustomer(aa.emailAddress, "", aa.familyName)
+				_, err = commandHandler.RegisterCustomer(aa.emailAddress, "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -614,7 +616,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to register with an empty familyName", func() {
-				_, err = commandHandlerWithMock.RegisterCustomer(aa.emailAddress, aa.givenName, "")
+				_, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -623,7 +625,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to confirm her email address with an empty id", func() {
-				err = commandHandlerWithMock.ConfirmCustomerEmailAddress("", confirmationHash.Hash())
+				err = commandHandler.ConfirmCustomerEmailAddress("", confirmationHash.Hash())
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -632,7 +634,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to confirm her email address with an empty confirmation hash", func() {
-				err = commandHandlerWithMock.ConfirmCustomerEmailAddress(customerID.ID(), "")
+				err = commandHandler.ConfirmCustomerEmailAddress(customerID.ID(), "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -641,7 +643,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her email address with an empty id", func() {
-				err = commandHandlerWithMock.ChangeCustomerEmailAddress("", aa.emailAddress)
+				err = commandHandler.ChangeCustomerEmailAddress("", aa.emailAddress)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -650,7 +652,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey(fmt.Sprintf("When she tries to change her email address with an invalid email address [%s]", invalidEmailAddress), func() {
-				err = commandHandlerWithMock.ChangeCustomerEmailAddress(customerID.ID(), invalidEmailAddress)
+				err = commandHandler.ChangeCustomerEmailAddress(customerID.ID(), invalidEmailAddress)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -659,7 +661,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty id", func() {
-				err = commandHandlerWithMock.ChangeCustomerName("", aa.givenName, aa.familyName)
+				err = commandHandler.ChangeCustomerName("", aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -668,7 +670,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty given name", func() {
-				err = commandHandlerWithMock.ChangeCustomerName(customerID.ID(), "", aa.familyName)
+				err = commandHandler.ChangeCustomerName(customerID.ID(), "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -677,7 +679,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty family name", func() {
-				err = commandHandlerWithMock.ChangeCustomerName(customerID.ID(), aa.givenName, "")
+				err = commandHandler.ChangeCustomerName(customerID.ID(), aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -686,7 +688,16 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to delete her account with an empty id", func() {
-				err = commandHandlerWithMock.DeleteCustomer("")
+				err = commandHandler.DeleteCustomer("")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she tries to retrieve her account with an empty id", func() {
+				_, err = queryHandler.CustomerViewByID("")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
