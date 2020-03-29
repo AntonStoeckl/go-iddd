@@ -25,7 +25,7 @@ type acceptanceTestArtifacts struct {
 	newFamilyName   string
 }
 
-func TestCustomerScenarios(t *testing.T) {
+func TestCustomerAcceptanceScenarios(t *testing.T) {
 	diContainer, err := cmd.Bootstrap()
 	if err != nil {
 		panic(err)
@@ -42,7 +42,15 @@ func TestCustomerScenarios(t *testing.T) {
 		var confirmationHash values.ConfirmationHash
 		var expectedCustomerView customer.View
 		var actualCustomerView customer.View
-		aa := buildArtifactsForAcceptanceTest()
+
+		aa := acceptanceTestArtifacts{
+			emailAddress:    "fiona@gallagher.net",
+			givenName:       "Fiona",
+			familyName:      "Galagher",
+			newEmailAddress: "fiona@pratt.net",
+			newGivenName:    "Fiona",
+			newFamilyName:   "Pratt",
+		}
 
 		Convey("\nSCENARIO: A prospective Customer registers her account", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
@@ -459,19 +467,6 @@ func retrieveAccountData(
 	So(err, ShouldBeNil)
 
 	return customerView
-}
-
-func buildArtifactsForAcceptanceTest() acceptanceTestArtifacts {
-	var aa acceptanceTestArtifacts
-
-	aa.emailAddress = "fiona@gallagher.net"
-	aa.givenName = "Fiona"
-	aa.familyName = "Galagher"
-	aa.newEmailAddress = "fiona@pratt.net"
-	aa.newGivenName = "Fiona"
-	aa.newFamilyName = "Pratt"
-
-	return aa
 }
 
 func buildExpectedCustomerViewForAcceptanceTest(customerID values.CustomerID, aa acceptanceTestArtifacts) customer.View {
