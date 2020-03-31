@@ -16,11 +16,8 @@ func GenerateCustomerID() CustomerID {
 
 func BuildCustomerID(value string) (CustomerID, error) {
 	if value == "" {
-		err := lib.MarkAndWrapError(
-			errors.New("empty input for CustomerID"),
-			lib.ErrInputIsInvalid,
-			"BuildCustomerID",
-		)
+		err := errors.New("empty input for CustomerID")
+		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, "BuildCustomerID")
 
 		return CustomerID{}, err
 	}

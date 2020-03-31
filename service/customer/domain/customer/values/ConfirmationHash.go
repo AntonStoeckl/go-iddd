@@ -25,11 +25,8 @@ func GenerateConfirmationHash(using string) ConfirmationHash {
 
 func BuildConfirmationHash(input string) (ConfirmationHash, error) {
 	if input == "" {
-		err := lib.MarkAndWrapError(
-			errors.New("empty input for confirmationHash"),
-			lib.ErrInputIsInvalid,
-			"BuildConfirmationHash",
-		)
+		err := errors.New("empty input for confirmationHash")
+		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, "BuildConfirmationHash")
 
 		return ConfirmationHash{}, err
 	}

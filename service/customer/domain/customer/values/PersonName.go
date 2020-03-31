@@ -11,22 +11,18 @@ type PersonName struct {
 }
 
 func BuildPersonName(givenName string, familyName string) (PersonName, error) {
+	wrapWithMsg := "BuildPersonName"
+
 	if familyName == "" {
-		err := lib.MarkAndWrapError(
-			errors.New("empty input for familyName"),
-			lib.ErrInputIsInvalid,
-			"BuildPersonName",
-		)
+		err := errors.New("empty input for familyName")
+		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, wrapWithMsg)
 
 		return PersonName{}, err
 	}
 
 	if givenName == "" {
-		err := lib.MarkAndWrapError(
-			errors.New("empty input for givenName"),
-			lib.ErrInputIsInvalid,
-			"BuildPersonName",
-		)
+		err := errors.New("empty input for givenName")
+		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, wrapWithMsg)
 
 		return PersonName{}, err
 	}
