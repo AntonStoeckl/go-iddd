@@ -32,11 +32,11 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	b.Run("ChangeName", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			if n%2 == 0 {
-				if err = commandHandler.ChangeCustomerName(ba.customerID.ID(), ba.newGivenName, ba.newFamilyName); err != nil {
+				if err = commandHandler.ChangeCustomerName(ba.customerID.String(), ba.newGivenName, ba.newFamilyName); err != nil {
 					b.FailNow()
 				}
 			} else {
-				if err = commandHandler.ChangeCustomerName(ba.customerID.ID(), ba.givenName, ba.familyName); err != nil {
+				if err = commandHandler.ChangeCustomerName(ba.customerID.String(), ba.givenName, ba.familyName); err != nil {
 					b.FailNow()
 				}
 			}
@@ -64,7 +64,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 
 	b.Run("CustomerViewByID", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
-			if _, err := queryHandler.CustomerViewByID(ba.customerID.ID()); err != nil {
+			if _, err := queryHandler.CustomerViewByID(ba.customerID.String()); err != nil {
 				b.FailNow()
 			}
 		}
@@ -105,11 +105,11 @@ func prepareForBenchmark(
 
 	for n := 0; n < 100; n++ {
 		if n%2 == 0 {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.ID(), ba.newEmailAddress); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.String(), ba.newEmailAddress); err != nil {
 				b.FailNow()
 			}
 		} else {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.ID(), ba.emailAddress); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.String(), ba.emailAddress); err != nil {
 				b.FailNow()
 			}
 		}
@@ -123,7 +123,7 @@ func cleanUpAfterBenchmark(
 	id values.CustomerID,
 ) {
 
-	if err := commandHandler.DeleteCustomer(id.ID()); err != nil {
+	if err := commandHandler.DeleteCustomer(id.String()); err != nil {
 		b.FailNow()
 	}
 

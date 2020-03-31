@@ -28,7 +28,7 @@ func BuildChangeCustomerEmailAddress(
 	changeEmailAddress := ChangeCustomerEmailAddress{
 		customerID:       customerIDValue,
 		emailAddress:     emailAddressValue,
-		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
+		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.String()),
 	}
 
 	return changeEmailAddress, nil

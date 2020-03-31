@@ -134,5 +134,5 @@ func (store *CustomerEventStore) Delete(id values.CustomerID) error {
 }
 
 func (store *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
-	return es.NewStreamID(streamPrefix + "-" + id.ID())
+	return es.NewStreamID(streamPrefix + "-" + id.String())
 }

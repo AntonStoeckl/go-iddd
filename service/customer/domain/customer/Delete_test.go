@@ -15,7 +15,7 @@ func TestDelete(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
 		customerWasRegistered := events.CustomerWasRegistered(

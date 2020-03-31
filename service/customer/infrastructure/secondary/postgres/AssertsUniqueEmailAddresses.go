@@ -50,7 +50,7 @@ func (asserter *AssertsUniqueEmailAddresses) Remove(customerID values.CustomerID
 
 	_, err := tx.Exec(
 		query,
-		customerID.ID(),
+		customerID.String(),
 	)
 
 	if err != nil {
@@ -71,8 +71,8 @@ func (asserter *AssertsUniqueEmailAddresses) add(
 
 	_, err := tx.Exec(
 		query,
-		emailAddress.EmailAddress(),
-		customerID.ID(),
+		emailAddress.String(),
+		customerID.String(),
 	)
 
 	if err != nil {
@@ -93,8 +93,8 @@ func (asserter *AssertsUniqueEmailAddresses) replace(
 
 	_, err := tx.Exec(
 		query,
-		newEmailAddress.EmailAddress(),
-		previousEmailAddress.EmailAddress(),
+		newEmailAddress.String(),
+		previousEmailAddress.String(),
 	)
 
 	if err != nil {
@@ -114,7 +114,7 @@ func (asserter *AssertsUniqueEmailAddresses) remove(
 
 	_, err := tx.Exec(
 		query,
-		newEmailAddress.EmailAddress(),
+		newEmailAddress.String(),
 	)
 
 	if err != nil {

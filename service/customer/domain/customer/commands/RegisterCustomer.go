@@ -30,7 +30,7 @@ func BuildRegisterCustomer(
 	register := RegisterCustomer{
 		customerID:       values.GenerateCustomerID(),
 		emailAddress:     emailAddressValue,
-		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.EmailAddress()),
+		confirmationHash: values.GenerateConfirmationHash(emailAddressValue.String()),
 		personName:       personNameValue,
 	}
 

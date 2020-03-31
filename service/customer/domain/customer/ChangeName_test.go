@@ -21,7 +21,7 @@ func TestChangeName(t *testing.T) {
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 		changedPersonName := values.RebuildPersonName("Latoya", "Ball")
 
@@ -34,7 +34,7 @@ func TestChangeName(t *testing.T) {
 		)
 
 		changeName, err := commands.BuildChangeCustomerName(
-			customerID.ID(),
+			customerID.String(),
 			changedPersonName.GivenName(),
 			changedPersonName.FamilyName(),
 		)
@@ -70,7 +70,7 @@ func TestChangeName(t *testing.T) {
 
 				Convey("When ChangeCustomerName", func() {
 					changeName, err = commands.BuildChangeCustomerName(
-						customerID.ID(),
+						customerID.String(),
 						personName.GivenName(),
 						personName.FamilyName(),
 					)

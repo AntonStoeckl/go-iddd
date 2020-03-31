@@ -35,7 +35,7 @@ func RebuildEmailAddress(input string) EmailAddress {
 	return EmailAddress{value: input}
 }
 
-func (emailAddress EmailAddress) EmailAddress() string {
+func (emailAddress EmailAddress) String() string {
 	return emailAddress.value
 }
 

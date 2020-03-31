@@ -34,10 +34,10 @@ func RebuildCustomerID(value string) CustomerID {
 	return CustomerID{value: value}
 }
 
-func (id CustomerID) ID() string {
+func (id CustomerID) String() string {
 	return id.value
 }
 
 func (id CustomerID) Equals(other CustomerID) bool {
-	return id.ID() == other.ID()
+	return id.String() == other.String()
 }

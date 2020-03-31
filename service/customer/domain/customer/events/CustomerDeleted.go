@@ -59,8 +59,8 @@ func (event CustomerDeleted) StreamVersion() uint {
 
 func (event CustomerDeleted) MarshalJSON() ([]byte, error) {
 	data := CustomerDeletedForJSON{
-		CustomerID:   event.customerID.ID(),
-		EmailAddress: event.emailAddress.EmailAddress(),
+		CustomerID:   event.customerID.String(),
+		EmailAddress: event.emailAddress.String(),
 		Meta:         event.meta,
 	}
 

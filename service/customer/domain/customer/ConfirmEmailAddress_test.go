@@ -21,7 +21,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 		invalidConfirmationHash := values.RebuildConfirmationHash("invalid_hash")
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
@@ -40,14 +40,14 @@ func TestConfirmEmailAddress(t *testing.T) {
 		)
 
 		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
-			customerID.ID(),
-			confirmationHash.Hash(),
+			customerID.String(),
+			confirmationHash.String(),
 		)
 		So(err, ShouldBeNil)
 
 		confirmEmailAddressWithInvalidHash, err := commands.BuildConfirmCustomerEmailAddress(
-			customerID.ID(),
-			invalidConfirmationHash.Hash(),
+			customerID.String(),
+			invalidConfirmationHash.String(),
 		)
 		So(err, ShouldBeNil)
 

@@ -71,9 +71,9 @@ func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
 
 func (event CustomerEmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
 	data := CustomerEmailAddressConfirmationFailedForJSON{
-		CustomerID:       event.customerID.ID(),
-		EmailAddress:     event.emailAddress.EmailAddress(),
-		ConfirmationHash: event.confirmationHash.Hash(),
+		CustomerID:       event.customerID.String(),
+		EmailAddress:     event.emailAddress.String(),
+		ConfirmationHash: event.confirmationHash.String(),
 		Meta:             event.meta,
 	}
 

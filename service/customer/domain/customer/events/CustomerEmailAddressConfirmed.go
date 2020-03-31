@@ -59,8 +59,8 @@ func (event CustomerEmailAddressConfirmed) StreamVersion() uint {
 
 func (event CustomerEmailAddressConfirmed) MarshalJSON() ([]byte, error) {
 	data := CustomerEmailAddressConfirmedForJSON{
-		CustomerID:   event.customerID.ID(),
-		EmailAddress: event.emailAddress.EmailAddress(),
+		CustomerID:   event.customerID.String(),
+		EmailAddress: event.emailAddress.String(),
 		Meta:         event.meta,
 	}
 

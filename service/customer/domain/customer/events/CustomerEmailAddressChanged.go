@@ -76,10 +76,10 @@ func (event CustomerEmailAddressChanged) StreamVersion() uint {
 
 func (event CustomerEmailAddressChanged) MarshalJSON() ([]byte, error) {
 	data := CustomerEmailAddressChangedForJSON{
-		CustomerID:           event.customerID.ID(),
-		EmailAddress:         event.emailAddress.EmailAddress(),
-		ConfirmationHash:     event.confirmationHash.Hash(),
-		PreviousEmailAddress: event.previousEmailAddress.EmailAddress(),
+		CustomerID:           event.customerID.String(),
+		EmailAddress:         event.emailAddress.String(),
+		ConfirmationHash:     event.confirmationHash.String(),
+		PreviousEmailAddress: event.previousEmailAddress.String(),
 		Meta:                 event.meta,
 	}
 

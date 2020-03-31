@@ -61,7 +61,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 						Once()
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then it should succeed after retry", func() {
 							So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 						Times(10)
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -113,7 +113,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 						Once()
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -122,7 +122,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.ID(), ca.newEmailAddress)
+						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -131,7 +131,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), ca.givenName, ca.familyName)
+						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -140,7 +140,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.ID())
+						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -165,7 +165,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 						Once()
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.ID(), ca.confirmationHash.Hash())
+						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -174,7 +174,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.ID(), ca.newEmailAddress)
+						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -183,7 +183,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.ID(), ca.givenName, ca.familyName)
+						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -192,7 +192,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.ID())
+						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)

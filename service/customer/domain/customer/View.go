@@ -18,8 +18,8 @@ func BuildViewFrom(eventStream es.DomainEvents) View {
 	state := buildCustomerStateFrom(eventStream)
 
 	customerView := View{
-		ID:                      state.id.ID(),
-		EmailAddress:            state.emailAddress.EmailAddress(),
+		ID:                      state.id.String(),
+		EmailAddress:            state.emailAddress.String(),
 		IsEmailAddressConfirmed: state.isEmailAddressConfirmed,
 		GivenName:               state.personName.GivenName(),
 		FamilyName:              state.personName.FamilyName(),

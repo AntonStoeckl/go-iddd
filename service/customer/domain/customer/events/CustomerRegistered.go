@@ -76,9 +76,9 @@ func (event CustomerRegistered) StreamVersion() uint {
 
 func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
 	data := CustomerRegisteredForJSON{
-		CustomerID:       event.customerID.ID(),
-		EmailAddress:     event.emailAddress.EmailAddress(),
-		ConfirmationHash: event.confirmationHash.Hash(),
+		CustomerID:       event.customerID.String(),
+		EmailAddress:     event.emailAddress.String(),
+		ConfirmationHash: event.confirmationHash.String(),
 		PersonGivenName:  event.personName.GivenName(),
 		PersonFamilyName: event.personName.FamilyName(),
 		Meta:             event.meta,

@@ -21,7 +21,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.EmailAddress())
+		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 		changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
 
@@ -40,16 +40,16 @@ func TestChangeEmailAddress(t *testing.T) {
 		)
 
 		changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
-			customerID.ID(),
-			changedEmailAddress.EmailAddress(),
+			customerID.String(),
+			changedEmailAddress.String(),
 		)
 		So(err, ShouldBeNil)
 
 		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
 
 		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
-			customerID.ID(),
-			changedConfirmationHash.Hash(),
+			customerID.String(),
+			changedConfirmationHash.String(),
 		)
 		So(err, ShouldBeNil)
 
@@ -85,8 +85,8 @@ func TestChangeEmailAddress(t *testing.T) {
 
 				Convey("When ChangeCustomerEmailAddress", func() {
 					changeEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
-						customerID.ID(),
-						emailAddress.EmailAddress(),
+						customerID.String(),
+						emailAddress.String(),
 					)
 					So(err, ShouldBeNil)
 

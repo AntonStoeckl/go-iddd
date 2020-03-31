@@ -61,7 +61,7 @@ func (event CustomerNameChanged) StreamVersion() uint {
 
 func (event CustomerNameChanged) MarshalJSON() ([]byte, error) {
 	data := CustomerNameChangedForJSON{
-		CustomerID: event.customerID.ID(),
+		CustomerID: event.customerID.String(),
 		GivenName:  event.personName.GivenName(),
 		FamilyName: event.personName.FamilyName(),
 		Meta:       event.meta,

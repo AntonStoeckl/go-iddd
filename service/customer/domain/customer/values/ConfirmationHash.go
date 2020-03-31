@@ -43,7 +43,7 @@ func RebuildConfirmationHash(input string) ConfirmationHash {
 	return ConfirmationHash{value: input}
 }
 
-func (confirmationHash ConfirmationHash) Hash() string {
+func (confirmationHash ConfirmationHash) String() string {
 	return confirmationHash.value
 }
 

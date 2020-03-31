@@ -48,7 +48,7 @@ func (server *customerServer) Register(
 
 	_ = ctx // currently not used
 
-	return &RegisterResponse{Id: customerID.ID()}, nil
+	return &RegisterResponse{Id: customerID.String()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(
