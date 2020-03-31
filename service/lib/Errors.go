@@ -14,7 +14,6 @@ var (
 
 	ErrMarshalingFailed   = errors.New("marshaling failed")
 	ErrUnmarshalingFailed = errors.New("unmarshaling failed")
-	ErrCommandIsInvalid   = errors.New("command is invalid")
 	ErrTechnical          = errors.New("technical")
 )
 
