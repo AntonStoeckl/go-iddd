@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"math"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
@@ -14,13 +16,13 @@ const streamPrefix = "customer"
 
 type CustomerEventStore struct {
 	eventStore           es.EventStore
-	uniqueEmailAddresses ForAssertingUniqueEmailAddresses
+	uniqueEmailAddresses command.ForAssertingUniqueEmailAddresses
 	db                   *sql.DB
 }
 
 func NewCustomerEventStore(
 	eventStore es.EventStore,
-	uniqueEmailAddresses ForAssertingUniqueEmailAddresses,
+	uniqueEmailAddresses command.ForAssertingUniqueEmailAddresses,
 	db *sql.DB,
 ) *CustomerEventStore {
 

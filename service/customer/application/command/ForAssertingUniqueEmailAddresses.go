@@ -1,4 +1,4 @@
-package eventstore
+package command
 
 import (
 	"database/sql"
