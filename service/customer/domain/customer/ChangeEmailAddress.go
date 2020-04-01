@@ -3,7 +3,6 @@ package customer
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
@@ -11,10 +10,8 @@ import (
 func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) (es.DomainEvents, error) {
 	state := buildCustomerStateFrom(eventStream)
 
-	if state.isDeleted {
-		err := errors.New("customer is deleted")
-
-		return nil, lib.MarkAndWrapError(err, lib.ErrNotFound, "changeEmailAddress")
+	if err := MustNotBeDeleted(state); err != nil {
+		return nil, errors.Wrap(err, "changeEmailAddress")
 	}
 
 	if state.emailAddress.Equals(command.EmailAddress()) {
