@@ -67,7 +67,6 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				Convey(fmt.Sprintf("Then her account should show the data she supplied: %s", details), func() {
 					actualCustomerView, err = ac.customerViewByID(customerID.String())
 					So(err, ShouldBeNil)
-
 					So(actualCustomerView, ShouldResemble, expectedCustomerView)
 				})
 			})
@@ -104,7 +103,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					})
 				})
 
-				Convey("And given the first Customer changed her email address", func() {
+				Convey(fmt.Sprintf("Or given the first Customer changed her email address to [%s]", aa.newEmailAddress), func() {
 					err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 					So(err, ShouldBeNil)
 
@@ -115,6 +114,37 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 							So(err, ShouldBeNil)
 						})
 					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO: A prospective Customer tries to register with invalid input", func() {
+			invalidEmailAddress := "fiona@galagher.c"
+
+			Convey(fmt.Sprintf("When she supplies an invalid email address [%s]", invalidEmailAddress), func() {
+				_, err = ac.registerCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she supplies with an empty givenName", func() {
+				_, err = ac.registerCustomer(aa.emailAddress, "", aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
+			Convey("When she supplies with an empty familyName", func() {
+				_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, "")
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
 		})
@@ -177,7 +207,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 			})
 		})
 
-		Convey("\nSCENARIO: A Customer can't confirm his email address, because the confirmation hash is invalid", func() {
+		Convey("\nSCENARIO: A Customer can't confirm his email address, because the confirmation hash is not matching", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
 				customerID, _ = givenCustomerRegistered(aa)
 
@@ -255,6 +285,21 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 			})
 		})
 
+		Convey("\nSCENARIO: A Customer tries to confirm his email address with invalid input", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				customerID, confirmationHash = givenCustomerRegistered(aa)
+
+				Convey("When he supplies an empty confirmation hash", func() {
+					err = ac.confirmCustomerEmailAddress(customerID.String(), "")
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+			})
+		})
+
 		Reset(func() {
 			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
@@ -318,7 +363,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
 				customerID, _ = givenCustomerRegistered(aa)
 
-				Convey(fmt.Sprintf("And given she changed here email address to [%s]", aa.newEmailAddress), func() {
+				Convey(fmt.Sprintf("And given she changed her email address to [%s]", aa.newEmailAddress), func() {
 					_ = givenCustomerEmailAddressWasChanged(customerID, aa, 2)
 
 					Convey(fmt.Sprintf("And given another Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
@@ -332,6 +377,23 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 								So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
 							})
 						})
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO: A Customer tries to change her email address with invalid input", func() {
+			invalidEmailAddress := "fiona@galagher.c"
+
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				customerID, _ = givenCustomerRegistered(aa)
+
+				Convey(fmt.Sprintf("When she supplies an invalid email address [%s]", invalidEmailAddress), func() {
+					err = ac.changeCustomerEmailAddress(customerID.String(), invalidEmailAddress)
+
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 			})
@@ -396,6 +458,30 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 			})
 		})
 
+		Convey("\nSCENARIO: A Customer tries to change his name with invalid input", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				customerID, _ = givenCustomerRegistered(aa)
+
+				Convey("When he supplies an empty given name", func() {
+					err = ac.changeCustomerName(customerID.String(), "", aa.familyName)
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+
+				Convey("When he supplies an empty family name", func() {
+					err = ac.changeCustomerName(customerID.String(), aa.givenName, "")
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+			})
+		})
+
 		Reset(func() {
 			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
@@ -437,17 +523,17 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 							So(actualCustomerView, ShouldBeZeroValue)
 						})
+					})
 
-						Convey("And when she tries to delete her account again", func() {
-							err = ac.deleteCustomer(customerID.String())
-							So(err, ShouldBeNil)
+					Convey("And when she tries to delete her account again", func() {
+						err = ac.deleteCustomer(customerID.String())
+						So(err, ShouldBeNil)
 
-							Convey("Then her account should still be deleted", func() {
-								actualCustomerView, err = ac.customerViewByID(customerID.String())
-								So(err, ShouldBeError)
-								So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
-								So(actualCustomerView, ShouldBeZeroValue)
-							})
+						Convey("Then her account should still be deleted", func() {
+							actualCustomerView, err = ac.customerViewByID(customerID.String())
+							So(err, ShouldBeError)
+							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(actualCustomerView, ShouldBeZeroValue)
 						})
 					})
 
@@ -554,11 +640,13 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 	})
 }
 
-func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
+func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
+		var customerID values.CustomerID
+		var confirmationHash values.ConfirmationHash
 
 		aa := acceptanceTestArtifacts{
 			emailAddress: "fiona@gallagher.net",
@@ -566,118 +654,60 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			familyName:   "Gallagher",
 		}
 
-		customerID := values.GenerateCustomerID()
-		confirmationHash := values.GenerateConfirmationHash(aa.emailAddress)
-		invalidEmailAddress := "fiona@galagher.c"
+		Convey("\nSCENARIO: A client (web, app, ...) of the application sends an empty id", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				customerID, confirmationHash = givenCustomerRegistered(aa)
 
-		Convey("\nSCENARIO: A Customer supplies invalid input", func() {
-			Convey(fmt.Sprintf("When she tries to register with an invalid email address [%s]", invalidEmailAddress), func() {
-				_, err = ac.registerCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+				Convey("When she tries to confirm her email address with an empty id", func() {
+					err = ac.confirmCustomerEmailAddress("", confirmationHash.String())
 
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+
+				Convey("When she tries to change her email address with an empty id", func() {
+					err = ac.changeCustomerEmailAddress("", aa.emailAddress)
+
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+
+				Convey("When she tries to change her name with an empty id", func() {
+					err = ac.changeCustomerName("", aa.givenName, aa.familyName)
+
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+
+				Convey("When she tries to delete her account with an empty id", func() {
+					err = ac.deleteCustomer("")
+
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
+				})
+
+				Convey("When she tries to retrieve her account with an empty id", func() {
+					_, err = ac.customerViewByID("")
+
+					Convey("Then she should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					})
 				})
 			})
+		})
 
-			Convey("When she tries to register with an empty givenName", func() {
-				_, err = ac.registerCustomer(aa.emailAddress, "", aa.familyName)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to register with an empty familyName", func() {
-				_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, "")
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to confirm her email address with an empty id", func() {
-				err = ac.confirmCustomerEmailAddress("", confirmationHash.String())
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to confirm her email address with an empty confirmation hash", func() {
-				err = ac.confirmCustomerEmailAddress(customerID.String(), "")
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to change her email address with an empty id", func() {
-				err = ac.changeCustomerEmailAddress("", aa.emailAddress)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey(fmt.Sprintf("When she tries to change her email address with an invalid email address [%s]", invalidEmailAddress), func() {
-				err = ac.changeCustomerEmailAddress(customerID.String(), invalidEmailAddress)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to change her name with an empty id", func() {
-				err = ac.changeCustomerName("", aa.givenName, aa.familyName)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to change her name with an empty given name", func() {
-				err = ac.changeCustomerName(customerID.String(), "", aa.familyName)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to change her name with an empty family name", func() {
-				err = ac.changeCustomerName(customerID.String(), aa.givenName, "")
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to delete her account with an empty id", func() {
-				err = ac.deleteCustomer("")
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
-			Convey("When she tries to retrieve her account with an empty id", func() {
-				_, err = ac.customerViewByID("")
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
+		Reset(func() {
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			So(err, ShouldBeNil)
 		})
 	})
 }
