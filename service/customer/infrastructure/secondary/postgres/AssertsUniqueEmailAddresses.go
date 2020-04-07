@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -24,18 +25,20 @@ func NewAssertsUniqueEmailAddresses(tableName string) *AssertsUniqueEmailAddress
 func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	wrapWithMsg := "assertsUniqueEmailAddresses"
 
-	for _, event := range recordedEvents {
-		switch actualEvent := event.(type) {
-		case events.CustomerRegistered:
-			if err := asserter.add(actualEvent.EmailAddress(), actualEvent.CustomerID(), tx); err != nil {
+	specs := customer.DeriveUniqueEmailAddressAssertionSpecsFrom(recordedEvents)
+
+	for _, spec := range specs {
+		switch spec.TrackingOperationType() {
+		case customer.AddUniqueEmailAddress:
+			if err := asserter.add(spec.EmailAddressToAdd(), spec.CustomerID(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
-		case events.CustomerEmailAddressChanged:
-			if err := asserter.replace(actualEvent.PreviousEmailAddress(), actualEvent.EmailAddress(), tx); err != nil {
+		case customer.ReplaceUniqueEmailAddress:
+			if err := asserter.replace(spec.EmailAddressToRemove(), spec.EmailAddressToAdd(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
-		case events.CustomerDeleted:
-			if err := asserter.remove(actualEvent.EmailAddress(), tx); err != nil {
+		case customer.RemoveUniqueEmailAddress:
+			if err := asserter.remove(spec.EmailAddressToRemove(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		}
