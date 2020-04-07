@@ -5,16 +5,27 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+var acceptanceTestCustomerEventStore command.ForStoringCustomerEvents
+
+type acceptanceTestCollaborators struct {
+	registerCustomer            application.ForRegisteringCustomers
+	confirmCustomerEmailAddress application.ForConfirmingCustomerEmailAddresses
+	changeCustomerEmailAddress  application.ForChangingCustomerEmailAddresses
+	changeCustomerName          application.ForChangingCustomerNames
+	deleteCustomer              application.ForDeletingCustomers
+	customerViewByID            application.ForRetrievingCustomerViews
+}
 
 type acceptanceTestArtifacts struct {
 	emailAddress    string
@@ -26,14 +37,7 @@ type acceptanceTestArtifacts struct {
 }
 
 func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
-	eventStore := diContainer.GetCustomerEventStore()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -51,17 +55,19 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer registers her account", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+				customerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 				So(err, ShouldBeNil)
 
-				expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+				expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 				details := fmt.Sprintf("\n\tGivenName: %s", expectedCustomerView.GivenName)
 				details += fmt.Sprintf("\n\tFamilyName: %s", expectedCustomerView.FamilyName)
 				details += fmt.Sprintf("\n\tEmailAddress: %s", expectedCustomerView.EmailAddress)
 				details += fmt.Sprintf("\n\tIsEmailAddressConfirmed: %t", expectedCustomerView.IsEmailAddressConfirmed)
 
 				Convey(fmt.Sprintf("Then her account should show the data she supplied: %s", details), func() {
-					actualCustomerView = retrieveAccountData(queryHandler, customerID)
+					actualCustomerView, err = ac.customerViewByID(customerID.String())
+					So(err, ShouldBeNil)
+
 					So(actualCustomerView, ShouldResemble, expectedCustomerView)
 				})
 			})
@@ -69,10 +75,10 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer can't register because email address is already used", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-					_, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+					_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
 					Convey(fmt.Sprintf("Then she should receive an error"), func() {
 						So(err, ShouldBeError)
@@ -83,14 +89,14 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer can register with an email address that is not used any more", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey("And given the first Customer deleted her account", func() {
-					err = commandHandler.DeleteCustomer(customerID.String())
+					err = ac.deleteCustomer(customerID.String())
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						otherCustomerID, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey(fmt.Sprintf("Then she should be able to register"), func() {
 							So(err, ShouldBeNil)
@@ -99,11 +105,11 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				})
 
 				Convey("And given the first Customer changed her email address", func() {
-					err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
+					err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						otherCustomerID, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey(fmt.Sprintf("Then she should be able to register"), func() {
 							So(err, ShouldBeNil)
@@ -114,24 +120,17 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
 
-			err = diContainer.GetCustomerEventStore().Delete(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.Delete(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
 }
 
 func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
-	eventStore := diContainer.GetCustomerEventStore()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -149,25 +148,27 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer confirms his email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa, eventStore)
+				customerID, confirmationHash = givenCustomerRegistered(aa)
 
 				Convey("When he confirms his email address", func() {
-					err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
+					err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
 					So(err, ShouldBeNil)
 
 					Convey("Then his email address should be confirmed", func() {
-						actualCustomerView = retrieveAccountData(queryHandler, customerID)
-						expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+						actualCustomerView, err = ac.customerViewByID(customerID.String())
+						So(err, ShouldBeNil)
+						expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 						expectedCustomerView.IsEmailAddressConfirmed = true
 						expectedCustomerView.Version = 2
 						So(actualCustomerView, ShouldResemble, expectedCustomerView)
 
 						Convey("And when he confirms his email address again", func() {
-							err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
+							err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
 							So(err, ShouldBeNil)
 
 							Convey("Then his email address should still be confirmed", func() {
-								actualCustomerView = retrieveAccountData(queryHandler, customerID)
+								actualCustomerView, err = ac.customerViewByID(customerID.String())
+								So(err, ShouldBeNil)
 								So(actualCustomerView, ShouldResemble, expectedCustomerView)
 							})
 						})
@@ -178,17 +179,18 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer can't confirm his email address, because the confirmation hash is invalid", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey("When he tries to confirm his email address with a wrong confirmation hash", func() {
-					err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
+					err = ac.confirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
 
 					Convey("Then he should receive an error", func() {
 						So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
 
 						Convey("And his email address should still be unconfirmed", func() {
-							actualCustomerView = retrieveAccountData(queryHandler, customerID)
-							expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+							actualCustomerView, err = ac.customerViewByID(customerID.String())
+							So(err, ShouldBeNil)
+							expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 							expectedCustomerView.Version = 2
 							So(actualCustomerView, ShouldResemble, expectedCustomerView)
 						})
@@ -199,20 +201,21 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer fails to confirm his already confirmed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey("And given he confirmed his email address", func() {
-					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2, eventStore)
+					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
 
 					Convey("When he tries to confirm his email address again with a wrong confirmation hash", func() {
-						err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
+						err = ac.confirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
 
 						Convey("Then he should receive an error", func() {
 							So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
 
 							Convey("And his email address should still be confirmed", func() {
-								actualCustomerView = retrieveAccountData(queryHandler, customerID)
-								expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+								actualCustomerView, err = ac.customerViewByID(customerID.String())
+								So(err, ShouldBeNil)
+								expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 								expectedCustomerView.IsEmailAddressConfirmed = true
 								expectedCustomerView.Version = 3
 								So(actualCustomerView, ShouldResemble, expectedCustomerView)
@@ -225,21 +228,22 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer confirms his changed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey("And given he confirmed his email address", func() {
-					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2, eventStore)
+					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
 
 					Convey(fmt.Sprintf("And given he changed his email address to [%s]", aa.newEmailAddress), func() {
-						confirmationHash = givenCustomerEmailAddressWasChanged(customerID, aa, 3, eventStore)
+						confirmationHash = givenCustomerEmailAddressWasChanged(customerID, aa, 3)
 
 						Convey("When he confirms his changed email address", func() {
-							err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
+							err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
 							So(err, ShouldBeNil)
 
 							Convey(fmt.Sprintf("Then his email address should be [%s] and confirmed", aa.newEmailAddress), func() {
-								actualCustomerView = retrieveAccountData(queryHandler, customerID)
-								expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+								actualCustomerView, err = ac.customerViewByID(customerID.String())
+								So(err, ShouldBeNil)
+								expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 								expectedCustomerView.EmailAddress = aa.newEmailAddress
 								expectedCustomerView.IsEmailAddressConfirmed = true
 								expectedCustomerView.Version = 4
@@ -252,21 +256,14 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 		})
 
 		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
 }
 
 func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
-	eventStore := diContainer.GetCustomerEventStore()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -284,28 +281,30 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 		Convey("\nSCENARIO: A Customer changes her (confirmed) email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey("And given she confirmed her email address", func() {
-					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2, eventStore)
+					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
 
 					Convey(fmt.Sprintf("When she changes her email address to [%s]", aa.newEmailAddress), func() {
-						err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
+						err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 						So(err, ShouldBeNil)
 
 						Convey(fmt.Sprintf("Then her email address should be [%s] and unconfirmed", aa.newEmailAddress), func() {
-							actualCustomerView = retrieveAccountData(queryHandler, customerID)
-							expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+							actualCustomerView, err = ac.customerViewByID(customerID.String())
+							So(err, ShouldBeNil)
+							expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 							expectedCustomerView.EmailAddress = aa.newEmailAddress
 							expectedCustomerView.Version = 3
 							So(actualCustomerView, ShouldResemble, expectedCustomerView)
 
 							Convey(fmt.Sprintf("And when she tries to change her email address to [%s] again", aa.newEmailAddress), func() {
-								err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
+								err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 								So(err, ShouldBeNil)
 
 								Convey(fmt.Sprintf("Then her email address should still be [%s]", aa.newEmailAddress), func() {
-									actualCustomerView = retrieveAccountData(queryHandler, customerID)
+									actualCustomerView, err = ac.customerViewByID(customerID.String())
+									So(err, ShouldBeNil)
 									So(actualCustomerView, ShouldResemble, expectedCustomerView)
 								})
 							})
@@ -317,16 +316,16 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 		Convey("\nSCENARIO: A Customer can't change her email address because it is already used", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey(fmt.Sprintf("And given she changed here email address to [%s]", aa.newEmailAddress), func() {
-					_ = givenCustomerEmailAddressWasChanged(customerID, aa, 2, eventStore)
+					_ = givenCustomerEmailAddressWasChanged(customerID, aa, 2)
 
 					Convey(fmt.Sprintf("And given another Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-						otherCustomerID, _ = givenCustomerRegistered(aa, eventStore)
+						otherCustomerID, _ = givenCustomerRegistered(aa)
 
 						Convey(fmt.Sprintf("When she also tries to change her email address to [%s]", aa.newEmailAddress), func() {
-							err = commandHandler.ChangeCustomerEmailAddress(otherCustomerID.String(), aa.newEmailAddress)
+							err = ac.changeCustomerEmailAddress(otherCustomerID.String(), aa.newEmailAddress)
 
 							Convey("Then she should receive an error", func() {
 								So(err, ShouldBeError)
@@ -339,24 +338,17 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 		})
 
 		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
 
-			err = diContainer.GetCustomerEventStore().Delete(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.Delete(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
 }
 
 func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
-	eventStore := diContainer.GetCustomerEventStore()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -374,26 +366,28 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 
 		Convey("\nSCENARIO: A Customer changes his name", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa, eventStore)
+				customerID, _ = givenCustomerRegistered(aa)
 
 				Convey(fmt.Sprintf("When he changes his name to [%s %s]", aa.newGivenName, aa.newFamilyName), func() {
-					err = commandHandler.ChangeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
+					err = ac.changeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("Then his name should be [%s %s]", aa.newGivenName, aa.newFamilyName), func() {
-						actualCustomerView = retrieveAccountData(queryHandler, customerID)
-						expectedCustomerView = buildExpectedCustomerViewForAcceptanceTest(customerID, aa)
+						actualCustomerView, err = ac.customerViewByID(customerID.String())
+						So(err, ShouldBeNil)
+						expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
 						expectedCustomerView.GivenName = aa.newGivenName
 						expectedCustomerView.FamilyName = aa.newFamilyName
 						expectedCustomerView.Version = 2
 						So(actualCustomerView, ShouldResemble, expectedCustomerView)
 
 						Convey(fmt.Sprintf("And when he tries to change his name to [%s %s] again", aa.newGivenName, aa.newFamilyName), func() {
-							err = commandHandler.ChangeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
+							err = ac.changeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
 							So(err, ShouldBeNil)
 
 							Convey(fmt.Sprintf("Then his name should still be [%s %s]", aa.newGivenName, aa.newFamilyName), func() {
-								actualCustomerView = retrieveAccountData(queryHandler, customerID)
+								actualCustomerView, err = ac.customerViewByID(customerID.String())
+								So(err, ShouldBeNil)
 								So(actualCustomerView, ShouldResemble, expectedCustomerView)
 							})
 						})
@@ -403,21 +397,14 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
 }
 
 func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
-	eventStore := diContainer.GetCustomerEventStore()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -436,14 +423,14 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A Customer deletes her account", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa, eventStore)
+				customerID, confirmationHash = givenCustomerRegistered(aa)
 
 				Convey("When she deletes her account", func() {
-					err = commandHandler.DeleteCustomer(customerID.String())
+					err = ac.deleteCustomer(customerID.String())
 					So(err, ShouldBeNil)
 
 					Convey("And when she tries to retrieve her account data", func() {
-						actualCustomerView, err = queryHandler.CustomerViewByID(customerID.String())
+						actualCustomerView, err = ac.customerViewByID(customerID.String())
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -452,11 +439,11 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 						})
 
 						Convey("And when she tries to delete her account again", func() {
-							err = commandHandler.DeleteCustomer(customerID.String())
+							err = ac.deleteCustomer(customerID.String())
 							So(err, ShouldBeNil)
 
 							Convey("Then her account should still be deleted", func() {
-								actualCustomerView, err = queryHandler.CustomerViewByID(customerID.String())
+								actualCustomerView, err = ac.customerViewByID(customerID.String())
 								So(err, ShouldBeError)
 								So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
 								So(actualCustomerView, ShouldBeZeroValue)
@@ -465,7 +452,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 					})
 
 					Convey("And when she tries to confirm her email address", func() {
-						err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
+						err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -474,7 +461,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 					})
 
 					Convey("And when she tries to change her email address", func() {
-						err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
+						err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -483,7 +470,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 					})
 
 					Convey("And when she tries to change her name", func() {
-						err = commandHandler.ChangeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
+						err = ac.changeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -491,25 +478,18 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 						})
 					})
 				})
-
 			})
 		})
 
 		Reset(func() {
-			err = diContainer.GetCustomerEventStore().Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Delete(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
 }
 
 func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -526,7 +506,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 		Convey("\nSCENARIO: A hacker tries to get a non existing Customer account by guessing IDs", func() {
 			Convey("When he tries to retrieve data for a non existing account", func() {
-				actualCustomerView, err = queryHandler.CustomerViewByID(customerID.String())
+				actualCustomerView, err = ac.customerViewByID(customerID.String())
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
@@ -536,7 +516,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 			})
 
 			Convey("And when he tries to confirm an email address", func() {
-				err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
+				err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
@@ -545,7 +525,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 			})
 
 			Convey("And when he tries to change an email address", func() {
-				err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
+				err = ac.changeCustomerEmailAddress(customerID.String(), aa.newEmailAddress)
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
@@ -554,7 +534,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 			})
 
 			Convey("And when he tries to change a name", func() {
-				err = commandHandler.ChangeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
+				err = ac.changeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
@@ -563,7 +543,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 			})
 
 			Convey("And when he tries to delete an account", func() {
-				err = commandHandler.DeleteCustomer(customerID.String())
+				err = ac.deleteCustomer(customerID.String())
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
@@ -575,13 +555,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 }
 
 func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
-	if err != nil {
-		panic(err)
-	}
-
-	commandHandler := diContainer.GetCustomerCommandHandler()
-	queryHandler := diContainer.GetCustomerQueryHandler()
+	ac := bootstrapAcceptanceTestCollaborators()
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -598,7 +572,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 
 		Convey("\nSCENARIO: A Customer supplies invalid input", func() {
 			Convey(fmt.Sprintf("When she tries to register with an invalid email address [%s]", invalidEmailAddress), func() {
-				_, err = commandHandler.RegisterCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+				_, err = ac.registerCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -607,7 +581,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to register with an empty givenName", func() {
-				_, err = commandHandler.RegisterCustomer(aa.emailAddress, "", aa.familyName)
+				_, err = ac.registerCustomer(aa.emailAddress, "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -616,7 +590,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to register with an empty familyName", func() {
-				_, err = commandHandler.RegisterCustomer(aa.emailAddress, aa.givenName, "")
+				_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -625,7 +599,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to confirm her email address with an empty id", func() {
-				err = commandHandler.ConfirmCustomerEmailAddress("", confirmationHash.String())
+				err = ac.confirmCustomerEmailAddress("", confirmationHash.String())
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -634,7 +608,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to confirm her email address with an empty confirmation hash", func() {
-				err = commandHandler.ConfirmCustomerEmailAddress(customerID.String(), "")
+				err = ac.confirmCustomerEmailAddress(customerID.String(), "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -643,7 +617,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her email address with an empty id", func() {
-				err = commandHandler.ChangeCustomerEmailAddress("", aa.emailAddress)
+				err = ac.changeCustomerEmailAddress("", aa.emailAddress)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -652,7 +626,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey(fmt.Sprintf("When she tries to change her email address with an invalid email address [%s]", invalidEmailAddress), func() {
-				err = commandHandler.ChangeCustomerEmailAddress(customerID.String(), invalidEmailAddress)
+				err = ac.changeCustomerEmailAddress(customerID.String(), invalidEmailAddress)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -661,7 +635,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty id", func() {
-				err = commandHandler.ChangeCustomerName("", aa.givenName, aa.familyName)
+				err = ac.changeCustomerName("", aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -670,7 +644,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty given name", func() {
-				err = commandHandler.ChangeCustomerName(customerID.String(), "", aa.familyName)
+				err = ac.changeCustomerName(customerID.String(), "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -679,7 +653,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to change her name with an empty family name", func() {
-				err = commandHandler.ChangeCustomerName(customerID.String(), aa.givenName, "")
+				err = ac.changeCustomerName(customerID.String(), aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -688,7 +662,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to delete her account with an empty id", func() {
-				err = commandHandler.DeleteCustomer("")
+				err = ac.deleteCustomer("")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -697,7 +671,7 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 			})
 
 			Convey("When she tries to retrieve her account with an empty id", func() {
-				_, err = queryHandler.CustomerViewByID("")
+				_, err = ac.customerViewByID("")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -710,7 +684,6 @@ func TestCustomerAcceptanceScenarios_InvalidInput(t *testing.T) {
 
 func givenCustomerRegistered(
 	aa acceptanceTestArtifacts,
-	eventStore *eventstore.CustomerEventStore,
 ) (values.CustomerID, values.ConfirmationHash) {
 
 	customerID := values.GenerateCustomerID()
@@ -726,7 +699,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := eventStore.CreateStreamFrom(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.CreateStreamFrom(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
@@ -736,7 +709,6 @@ func givenCustomerEmailAddressWasConfirmed(
 	customerID values.CustomerID,
 	aa acceptanceTestArtifacts,
 	streamVersion uint,
-	eventStore *eventstore.CustomerEventStore,
 ) {
 
 	emailAddress := values.RebuildEmailAddress(aa.emailAddress)
@@ -747,7 +719,7 @@ func givenCustomerEmailAddressWasConfirmed(
 		streamVersion,
 	)
 
-	err := eventStore.Add(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.Add(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 }
 
@@ -755,7 +727,6 @@ func givenCustomerEmailAddressWasChanged(
 	customerID values.CustomerID,
 	aa acceptanceTestArtifacts,
 	streamVersion uint,
-	eventStore *eventstore.CustomerEventStore,
 ) values.ConfirmationHash {
 
 	emailAddress := values.RebuildEmailAddress(aa.newEmailAddress)
@@ -770,24 +741,35 @@ func givenCustomerEmailAddressWasChanged(
 		streamVersion,
 	)
 
-	err := eventStore.Add(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.Add(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return confirmationHash
 }
 
-func retrieveAccountData(
-	queryHandler *query.CustomerQueryHandler,
-	id values.CustomerID,
-) customer.View {
+func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
+	diContainer, err := cmd.Bootstrap()
+	if err != nil {
+		panic(err)
+	}
 
-	customerView, err := queryHandler.CustomerViewByID(id.String())
-	So(err, ShouldBeNil)
+	acceptanceTestCustomerEventStore = diContainer.GetCustomerEventStore()
 
-	return customerView
+	return acceptanceTestCollaborators{
+		registerCustomer:            diContainer.GetCustomerCommandHandler().RegisterCustomer,
+		confirmCustomerEmailAddress: diContainer.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
+		changeCustomerEmailAddress:  diContainer.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
+		changeCustomerName:          diContainer.GetCustomerCommandHandler().ChangeCustomerName,
+		deleteCustomer:              diContainer.GetCustomerCommandHandler().DeleteCustomer,
+		customerViewByID:            diContainer.GetCustomerQueryHandler().CustomerViewByID,
+	}
 }
 
-func buildExpectedCustomerViewForAcceptanceTest(customerID values.CustomerID, aa acceptanceTestArtifacts) customer.View {
+func buildDefaultCustomerViewForAcceptanceTest(
+	customerID values.CustomerID,
+	aa acceptanceTestArtifacts,
+) customer.View {
+
 	return customer.View{
 		ID:                      customerID.String(),
 		EmailAddress:            aa.emailAddress,
