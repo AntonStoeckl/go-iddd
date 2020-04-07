@@ -504,7 +504,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 		customerID := values.GenerateCustomerID()
 		confirmationHash := values.RebuildConfirmationHash(aa.newEmailAddress)
 
-		Convey("\nSCENARIO: A hacker tries to get a non existing Customer account by guessing IDs", func() {
+		Convey("\nSCENARIO: A hacker tries to play around with a non existing Customer account by guessing IDs", func() {
 			Convey("When he tries to retrieve data for a non existing account", func() {
 				actualCustomerView, err = ac.customerViewByID(customerID.String())
 
