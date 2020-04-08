@@ -8,22 +8,22 @@ import (
 )
 
 func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) (es.DomainEvents, error) {
-	state := buildCustomerStateFrom(eventStream)
+	customer := buildCurrentStateFrom(eventStream)
 
-	if err := MustNotBeDeleted(state); err != nil {
-		return nil, errors.Wrap(err, "changeEmailAddress")
+	if !wasNotDeleted(customer) {
+		return nil, errors.Wrap(wasDeletedErr, "changeEmailAddress")
 	}
 
-	if state.emailAddress.Equals(command.EmailAddress()) {
+	if customer.emailAddress.Equals(command.EmailAddress()) {
 		return nil, nil
 	}
 
 	event := events.CustomerEmailAddressWasChanged(
-		state.id,
+		customer.id,
 		command.EmailAddress(),
 		command.ConfirmationHash(),
-		state.emailAddress,
-		state.currentStreamVersion+1,
+		customer.emailAddress,
+		customer.currentStreamVersion+1,
 	)
 
 	return es.DomainEvents{event}, nil

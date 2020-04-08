@@ -15,16 +15,16 @@ type View struct {
 }
 
 func BuildViewFrom(eventStream es.DomainEvents) View {
-	state := buildCustomerStateFrom(eventStream)
+	customer := buildCurrentStateFrom(eventStream)
 
 	customerView := View{
-		ID:                      state.id.String(),
-		EmailAddress:            state.emailAddress.String(),
-		IsEmailAddressConfirmed: state.isEmailAddressConfirmed,
-		GivenName:               state.personName.GivenName(),
-		FamilyName:              state.personName.FamilyName(),
-		IsDeleted:               state.isDeleted,
-		Version:                 state.currentStreamVersion,
+		ID:                      customer.id.String(),
+		EmailAddress:            customer.emailAddress.String(),
+		IsEmailAddressConfirmed: customer.isEmailAddressConfirmed,
+		GivenName:               customer.personName.GivenName(),
+		FamilyName:              customer.personName.FamilyName(),
+		IsDeleted:               customer.isDeleted,
+		Version:                 customer.currentStreamVersion,
 	}
 
 	return customerView

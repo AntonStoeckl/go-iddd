@@ -6,16 +6,16 @@ import (
 )
 
 func Delete(eventStream es.DomainEvents) es.DomainEvents {
-	state := buildCustomerStateFrom(eventStream)
+	customer := buildCurrentStateFrom(eventStream)
 
-	if state.isDeleted {
+	if !wasNotDeleted(customer) {
 		return nil
 	}
 
 	event := events.CustomerWasDeleted(
-		state.id,
-		state.emailAddress,
-		state.currentStreamVersion+1,
+		customer.id,
+		customer.emailAddress,
+		customer.currentStreamVersion+1,
 	)
 
 	return es.DomainEvents{event}

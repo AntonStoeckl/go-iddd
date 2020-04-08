@@ -10,32 +10,32 @@ import (
 const failureReasonWrongHash = "wrong confirmation hash supplied"
 
 func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCustomerEmailAddress) (es.DomainEvents, error) {
-	state := buildCustomerStateFrom(eventStream)
+	customer := buildCurrentStateFrom(eventStream)
 
-	if err := MustNotBeDeleted(state); err != nil {
-		return nil, errors.Wrap(err, "confirmEmailAddress")
+	if !wasNotDeleted(customer) {
+		return nil, errors.Wrap(wasDeletedErr, "confirmEmailAddress")
 	}
 
-	if !HasSuppliedMatchingConfirmationHash(state.emailAddressConfirmationHash, command.ConfirmationHash()) {
+	if !hasSuppliedMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()) {
 		event := events.CustomerEmailAddressConfirmationHasFailed(
-			state.id,
-			state.emailAddress,
+			customer.id,
+			customer.emailAddress,
 			command.ConfirmationHash(),
 			failureReasonWrongHash,
-			state.currentStreamVersion+1,
+			customer.currentStreamVersion+1,
 		)
 
 		return es.DomainEvents{event}, nil
 	}
 
-	if state.isEmailAddressConfirmed {
+	if customer.isEmailAddressConfirmed {
 		return nil, nil
 	}
 
 	event := events.CustomerEmailAddressWasConfirmed(
-		state.id,
-		state.emailAddress,
-		state.currentStreamVersion+1,
+		customer.id,
+		customer.emailAddress,
+		customer.currentStreamVersion+1,
 	)
 
 	return es.DomainEvents{event}, nil

@@ -6,7 +6,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-type state struct {
+type currentState struct {
 	id                           values.CustomerID
 	personName                   values.PersonName
 	emailAddress                 values.EmailAddress
@@ -16,8 +16,8 @@ type state struct {
 	currentStreamVersion         uint
 }
 
-func buildCustomerStateFrom(eventStream es.DomainEvents) state {
-	customer := state{}
+func buildCurrentStateFrom(eventStream es.DomainEvents) currentState {
+	customer := currentState{}
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
