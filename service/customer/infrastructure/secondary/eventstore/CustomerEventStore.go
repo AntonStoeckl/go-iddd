@@ -118,7 +118,7 @@ func (store *CustomerEventStore) Purge(id values.CustomerID) error {
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	if err = store.uniqueEmailAddresses.Remove(id, tx); err != nil {
+	if err = store.uniqueEmailAddresses.ClearFor(id, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)

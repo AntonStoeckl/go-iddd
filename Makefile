@@ -29,7 +29,7 @@ generate_mocked_ForStoringCustomerEvents:
 generate_mocked_ForAssertingUniqueEmailAddresses:
 	@mockery \
 		-name ForAssertingUniqueEmailAddresses \
-		-dir service/customer/infrastructure/secondary/eventstore \
+		-dir service/customer/application/command \
 		-outpkg mocked \
 		-output service/customer/infrastructure/secondary/mocked \
 		-note "+build test"

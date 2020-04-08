@@ -86,7 +86,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 				Return(nil)
 
 			assertsUniqueEmailAddresses.
-				On("Remove", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
+				On("ClearFor", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
 				Return(nil)
 
 			sqlMock.ExpectBegin()
@@ -159,7 +159,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 				Return(lib.ErrTechnical)
 
 			assertsUniqueEmailAddresses.
-				On("Remove", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
+				On("ClearFor", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
 				Return(nil)
 
 			sqlMock.ExpectBegin()
@@ -179,7 +179,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 
 		Convey("Given a technical error from AssertsUniqueEmailAddresses when Assert is called", func() {
 			assertsUniqueEmailAddresses.
-				On("Remove", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
+				On("ClearFor", mock.AnythingOfType("values.CustomerID"), mock.AnythingOfType("*sql.Tx")).
 				Return(lib.ErrTechnical)
 
 			sqlMock.ExpectBegin()

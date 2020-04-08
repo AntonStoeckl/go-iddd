@@ -47,7 +47,7 @@ func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEven
 	return nil
 }
 
-func (asserter *AssertsUniqueEmailAddresses) Remove(customerID values.CustomerID, tx *sql.Tx) error {
+func (asserter *AssertsUniqueEmailAddresses) ClearFor(customerID values.CustomerID, tx *sql.Tx) error {
 	queryTemplate := `DELETE FROM %tablename% WHERE customer_id = $1`
 	query := strings.Replace(queryTemplate, "%tablename%", asserter.tableName, 1)
 

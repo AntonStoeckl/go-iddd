@@ -9,5 +9,5 @@ import (
 
 type ForAssertingUniqueEmailAddresses interface {
 	Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error
-	Remove(customerID values.CustomerID, tx *sql.Tx) error
+	ClearFor(customerID values.CustomerID, tx *sql.Tx) error
 }

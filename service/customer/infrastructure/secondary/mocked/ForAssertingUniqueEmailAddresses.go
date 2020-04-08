@@ -5,7 +5,6 @@
 package mocked
 
 import es "github.com/AntonStoeckl/go-iddd/service/lib/es"
-
 import mock "github.com/stretchr/testify/mock"
 import sql "database/sql"
 import values "github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -29,8 +28,8 @@ func (_m *ForAssertingUniqueEmailAddresses) Assert(recordedEvents es.DomainEvent
 	return r0
 }
 
-// Remove provides a mock function with given fields: customerID, tx
-func (_m *ForAssertingUniqueEmailAddresses) Remove(customerID values.CustomerID, tx *sql.Tx) error {
+// ClearFor provides a mock function with given fields: customerID, tx
+func (_m *ForAssertingUniqueEmailAddresses) ClearFor(customerID values.CustomerID, tx *sql.Tx) error {
 	ret := _m.Called(customerID, tx)
 
 	var r0 error
