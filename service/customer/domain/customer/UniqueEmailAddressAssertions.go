@@ -19,40 +19,6 @@ type UniqueEmailAddressAssertion struct {
 	emailAddressToRemove values.EmailAddress
 }
 
-func shouldAddUniqueEmailAddress(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-) UniqueEmailAddressAssertion {
-
-	return UniqueEmailAddressAssertion{
-		assertionType:     ShouldAddUniqueEmailAddress,
-		customerID:        customerID,
-		emailAddressToAdd: emailAddress,
-	}
-}
-
-func shouldReplaceUniqueEmailAddress(
-	newEmailAddress values.EmailAddress,
-	currentEmailAddress values.EmailAddress,
-) UniqueEmailAddressAssertion {
-
-	return UniqueEmailAddressAssertion{
-		assertionType:        ShouldReplaceUniqueEmailAddress,
-		emailAddressToAdd:    newEmailAddress,
-		emailAddressToRemove: currentEmailAddress,
-	}
-}
-
-func shouldRemoveUniqueEmailAddress(
-	emailAddress values.EmailAddress,
-) UniqueEmailAddressAssertion {
-
-	return UniqueEmailAddressAssertion{
-		assertionType:        ShouldRemoveUniqueEmailAddress,
-		emailAddressToRemove: emailAddress,
-	}
-}
-
 func (spec UniqueEmailAddressAssertion) AssertionType() int {
 	return spec.assertionType
 }
@@ -77,17 +43,28 @@ func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) []Uni
 		case events.CustomerRegistered:
 			specifications = append(
 				specifications,
-				shouldAddUniqueEmailAddress(actualEvent.CustomerID(), actualEvent.EmailAddress()),
+				UniqueEmailAddressAssertion{
+					assertionType:     ShouldAddUniqueEmailAddress,
+					customerID:        actualEvent.CustomerID(),
+					emailAddressToAdd: actualEvent.EmailAddress(),
+				},
 			)
 		case events.CustomerEmailAddressChanged:
 			specifications = append(
 				specifications,
-				shouldReplaceUniqueEmailAddress(actualEvent.EmailAddress(), actualEvent.PreviousEmailAddress()),
+				UniqueEmailAddressAssertion{
+					assertionType:        ShouldReplaceUniqueEmailAddress,
+					emailAddressToAdd:    actualEvent.EmailAddress(),
+					emailAddressToRemove: actualEvent.PreviousEmailAddress(),
+				},
 			)
 		case events.CustomerDeleted:
 			specifications = append(
 				specifications,
-				shouldRemoveUniqueEmailAddress(actualEvent.EmailAddress()),
+				UniqueEmailAddressAssertion{
+					assertionType:        ShouldRemoveUniqueEmailAddress,
+					emailAddressToRemove: actualEvent.EmailAddress(),
+				},
 			)
 		}
 	}
