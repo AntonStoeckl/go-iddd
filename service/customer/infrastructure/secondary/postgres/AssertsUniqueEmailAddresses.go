@@ -6,8 +6,6 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
@@ -22,12 +20,10 @@ func NewAssertsUniqueEmailAddresses(tableName string) *AssertsUniqueEmailAddress
 	return &AssertsUniqueEmailAddresses{tableName: tableName}
 }
 
-func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error {
+func (asserter *AssertsUniqueEmailAddresses) Assert(assertions customer.UniqueEmailAddressAssertions, tx *sql.Tx) error {
 	wrapWithMsg := "assertsUniqueEmailAddresses"
 
-	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
-
-	for _, assertion := range uniqueEmailAddressAssertions {
+	for _, assertion := range assertions {
 		switch assertion.DesiredAction() {
 		case customer.ShouldAddUniqueEmailAddress:
 			if err := asserter.tryToAdd(assertion.EmailAddressToAdd(), assertion.CustomerID(), tx); err != nil {

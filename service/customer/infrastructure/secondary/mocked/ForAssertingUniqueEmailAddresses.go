@@ -4,7 +4,7 @@
 
 package mocked
 
-import es "github.com/AntonStoeckl/go-iddd/service/lib/es"
+import customer "github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 import mock "github.com/stretchr/testify/mock"
 import sql "database/sql"
 import values "github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -14,13 +14,13 @@ type ForAssertingUniqueEmailAddresses struct {
 	mock.Mock
 }
 
-// Assert provides a mock function with given fields: recordedEvents, tx
-func (_m *ForAssertingUniqueEmailAddresses) Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error {
-	ret := _m.Called(recordedEvents, tx)
+// Assert provides a mock function with given fields: assertions, tx
+func (_m *ForAssertingUniqueEmailAddresses) Assert(assertions customer.UniqueEmailAddressAssertions, tx *sql.Tx) error {
+	ret := _m.Called(assertions, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(es.DomainEvents, *sql.Tx) error); ok {
-		r0 = rf(recordedEvents, tx)
+	if rf, ok := ret.Get(0).(func(customer.UniqueEmailAddressAssertions, *sql.Tx) error); ok {
+		r0 = rf(assertions, tx)
 	} else {
 		r0 = ret.Error(0)
 	}

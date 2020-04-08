@@ -19,6 +19,8 @@ type UniqueEmailAddressAssertion struct {
 	emailAddressToRemove values.EmailAddress
 }
 
+type UniqueEmailAddressAssertions []UniqueEmailAddressAssertion
+
 func (spec UniqueEmailAddressAssertion) DesiredAction() int {
 	return spec.desiredAction
 }
@@ -35,8 +37,8 @@ func (spec UniqueEmailAddressAssertion) EmailAddressToRemove() values.EmailAddre
 	return spec.emailAddressToRemove
 }
 
-func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) []UniqueEmailAddressAssertion {
-	var specifications []UniqueEmailAddressAssertion
+func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) UniqueEmailAddressAssertions {
+	var specifications UniqueEmailAddressAssertions
 
 	for _, event := range recordedEvents {
 		switch actualEvent := event.(type) {

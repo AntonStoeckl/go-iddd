@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"math"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
@@ -58,7 +59,9 @@ func (store *CustomerEventStore) CreateStreamFrom(recordedEvents es.DomainEvents
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	if err = store.uniqueEmailAddresses.Assert(recordedEvents, tx); err != nil {
+	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
+
+	if err = store.uniqueEmailAddresses.Assert(uniqueEmailAddressAssertions, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -90,7 +93,9 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	if err = store.uniqueEmailAddresses.Assert(recordedEvents, tx); err != nil {
+	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
+
+	if err = store.uniqueEmailAddresses.Assert(uniqueEmailAddressAssertions, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)

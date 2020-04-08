@@ -21,7 +21,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 
 		assertsUniqueEmailAddresses := new(customerMocked.ForAssertingUniqueEmailAddresses)
 		assertsUniqueEmailAddresses.
-			On("Assert", mock.AnythingOfType("es.DomainEvents"), mock.AnythingOfType("*sql.Tx")).
+			On("Assert", mock.AnythingOfType("customer.UniqueEmailAddressAssertions"), mock.AnythingOfType("*sql.Tx")).
 			Return(nil)
 
 		dbMock, sqlMock, err := sqlmock.New()

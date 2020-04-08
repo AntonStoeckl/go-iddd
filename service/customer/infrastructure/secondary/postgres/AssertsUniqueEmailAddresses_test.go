@@ -3,6 +3,8 @@ package postgres_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 
@@ -57,7 +59,10 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 			Convey("When the uniqueness of the email address is asserted for a CustomerRegistered event", func() {
 				recordedEvents = append(recordedEvents, customerRegistered)
 
-				err := assertsUniqueEmailAddresses.Assert(recordedEvents, tx)
+				err := assertsUniqueEmailAddresses.Assert(
+					customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents),
+					tx,
+				)
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -68,7 +73,10 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 			Convey("When the uniqueness of the email address is asserted for a CustomerEmailAddressChanged event", func() {
 				recordedEvents = append(recordedEvents, customerEmailAddressChanged)
 
-				err := assertsUniqueEmailAddresses.Assert(recordedEvents, tx)
+				err := assertsUniqueEmailAddresses.Assert(
+					customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents),
+					tx,
+				)
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
@@ -79,7 +87,10 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 			Convey("When the uniqueness of the email address is asserted for a CustomerDeleted event", func() {
 				recordedEvents = append(recordedEvents, customerDeleted)
 
-				err := assertsUniqueEmailAddresses.Assert(recordedEvents, tx)
+				err := assertsUniqueEmailAddresses.Assert(
+					customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents),
+					tx,
+				)
 
 				Convey("Then it should fail", func() {
 					So(err, ShouldBeError)
