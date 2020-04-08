@@ -25,20 +25,20 @@ func NewAssertsUniqueEmailAddresses(tableName string) *AssertsUniqueEmailAddress
 func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	wrapWithMsg := "assertsUniqueEmailAddresses"
 
-	specs := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
+	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
 
-	for _, spec := range specs {
-		switch spec.AssertionType() {
+	for _, assertion := range uniqueEmailAddressAssertions {
+		switch assertion.DesiredAction() {
 		case customer.ShouldAddUniqueEmailAddress:
-			if err := asserter.tryToAdd(spec.EmailAddressToAdd(), spec.CustomerID(), tx); err != nil {
+			if err := asserter.tryToAdd(assertion.EmailAddressToAdd(), assertion.CustomerID(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		case customer.ShouldReplaceUniqueEmailAddress:
-			if err := asserter.tryToReplace(spec.EmailAddressToRemove(), spec.EmailAddressToAdd(), tx); err != nil {
+			if err := asserter.tryToReplace(assertion.EmailAddressToRemove(), assertion.EmailAddressToAdd(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		case customer.ShouldRemoveUniqueEmailAddress:
-			if err := asserter.remove(spec.EmailAddressToRemove(), tx); err != nil {
+			if err := asserter.remove(assertion.EmailAddressToRemove(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		}

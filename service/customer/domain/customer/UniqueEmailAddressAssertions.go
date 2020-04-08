@@ -13,14 +13,14 @@ const (
 )
 
 type UniqueEmailAddressAssertion struct {
-	assertionType        int
+	desiredAction        int
 	customerID           values.CustomerID
 	emailAddressToAdd    values.EmailAddress
 	emailAddressToRemove values.EmailAddress
 }
 
-func (spec UniqueEmailAddressAssertion) AssertionType() int {
-	return spec.assertionType
+func (spec UniqueEmailAddressAssertion) DesiredAction() int {
+	return spec.desiredAction
 }
 
 func (spec UniqueEmailAddressAssertion) CustomerID() values.CustomerID {
@@ -44,7 +44,7 @@ func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) []Uni
 			specifications = append(
 				specifications,
 				UniqueEmailAddressAssertion{
-					assertionType:     ShouldAddUniqueEmailAddress,
+					desiredAction:     ShouldAddUniqueEmailAddress,
 					customerID:        actualEvent.CustomerID(),
 					emailAddressToAdd: actualEvent.EmailAddress(),
 				},
@@ -53,7 +53,7 @@ func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) []Uni
 			specifications = append(
 				specifications,
 				UniqueEmailAddressAssertion{
-					assertionType:        ShouldReplaceUniqueEmailAddress,
+					desiredAction:        ShouldReplaceUniqueEmailAddress,
 					emailAddressToAdd:    actualEvent.EmailAddress(),
 					emailAddressToRemove: actualEvent.PreviousEmailAddress(),
 				},
@@ -62,7 +62,7 @@ func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) []Uni
 			specifications = append(
 				specifications,
 				UniqueEmailAddressAssertion{
-					assertionType:        ShouldRemoveUniqueEmailAddress,
+					desiredAction:        ShouldRemoveUniqueEmailAddress,
 					emailAddressToRemove: actualEvent.EmailAddress(),
 				},
 			)
