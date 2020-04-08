@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -10,15 +11,15 @@ type CustomerEmailAddressConfirmationFailed struct {
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	reason           string
-	meta             EventMeta
+	meta             es.EventMeta
 }
 
 type CustomerEmailAddressConfirmationFailedForJSON struct {
-	CustomerID       string    `json:"customerID"`
-	EmailAddress     string    `json:"emailAddress"`
-	ConfirmationHash string    `json:"confirmationHash"`
-	Reason           string    `json:"reason"`
-	Meta             EventMeta `json:"meta"`
+	CustomerID       string       `json:"customerID"`
+	EmailAddress     string       `json:"emailAddress"`
+	ConfirmationHash string       `json:"confirmationHash"`
+	Reason           string       `json:"reason"`
+	Meta             es.EventMeta `json:"meta"`
 }
 
 func CustomerEmailAddressConfirmationHasFailed(
@@ -36,7 +37,7 @@ func CustomerEmailAddressConfirmationHasFailed(
 		reason:           reason,
 	}
 
-	event.meta = BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, streamVersion)
 
 	return event
 }
@@ -61,12 +62,12 @@ func (event CustomerEmailAddressConfirmationFailed) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() (bool, string) {
-	return true, event.reason
+func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
+	return event.meta.StreamVersion
 }
 
-func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
-	return event.meta.streamVersion
+func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() (bool, string) {
+	return true, event.reason
 }
 
 func (event CustomerEmailAddressConfirmationFailed) MarshalJSON() ([]byte, error) {
@@ -93,7 +94,7 @@ func UnmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
 		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		meta:             EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		meta:             es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

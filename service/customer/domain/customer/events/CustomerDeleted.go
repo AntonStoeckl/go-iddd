@@ -2,19 +2,20 @@ package events
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 )
 
 type CustomerDeleted struct {
 	customerID   values.CustomerID
 	emailAddress values.EmailAddress
-	meta         EventMeta
+	meta         es.EventMeta
 }
 
 type CustomerDeletedForJSON struct {
-	CustomerID   string    `json:"customerID"`
-	EmailAddress string    `json:"emailAddress"`
-	Meta         EventMeta `json:"meta"`
+	CustomerID   string       `json:"customerID"`
+	EmailAddress string       `json:"emailAddress"`
+	Meta         es.EventMeta `json:"meta"`
 }
 
 func CustomerWasDeleted(
@@ -28,7 +29,7 @@ func CustomerWasDeleted(
 		emailAddress: emailAddress,
 	}
 
-	event.meta = BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, streamVersion)
 
 	return event
 }
@@ -49,12 +50,12 @@ func (event CustomerDeleted) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerDeleted) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerDeleted) StreamVersion() uint {
+	return event.meta.StreamVersion
 }
 
-func (event CustomerDeleted) StreamVersion() uint {
-	return event.meta.streamVersion
+func (event CustomerDeleted) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event CustomerDeleted) MarshalJSON() ([]byte, error) {
@@ -79,7 +80,7 @@ func UnmarshalCustomerDeletedFromJSON(
 	event := CustomerDeleted{
 		customerID:   values.RebuildCustomerID(unmarshaledData.CustomerID),
 		emailAddress: values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		meta:         EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		meta:         es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

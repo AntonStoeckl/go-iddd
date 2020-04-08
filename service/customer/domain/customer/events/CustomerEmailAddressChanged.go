@@ -1,6 +1,7 @@
 package events
 
 import (
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -11,15 +12,15 @@ type CustomerEmailAddressChanged struct {
 	emailAddress         values.EmailAddress
 	confirmationHash     values.ConfirmationHash
 	previousEmailAddress values.EmailAddress
-	meta                 EventMeta
+	meta                 es.EventMeta
 }
 
 type CustomerEmailAddressChangedForJSON struct {
-	CustomerID           string    `json:"customerID"`
-	EmailAddress         string    `json:"emailAddress"`
-	ConfirmationHash     string    `json:"confirmationHash"`
-	PreviousEmailAddress string    `json:"previousEmailAddress"`
-	Meta                 EventMeta `json:"meta"`
+	CustomerID           string       `json:"customerID"`
+	EmailAddress         string       `json:"emailAddress"`
+	ConfirmationHash     string       `json:"confirmationHash"`
+	PreviousEmailAddress string       `json:"previousEmailAddress"`
+	Meta                 es.EventMeta `json:"meta"`
 }
 
 func CustomerEmailAddressWasChanged(
@@ -37,7 +38,7 @@ func CustomerEmailAddressWasChanged(
 		previousEmailAddress: previousEmailAddress,
 	}
 
-	event.meta = BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, streamVersion)
 
 	return event
 }
@@ -66,12 +67,12 @@ func (event CustomerEmailAddressChanged) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerEmailAddressChanged) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerEmailAddressChanged) StreamVersion() uint {
+	return event.meta.StreamVersion
 }
 
-func (event CustomerEmailAddressChanged) StreamVersion() uint {
-	return event.meta.streamVersion
+func (event CustomerEmailAddressChanged) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event CustomerEmailAddressChanged) MarshalJSON() ([]byte, error) {
@@ -100,7 +101,7 @@ func UnmarshalCustomerEmailAddressChangedFromJSON(
 		emailAddress:         values.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		confirmationHash:     values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
 		previousEmailAddress: values.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
-		meta:                 EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		meta:                 es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

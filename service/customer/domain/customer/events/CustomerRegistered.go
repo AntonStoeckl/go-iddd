@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -10,16 +11,16 @@ type CustomerRegistered struct {
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
 	personName       values.PersonName
-	meta             EventMeta
+	meta             es.EventMeta
 }
 
 type CustomerRegisteredForJSON struct {
-	CustomerID       string    `json:"customerID"`
-	EmailAddress     string    `json:"emailAddress"`
-	ConfirmationHash string    `json:"confirmationHash"`
-	PersonGivenName  string    `json:"personGivenName"`
-	PersonFamilyName string    `json:"personFamilyName"`
-	Meta             EventMeta `json:"meta"`
+	CustomerID       string       `json:"customerID"`
+	EmailAddress     string       `json:"emailAddress"`
+	ConfirmationHash string       `json:"confirmationHash"`
+	PersonGivenName  string       `json:"personGivenName"`
+	PersonFamilyName string       `json:"personFamilyName"`
+	Meta             es.EventMeta `json:"meta"`
 }
 
 func CustomerWasRegistered(
@@ -37,7 +38,7 @@ func CustomerWasRegistered(
 		personName:       personName,
 	}
 
-	event.meta = BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, streamVersion)
 
 	return event
 }
@@ -66,12 +67,12 @@ func (event CustomerRegistered) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerRegistered) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerRegistered) StreamVersion() uint {
+	return event.meta.StreamVersion
 }
 
-func (event CustomerRegistered) StreamVersion() uint {
-	return event.meta.streamVersion
+func (event CustomerRegistered) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
@@ -104,7 +105,7 @@ func UnmarshalCustomerRegisteredFromJSON(
 			unmarshaledData.PersonGivenName,
 			unmarshaledData.PersonFamilyName,
 		),
-		meta: EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		meta: es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

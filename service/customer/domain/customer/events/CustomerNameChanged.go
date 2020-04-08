@@ -1,6 +1,7 @@
 package events
 
 import (
+	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
@@ -9,14 +10,14 @@ import (
 type CustomerNameChanged struct {
 	customerID values.CustomerID
 	personName values.PersonName
-	meta       EventMeta
+	meta       es.EventMeta
 }
 
 type CustomerNameChangedForJSON struct {
-	CustomerID string    `json:"customerID"`
-	GivenName  string    `json:"givenName"`
-	FamilyName string    `json:"familyName"`
-	Meta       EventMeta `json:"meta"`
+	CustomerID string       `json:"customerID"`
+	GivenName  string       `json:"givenName"`
+	FamilyName string       `json:"familyName"`
+	Meta       es.EventMeta `json:"meta"`
 }
 
 func CustomerNameWasChanged(
@@ -30,7 +31,7 @@ func CustomerNameWasChanged(
 		personName: personName,
 	}
 
-	event.meta = BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, streamVersion)
 
 	return event
 }
@@ -51,12 +52,12 @@ func (event CustomerNameChanged) OccurredAt() string {
 	return event.meta.OccurredAt
 }
 
-func (event CustomerNameChanged) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerNameChanged) StreamVersion() uint {
+	return event.meta.StreamVersion
 }
 
-func (event CustomerNameChanged) StreamVersion() uint {
-	return event.meta.streamVersion
+func (event CustomerNameChanged) IndicatesAnError() (bool, string) {
+	return false, ""
 }
 
 func (event CustomerNameChanged) MarshalJSON() ([]byte, error) {
@@ -85,7 +86,7 @@ func UnmarshalCustomerNameChangedFromJSON(
 			unmarshaledData.GivenName,
 			unmarshaledData.FamilyName,
 		),
-		meta: EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		meta: es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
 	}
 
 	return event

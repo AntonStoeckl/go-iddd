@@ -1,11 +1,9 @@
-package events
+package es
 
 import (
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 const (
@@ -15,11 +13,11 @@ const (
 type EventMeta struct {
 	EventName     string `json:"eventName"`
 	OccurredAt    string `json:"occurredAt"`
-	streamVersion uint
+	StreamVersion uint   `json:"-"`
 }
 
 func BuildEventMeta(
-	event es.DomainEvent,
+	event DomainEvent,
 	streamVersion uint,
 ) EventMeta {
 
@@ -30,7 +28,7 @@ func BuildEventMeta(
 	meta := EventMeta{
 		EventName:     eventName,
 		OccurredAt:    time.Now().Format(metaTimestampFormat),
-		streamVersion: streamVersion,
+		StreamVersion: streamVersion,
 	}
 
 	return meta
@@ -41,7 +39,7 @@ func EnrichEventMeta(
 	streamVersion uint,
 ) EventMeta {
 
-	eventMeta.streamVersion = streamVersion
+	eventMeta.StreamVersion = streamVersion
 
 	return eventMeta
 }
