@@ -25,19 +25,19 @@ func NewAssertsUniqueEmailAddresses(tableName string) *AssertsUniqueEmailAddress
 func (asserter *AssertsUniqueEmailAddresses) Assert(recordedEvents es.DomainEvents, tx *sql.Tx) error {
 	wrapWithMsg := "assertsUniqueEmailAddresses"
 
-	specs := customer.DeriveUniqueEmailAddressAssertionSpecsFrom(recordedEvents)
+	specs := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
 
 	for _, spec := range specs {
-		switch spec.TrackingOperationType() {
-		case customer.AddUniqueEmailAddress:
-			if err := asserter.add(spec.EmailAddressToAdd(), spec.CustomerID(), tx); err != nil {
+		switch spec.AssertionType() {
+		case customer.ShouldAddUniqueEmailAddress:
+			if err := asserter.tryToAdd(spec.EmailAddressToAdd(), spec.CustomerID(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
-		case customer.ReplaceUniqueEmailAddress:
-			if err := asserter.replace(spec.EmailAddressToRemove(), spec.EmailAddressToAdd(), tx); err != nil {
+		case customer.ShouldReplaceUniqueEmailAddress:
+			if err := asserter.tryToReplace(spec.EmailAddressToRemove(), spec.EmailAddressToAdd(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
-		case customer.RemoveUniqueEmailAddress:
+		case customer.ShouldRemoveUniqueEmailAddress:
 			if err := asserter.remove(spec.EmailAddressToRemove(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
@@ -63,7 +63,7 @@ func (asserter *AssertsUniqueEmailAddresses) Remove(customerID values.CustomerID
 	return nil
 }
 
-func (asserter *AssertsUniqueEmailAddresses) add(
+func (asserter *AssertsUniqueEmailAddresses) tryToAdd(
 	emailAddress values.EmailAddress,
 	customerID values.CustomerID,
 	tx *sql.Tx,
@@ -85,7 +85,7 @@ func (asserter *AssertsUniqueEmailAddresses) add(
 	return nil
 }
 
-func (asserter *AssertsUniqueEmailAddresses) replace(
+func (asserter *AssertsUniqueEmailAddresses) tryToReplace(
 	previousEmailAddress values.EmailAddress,
 	newEmailAddress values.EmailAddress,
 	tx *sql.Tx,
