@@ -109,9 +109,9 @@ func (store *CustomerEventStore) Add(recordedEvents es.DomainEvents, id values.C
 	return nil
 }
 
-func (store *CustomerEventStore) Delete(id values.CustomerID) error {
+func (store *CustomerEventStore) Purge(id values.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.Delete"
+	wrapWithMsg := "customerEventStore.Purge"
 
 	tx, err := store.db.Begin()
 	if err != nil {

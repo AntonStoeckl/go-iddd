@@ -127,7 +127,7 @@ func cleanUpAfterBenchmark(
 		b.FailNow()
 	}
 
-	if err := eventstore.Delete(id); err != nil {
+	if err := eventstore.Purge(id); err != nil {
 		b.FailNow()
 	}
 }

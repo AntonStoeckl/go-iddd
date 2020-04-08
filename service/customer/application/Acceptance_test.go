@@ -150,10 +150,10 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.Delete(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.Purge(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -301,7 +301,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -400,10 +400,10 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.Delete(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.Purge(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -483,7 +483,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -568,7 +568,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -706,7 +706,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Delete(customerID)
+			err = acceptanceTestCustomerEventStore.Purge(customerID)
 			So(err, ShouldBeNil)
 		})
 	})

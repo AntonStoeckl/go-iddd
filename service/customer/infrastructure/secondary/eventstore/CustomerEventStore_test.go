@@ -69,7 +69,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Delete(id)
+				err := customers.Purge(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -113,7 +113,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Delete(id)
+				err := customers.Purge(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -166,7 +166,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectCommit()
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Delete(id)
+				err := customers.Purge(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -186,7 +186,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectRollback()
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Delete(id)
+				err := customers.Purge(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)

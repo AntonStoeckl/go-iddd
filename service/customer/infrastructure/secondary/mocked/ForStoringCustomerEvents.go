@@ -41,20 +41,6 @@ func (_m *ForStoringCustomerEvents) CreateStreamFrom(recordedEvents es.DomainEve
 	return r0
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) Delete(id values.CustomerID) error {
-	ret := _m.Called(id)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID) error); ok {
-		r0 = rf(id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // EventStreamFor provides a mock function with given fields: id
 func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
 	ret := _m.Called(id)
@@ -76,4 +62,18 @@ func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.Dom
 	}
 
 	return r0, r1
+}
+
+// Purge provides a mock function with given fields: id
+func (_m *ForStoringCustomerEvents) Purge(id values.CustomerID) error {
+	ret := _m.Called(id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(values.CustomerID) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
