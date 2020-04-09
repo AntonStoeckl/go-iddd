@@ -2,13 +2,13 @@ GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem
 
 generate_proto:
 	@protoc \
-		-I service/customer/infrastructure/primary/grpc \
+		-I service/customer/infrastructure/adapter/primary/grpc \
 		-I /usr/local/include \
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
-		--go_out=plugins=grpc:service/customer/infrastructure/primary/grpc \
-		--grpc-gateway_out=logtostderr=true:service/customer/infrastructure/primary/grpc \
-		--swagger_out=logtostderr=true:service/customer/infrastructure/primary/grpc \
-		service/customer/infrastructure/primary/grpc/customer.proto
+		--go_out=plugins=grpc:service/customer/infrastructure/adapter/primary/grpc \
+		--grpc-gateway_out=logtostderr=true:service/customer/infrastructure/adapter/primary/grpc \
+		--swagger_out=logtostderr=true:service/customer/infrastructure/adapter/primary/grpc \
+		service/customer/infrastructure/adapter/primary/grpc/customer.proto
 
 generate_mocked_EventStore:
 	@mockery \
@@ -23,7 +23,7 @@ generate_mocked_ForStoringCustomerEvents:
 		-name ForStoringCustomerEvents \
 		-dir service/customer/application/command \
 		-outpkg mocked \
-		-output service/customer/infrastructure/secondary/mocked \
+		-output service/customer/infrastructure/adapter/secondary/mocked \
 		-note "+build test"
 
 generate_mocked_ForAssertingUniqueEmailAddresses:
@@ -31,7 +31,7 @@ generate_mocked_ForAssertingUniqueEmailAddresses:
 		-name ForAssertingUniqueEmailAddresses \
 		-dir service/customer/application/command \
 		-outpkg mocked \
-		-output service/customer/infrastructure/secondary/mocked \
+		-output service/customer/infrastructure/adapter/secondary/mocked \
 		-note "+build test"
 
 generate_all_mocks: \

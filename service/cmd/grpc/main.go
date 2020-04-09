@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
+	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"

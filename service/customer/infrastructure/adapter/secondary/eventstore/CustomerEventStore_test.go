@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/eventstore"
-	customerMocked "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/mocked"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/eventstore"
+	customerMocked "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocked"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	libMocked "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"

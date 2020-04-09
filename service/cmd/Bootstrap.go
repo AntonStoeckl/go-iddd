@@ -3,7 +3,7 @@ package cmd
 import (
 	"database/sql"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
