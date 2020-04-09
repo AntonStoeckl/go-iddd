@@ -10,11 +10,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
-
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/primary/grpc"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -128,8 +127,8 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
-			events.MarshalCustomerEvent,
-			events.UnmarshalCustomerEvent,
+			serialization.MarshalCustomerEvent,
+			serialization.UnmarshalCustomerEvent,
 		)
 
 		if err != nil {

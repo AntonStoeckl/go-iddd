@@ -4,8 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/secondary/postgres"
-
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
 
@@ -45,7 +44,7 @@ func Bootstrap() (*DIContainer, error) {
 		return nil, err
 	}
 
-	diContainer, err := NewDIContainer(db, events.MarshalCustomerEvent, events.UnmarshalCustomerEvent)
+	diContainer, err := NewDIContainer(db, serialization.MarshalCustomerEvent, serialization.UnmarshalCustomerEvent)
 
 	if err != nil {
 		return nil, err

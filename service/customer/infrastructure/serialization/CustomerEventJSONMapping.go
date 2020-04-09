@@ -1,4 +1,4 @@
-package events
+package serialization
 
 import "github.com/AntonStoeckl/go-iddd/service/lib/es"
 
