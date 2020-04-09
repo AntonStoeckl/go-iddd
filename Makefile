@@ -14,24 +14,24 @@ generate_mocked_EventStore:
 	@mockery \
 		-name EventStore \
 		-dir service/lib/es \
-		-outpkg mocked \
-		-output service/lib/eventstore/mocked \
+		-outpkg mocks \
+		-output service/lib/eventstore/mocks \
 		-note "+build test"
 
 generate_mocked_ForStoringCustomerEvents:
 	@mockery \
 		-name ForStoringCustomerEvents \
 		-dir service/customer/application/command \
-		-outpkg mocked \
-		-output service/customer/infrastructure/adapter/secondary/mocked \
+		-outpkg mocks \
+		-output service/customer/infrastructure/adapter/secondary/mocks \
 		-note "+build test"
 
 generate_mocked_ForAssertingUniqueEmailAddresses:
 	@mockery \
 		-name ForAssertingUniqueEmailAddresses \
 		-dir service/customer/application/command \
-		-outpkg mocked \
-		-output service/customer/infrastructure/adapter/secondary/mocked \
+		-outpkg mocks \
+		-output service/customer/infrastructure/adapter/secondary/mocks \
 		-note "+build test"
 
 generate_all_mocks: \

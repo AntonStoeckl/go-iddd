@@ -2,7 +2,7 @@
 
 // +build test
 
-package mocked
+package mocks
 
 import es "github.com/AntonStoeckl/go-iddd/service/lib/es"
 import mock "github.com/stretchr/testify/mock"

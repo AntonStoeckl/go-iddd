@@ -6,7 +6,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocked"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocks"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -27,7 +27,7 @@ type commandHandlerTestArtifacts struct {
 }
 
 func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
-	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
+	customerEventStoreMock := new(mocks.ForStoringCustomerEvents)
 	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
 
 	Convey("Prepare test artifacts", t, func() {
@@ -94,7 +94,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 }
 
 func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testing.T) {
-	customerEventStoreMock := new(mocked.ForStoringCustomerEvents)
+	customerEventStoreMock := new(mocks.ForStoringCustomerEvents)
 	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
 
 	Convey("Prepare test artifacts", t, func() {

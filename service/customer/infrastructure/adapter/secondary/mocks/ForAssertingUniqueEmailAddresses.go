@@ -2,7 +2,7 @@
 
 // +build test
 
-package mocked
+package mocks
 
 import customer "github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 import mock "github.com/stretchr/testify/mock"

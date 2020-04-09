@@ -5,10 +5,10 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/eventstore"
-	customerMocked "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocked"
+	customerMocked "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocks"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	libMocked "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocked"
+	libMocked "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/mocks"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
