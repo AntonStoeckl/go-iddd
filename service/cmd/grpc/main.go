@@ -128,6 +128,7 @@ func mustBuildDIContainer() {
 	if diContainer == nil {
 		diContainer, err = cmd.NewDIContainer(
 			postgresDBConn,
+			events.MarshalCustomerEvent,
 			events.UnmarshalCustomerEvent,
 		)
 

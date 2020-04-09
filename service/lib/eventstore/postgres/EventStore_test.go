@@ -150,7 +150,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 			diContainer, err := test.SetUpDIContainer()
 			So(err, ShouldBeNil)
 			db := diContainer.GetPostgresDBConn()
-			eventStore := postgres.NewEventStore(db, "unknown_table", test.UnmarshalMockEvents)
+			eventStore := postgres.NewEventStore(db, "unknown_table", test.MarshalMockEvents, test.UnmarshalMockEvents)
 
 			id := test.SomeID{Value: uuid.New().String()}
 			streamID := es.NewStreamID("customer" + "-" + id.ID())

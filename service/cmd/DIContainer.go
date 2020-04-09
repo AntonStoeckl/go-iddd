@@ -21,6 +21,7 @@ const (
 
 type DIContainer struct {
 	postgresDBConn              *sql.DB
+	marshalCustomerEvent        es.MarshalDomainEvent
 	unmarshalCustomerEvent      es.UnmarshalDomainEvent
 	assertsUniqueEmailAddresses *customerPostgres.AssertsUniqueEmailAddresses
 	customerEventStore          *eventstore.CustomerEventStore
@@ -31,7 +32,8 @@ type DIContainer struct {
 
 func NewDIContainer(
 	postgresDBConn *sql.DB,
-	unmarshalDomainEventForWriteModel es.UnmarshalDomainEvent,
+	marshalCustomerEvent es.MarshalDomainEvent,
+	unmarshalCustomerEvent es.UnmarshalDomainEvent,
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
@@ -40,7 +42,8 @@ func NewDIContainer(
 
 	container := &DIContainer{
 		postgresDBConn:         postgresDBConn,
-		unmarshalCustomerEvent: unmarshalDomainEventForWriteModel,
+		marshalCustomerEvent:   marshalCustomerEvent,
+		unmarshalCustomerEvent: unmarshalCustomerEvent,
 	}
 
 	container.init()
@@ -74,6 +77,7 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 			libPostgres.NewEventStore(
 				container.postgresDBConn,
 				eventStoreTableName,
+				container.marshalCustomerEvent,
 				container.unmarshalCustomerEvent,
 			),
 			container.GetAssertsUniqueEmailAddresses(),

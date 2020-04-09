@@ -4,28 +4,29 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/cockroachdb/errors"
-
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/cockroachdb/errors"
 	"github.com/lib/pq"
 )
 
 type EventStore struct {
 	db                   *sql.DB
 	tableName            string
+	marshalDomainEvent   es.MarshalDomainEvent
 	unmarshalDomainEvent es.UnmarshalDomainEvent
 }
 
 func NewEventStore(
 	db *sql.DB,
 	tableName string,
+	marshalDomainEvent es.MarshalDomainEvent,
 	unmarshalDomainEvent es.UnmarshalDomainEvent,
 ) *EventStore {
 	store := &EventStore{
 		db:                   db,
 		tableName:            tableName,
+		marshalDomainEvent:   marshalDomainEvent,
 		unmarshalDomainEvent: unmarshalDomainEvent,
 	}
 
@@ -49,7 +50,7 @@ func (eventStore *EventStore) AppendEventsToStream(
 	for _, event := range events {
 		var eventJson []byte
 
-		eventJson, err = jsoniter.Marshal(event)
+		eventJson, err = eventStore.marshalDomainEvent(event)
 		if err != nil {
 			return lib.MarkAndWrapError(err, lib.ErrMarshalingFailed, wrapWithMsg)
 		}

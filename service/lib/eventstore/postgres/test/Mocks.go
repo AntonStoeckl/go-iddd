@@ -54,22 +54,6 @@ func (event SomeEvent) StreamVersion() uint {
 	return event.version
 }
 
-func (event SomeEvent) MarshalJSON() ([]byte, error) {
-	data := &struct {
-		ID         string `json:"customerID"`
-		Name       string `json:"name"`
-		Version    uint   `json:"version"`
-		OccurredAt string `json:"occurredAt"`
-	}{
-		ID:         event.id.Value,
-		Name:       event.name,
-		Version:    event.version,
-		OccurredAt: event.occurredAt,
-	}
-
-	return jsoniter.Marshal(data)
-}
-
 func UnmarshalSomeEventFromJSON(data []byte) SomeEvent {
 	someEvent := SomeEvent{
 		id:         SomeID{Value: jsoniter.Get(data, "customerID").ToString()},
@@ -113,10 +97,6 @@ func (event BrokenMarshalingEvent) IndicatesAnError() (bool, string) {
 
 func (event BrokenMarshalingEvent) StreamVersion() uint {
 	return event.version
-}
-
-func (event BrokenMarshalingEvent) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("mocked marshaling error")
 }
 
 /*** mocked Event with broken unmarshaling ***/
@@ -166,5 +146,42 @@ func UnmarshalMockEvents(name string, payload []byte, streamVersion uint) (es.Do
 		return nil, errors.Errorf(defaultErrFormat, name, errors.New("mocked marshaling error"))
 	default:
 		return nil, errors.New("unknown mocked event to unmarshal")
+	}
+}
+
+func MarshalMockEvents(event es.DomainEvent) ([]byte, error) {
+	switch actualEvent := event.(type) {
+	case SomeEvent:
+		data := &struct {
+			ID         string `json:"customerID"`
+			Name       string `json:"name"`
+			Version    uint   `json:"version"`
+			OccurredAt string `json:"occurredAt"`
+		}{
+			ID:         actualEvent.id.Value,
+			Name:       actualEvent.EventName(),
+			OccurredAt: actualEvent.OccurredAt(),
+			Version:    actualEvent.StreamVersion(),
+		}
+
+		return jsoniter.Marshal(data)
+	case BrokenMarshalingEvent:
+		return nil, errors.New("mocked marshaling error")
+	case BrokenUnmarshalingEvent:
+		data := &struct {
+			ID         string `json:"customerID"`
+			Name       string `json:"name"`
+			Version    uint   `json:"version"`
+			OccurredAt string `json:"occurredAt"`
+		}{
+			ID:         actualEvent.id.Value,
+			Name:       actualEvent.EventName(),
+			OccurredAt: actualEvent.OccurredAt(),
+			Version:    actualEvent.StreamVersion(),
+		}
+
+		return jsoniter.Marshal(data)
+	default:
+		return nil, errors.New("mocked marshaling error unknown event")
 	}
 }

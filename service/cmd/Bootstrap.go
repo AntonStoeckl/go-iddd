@@ -45,7 +45,7 @@ func Bootstrap() (*DIContainer, error) {
 		return nil, err
 	}
 
-	diContainer, err := NewDIContainer(db, events.UnmarshalCustomerEvent)
+	diContainer, err := NewDIContainer(db, events.MarshalCustomerEvent, events.UnmarshalCustomerEvent)
 
 	if err != nil {
 		return nil, err

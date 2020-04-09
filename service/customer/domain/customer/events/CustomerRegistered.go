@@ -3,7 +3,6 @@ package events
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	jsoniter "github.com/json-iterator/go"
 )
 
 type CustomerRegistered struct {
@@ -12,15 +11,6 @@ type CustomerRegistered struct {
 	confirmationHash values.ConfirmationHash
 	personName       values.PersonName
 	meta             es.EventMeta
-}
-
-type CustomerRegisteredForJSON struct {
-	CustomerID       string       `json:"customerID"`
-	EmailAddress     string       `json:"emailAddress"`
-	ConfirmationHash string       `json:"confirmationHash"`
-	PersonGivenName  string       `json:"personGivenName"`
-	PersonFamilyName string       `json:"personFamilyName"`
-	Meta             es.EventMeta `json:"meta"`
 }
 
 func CustomerWasRegistered(
@@ -59,6 +49,10 @@ func (event CustomerRegistered) PersonName() values.PersonName {
 	return event.personName
 }
 
+func (event CustomerRegistered) Meta() es.EventMeta {
+	return event.meta
+}
+
 func (event CustomerRegistered) EventName() string {
 	return event.meta.EventName
 }
@@ -73,40 +67,4 @@ func (event CustomerRegistered) StreamVersion() uint {
 
 func (event CustomerRegistered) IndicatesAnError() (bool, string) {
 	return false, ""
-}
-
-func (event CustomerRegistered) MarshalJSON() ([]byte, error) {
-	data := CustomerRegisteredForJSON{
-		CustomerID:       event.customerID.String(),
-		EmailAddress:     event.emailAddress.String(),
-		ConfirmationHash: event.confirmationHash.String(),
-		PersonGivenName:  event.personName.GivenName(),
-		PersonFamilyName: event.personName.FamilyName(),
-		Meta:             event.meta,
-	}
-
-	return jsoniter.ConfigFastest.Marshal(data)
-}
-
-func UnmarshalCustomerRegisteredFromJSON(
-	data []byte,
-	streamVersion uint,
-) CustomerRegistered {
-
-	unmarshaledData := &CustomerRegisteredForJSON{}
-
-	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData)
-
-	event := CustomerRegistered{
-		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		personName: values.RebuildPersonName(
-			unmarshaledData.PersonGivenName,
-			unmarshaledData.PersonFamilyName,
-		),
-		meta: es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
-
-	return event
 }
