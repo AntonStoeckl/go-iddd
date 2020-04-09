@@ -13,7 +13,7 @@ type CustomerEmailAddressChanged struct {
 	meta                 es.EventMeta
 }
 
-func CustomerEmailAddressWasChanged(
+func BuildCustomerEmailAddressChanged(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,

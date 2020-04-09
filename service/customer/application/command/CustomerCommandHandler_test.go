@@ -218,7 +218,7 @@ func buildArtifactsForCommandHandlerTest() commandHandlerTestArtifacts {
 	ca.customerID = values.GenerateCustomerID()
 	ca.confirmationHash = values.GenerateConfirmationHash(ca.emailAddress)
 
-	ca.customerRegistered = events.CustomerWasRegistered(
+	ca.customerRegistered = events.BuildCustomerRegistered(
 		ca.customerID,
 		values.RebuildEmailAddress(ca.emailAddress),
 		ca.confirmationHash,

@@ -18,7 +18,7 @@ func TestDelete(t *testing.T) {
 		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
-		customerWasRegistered := events.CustomerWasRegistered(
+		customerWasRegistered := events.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -54,7 +54,7 @@ func TestDelete(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("and CustomerDeleted", func() {
-					customerDeleted := events.CustomerWasDeleted(customerID, emailAddress, 2)
+					customerDeleted := events.BuildCustomerDeleted(customerID, emailAddress, 2)
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {

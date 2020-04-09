@@ -17,7 +17,7 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCu
 	}
 
 	if !hasSuppliedMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()) {
-		event := events.CustomerEmailAddressConfirmationHasFailed(
+		event := events.BuildCustomerEmailAddressConfirmationFailed(
 			customer.id,
 			customer.emailAddress,
 			command.ConfirmationHash(),
@@ -32,7 +32,7 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCu
 		return nil, nil
 	}
 
-	event := events.CustomerEmailAddressWasConfirmed(
+	event := events.BuildCustomerEmailAddressConfirmed(
 		customer.id,
 		customer.emailAddress,
 		customer.currentStreamVersion+1,

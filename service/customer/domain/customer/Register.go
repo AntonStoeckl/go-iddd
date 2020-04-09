@@ -8,7 +8,7 @@ import (
 
 func Register(with commands.RegisterCustomer) es.DomainEvents {
 	return es.DomainEvents{
-		events.CustomerWasRegistered(
+		events.BuildCustomerRegistered(
 			with.CustomerID(),
 			with.EmailAddress(),
 			with.ConfirmationHash(),

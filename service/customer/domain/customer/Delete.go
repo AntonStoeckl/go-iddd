@@ -12,7 +12,7 @@ func Delete(eventStream es.DomainEvents) es.DomainEvents {
 		return nil
 	}
 
-	event := events.CustomerWasDeleted(
+	event := events.BuildCustomerDeleted(
 		customer.id,
 		customer.emailAddress,
 		customer.currentStreamVersion+1,

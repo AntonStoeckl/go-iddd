@@ -11,7 +11,7 @@ type CustomerNameChanged struct {
 	meta       es.EventMeta
 }
 
-func CustomerNameWasChanged(
+func BuildCustomerNameChanged(
 	customerID values.CustomerID,
 	personName values.PersonName,
 	streamVersion uint,

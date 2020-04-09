@@ -13,7 +13,7 @@ type CustomerEmailAddressConfirmationFailed struct {
 	meta             es.EventMeta
 }
 
-func CustomerEmailAddressConfirmationHasFailed(
+func BuildCustomerEmailAddressConfirmationFailed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,

@@ -25,7 +25,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 		invalidConfirmationHash := values.RebuildConfirmationHash("invalid_hash")
 		personName := values.RebuildPersonName("Kevin", "Ball")
 
-		customerWasRegistered := events.CustomerWasRegistered(
+		customerWasRegistered := events.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -33,7 +33,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
-		customerEmailAddressWasConfirmed := events.CustomerEmailAddressWasConfirmed(
+		customerEmailAddressWasConfirmed := events.BuildCustomerEmailAddressConfirmed(
 			customerID,
 			emailAddress,
 			2,
@@ -149,7 +149,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.CustomerWasDeleted(customerID, emailAddress, 2),
+						events.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ConfirmCustomerEmailAddress", func() {

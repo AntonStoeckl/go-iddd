@@ -25,7 +25,7 @@ func TestChangeName(t *testing.T) {
 		personName := values.RebuildPersonName("Kevin", "Ball")
 		changedPersonName := values.RebuildPersonName("Latoya", "Ball")
 
-		customerWasRegistered := events.CustomerWasRegistered(
+		customerWasRegistered := events.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -91,7 +91,7 @@ func TestChangeName(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("and CustomerNameChanged", func() {
-					nameChanged := events.CustomerNameWasChanged(
+					nameChanged := events.BuildCustomerNameChanged(
 						customerID,
 						changedPersonName,
 						2,
@@ -118,7 +118,7 @@ func TestChangeName(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.CustomerWasDeleted(customerID, emailAddress, 2),
+						events.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ChangeCustomerName", func() {

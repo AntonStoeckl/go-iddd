@@ -25,7 +25,7 @@ func TestChangeEmailAddress(t *testing.T) {
 		personName := values.RebuildPersonName("Kevin", "Ball")
 		changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
 
-		customerWasRegistered := events.CustomerWasRegistered(
+		customerWasRegistered := events.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -33,7 +33,7 @@ func TestChangeEmailAddress(t *testing.T) {
 			1,
 		)
 
-		customerEmailAddressWasConfirmed := events.CustomerEmailAddressWasConfirmed(
+		customerEmailAddressWasConfirmed := events.BuildCustomerEmailAddressConfirmed(
 			customerID,
 			emailAddress,
 			2,
@@ -105,7 +105,7 @@ func TestChangeEmailAddress(t *testing.T) {
 				eventStream := es.DomainEvents{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressChanged", func() {
-					emailAddressChanged := events.CustomerEmailAddressWasChanged(
+					emailAddressChanged := events.BuildCustomerEmailAddressChanged(
 						customerID,
 						changedEmailAddress,
 						changedConfirmationHash,
@@ -135,7 +135,7 @@ func TestChangeEmailAddress(t *testing.T) {
 					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
 
 					Convey("and CustomerEmailAddressChanged", func() {
-						emailAddressChanged := events.CustomerEmailAddressWasChanged(
+						emailAddressChanged := events.BuildCustomerEmailAddressChanged(
 							customerID,
 							changedEmailAddress,
 							changedConfirmationHash,
@@ -173,7 +173,7 @@ func TestChangeEmailAddress(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.CustomerWasDeleted(customerID, emailAddress, 2),
+						events.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ChangeCustomerEmailAddress", func() {

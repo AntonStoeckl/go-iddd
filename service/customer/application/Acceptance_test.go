@@ -721,7 +721,7 @@ func givenCustomerRegistered(
 	confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 	personName := values.RebuildPersonName(aa.givenName, aa.familyName)
 
-	event := events.CustomerWasRegistered(
+	event := events.BuildCustomerRegistered(
 		customerID,
 		emailAddress,
 		confirmationHash,
@@ -743,7 +743,7 @@ func givenCustomerEmailAddressWasConfirmed(
 
 	emailAddress := values.RebuildEmailAddress(aa.emailAddress)
 
-	event := events.CustomerEmailAddressWasConfirmed(
+	event := events.BuildCustomerEmailAddressConfirmed(
 		customerID,
 		emailAddress,
 		streamVersion,
@@ -763,7 +763,7 @@ func givenCustomerEmailAddressWasChanged(
 	previousEmailAddress := values.RebuildEmailAddress(aa.emailAddress)
 	confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
 
-	event := events.CustomerEmailAddressWasChanged(
+	event := events.BuildCustomerEmailAddressChanged(
 		customerID,
 		emailAddress,
 		confirmationHash,

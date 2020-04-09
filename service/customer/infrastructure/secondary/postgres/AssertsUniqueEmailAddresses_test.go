@@ -31,7 +31,7 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 
 		var recordedEvents es.DomainEvents
 
-		customerRegistered := events.CustomerWasRegistered(
+		customerRegistered := events.BuildCustomerRegistered(
 			values.GenerateCustomerID(),
 			values.RebuildEmailAddress("john@doe.com"),
 			values.GenerateConfirmationHash("john@doe.com"),
@@ -39,7 +39,7 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 			1,
 		)
 
-		customerEmailAddressChanged := events.CustomerEmailAddressWasChanged(
+		customerEmailAddressChanged := events.BuildCustomerEmailAddressChanged(
 			customerRegistered.CustomerID(),
 			values.RebuildEmailAddress("john+changed@doe.com"),
 			customerRegistered.ConfirmationHash(),
@@ -47,7 +47,7 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 			2,
 		)
 
-		customerDeleted := events.CustomerWasDeleted(
+		customerDeleted := events.BuildCustomerDeleted(
 			customerRegistered.CustomerID(),
 			customerEmailAddressChanged.EmailAddress(),
 			3,

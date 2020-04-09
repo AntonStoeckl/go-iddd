@@ -11,7 +11,7 @@ type CustomerEmailAddressConfirmed struct {
 	meta         es.EventMeta
 }
 
-func CustomerEmailAddressWasConfirmed(
+func BuildCustomerEmailAddressConfirmed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	streamVersion uint,

@@ -13,7 +13,7 @@ type CustomerRegistered struct {
 	meta             es.EventMeta
 }
 
-func CustomerWasRegistered(
+func BuildCustomerRegistered(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,

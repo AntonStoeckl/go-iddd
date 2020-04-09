@@ -11,7 +11,7 @@ type CustomerDeleted struct {
 	meta         es.EventMeta
 }
 
-func CustomerWasDeleted(
+func BuildCustomerDeleted(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	streamVersion uint,
