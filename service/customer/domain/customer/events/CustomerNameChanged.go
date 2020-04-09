@@ -27,6 +27,21 @@ func BuildCustomerNameChanged(
 	return event
 }
 
+func RebuildCustomerNameChanged(
+	customerID values.CustomerID,
+	personName values.PersonName,
+	meta es.EventMeta,
+) CustomerNameChanged {
+
+	event := CustomerNameChanged{
+		customerID: customerID,
+		personName: personName,
+		meta:       meta,
+	}
+
+	return event
+}
+
 func (event CustomerNameChanged) CustomerID() values.CustomerID {
 	return event.customerID
 }

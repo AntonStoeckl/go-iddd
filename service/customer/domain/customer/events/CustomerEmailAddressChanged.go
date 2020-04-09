@@ -33,6 +33,25 @@ func BuildCustomerEmailAddressChanged(
 	return event
 }
 
+func RebuildCustomerEmailAddressChanged(
+	customerID values.CustomerID,
+	emailAddress values.EmailAddress,
+	confirmationHash values.ConfirmationHash,
+	previousEmailAddress values.EmailAddress,
+	meta es.EventMeta,
+) CustomerEmailAddressChanged {
+
+	event := CustomerEmailAddressChanged{
+		customerID:           customerID,
+		emailAddress:         emailAddress,
+		confirmationHash:     confirmationHash,
+		previousEmailAddress: previousEmailAddress,
+		meta:                 meta,
+	}
+
+	return event
+}
+
 func (event CustomerEmailAddressChanged) CustomerID() values.CustomerID {
 	return event.customerID
 }

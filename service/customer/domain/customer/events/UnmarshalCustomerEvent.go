@@ -52,16 +52,16 @@ func unmarshalCustomerRegisteredFromJSON(
 		return CustomerRegistered{}, err
 	}
 
-	event := CustomerRegistered{
-		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		personName: values.RebuildPersonName(
+	event := RebuildCustomerRegistered(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		values.RebuildPersonName(
 			unmarshaledData.PersonGivenName,
 			unmarshaledData.PersonFamilyName,
 		),
-		meta: es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }
@@ -77,11 +77,11 @@ func unmarshalCustomerEmailAddressConfirmedFromJSON(
 		return CustomerEmailAddressConfirmed{}, err
 	}
 
-	event := CustomerEmailAddressConfirmed{
-		customerID:   values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress: values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		meta:         es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+	event := RebuildCustomerEmailAddressConfirmed(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }
@@ -97,12 +97,13 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		return CustomerEmailAddressConfirmationFailed{}, err
 	}
 
-	event := CustomerEmailAddressConfirmationFailed{
-		customerID:       values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress:     values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		confirmationHash: values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		meta:             es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+	event := RebuildCustomerEmailAddressConfirmationFailed(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		"", // TODO
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }
@@ -118,13 +119,13 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 		return CustomerEmailAddressChanged{}, err
 	}
 
-	event := CustomerEmailAddressChanged{
-		customerID:           values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress:         values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		confirmationHash:     values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		previousEmailAddress: values.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
-		meta:                 es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+	event := RebuildCustomerEmailAddressChanged(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		values.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }
@@ -140,14 +141,14 @@ func unmarshalCustomerNameChangedFromJSON(
 		return CustomerNameChanged{}, err
 	}
 
-	event := CustomerNameChanged{
-		customerID: values.RebuildCustomerID(unmarshaledData.CustomerID),
-		personName: values.RebuildPersonName(
+	event := RebuildCustomerNameChanged(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildPersonName(
 			unmarshaledData.GivenName,
 			unmarshaledData.FamilyName,
 		),
-		meta: es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }
@@ -163,11 +164,11 @@ func unmarshalCustomerDeletedFromJSON(
 		return CustomerDeleted{}, err
 	}
 
-	event := CustomerDeleted{
-		customerID:   values.RebuildCustomerID(unmarshaledData.CustomerID),
-		emailAddress: values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		meta:         es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
-	}
+	event := RebuildCustomerDeleted(
+		values.RebuildCustomerID(unmarshaledData.CustomerID),
+		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+	)
 
 	return event, nil
 }

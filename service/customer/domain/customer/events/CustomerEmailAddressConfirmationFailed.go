@@ -33,6 +33,25 @@ func BuildCustomerEmailAddressConfirmationFailed(
 	return event
 }
 
+func RebuildCustomerEmailAddressConfirmationFailed(
+	customerID values.CustomerID,
+	emailAddress values.EmailAddress,
+	confirmationHash values.ConfirmationHash,
+	reason string,
+	meta es.EventMeta,
+) CustomerEmailAddressConfirmationFailed {
+
+	event := CustomerEmailAddressConfirmationFailed{
+		customerID:       customerID,
+		emailAddress:     emailAddress,
+		confirmationHash: confirmationHash,
+		reason:           reason,
+		meta:             meta,
+	}
+
+	return event
+}
+
 func (event CustomerEmailAddressConfirmationFailed) CustomerID() values.CustomerID {
 	return event.customerID
 }

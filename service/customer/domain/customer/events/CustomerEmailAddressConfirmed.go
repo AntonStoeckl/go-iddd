@@ -27,6 +27,21 @@ func BuildCustomerEmailAddressConfirmed(
 	return event
 }
 
+func RebuildCustomerEmailAddressConfirmed(
+	customerID values.CustomerID,
+	emailAddress values.EmailAddress,
+	meta es.EventMeta,
+) CustomerEmailAddressConfirmed {
+
+	event := CustomerEmailAddressConfirmed{
+		customerID:   customerID,
+		emailAddress: emailAddress,
+		meta:         meta,
+	}
+
+	return event
+}
+
 func (event CustomerEmailAddressConfirmed) CustomerID() values.CustomerID {
 	return event.customerID
 }
