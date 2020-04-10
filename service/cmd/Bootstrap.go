@@ -66,7 +66,6 @@ func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
 	logger.Info("bootstrap: building DI container ...")
 
 	diContainer, err := NewDIContainer(
-		logger,
 		db,
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,

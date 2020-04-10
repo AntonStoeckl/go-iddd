@@ -20,7 +20,6 @@ const (
 )
 
 type DIContainer struct {
-	logger                      *Logger
 	postgresDBConn              *sql.DB
 	marshalCustomerEvent        es.MarshalDomainEvent
 	unmarshalCustomerEvent      es.UnmarshalDomainEvent
@@ -32,7 +31,6 @@ type DIContainer struct {
 }
 
 func NewDIContainer(
-	logger *Logger,
 	postgresDBConn *sql.DB,
 	marshalCustomerEvent es.MarshalDomainEvent,
 	unmarshalCustomerEvent es.UnmarshalDomainEvent,
@@ -43,7 +41,6 @@ func NewDIContainer(
 	}
 
 	container := &DIContainer{
-		logger:                 logger,
 		postgresDBConn:         postgresDBConn,
 		marshalCustomerEvent:   marshalCustomerEvent,
 		unmarshalCustomerEvent: unmarshalCustomerEvent,
@@ -60,10 +57,6 @@ func (container DIContainer) init() {
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
 	container.GetCustomerGRPCServer()
-}
-
-func (container DIContainer) GetLogger() *Logger {
-	return container.logger
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
