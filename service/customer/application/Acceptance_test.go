@@ -778,7 +778,9 @@ func givenCustomerEmailAddressWasChanged(
 }
 
 func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
-	diContainer, err := cmd.Bootstrap()
+	logger := cmd.NewNilLogger()
+	config := cmd.MustBuildConfigFromEnv(logger)
+	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
 		panic(err)
 	}

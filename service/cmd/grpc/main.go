@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -12,176 +10,77 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
-	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 const (
-	rpcHostname  = "localhost"
-	rpcPort      = "5566"
-	ctxTimeout   = 10 * time.Second
-	restHostname = "localhost"
-	restPort     = "8085"
+	ctxTimeout = 10 * time.Second
 )
 
 var (
-	config            *cmd.Config
-	logger            *cmd.Logger
-	postgresDBConn    *sql.DB
-	diContainer       *cmd.DIContainer
-	grpcServer        *grpc.Server
-	cancelCtx         context.CancelFunc
-	grpcClientConn    *grpc.ClientConn
-	restServer        *http.Server
-	stopSignalChannel chan os.Signal
+	diContainer    *cmd.DIContainer
+	grpcServer     *grpc.Server
+	grpcClientConn *grpc.ClientConn
+	cancelCtx      context.CancelFunc
+	restServer     *http.Server
 )
 
 func main() {
-	bootstrap()
-	go mustStartGRPC()
-	go mustStartREST()
-	waitForStopSignal()
-}
-
-func bootstrap() {
-	mustBuildConfig()
-	buildLogger()
-	mustOpenPostgresDBConnection()
-	mustRunDBMigrations()
-	mustBuildDIContainer()
-	buildStopSignalChan()
-}
-
-func mustBuildConfig() {
-	if config == nil {
-		var err error
-
-		config, err = cmd.NewConfigFromEnv()
-		if err != nil {
-			logrus.Fatalf("failed to get config from env - exiting: %s", err)
-		}
-	}
-}
-
-func buildLogger() {
-	if logger == nil {
-		logger = cmd.NewStandardLogger()
-	}
-}
-
-func mustOpenPostgresDBConnection() {
 	var err error
 
-	if postgresDBConn == nil {
-		logger.Info("opening Postgres DB connection ...")
+	logger := cmd.NewStandardLogger()
+	config := cmd.MustBuildConfigFromEnv(logger)
 
-		if postgresDBConn, err = sql.Open("postgres", config.Postgres.DSN); err != nil {
-			logger.Errorf("failed to open Postgres DB connection: %s", err)
-			shutdown()
-		}
-
-		if err := postgresDBConn.Ping(); err != nil {
-			logger.Errorf("failed to connect to Postgres DB: %s", err)
-			shutdown()
-		}
+	diContainer, err = cmd.Bootstrap(config, logger)
+	if err != nil {
+		shutdown(logger)
 	}
+
+	stopSignalChannel := make(chan os.Signal, 1)
+	signal.Notify(stopSignalChannel, os.Interrupt)
+
+	go mustStartGRPC(config, logger)
+	go mustStartREST(config, logger)
+
+	waitForStopSignal(stopSignalChannel, logger)
 }
 
-func mustRunDBMigrations() {
-	migratorEventstore, err := database.NewMigrator(postgresDBConn, config.Postgres.MigrationsPathEventstore)
-	if err != nil {
-		logger.Errorf("failed to create DB migrator for eventstore: %s", err)
-		shutdown()
-		return
-	}
+func mustStartGRPC(config *cmd.Config, logger *cmd.Logger) {
+	logger.Info("configuring gRPC server ...")
 
-	err = migratorEventstore.WithLogger(logger).Up()
-	if err != nil {
-		logger.Errorf("failed to run DB migrator for eventstore: %s", err)
-		shutdown()
-	}
-
-	migratorCustomer, err := postgres.NewMigrator(postgresDBConn, config.Postgres.MigrationsPathCustomer)
-	if err != nil {
-		logger.Errorf("failed to create DB migrator for customer: %s", err)
-		shutdown()
-		return
-	}
-
-	err = migratorCustomer.WithLogger(logger).Up()
-	if err != nil {
-		logger.Errorf("failed to run DB migrator for customer: %s", err)
-		shutdown()
-	}
-}
-
-func mustBuildDIContainer() {
-	var err error
-
-	if diContainer == nil {
-		diContainer, err = cmd.NewDIContainer(
-			postgresDBConn,
-			serialization.MarshalCustomerEvent,
-			serialization.UnmarshalCustomerEvent,
-		)
-
-		if err != nil {
-			logger.Errorf("failed to build the DI container: %s", err)
-			shutdown()
-		}
-	}
-}
-
-func buildStopSignalChan() {
-	if stopSignalChannel == nil {
-		stopSignalChannel = make(chan os.Signal, 1)
-		signal.Notify(stopSignalChannel, os.Interrupt)
-	}
-}
-
-func mustStartGRPC() {
-	logger.Info("starting gRPC server ...")
-
-	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
-
-	listener, err := net.Listen("tcp", rpcHostAndPort)
+	listener, err := net.Listen("tcp", config.GRPC.HostAndPort)
 	if err != nil {
 		logger.Errorf("failed to listen: %v", err)
-		shutdown()
+		shutdown(logger)
 	}
 
 	grpcServer = grpc.NewServer()
 	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerGRPCServer())
 	reflection.Register(grpcServer)
 
-	logger.Infof("gRPC server ready at %s ...", rpcHostAndPort)
+	logger.Infof("starting gRPC server listening at %s ...", config.GRPC.HostAndPort)
 
 	if err := grpcServer.Serve(listener); err != nil {
 		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown()
+		shutdown(logger)
 	}
 }
 
-func mustStartREST() {
+func mustStartREST(config *cmd.Config, logger *cmd.Logger) {
 	var err error
 	var ctx context.Context
 
-	logger.Info("starting REST server ...")
+	logger.Info("configuring REST server ...")
 
 	ctx, cancelCtx = context.WithTimeout(context.Background(), ctxTimeout)
 
-	rpcHostAndPort := fmt.Sprintf("%s:%s", rpcHostname, rpcPort)
-
-	grpcClientConn, err = grpc.DialContext(ctx, rpcHostAndPort, grpc.WithInsecure(), grpc.WithBlock())
+	grpcClientConn, err = grpc.DialContext(ctx, config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		logger.Errorf("fail to dial: %s", err)
-		shutdown()
+		shutdown(logger)
 	}
 
 	rmux := runtime.NewServeMux(
@@ -192,7 +91,7 @@ func mustStartREST() {
 
 	if err = customergrpc.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
 		logger.Errorf("failed to register customerHandlerClient: %s", err)
-		shutdown()
+		shutdown(logger)
 	}
 
 	// Serve the swagger-ui and swagger file
@@ -206,70 +105,71 @@ func mustStartREST() {
 		},
 	)
 
-	restHostAndPort := fmt.Sprintf("%s:%s", restHostname, restPort)
-
 	restServer = &http.Server{
-		Addr:    restHostAndPort,
+		Addr:    config.REST.HostAndPort,
 		Handler: mux,
 	}
 
-	logger.Info("REST server ready")
-	logger.Infof("Serving Swagger file at: http://%s/v1/customer/swagger.json", restHostAndPort)
+	logger.Infof("starting REST server listening at %s ...", config.REST.HostAndPort)
+	logger.Infof("will serve Swagger file at: http://%s/v1/customer/swagger.json", config.REST.HostAndPort)
 
 	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
-		shutdown()
+		shutdown(logger)
 	}
 }
 
-func waitForStopSignal() {
+func waitForStopSignal(stopSignalChannel chan os.Signal, logger *cmd.Logger) {
+	logger.Info("start waiting for stop signal ...")
+
 	s := <-stopSignalChannel
 
 	switch s.(type) {
 	case os.Signal:
 		logger.Infof("received '%s'", s)
-		shutdown()
+		close(stopSignalChannel)
+		shutdown(logger)
 	}
 }
 
-func shutdown() {
-	logger.Info("stopping services ...")
+func shutdown(logger *cmd.Logger) {
+	logger.Info("shutdown: stopping services ...")
 
 	if cancelCtx != nil {
-		logger.Info("canceling context ...")
+		logger.Info("shutdown: canceling context ...")
 		cancelCtx()
 	}
 
 	if restServer != nil {
-		logger.Info("stopping rest server gracefully ...")
+		logger.Info("shutdown: stopping REST server gracefully ...")
 		if err := restServer.Shutdown(context.Background()); err != nil {
-			logger.Warnf("failed to stop the rest server: %s", err)
+			logger.Warnf("shutdown: failed to stop the REST server: %s", err)
 		}
 	}
 
 	if grpcClientConn != nil {
-		logger.Info("closing grpc client connection ...")
+		logger.Info("shutdown: closing gRPC client connection ...")
 
 		if err := grpcClientConn.Close(); err != nil {
-			logger.Warnf("failed to close the grpc client connection: %s", err)
+			logger.Warnf("shutdown: failed to close the gRPC client connection: %s", err)
 		}
 	}
 
 	if grpcServer != nil {
-		logger.Info("stopping grpc server gracefully ...")
+		logger.Info("shutdown: stopping gRPC server gracefully ...")
 		grpcServer.GracefulStop()
 	}
 
+	postgresDBConn := diContainer.GetPostgresDBConn()
+
 	if postgresDBConn != nil {
-		logger.Info("closing Postgres DB connection ...")
+		logger.Info("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
-			logger.Warnf("failed to close the Postgres DB connection: %s", err)
+			logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
 		}
 	}
 
-	close(stopSignalChannel)
-
-	logger.Info("all services stopped - exiting")
+	logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
 
 	os.Exit(0)
 }

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"io/ioutil"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,6 +18,13 @@ func NewStandardLogger() *Logger {
 			FullTimestamp: true,
 		},
 	)
+
+	return logger
+}
+
+func NewNilLogger() *Logger {
+	logger := &Logger{logrus.New()}
+	logger.SetOutput(ioutil.Discard)
 
 	return logger
 }

@@ -13,30 +13,43 @@ type Config struct {
 		MigrationsPathEventstore string
 		MigrationsPathCustomer   string
 	}
+	GRPC struct {
+		HostAndPort string
+	}
+	REST struct {
+		HostAndPort string
+	}
 }
 
-func NewConfigFromEnv() (*Config, error) {
+func MustBuildConfigFromEnv(logger *Logger) *Config {
 	var err error
 	conf := &Config{}
-	wrapMsg := "config.New"
+	msg := "mustBuildConfigFromEnv: %s - Hasta la vista, baby!"
 
-	// Postgres
-	if conf.Postgres.DSN, err = conf.fromEnv("POSTGRES_DSN"); err != nil {
-		return nil, errors.Wrap(err, wrapMsg)
+	if conf.Postgres.DSN, err = conf.stringFromEnv("POSTGRES_DSN"); err != nil {
+		logger.Fatalf(msg, err)
 	}
 
-	if conf.Postgres.MigrationsPathEventstore, err = conf.fromEnv("POSTGRES_MIGRATIONS_PATH_EVENTSTORE"); err != nil {
-		return nil, errors.Wrap(err, wrapMsg)
+	if conf.Postgres.MigrationsPathEventstore, err = conf.stringFromEnv("POSTGRES_MIGRATIONS_PATH_EVENTSTORE"); err != nil {
+		logger.Fatalf(msg, err)
 	}
 
-	if conf.Postgres.MigrationsPathCustomer, err = conf.fromEnv("POSTGRES_MIGRATIONS_PATH_CUSTOMER"); err != nil {
-		return nil, errors.Wrap(err, wrapMsg)
+	if conf.Postgres.MigrationsPathCustomer, err = conf.stringFromEnv("POSTGRES_MIGRATIONS_PATH_CUSTOMER"); err != nil {
+		logger.Fatalf(msg, err)
 	}
 
-	return conf, nil
+	if conf.GRPC.HostAndPort, err = conf.stringFromEnv("GRPC_HOST_AND_PORT"); err != nil {
+		logger.Fatalf(msg, err)
+	}
+
+	if conf.REST.HostAndPort, err = conf.stringFromEnv("REST_HOST_AND_PORT"); err != nil {
+		logger.Fatalf(msg, err)
+	}
+
+	return conf
 }
 
-func (conf Config) fromEnv(envKey string) (string, error) {
+func (conf Config) stringFromEnv(envKey string) (string, error) {
 	envVal, ok := os.LookupEnv(envKey)
 	if !ok {
 		return "", errors.Mark(errors.Newf("config value [%s] missing in env", envKey), lib.ErrTechnical)

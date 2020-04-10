@@ -17,7 +17,9 @@ import (
 )
 
 func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T) {
-	diContainer, err := cmd.Bootstrap()
+	logger := cmd.NewNilLogger()
+	config := cmd.MustBuildConfigFromEnv(logger)
+	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
 		panic(err)
 	}

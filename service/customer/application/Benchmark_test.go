@@ -20,7 +20,9 @@ type benchmarkTestArtifacts struct {
 }
 
 func BenchmarkCustomerCommand(b *testing.B) {
-	diContainer, err := cmd.Bootstrap()
+	logger := cmd.NewNilLogger()
+	config := cmd.MustBuildConfigFromEnv(logger)
+	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +54,9 @@ func BenchmarkCustomerCommand(b *testing.B) {
 }
 
 func BenchmarkCustomerQuery(b *testing.B) {
-	diContainer, err := cmd.Bootstrap()
+	logger := cmd.NewNilLogger()
+	config := cmd.MustBuildConfigFromEnv(logger)
+	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
 		panic(err)
 	}
