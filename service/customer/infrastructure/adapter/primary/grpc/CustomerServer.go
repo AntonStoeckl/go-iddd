@@ -37,7 +37,7 @@ func NewCustomerServer(
 }
 
 func (server *customerServer) Register(
-	ctx context.Context,
+	_ context.Context,
 	req *RegisterRequest,
 ) (*RegisterResponse, error) {
 
@@ -46,13 +46,11 @@ func (server *customerServer) Register(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	_ = ctx // currently not used
-
 	return &RegisterResponse{Id: customerID.String()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(
-	ctx context.Context,
+	_ context.Context,
 	req *ConfirmEmailAddressRequest,
 ) (*empty.Empty, error) {
 
@@ -60,13 +58,11 @@ func (server *customerServer) ConfirmEmailAddress(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	_ = ctx // currently not used
-
 	return &empty.Empty{}, nil
 }
 
 func (server *customerServer) ChangeEmailAddress(
-	ctx context.Context,
+	_ context.Context,
 	req *ChangeEmailAddressRequest,
 ) (*empty.Empty, error) {
 
@@ -74,13 +70,11 @@ func (server *customerServer) ChangeEmailAddress(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	_ = ctx // currently not used
-
 	return &empty.Empty{}, nil
 }
 
 func (server *customerServer) ChangeName(
-	ctx context.Context,
+	_ context.Context,
 	req *ChangeNameRequest,
 ) (*empty.Empty, error) {
 
@@ -88,13 +82,11 @@ func (server *customerServer) ChangeName(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	_ = ctx // currently not used
-
 	return &empty.Empty{}, nil
 }
 
 func (server *customerServer) Delete(
-	ctx context.Context,
+	_ context.Context,
 	req *DeleteRequest,
 ) (*empty.Empty, error) {
 
@@ -102,13 +94,11 @@ func (server *customerServer) Delete(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	_ = ctx // currently not used
-
 	return &empty.Empty{}, nil
 }
 
 func (server *customerServer) RetrieveView(
-	ctx context.Context,
+	_ context.Context,
 	req *RetrieveViewRequest,
 ) (*RetrieveViewResponse, error) {
 
@@ -124,8 +114,6 @@ func (server *customerServer) RetrieveView(
 		FamilyName:              view.FamilyName,
 		Version:                 uint64(view.Version),
 	}
-
-	_ = ctx // currently not used
 
 	return response, nil
 }
