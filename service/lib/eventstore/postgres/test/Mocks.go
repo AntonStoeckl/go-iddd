@@ -42,8 +42,12 @@ func (event SomeEvent) Meta() es.EventMeta {
 	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
-func (event SomeEvent) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event SomeEvent) IsFailureEvent() bool {
+	return false
+}
+
+func (event SomeEvent) FailureReason() error {
+	return nil
 }
 
 func UnmarshalSomeEventFromJSON(data []byte) SomeEvent {
@@ -79,8 +83,12 @@ func (event BrokenMarshalingEvent) Meta() es.EventMeta {
 	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
-func (event BrokenMarshalingEvent) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event BrokenMarshalingEvent) IsFailureEvent() bool {
+	return false
+}
+
+func (event BrokenMarshalingEvent) FailureReason() error {
+	return nil
 }
 
 /*** mocked Event with broken unmarshaling ***/
@@ -105,8 +113,12 @@ func (event BrokenUnmarshalingEvent) Meta() es.EventMeta {
 	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
-func (event BrokenUnmarshalingEvent) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event BrokenUnmarshalingEvent) IsFailureEvent() bool {
+	return false
+}
+
+func (event BrokenUnmarshalingEvent) FailureReason() error {
+	return nil
 }
 
 /*** Unmarshal mocked events ***/

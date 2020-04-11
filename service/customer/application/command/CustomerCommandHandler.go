@@ -4,7 +4,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/cqrs"
 	"github.com/cockroachdb/errors"
 )
@@ -81,8 +80,8 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 		}
 
 		for _, event := range recordedEvents {
-			if isError, reason := event.IndicatesAnError(); isError {
-				return errors.Mark(errors.New(reason), lib.ErrDomainConstraintsViolation)
+			if isError := event.IsFailureEvent(); isError {
+				return event.FailureReason()
 			}
 		}
 

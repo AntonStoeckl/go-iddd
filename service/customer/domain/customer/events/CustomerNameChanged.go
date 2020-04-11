@@ -54,6 +54,10 @@ func (event CustomerNameChanged) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerNameChanged) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerNameChanged) IsFailureEvent() bool {
+	return false
+}
+
+func (event CustomerNameChanged) FailureReason() error {
+	return nil
 }

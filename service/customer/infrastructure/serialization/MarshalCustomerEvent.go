@@ -65,13 +65,11 @@ func marshalCustomerEmailAddressConfirmed(event events.CustomerEmailAddressConfi
 }
 
 func marshalCustomerEmailAddressConfirmationFailed(event events.CustomerEmailAddressConfirmationFailed) []byte {
-	_, reason := event.IndicatesAnError()
-
 	data := CustomerEmailAddressConfirmationFailedForJSON{
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
 		ConfirmationHash: event.ConfirmationHash().String(),
-		Reason:           reason,
+		Reason:           event.FailureReason().Error(),
 		Meta:             marshalEventMeta(event),
 	}
 

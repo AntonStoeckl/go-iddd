@@ -72,6 +72,10 @@ func (event CustomerEmailAddressChanged) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerEmailAddressChanged) IndicatesAnError() (bool, string) {
-	return false, ""
+func (event CustomerEmailAddressChanged) IsFailureEvent() bool {
+	return false
+}
+
+func (event CustomerEmailAddressChanged) FailureReason() error {
+	return nil
 }

@@ -9,7 +9,7 @@ type CustomerEmailAddressConfirmationFailed struct {
 	customerID       values.CustomerID
 	emailAddress     values.EmailAddress
 	confirmationHash values.ConfirmationHash
-	reason           string
+	reason           error
 	meta             es.EventMeta
 }
 
@@ -17,7 +17,7 @@ func BuildCustomerEmailAddressConfirmationFailed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
-	reason string,
+	reason error,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmationFailed {
 
@@ -37,7 +37,7 @@ func RebuildCustomerEmailAddressConfirmationFailed(
 	customerID values.CustomerID,
 	emailAddress values.EmailAddress,
 	confirmationHash values.ConfirmationHash,
-	reason string,
+	reason error,
 	meta es.EventMeta,
 ) CustomerEmailAddressConfirmationFailed {
 
@@ -68,6 +68,10 @@ func (event CustomerEmailAddressConfirmationFailed) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() (bool, string) {
-	return true, event.reason
+func (event CustomerEmailAddressConfirmationFailed) IsFailureEvent() bool {
+	return true
+}
+
+func (event CustomerEmailAddressConfirmationFailed) FailureReason() error {
+	return event.reason
 }

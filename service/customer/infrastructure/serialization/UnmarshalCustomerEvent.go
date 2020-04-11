@@ -95,7 +95,7 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		values.RebuildCustomerID(unmarshaledData.CustomerID),
 		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		unmarshaledData.Reason,
+		errors.Mark(errors.New(unmarshaledData.Reason), lib.ErrDomainConstraintsViolation),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 

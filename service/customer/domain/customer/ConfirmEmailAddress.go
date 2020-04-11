@@ -3,6 +3,7 @@ package customer
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
@@ -21,7 +22,7 @@ func ConfirmEmailAddress(eventStream es.DomainEvents, command commands.ConfirmCu
 			customer.id,
 			customer.emailAddress,
 			command.ConfirmationHash(),
-			failureReasonWrongHash,
+			errors.Mark(errors.New(failureReasonWrongHash), lib.ErrDomainConstraintsViolation),
 			customer.currentStreamVersion+1,
 		)
 

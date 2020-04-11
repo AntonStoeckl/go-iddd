@@ -2,5 +2,6 @@ package es
 
 type DomainEvent interface {
 	Meta() EventMeta
-	IndicatesAnError() (bool, string)
+	IsFailureEvent() bool
+	FailureReason() error
 }
