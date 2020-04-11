@@ -54,18 +54,6 @@ func (event CustomerEmailAddressConfirmed) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerEmailAddressConfirmed) EventName() string {
-	return event.meta.EventName
-}
-
-func (event CustomerEmailAddressConfirmed) OccurredAt() string {
-	return event.meta.OccurredAt
-}
-
-func (event CustomerEmailAddressConfirmed) StreamVersion() uint {
-	return event.meta.StreamVersion
-}
-
 func (event CustomerEmailAddressConfirmed) IndicatesAnError() (bool, string) {
 	return false, ""
 }

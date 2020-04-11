@@ -58,7 +58,7 @@ func TestChangeName(t *testing.T) {
 						isError, reason := nameChanged.IndicatesAnError()
 						So(isError, ShouldBeFalse)
 						So(reason, ShouldBeBlank)
-						So(nameChanged.StreamVersion(), ShouldEqual, 2)
+						So(nameChanged.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})
 			})

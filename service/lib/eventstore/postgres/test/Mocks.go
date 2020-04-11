@@ -38,20 +38,12 @@ func CreateSomeEvent(forId SomeID, withVersion uint) SomeEvent {
 	}
 }
 
-func (event SomeEvent) EventName() string {
-	return event.name
-}
-
-func (event SomeEvent) OccurredAt() string {
-	return event.occurredAt
+func (event SomeEvent) Meta() es.EventMeta {
+	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
 func (event SomeEvent) IndicatesAnError() (bool, string) {
 	return false, ""
-}
-
-func (event SomeEvent) StreamVersion() uint {
-	return event.version
 }
 
 func UnmarshalSomeEventFromJSON(data []byte) SomeEvent {
@@ -83,20 +75,12 @@ func CreateBrokenMarshalingEvent(forId SomeID, withVersion uint) BrokenMarshalin
 	}
 }
 
-func (event BrokenMarshalingEvent) EventName() string {
-	return event.name
-}
-
-func (event BrokenMarshalingEvent) OccurredAt() string {
-	return event.occurredAt
+func (event BrokenMarshalingEvent) Meta() es.EventMeta {
+	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
 func (event BrokenMarshalingEvent) IndicatesAnError() (bool, string) {
 	return false, ""
-}
-
-func (event BrokenMarshalingEvent) StreamVersion() uint {
-	return event.version
 }
 
 /*** mocked Event with broken unmarshaling ***/
@@ -117,20 +101,12 @@ func CreateBrokenUnmarshalingEvent(forId SomeID, withVersion uint) BrokenUnmarsh
 	}
 }
 
-func (event BrokenUnmarshalingEvent) EventName() string {
-	return event.name
-}
-
-func (event BrokenUnmarshalingEvent) OccurredAt() string {
-	return event.occurredAt
+func (event BrokenUnmarshalingEvent) Meta() es.EventMeta {
+	return es.RebuildEventMeta(event.name, event.occurredAt, event.version)
 }
 
 func (event BrokenUnmarshalingEvent) IndicatesAnError() (bool, string) {
 	return false, ""
-}
-
-func (event BrokenUnmarshalingEvent) StreamVersion() uint {
-	return event.version
 }
 
 /*** Unmarshal mocked events ***/
@@ -159,9 +135,9 @@ func MarshalMockEvents(event es.DomainEvent) ([]byte, error) {
 			OccurredAt string `json:"occurredAt"`
 		}{
 			ID:         actualEvent.id.Value,
-			Name:       actualEvent.EventName(),
-			OccurredAt: actualEvent.OccurredAt(),
-			Version:    actualEvent.StreamVersion(),
+			Name:       actualEvent.Meta().EventName(),
+			OccurredAt: actualEvent.Meta().OccurredAt(),
+			Version:    actualEvent.Meta().StreamVersion(),
 		}
 
 		return jsoniter.Marshal(data)
@@ -175,9 +151,9 @@ func MarshalMockEvents(event es.DomainEvent) ([]byte, error) {
 			OccurredAt string `json:"occurredAt"`
 		}{
 			ID:         actualEvent.id.Value,
-			Name:       actualEvent.EventName(),
-			OccurredAt: actualEvent.OccurredAt(),
-			Version:    actualEvent.StreamVersion(),
+			Name:       actualEvent.Meta().EventName(),
+			OccurredAt: actualEvent.Meta().OccurredAt(),
+			Version:    actualEvent.Meta().StreamVersion(),
 		}
 
 		return jsoniter.Marshal(data)

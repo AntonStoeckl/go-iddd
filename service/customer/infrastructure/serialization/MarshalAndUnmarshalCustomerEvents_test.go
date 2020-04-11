@@ -67,13 +67,13 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	for idx, event := range myEvents {
 		originalEvent := event
 		streamVersion := uint(idx + 1)
-		eventName := originalEvent.EventName()
+		eventName := originalEvent.Meta().EventName()
 
 		Convey(fmt.Sprintf("When %s is marshaled and unmarshaled", eventName), t, func() {
 			json, err := MarshalCustomerEvent(originalEvent)
 			So(err, ShouldBeNil)
 
-			unmarshaledEvent, err := UnmarshalCustomerEvent(originalEvent.EventName(), json, streamVersion)
+			unmarshaledEvent, err := UnmarshalCustomerEvent(originalEvent.Meta().EventName(), json, streamVersion)
 			So(err, ShouldBeNil)
 
 			Convey(fmt.Sprintf("Then the unmarshaled %s should resemble the original %s", eventName, eventName), func() {
@@ -106,6 +106,10 @@ func TestUnmarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 /***** a mock event to test marshaling unknown event *****/
 
 type SomeEvent struct{}
+
+func (event SomeEvent) Meta() es.EventMeta {
+	return es.RebuildEventMeta("SomeEvent", "never", 1)
+}
 
 func (event SomeEvent) EventName() string                { return "SomeEvent" }
 func (event SomeEvent) OccurredAt() string               { return "never" }

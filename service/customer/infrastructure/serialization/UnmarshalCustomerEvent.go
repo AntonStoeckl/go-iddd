@@ -58,7 +58,7 @@ func unmarshalCustomerRegisteredFromJSON(
 			unmarshaledData.PersonGivenName,
 			unmarshaledData.PersonFamilyName,
 		),
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -76,7 +76,7 @@ func unmarshalCustomerEmailAddressConfirmedFromJSON(
 	event := events.RebuildCustomerEmailAddressConfirmed(
 		values.RebuildCustomerID(unmarshaledData.CustomerID),
 		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -96,7 +96,7 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
 		unmarshaledData.Reason,
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -116,7 +116,7 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
 		values.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -137,7 +137,7 @@ func unmarshalCustomerNameChangedFromJSON(
 			unmarshaledData.GivenName,
 			unmarshaledData.FamilyName,
 		),
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -155,8 +155,16 @@ func unmarshalCustomerDeletedFromJSON(
 	event := events.RebuildCustomerDeleted(
 		values.RebuildCustomerID(unmarshaledData.CustomerID),
 		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		es.EnrichEventMeta(unmarshaledData.Meta, streamVersion),
+		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
+}
+
+func unmarshalEventMeta(meta es.EventMetaForJSON, streamVersion uint) es.EventMeta {
+	return es.RebuildEventMeta(
+		meta.EventName,
+		meta.OccurredAt,
+		streamVersion,
+	)
 }

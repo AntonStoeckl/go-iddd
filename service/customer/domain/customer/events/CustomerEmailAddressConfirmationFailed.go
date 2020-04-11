@@ -68,18 +68,6 @@ func (event CustomerEmailAddressConfirmationFailed) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerEmailAddressConfirmationFailed) EventName() string {
-	return event.meta.EventName
-}
-
-func (event CustomerEmailAddressConfirmationFailed) OccurredAt() string {
-	return event.meta.OccurredAt
-}
-
-func (event CustomerEmailAddressConfirmationFailed) StreamVersion() uint {
-	return event.meta.StreamVersion
-}
-
 func (event CustomerEmailAddressConfirmationFailed) IndicatesAnError() (bool, string) {
 	return true, event.reason
 }

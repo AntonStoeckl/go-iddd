@@ -43,7 +43,7 @@ func (eventStore *EventStore) AppendEventsToStream(
 
 	wrapWithMsg := "eventStore.AppendEventsToStream"
 
-	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, payload, occurred_at)
+	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, occurred_at, payload)
 						VALUES ($1, $2, $3, $4, $5)`
 	query := strings.Replace(queryTemplate, "%name%", eventStore.tableName, 1)
 
@@ -58,10 +58,10 @@ func (eventStore *EventStore) AppendEventsToStream(
 		_, err = tx.Exec(
 			query,
 			streamID.String(),
-			event.StreamVersion(),
-			event.EventName(),
+			event.Meta().StreamVersion(),
+			event.Meta().EventName(),
+			event.Meta().OccurredAt(),
 			eventJson,
-			event.OccurredAt(),
 		)
 
 		if err != nil {

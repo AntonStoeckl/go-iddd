@@ -72,18 +72,6 @@ func (event CustomerRegistered) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerRegistered) EventName() string {
-	return event.meta.EventName
-}
-
-func (event CustomerRegistered) OccurredAt() string {
-	return event.meta.OccurredAt
-}
-
-func (event CustomerRegistered) StreamVersion() uint {
-	return event.meta.StreamVersion
-}
-
 func (event CustomerRegistered) IndicatesAnError() (bool, string) {
 	return false, ""
 }

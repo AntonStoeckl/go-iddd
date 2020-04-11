@@ -43,7 +43,7 @@ func TestDelete(t *testing.T) {
 						isError, reason := customerDeleted.IndicatesAnError()
 						So(isError, ShouldBeFalse)
 						So(reason, ShouldBeBlank)
-						So(customerDeleted.StreamVersion(), ShouldEqual, uint(2))
+						So(customerDeleted.Meta().StreamVersion(), ShouldEqual, uint(2))
 					})
 				})
 			})

@@ -72,18 +72,6 @@ func (event CustomerEmailAddressChanged) Meta() es.EventMeta {
 	return event.meta
 }
 
-func (event CustomerEmailAddressChanged) EventName() string {
-	return event.meta.EventName
-}
-
-func (event CustomerEmailAddressChanged) OccurredAt() string {
-	return event.meta.OccurredAt
-}
-
-func (event CustomerEmailAddressChanged) StreamVersion() uint {
-	return event.meta.StreamVersion
-}
-
 func (event CustomerEmailAddressChanged) IndicatesAnError() (bool, string) {
 	return false, ""
 }

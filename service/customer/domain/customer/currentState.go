@@ -38,7 +38,7 @@ func buildCurrentStateFrom(eventStream es.DomainEvents) currentState {
 			customer.isDeleted = true
 		}
 
-		customer.currentStreamVersion = event.StreamVersion()
+		customer.currentStreamVersion = event.Meta().StreamVersion()
 	}
 
 	return customer

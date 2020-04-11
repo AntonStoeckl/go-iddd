@@ -11,9 +11,14 @@ const (
 )
 
 type EventMeta struct {
-	EventName     string `json:"eventName"`
-	OccurredAt    string `json:"occurredAt"`
-	StreamVersion uint   `json:"-"`
+	eventName     string
+	occurredAt    string
+	streamVersion uint
+}
+
+type EventMetaForJSON struct {
+	EventName  string `json:"eventName"`
+	OccurredAt string `json:"occurredAt"`
 }
 
 func BuildEventMeta(
@@ -26,20 +31,35 @@ func BuildEventMeta(
 	eventName := eventTypeParts[len(eventTypeParts)-1]
 
 	meta := EventMeta{
-		EventName:     eventName,
-		OccurredAt:    time.Now().Format(metaTimestampFormat),
-		StreamVersion: streamVersion,
+		eventName:     eventName,
+		occurredAt:    time.Now().Format(metaTimestampFormat),
+		streamVersion: streamVersion,
 	}
 
 	return meta
 }
 
-func EnrichEventMeta(
-	eventMeta EventMeta,
+func RebuildEventMeta(
+	eventName string,
+	occurredAt string,
 	streamVersion uint,
 ) EventMeta {
 
-	eventMeta.StreamVersion = streamVersion
+	return EventMeta{
+		eventName:     eventName,
+		occurredAt:    occurredAt,
+		streamVersion: streamVersion,
+	}
+}
 
-	return eventMeta
+func (eventMeta EventMeta) EventName() string {
+	return eventMeta.eventName
+}
+
+func (eventMeta EventMeta) OccurredAt() string {
+	return eventMeta.occurredAt
+}
+
+func (eventMeta EventMeta) StreamVersion() uint {
+	return eventMeta.streamVersion
 }

@@ -33,7 +33,7 @@ func TestRegister(t *testing.T) {
 					isError, reason := registered.IndicatesAnError()
 					So(isError, ShouldBeFalse)
 					So(reason, ShouldBeBlank)
-					So(registered.StreamVersion(), ShouldEqual, uint(1))
+					So(registered.Meta().StreamVersion(), ShouldEqual, uint(1))
 				})
 			})
 		})
