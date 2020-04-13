@@ -18,14 +18,6 @@ generate_mocked_EventStore:
 		-output service/lib/eventstore/mocks \
 		-note "+build test"
 
-generate_mocked_ForStoringCustomerEvents:
-	@mockery \
-		-name ForStoringCustomerEvents \
-		-dir service/customer/application/command \
-		-outpkg mocks \
-		-output service/customer/infrastructure/adapter/secondary/mocks \
-		-note "+build test"
-
 generate_mocked_ForAssertingUniqueEmailAddresses:
 	@mockery \
 		-name ForAssertingUniqueEmailAddresses \
@@ -36,7 +28,6 @@ generate_mocked_ForAssertingUniqueEmailAddresses:
 
 generate_all_mocks: \
 	generate_mocked_EventStore \
-	generate_mocked_ForStoringCustomerEvents \
 	generate_mocked_ForAssertingUniqueEmailAddresses
 
 lint:

@@ -6,12 +6,10 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/mocks"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/mock"
 )
 
 type commandHandlerTestArtifacts struct {
@@ -27,14 +25,6 @@ type commandHandlerTestArtifacts struct {
 }
 
 func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testing.T) {
-	customerEventStoreMock := new(mocks.ForStoringCustomerEvents)
-	commandHandlerWithMock := command.NewCustomerCommandHandler(
-		customerEventStoreMock.RetrieveCustomerEventStream,
-		customerEventStoreMock.RegisterCustomer,
-		customerEventStoreMock.AppendToCustomerEventStream,
-		lib.RetryOnConcurrencyConflict,
-	)
-
 	Convey("Prepare test artifacts", t, func() {
 		var err error
 		ca := buildArtifactsForCommandHandlerTest()
@@ -42,16 +32,21 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
 				Convey("and assuming the event stream can't be read", func() {
-					customerEventStoreMock.
-						On(
-							"RetrieveCustomerEventStream",
-							ca.customerID,
-						).
-						Return(nil, lib.ErrTechnical).
-						Once()
+					commandHandler := command.NewCustomerCommandHandler(
+						func(id values.CustomerID) (es.EventStream, error) {
+							return nil, lib.ErrTechnical
+						},
+						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+							return nil
+						},
+						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+							return nil
+						},
+						lib.RetryOnConcurrencyConflict,
+					)
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
+						err = commandHandler.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -60,7 +55,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
+						err = commandHandler.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -69,7 +64,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
+						err = commandHandler.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -78,7 +73,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.String())
+						err = commandHandler.DeleteCustomer(ca.customerID.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -88,22 +83,21 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 				})
 
 				Convey("and assuming the recorded events can't be stored", func() {
-					customerEventStoreMock.
-						On("RetrieveCustomerEventStream", ca.customerID).
-						Return(es.EventStream{ca.customerRegistered}, nil).
-						Once()
-
-					customerEventStoreMock.
-						On(
-							"AppendToCustomerEventStream",
-							mock.AnythingOfType("es.RecordedEvents"),
-							ca.customerID,
-						).
-						Return(lib.ErrTechnical).
-						Once()
+					commandHandler := command.NewCustomerCommandHandler(
+						func(id values.CustomerID) (es.EventStream, error) {
+							return es.EventStream{ca.customerRegistered}, nil
+						},
+						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+							return nil
+						},
+						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+							return lib.ErrTechnical
+						},
+						lib.RetryOnConcurrencyConflict,
+					)
 
 					Convey("When he tries to confirm his email address", func() {
-						err = commandHandlerWithMock.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
+						err = commandHandler.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -112,7 +106,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his email address", func() {
-						err = commandHandlerWithMock.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
+						err = commandHandler.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -121,7 +115,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to change his name", func() {
-						err = commandHandlerWithMock.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
+						err = commandHandler.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
@@ -130,7 +124,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 					})
 
 					Convey("When he tries to delete his account", func() {
-						err = commandHandlerWithMock.DeleteCustomer(ca.customerID.String())
+						err = commandHandler.DeleteCustomer(ca.customerID.String())
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
