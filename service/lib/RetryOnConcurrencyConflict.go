@@ -1,11 +1,10 @@
-package cqrs
+package lib
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 
-func RetryCommandOnConcurrencyConflict(originalFunc func() error, maxRetries uint8) error {
+func RetryOnConcurrencyConflict(originalFunc func() error, maxRetries uint8) error {
 	var err error
 	var retries uint8
 
@@ -15,10 +14,10 @@ func RetryCommandOnConcurrencyConflict(originalFunc func() error, maxRetries uin
 			return nil // no need to retry, call to originalFunc was successful
 		}
 
-		if !errors.Is(err, lib.ErrConcurrencyConflict) {
+		if !errors.Is(err, ErrConcurrencyConflict) {
 			return err // don't retry for different errors
 		}
 	}
 
-	return errors.Wrap(err, lib.ErrMaxRetriesExceeded.Error())
+	return errors.Wrap(err, ErrMaxRetriesExceeded.Error())
 }

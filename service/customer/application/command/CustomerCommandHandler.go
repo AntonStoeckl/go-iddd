@@ -4,7 +4,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib/cqrs"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 
@@ -53,7 +53,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 		return nil
 	}
 
-	if err = cqrs.RetryCommandOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
+	if err = lib.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
 		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -97,7 +97,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 		return nil
 	}
 
-	if err := cqrs.RetryCommandOnConcurrencyConflict(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := lib.RetryOnConcurrencyConflict(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -135,7 +135,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 		return nil
 	}
 
-	if err := cqrs.RetryCommandOnConcurrencyConflict(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := lib.RetryOnConcurrencyConflict(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -174,7 +174,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 		return nil
 	}
 
-	if err := cqrs.RetryCommandOnConcurrencyConflict(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
+	if err := lib.RetryOnConcurrencyConflict(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -205,7 +205,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 		return nil
 	}
 
-	if err := cqrs.RetryCommandOnConcurrencyConflict(doDelete, maxCustomerCommandHandlerRetries); err != nil {
+	if err := lib.RetryOnConcurrencyConflict(doDelete, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
