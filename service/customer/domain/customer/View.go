@@ -14,7 +14,7 @@ type View struct {
 	Version                 uint
 }
 
-func BuildViewFrom(eventStream es.DomainEvents) View {
+func BuildViewFrom(eventStream es.EventStream) View {
 	customer := buildCurrentStateFrom(eventStream)
 
 	customerView := View{

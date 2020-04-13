@@ -37,7 +37,7 @@ func (spec UniqueEmailAddressAssertion) EmailAddressToRemove() values.EmailAddre
 	return spec.emailAddressToRemove
 }
 
-func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.DomainEvents) UniqueEmailAddressAssertions {
+func BuildUniqueEmailAddressAssertionsFrom(recordedEvents es.RecordedEvents) UniqueEmailAddressAssertions {
 	var specifications UniqueEmailAddressAssertions
 
 	for _, event := range recordedEvents {

@@ -34,7 +34,7 @@ func NewCustomerEventStore(
 	}
 }
 
-func (store *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (es.DomainEvents, error) {
+func (store *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error) {
 	wrapWithMsg := "customerEventStore.RetrieveCustomerEventStream"
 
 	eventStream, err := store.eventStore.LoadEventStream(store.streamID(id), 0, math.MaxUint32)
@@ -50,7 +50,7 @@ func (store *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerI
 	return eventStream, nil
 }
 
-func (store *CustomerEventStore) RegisterCustomer(recordedEvents es.DomainEvents, id values.CustomerID) error {
+func (store *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.RegisterCustomer"
 
@@ -84,7 +84,7 @@ func (store *CustomerEventStore) RegisterCustomer(recordedEvents es.DomainEvents
 	return nil
 }
 
-func (store *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.DomainEvents, id values.CustomerID) error {
+func (store *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.AppendToCustomerEventStream"
 

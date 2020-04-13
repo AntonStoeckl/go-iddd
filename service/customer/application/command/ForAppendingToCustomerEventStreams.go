@@ -5,4 +5,4 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-type ForAppendingToCustomerEventStreams func(recordedEvents es.DomainEvents, id values.CustomerID) error
+type ForAppendingToCustomerEventStreams func(recordedEvents es.RecordedEvents, id values.CustomerID) error

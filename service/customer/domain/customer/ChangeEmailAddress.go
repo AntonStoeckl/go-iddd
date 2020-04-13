@@ -7,7 +7,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCustomerEmailAddress) (es.DomainEvents, error) {
+func ChangeEmailAddress(eventStream es.EventStream, command commands.ChangeCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if !wasNotDeleted(customer) {
@@ -26,5 +26,5 @@ func ChangeEmailAddress(eventStream es.DomainEvents, command commands.ChangeCust
 		customer.currentStreamVersion+1,
 	)
 
-	return es.DomainEvents{event}, nil
+	return es.RecordedEvents{event}, nil
 }

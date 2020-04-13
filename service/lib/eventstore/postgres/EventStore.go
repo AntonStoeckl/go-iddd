@@ -35,7 +35,7 @@ func NewEventStore(
 
 func (eventStore *EventStore) AppendEventsToStream(
 	streamID es.StreamID,
-	events es.DomainEvents,
+	events es.RecordedEvents,
 	tx *sql.Tx,
 ) error {
 
@@ -76,7 +76,7 @@ func (eventStore *EventStore) LoadEventStream(
 	streamID es.StreamID,
 	fromVersion uint,
 	maxEvents uint,
-) (es.DomainEvents, error) {
+) (es.EventStream, error) {
 
 	wrapWithMsg := "eventStore.LoadEventStream"
 
@@ -92,7 +92,7 @@ func (eventStore *EventStore) LoadEventStream(
 		return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	var eventStream es.DomainEvents
+	var eventStream es.EventStream
 	var eventName string
 	var payload string
 	var streamVersion uint

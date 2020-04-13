@@ -16,7 +16,7 @@ type currentState struct {
 	currentStreamVersion         uint
 }
 
-func buildCurrentStateFrom(eventStream es.DomainEvents) currentState {
+func buildCurrentStateFrom(eventStream es.EventStream) currentState {
 	customer := currentState{}
 
 	for _, event := range eventStream {

@@ -5,4 +5,4 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-type ForRegisteringCustomers func(recordedEvents es.DomainEvents, id values.CustomerID) error
+type ForRegisteringCustomers func(recordedEvents es.RecordedEvents, id values.CustomerID) error

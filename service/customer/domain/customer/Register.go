@@ -6,8 +6,8 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-func Register(with commands.RegisterCustomer) es.DomainEvents {
-	return es.DomainEvents{
+func Register(with commands.RegisterCustomer) es.RecordedEvents {
+	return es.RecordedEvents{
 		events.BuildCustomerRegistered(
 			with.CustomerID(),
 			with.EmailAddress(),

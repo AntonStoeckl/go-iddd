@@ -17,7 +17,7 @@ import (
 func TestChangeName(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var recordedEvents es.DomainEvents
+		var recordedEvents es.RecordedEvents
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
@@ -42,7 +42,7 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Change a Customer's name", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerName", func() {
 					recordedEvents, err = customer.ChangeName(eventStream, changeName)
@@ -65,7 +65,7 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Try to change a Customer's name to the value he registered with", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerName", func() {
 					changeName, err = commands.BuildChangeCustomerName(
@@ -87,7 +87,7 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Try to change a Customer's name to the value it was already changed to", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerNameChanged", func() {
 					nameChanged := events.BuildCustomerNameChanged(
@@ -112,7 +112,7 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Try to change a Customer's name when the account was deleted", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(

@@ -17,7 +17,7 @@ import (
 func TestChangeEmailAddress(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var recordedEvents es.DomainEvents
+		var recordedEvents es.RecordedEvents
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
@@ -55,7 +55,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Change a Customer's emailAddress", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
 					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
@@ -80,7 +80,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Try to change a Customer's emailAddress to the value he registered with", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
 					changeEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
@@ -101,7 +101,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Try to change a Customer's emailAddress to the value it was already changed to", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressChanged", func() {
 					emailAddressChanged := events.BuildCustomerEmailAddressChanged(
@@ -128,7 +128,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressConfirmed", func() {
 					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
@@ -166,7 +166,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 5: Try to change a Customer's emailAddress when the account was deleted", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(

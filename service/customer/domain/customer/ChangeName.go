@@ -7,7 +7,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func ChangeName(eventStream es.DomainEvents, command commands.ChangeCustomerName) (es.DomainEvents, error) {
+func ChangeName(eventStream es.EventStream, command commands.ChangeCustomerName) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if !wasNotDeleted(customer) {
@@ -24,5 +24,5 @@ func ChangeName(eventStream es.DomainEvents, command commands.ChangeCustomerName
 		customer.currentStreamVersion+1,
 	)
 
-	return es.DomainEvents{event}, nil
+	return es.RecordedEvents{event}, nil
 }

@@ -14,11 +14,11 @@ type EventStore struct {
 }
 
 // AppendEventsToStream provides a mock function with given fields: streamID, events, tx
-func (_m *EventStore) AppendEventsToStream(streamID es.StreamID, events es.DomainEvents, tx *sql.Tx) error {
+func (_m *EventStore) AppendEventsToStream(streamID es.StreamID, events es.RecordedEvents, tx *sql.Tx) error {
 	ret := _m.Called(streamID, events, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(es.StreamID, es.DomainEvents, *sql.Tx) error); ok {
+	if rf, ok := ret.Get(0).(func(es.StreamID, es.RecordedEvents, *sql.Tx) error); ok {
 		r0 = rf(streamID, events, tx)
 	} else {
 		r0 = ret.Error(0)
@@ -28,15 +28,15 @@ func (_m *EventStore) AppendEventsToStream(streamID es.StreamID, events es.Domai
 }
 
 // LoadEventStream provides a mock function with given fields: streamID, fromVersion, maxEvents
-func (_m *EventStore) LoadEventStream(streamID es.StreamID, fromVersion uint, maxEvents uint) (es.DomainEvents, error) {
+func (_m *EventStore) LoadEventStream(streamID es.StreamID, fromVersion uint, maxEvents uint) (es.EventStream, error) {
 	ret := _m.Called(streamID, fromVersion, maxEvents)
 
-	var r0 es.DomainEvents
-	if rf, ok := ret.Get(0).(func(es.StreamID, uint, uint) es.DomainEvents); ok {
+	var r0 es.EventStream
+	if rf, ok := ret.Get(0).(func(es.StreamID, uint, uint) es.EventStream); ok {
 		r0 = rf(streamID, fromVersion, maxEvents)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(es.DomainEvents)
+			r0 = ret.Get(0).(es.EventStream)
 		}
 	}
 

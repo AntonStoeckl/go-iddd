@@ -17,7 +17,7 @@ import (
 func TestConfirmEmailAddress(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var recordedEvents es.DomainEvents
+		var recordedEvents es.RecordedEvents
 
 		customerID := values.GenerateCustomerID()
 		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
@@ -53,7 +53,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 1: Confirm a Customer's emailAddress with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ConfirmCustomerEmailAddress", func() {
 					recordedEvents, err = customer.ConfirmEmailAddress(eventStream, confirmEmailAddress)
@@ -73,7 +73,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Confirm a Customer's emailAddress with a wrong confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ConfirmCustomerEmailAddress", func() {
 					recordedEvents, err = customer.ConfirmEmailAddress(eventStream, confirmEmailAddressWithInvalidHash)
@@ -96,7 +96,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Try to confirm a Customer's emailAddress again with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressConfirmed", func() {
 					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
@@ -115,7 +115,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Try to confirm a Customer's emailAddress again with a wrong confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressConfirmed", func() {
 					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
@@ -142,7 +142,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 5: Try to confirm a Customer's emailAddress when the account was deleted", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.DomainEvents{customerWasRegistered}
+				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(

@@ -729,7 +729,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := acceptanceTestCustomerEventStore.RegisterCustomer(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.RegisterCustomer(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
@@ -749,7 +749,7 @@ func givenCustomerEmailAddressWasConfirmed(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 }
 
@@ -771,7 +771,7 @@ func givenCustomerEmailAddressWasChanged(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return confirmationHash

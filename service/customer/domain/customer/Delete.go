@@ -5,7 +5,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-func Delete(eventStream es.DomainEvents) es.DomainEvents {
+func Delete(eventStream es.EventStream) es.RecordedEvents {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if !wasNotDeleted(customer) {
@@ -18,5 +18,5 @@ func Delete(eventStream es.DomainEvents) es.DomainEvents {
 		customer.currentStreamVersion+1,
 	)
 
-	return es.DomainEvents{event}
+	return es.RecordedEvents{event}
 }

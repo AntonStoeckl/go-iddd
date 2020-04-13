@@ -18,7 +18,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		var err error
 		var tx *sql.Tx
-		var eventStream es.DomainEvents
+		var eventStream es.EventStream
 
 		diContainer, err := test.SetUpDIContainer()
 		So(err, ShouldBeNil)
@@ -30,15 +30,13 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 		Convey("Given an empty event stream", func() {
 			Convey("When 2 events are appended", func() {
-				appendedEvents := es.DomainEvents{
-					test.CreateSomeEvent(id, 1),
-					test.CreateSomeEvent(id, 2),
-				}
+				event1 := test.CreateSomeEvent(id, 1)
+				event2 := test.CreateSomeEvent(id, 2)
 
 				tx, err = db.Begin()
 				So(err, ShouldBeNil)
 
-				err = eventStore.AppendEventsToStream(streamID, appendedEvents, tx)
+				err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event1, event2}, tx)
 				So(err, ShouldBeNil)
 
 				err = tx.Commit()
@@ -48,19 +46,16 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 					eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 					So(err, ShouldBeNil)
 					So(eventStream, ShouldHaveLength, 2)
-					So(eventStream, ShouldResemble, appendedEvents)
+					So(eventStream, ShouldResemble, es.EventStream{event1, event2})
 
 					Convey("And when 2 additional events are appended", func() {
-						appendedEvents = append(
-							appendedEvents,
-							test.CreateSomeEvent(id, 3),
-							test.CreateSomeEvent(id, 4),
-						)
+						event3 := test.CreateSomeEvent(id, 3)
+						event4 := test.CreateSomeEvent(id, 4)
 
 						tx, err = db.Begin()
 						So(err, ShouldBeNil)
 
-						err = eventStore.AppendEventsToStream(streamID, appendedEvents[2:4], tx)
+						err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event3, event4}, tx)
 						So(err, ShouldBeNil)
 
 						err = tx.Commit()
@@ -70,7 +65,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 							eventStream, err = eventStore.LoadEventStream(streamID, 0, math.MaxUint32)
 							So(err, ShouldBeNil)
 							So(eventStream, ShouldHaveLength, 4)
-							So(eventStream, ShouldResemble, appendedEvents)
+							So(eventStream, ShouldResemble, es.EventStream{event1, event2, event3, event4})
 						})
 					})
 				})
@@ -88,7 +83,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					es.DomainEvents{event, event},
+					es.RecordedEvents{event, event},
 					tx,
 				)
 
@@ -109,7 +104,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					es.DomainEvents{event},
+					es.RecordedEvents{event},
 					tx,
 				)
 
@@ -135,7 +130,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					es.DomainEvents{event},
+					es.RecordedEvents{event},
 					tx,
 				)
 
@@ -164,7 +159,7 @@ func Test_EventStore_AppendEventsToStream(t *testing.T) {
 
 				err = eventStore.AppendEventsToStream(
 					streamID,
-					es.DomainEvents{event1, event2},
+					es.RecordedEvents{event1, event2},
 					tx,
 				)
 
@@ -183,7 +178,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 	Convey("Setup", t, func() {
 		var err error
 		var tx *sql.Tx
-		var eventStream es.DomainEvents
+		var eventStream es.EventStream
 
 		diContainer, err := test.SetUpDIContainer()
 		So(err, ShouldBeNil)
@@ -205,17 +200,15 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 		})
 
 		Convey("Given an event stream with 4 events", func() {
-			expectedEvents := es.DomainEvents{
-				test.CreateSomeEvent(id, 1),
-				test.CreateSomeEvent(id, 2),
-				test.CreateSomeEvent(id, 3),
-				test.CreateSomeEvent(id, 4),
-			}
+			event1 := test.CreateSomeEvent(id, 1)
+			event2 := test.CreateSomeEvent(id, 2)
+			event3 := test.CreateSomeEvent(id, 3)
+			event4 := test.CreateSomeEvent(id, 4)
 
 			tx, err = db.Begin()
 			So(err, ShouldBeNil)
 
-			err = eventStore.AppendEventsToStream(streamID, expectedEvents, tx)
+			err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event1, event2, event3, event4}, tx)
 			So(err, ShouldBeNil)
 
 			err = tx.Commit()
@@ -227,7 +220,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 				Convey("It should contain the expected 4 events", func() {
 					So(err, ShouldBeNil)
 					So(eventStream, ShouldHaveLength, 4)
-					So(eventStream, ShouldResemble, expectedEvents)
+					So(eventStream, ShouldResemble, es.EventStream{event1, event2, event3, event4})
 				})
 			})
 
@@ -237,8 +230,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 				Convey("It should contain the expected 2 events", func() {
 					So(err, ShouldBeNil)
 					So(eventStream, ShouldHaveLength, 2)
-					expectedEvents = expectedEvents[1:3]
-					So(eventStream, ShouldResemble, expectedEvents)
+					So(eventStream, ShouldResemble, es.EventStream{event2, event3})
 				})
 			})
 
@@ -248,24 +240,14 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 		})
 
 		Convey("Given 3 events were appended with wrong order of stream versions", func() {
-			expectedEvents := es.DomainEvents{
-				test.CreateSomeEvent(id, 1),
-				test.CreateSomeEvent(id, 2),
-				test.CreateSomeEvent(id, 3),
-			}
+			event1 := test.CreateSomeEvent(id, 1)
+			event2 := test.CreateSomeEvent(id, 2)
+			event3 := test.CreateSomeEvent(id, 3)
 
 			tx, err = db.Begin()
 			So(err, ShouldBeNil)
 
-			err = eventStore.AppendEventsToStream(
-				streamID,
-				es.DomainEvents{
-					expectedEvents[2],
-					expectedEvents[0],
-					expectedEvents[1],
-				},
-				tx,
-			)
+			err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event3, event1, event2}, tx)
 			So(err, ShouldBeNil)
 
 			err = tx.Commit()
@@ -277,7 +259,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 				Convey("It should contain the expected 3 events properly ordered by stream versions", func() {
 					So(err, ShouldBeNil)
 					So(eventStream, ShouldHaveLength, 3)
-					So(eventStream, ShouldResemble, expectedEvents)
+					So(eventStream, ShouldResemble, es.EventStream{event1, event2, event3})
 				})
 			})
 
@@ -292,7 +274,7 @@ func Test_EventStore_LoadEventStream(t *testing.T) {
 			tx, err = db.Begin()
 			So(err, ShouldBeNil)
 
-			err = eventStore.AppendEventsToStream(streamID, es.DomainEvents{event}, tx)
+			err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event}, tx)
 			So(err, ShouldBeNil)
 
 			err = tx.Commit()
@@ -345,15 +327,11 @@ func Test_EventStore_PurgeEventStream(t *testing.T) {
 			tx, err = db.Begin()
 			So(err, ShouldBeNil)
 
-			err = eventStore.AppendEventsToStream(
-				streamID,
-				es.DomainEvents{
-					test.CreateSomeEvent(id, 1),
-					test.CreateSomeEvent(id, 2),
-					test.CreateSomeEvent(id, 3),
-				},
-				tx,
-			)
+			event1 := test.CreateSomeEvent(id, 1)
+			event2 := test.CreateSomeEvent(id, 2)
+			event3 := test.CreateSomeEvent(id, 3)
+
+			err = eventStore.AppendEventsToStream(streamID, es.RecordedEvents{event1, event2, event3}, tx)
 			So(err, ShouldBeNil)
 
 			err = tx.Commit()

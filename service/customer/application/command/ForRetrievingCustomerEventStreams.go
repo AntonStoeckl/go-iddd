@@ -5,4 +5,4 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
-type ForRetrievingCustomerEventStreams func(id values.CustomerID) (es.DomainEvents, error)
+type ForRetrievingCustomerEventStreams func(id values.CustomerID) (es.EventStream, error)

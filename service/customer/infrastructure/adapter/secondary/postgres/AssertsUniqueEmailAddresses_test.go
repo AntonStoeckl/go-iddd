@@ -31,7 +31,7 @@ func TestAssertsUniqueEmailAddresses_With_Technical_Errors_From_DB(t *testing.T)
 		tx, err := db.Begin()
 		So(err, ShouldBeNil)
 
-		var recordedEvents es.DomainEvents
+		var recordedEvents es.RecordedEvents
 
 		customerRegistered := events.BuildCustomerRegistered(
 			values.GenerateCustomerID(),

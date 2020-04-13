@@ -6,8 +6,8 @@ import (
 )
 
 type ForStoringCustomerEvents interface {
-	RetrieveCustomerEventStream(id values.CustomerID) (es.DomainEvents, error)
-	RegisterCustomer(recordedEvents es.DomainEvents, id values.CustomerID) error
-	AppendToCustomerEventStream(recordedEvents es.DomainEvents, id values.CustomerID) error
+	RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error)
+	RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error
+	AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error
 	PurgeCustomerEventStream(id values.CustomerID) error
 }

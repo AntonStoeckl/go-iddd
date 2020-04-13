@@ -21,7 +21,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	newPersonName := values.RebuildPersonName("John Frank", "Doe")
 	failureReason := "wrong confirmation hash supplied"
 
-	var myEvents es.DomainEvents
+	var myEvents []es.DomainEvent
 	streamVersion := uint(1)
 
 	myEvents = append(

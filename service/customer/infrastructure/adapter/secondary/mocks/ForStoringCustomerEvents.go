@@ -14,11 +14,11 @@ type ForStoringCustomerEvents struct {
 }
 
 // AppendToCustomerEventStream provides a mock function with given fields: recordedEvents, id
-func (_m *ForStoringCustomerEvents) AppendToCustomerEventStream(recordedEvents es.DomainEvents, id values.CustomerID) error {
+func (_m *ForStoringCustomerEvents) AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	ret := _m.Called(recordedEvents, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(es.DomainEvents, values.CustomerID) error); ok {
+	if rf, ok := ret.Get(0).(func(es.RecordedEvents, values.CustomerID) error); ok {
 		r0 = rf(recordedEvents, id)
 	} else {
 		r0 = ret.Error(0)
@@ -42,11 +42,11 @@ func (_m *ForStoringCustomerEvents) PurgeCustomerEventStream(id values.CustomerI
 }
 
 // RegisterCustomer provides a mock function with given fields: recordedEvents, id
-func (_m *ForStoringCustomerEvents) RegisterCustomer(recordedEvents es.DomainEvents, id values.CustomerID) error {
+func (_m *ForStoringCustomerEvents) RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	ret := _m.Called(recordedEvents, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(es.DomainEvents, values.CustomerID) error); ok {
+	if rf, ok := ret.Get(0).(func(es.RecordedEvents, values.CustomerID) error); ok {
 		r0 = rf(recordedEvents, id)
 	} else {
 		r0 = ret.Error(0)
@@ -56,15 +56,15 @@ func (_m *ForStoringCustomerEvents) RegisterCustomer(recordedEvents es.DomainEve
 }
 
 // RetrieveCustomerEventStream provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) RetrieveCustomerEventStream(id values.CustomerID) (es.DomainEvents, error) {
+func (_m *ForStoringCustomerEvents) RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error) {
 	ret := _m.Called(id)
 
-	var r0 es.DomainEvents
-	if rf, ok := ret.Get(0).(func(values.CustomerID) es.DomainEvents); ok {
+	var r0 es.EventStream
+	if rf, ok := ret.Get(0).(func(values.CustomerID) es.EventStream); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(es.DomainEvents)
+			r0 = ret.Get(0).(es.EventStream)
 		}
 	}
 

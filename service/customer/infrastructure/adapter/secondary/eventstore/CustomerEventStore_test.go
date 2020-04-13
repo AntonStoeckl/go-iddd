@@ -29,7 +29,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 
 		customers := eventstore.NewCustomerEventStore(eventStore, assertsUniqueEmailAddresses, dbMock)
 
-		var recordedEvents es.DomainEvents
+		var recordedEvents es.RecordedEvents
 		id := values.GenerateCustomerID()
 
 		Convey("Given a technical error from the EventStore when RetrieveCustomerEventStream is called", func() {

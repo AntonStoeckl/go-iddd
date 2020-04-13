@@ -42,14 +42,14 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 			Convey("Given a registered Customer", func() {
 				customerEventStoreMock.
 					On("RetrieveCustomerEventStream", ca.customerID).
-					Return(es.DomainEvents{ca.customerRegistered}, nil).
+					Return(es.EventStream{ca.customerRegistered}, nil).
 					Times(12)
 
 				Convey("and assuming a concurrency conflict happens once", func() {
 					customerEventStoreMock.
 						On(
 							"AppendToCustomerEventStream",
-							mock.AnythingOfType("es.DomainEvents"),
+							mock.AnythingOfType("es.RecordedEvents"),
 							ca.customerID,
 						).
 						Return(lib.ErrConcurrencyConflict).
@@ -58,7 +58,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 					customerEventStoreMock.
 						On(
 							"AppendToCustomerEventStream",
-							mock.AnythingOfType("es.DomainEvents"),
+							mock.AnythingOfType("es.RecordedEvents"),
 							ca.customerID,
 						).
 						Return(nil).
@@ -77,7 +77,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 					customerEventStoreMock.
 						On(
 							"AppendToCustomerEventStream",
-							mock.AnythingOfType("es.DomainEvents"),
+							mock.AnythingOfType("es.RecordedEvents"),
 							ca.customerID,
 						).
 						Return(lib.ErrConcurrencyConflict).
@@ -160,13 +160,13 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 				Convey("and assuming the recorded events can't be stored", func() {
 					customerEventStoreMock.
 						On("RetrieveCustomerEventStream", ca.customerID).
-						Return(es.DomainEvents{ca.customerRegistered}, nil).
+						Return(es.EventStream{ca.customerRegistered}, nil).
 						Once()
 
 					customerEventStoreMock.
 						On(
 							"AppendToCustomerEventStream",
-							mock.AnythingOfType("es.DomainEvents"),
+							mock.AnythingOfType("es.RecordedEvents"),
 							ca.customerID,
 						).
 						Return(lib.ErrTechnical).
