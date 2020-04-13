@@ -7,7 +7,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/eventstore"
-	customerPostgres "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	libPostgres "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
@@ -20,14 +19,13 @@ const (
 )
 
 type DIContainer struct {
-	postgresDBConn              *sql.DB
-	marshalCustomerEvent        es.MarshalDomainEvent
-	unmarshalCustomerEvent      es.UnmarshalDomainEvent
-	assertsUniqueEmailAddresses *customerPostgres.AssertsUniqueEmailAddresses
-	customerEventStore          *eventstore.CustomerEventStore
-	customerCommandHandler      *command.CustomerCommandHandler
-	customerQueryHandler        *query.CustomerQueryHandler
-	customerGRPCServer          customergrpc.CustomerServer
+	postgresDBConn         *sql.DB
+	marshalCustomerEvent   es.MarshalDomainEvent
+	unmarshalCustomerEvent es.UnmarshalDomainEvent
+	customerEventStore     *eventstore.CustomerEventStore
+	customerCommandHandler *command.CustomerCommandHandler
+	customerQueryHandler   *query.CustomerQueryHandler
+	customerGRPCServer     customergrpc.CustomerServer
 }
 
 func NewDIContainer(
@@ -52,7 +50,6 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.GetAssertsUniqueEmailAddresses()
 	container.GetCustomerEventStore()
 	container.GetCustomerCommandHandler()
 	container.GetCustomerQueryHandler()
@@ -61,14 +58,6 @@ func (container DIContainer) init() {
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
-}
-
-func (container DIContainer) GetAssertsUniqueEmailAddresses() *customerPostgres.AssertsUniqueEmailAddresses {
-	if container.assertsUniqueEmailAddresses == nil {
-		container.assertsUniqueEmailAddresses = customerPostgres.NewAssertsUniqueEmailAddresses(uniqueEmailAddressesTableName)
-	}
-
-	return container.assertsUniqueEmailAddresses
 }
 
 func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
@@ -80,8 +69,8 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 				container.marshalCustomerEvent,
 				container.unmarshalCustomerEvent,
 			),
-			container.GetAssertsUniqueEmailAddresses(),
 			container.postgresDBConn,
+			uniqueEmailAddressesTableName,
 		)
 	}
 

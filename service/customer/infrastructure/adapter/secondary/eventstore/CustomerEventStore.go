@@ -3,41 +3,41 @@ package eventstore
 import (
 	"database/sql"
 	"math"
+	"strings"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
+	"github.com/lib/pq"
 )
 
 const streamPrefix = "customer"
 
 type CustomerEventStore struct {
-	eventStore           es.EventStore
-	uniqueEmailAddresses command.ForAssertingUniqueEmailAddresses
-	db                   *sql.DB
+	eventStore                    es.EventStore
+	db                            *sql.DB
+	uniqueEmailAddressesTableName string
 }
 
 func NewCustomerEventStore(
 	eventStore es.EventStore,
-	uniqueEmailAddresses command.ForAssertingUniqueEmailAddresses,
 	db *sql.DB,
+	uniqueEmailAddressesTableName string,
 ) *CustomerEventStore {
 
 	return &CustomerEventStore{
-		eventStore:           eventStore,
-		uniqueEmailAddresses: uniqueEmailAddresses,
-		db:                   db,
+		eventStore:                    eventStore,
+		db:                            db,
+		uniqueEmailAddressesTableName: uniqueEmailAddressesTableName,
 	}
 }
 
-func (store *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error) {
+func (s *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error) {
 	wrapWithMsg := "customerEventStore.RetrieveCustomerEventStream"
 
-	eventStream, err := store.eventStore.LoadEventStream(store.streamID(id), 0, math.MaxUint32)
+	eventStream, err := s.eventStore.LoadEventStream(s.streamID(id), 0, math.MaxUint32)
 	if err != nil {
 		return nil, errors.Wrap(err, wrapWithMsg)
 	}
@@ -50,24 +50,24 @@ func (store *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerI
 	return eventStream, nil
 }
 
-func (store *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.RegisterCustomer"
 
-	tx, err := store.db.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
 	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
 
-	if err = store.uniqueEmailAddresses.Assert(uniqueEmailAddressAssertions, tx); err != nil {
+	if err = s.assertUniqueEmailAddress(uniqueEmailAddressAssertions, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
+	if err = s.eventStore.AppendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
 		_ = tx.Rollback()
 
 		if errors.Is(err, lib.ErrConcurrencyConflict) {
@@ -84,24 +84,24 @@ func (store *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEven
 	return nil
 }
 
-func (store *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.AppendToCustomerEventStream"
 
-	tx, err := store.db.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
 	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
 
-	if err = store.uniqueEmailAddresses.Assert(uniqueEmailAddressAssertions, tx); err != nil {
+	if err = s.assertUniqueEmailAddress(uniqueEmailAddressAssertions, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = store.eventStore.AppendEventsToStream(store.streamID(id), recordedEvents, tx); err != nil {
+	if err = s.eventStore.AppendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -114,16 +114,16 @@ func (store *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.R
 	return nil
 }
 
-func (store *CustomerEventStore) PurgeCustomerEventStream(id values.CustomerID) error {
+func (s *CustomerEventStore) PurgeCustomerEventStream(id values.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.PurgeCustomerEventStream"
 
-	tx, err := store.db.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	if err = store.uniqueEmailAddresses.ClearFor(id, tx); err != nil {
+	if err = s.clearUniqueEmailAddress(id, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -133,13 +133,128 @@ func (store *CustomerEventStore) PurgeCustomerEventStream(id values.CustomerID) 
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	if err := store.eventStore.PurgeEventStream(store.streamID(id)); err != nil {
+	if err := s.eventStore.PurgeEventStream(s.streamID(id)); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	return nil
 }
 
-func (store *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
+func (s *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
 	return es.NewStreamID(streamPrefix + "-" + id.String())
+}
+
+func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.UniqueEmailAddressAssertions, tx *sql.Tx) error {
+	wrapWithMsg := "assertUniqueEmailAddresse"
+
+	for _, assertion := range assertions {
+		switch assertion.DesiredAction() {
+		case customer.ShouldAddUniqueEmailAddress:
+			if err := s.tryToAdd(assertion.EmailAddressToAdd(), assertion.CustomerID(), tx); err != nil {
+				return errors.Wrap(err, wrapWithMsg)
+			}
+		case customer.ShouldReplaceUniqueEmailAddress:
+			if err := s.tryToReplace(assertion.EmailAddressToRemove(), assertion.EmailAddressToAdd(), tx); err != nil {
+				return errors.Wrap(err, wrapWithMsg)
+			}
+		case customer.ShouldRemoveUniqueEmailAddress:
+			if err := s.remove(assertion.EmailAddressToRemove(), tx); err != nil {
+				return errors.Wrap(err, wrapWithMsg)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *CustomerEventStore) clearUniqueEmailAddress(customerID values.CustomerID, tx *sql.Tx) error {
+	queryTemplate := `DELETE FROM %tablename% WHERE customer_id = $1`
+	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
+
+	_, err := tx.Exec(
+		query,
+		customerID.String(),
+	)
+
+	if err != nil {
+		return s.mapUniqueEmailAddressErrors(err)
+	}
+
+	return nil
+}
+
+func (s *CustomerEventStore) tryToAdd(
+	emailAddress values.EmailAddress,
+	customerID values.CustomerID,
+	tx *sql.Tx,
+) error {
+
+	queryTemplate := `INSERT INTO %tablename% VALUES ($1, $2)`
+	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
+
+	_, err := tx.Exec(
+		query,
+		emailAddress.String(),
+		customerID.String(),
+	)
+
+	if err != nil {
+		return s.mapUniqueEmailAddressErrors(err)
+	}
+
+	return nil
+}
+
+func (s *CustomerEventStore) tryToReplace(
+	previousEmailAddress values.EmailAddress,
+	newEmailAddress values.EmailAddress,
+	tx *sql.Tx,
+) error {
+
+	queryTemplate := `UPDATE %tablename% set email_address = $1 where email_address = $2`
+	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
+
+	_, err := tx.Exec(
+		query,
+		newEmailAddress.String(),
+		previousEmailAddress.String(),
+	)
+
+	if err != nil {
+		return s.mapUniqueEmailAddressErrors(err)
+	}
+
+	return nil
+}
+
+func (s *CustomerEventStore) remove(
+	newEmailAddress values.EmailAddress,
+	tx *sql.Tx,
+) error {
+
+	queryTemplate := `DELETE FROM %tablename% where email_address = $1`
+	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
+
+	_, err := tx.Exec(
+		query,
+		newEmailAddress.String(),
+	)
+
+	if err != nil {
+		return s.mapUniqueEmailAddressErrors(err)
+	}
+
+	return nil
+}
+
+func (s *CustomerEventStore) mapUniqueEmailAddressErrors(err error) error {
+	switch actualErr := err.(type) {
+	case *pq.Error:
+		switch actualErr.Code {
+		case "23505":
+			return errors.Mark(errors.Newf("duplicate email address"), lib.ErrDuplicate)
+		}
+	}
+
+	return errors.Mark(err, lib.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
 }
