@@ -131,7 +131,7 @@ func cleanUpAfterBenchmark(
 		b.FailNow()
 	}
 
-	if err := eventstore.Purge(id); err != nil {
+	if err := eventstore.PurgeCustomerEventStream(id); err != nil {
 		b.FailNow()
 	}
 }

@@ -13,8 +13,8 @@ type ForStoringCustomerEvents struct {
 	mock.Mock
 }
 
-// Add provides a mock function with given fields: recordedEvents, id
-func (_m *ForStoringCustomerEvents) Add(recordedEvents es.DomainEvents, id values.CustomerID) error {
+// AppendToCustomerEventStream provides a mock function with given fields: recordedEvents, id
+func (_m *ForStoringCustomerEvents) AppendToCustomerEventStream(recordedEvents es.DomainEvents, id values.CustomerID) error {
 	ret := _m.Called(recordedEvents, id)
 
 	var r0 error
@@ -27,8 +27,22 @@ func (_m *ForStoringCustomerEvents) Add(recordedEvents es.DomainEvents, id value
 	return r0
 }
 
-// CreateStreamFrom provides a mock function with given fields: recordedEvents, id
-func (_m *ForStoringCustomerEvents) CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID) error {
+// PurgeCustomerEventStream provides a mock function with given fields: id
+func (_m *ForStoringCustomerEvents) PurgeCustomerEventStream(id values.CustomerID) error {
+	ret := _m.Called(id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(values.CustomerID) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterCustomer provides a mock function with given fields: recordedEvents, id
+func (_m *ForStoringCustomerEvents) RegisterCustomer(recordedEvents es.DomainEvents, id values.CustomerID) error {
 	ret := _m.Called(recordedEvents, id)
 
 	var r0 error
@@ -41,8 +55,8 @@ func (_m *ForStoringCustomerEvents) CreateStreamFrom(recordedEvents es.DomainEve
 	return r0
 }
 
-// EventStreamFor provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.DomainEvents, error) {
+// RetrieveCustomerEventStream provides a mock function with given fields: id
+func (_m *ForStoringCustomerEvents) RetrieveCustomerEventStream(id values.CustomerID) (es.DomainEvents, error) {
 	ret := _m.Called(id)
 
 	var r0 es.DomainEvents
@@ -62,18 +76,4 @@ func (_m *ForStoringCustomerEvents) EventStreamFor(id values.CustomerID) (es.Dom
 	}
 
 	return r0, r1
-}
-
-// Purge provides a mock function with given fields: id
-func (_m *ForStoringCustomerEvents) Purge(id values.CustomerID) error {
-	ret := _m.Called(id)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(values.CustomerID) error); ok {
-		r0 = rf(id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

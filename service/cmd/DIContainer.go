@@ -91,7 +91,9 @@ func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventSt
 func (container DIContainer) GetCustomerCommandHandler() *command.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
 		container.customerCommandHandler = command.NewCustomerCommandHandler(
-			container.GetCustomerEventStore(),
+			container.GetCustomerEventStore().RetrieveCustomerEventStream,
+			container.GetCustomerEventStore().RegisterCustomer,
+			container.GetCustomerEventStore().AppendToCustomerEventStream,
 		)
 	}
 
@@ -101,7 +103,7 @@ func (container DIContainer) GetCustomerCommandHandler() *command.CustomerComman
 func (container DIContainer) GetCustomerQueryHandler() *query.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
 		container.customerQueryHandler = query.NewCustomerQueryHandler(
-			container.GetCustomerEventStore(),
+			container.GetCustomerEventStore().RetrieveCustomerEventStream,
 		)
 	}
 

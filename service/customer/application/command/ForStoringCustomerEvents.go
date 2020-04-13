@@ -6,8 +6,8 @@ import (
 )
 
 type ForStoringCustomerEvents interface {
-	EventStreamFor(id values.CustomerID) (es.DomainEvents, error)
-	CreateStreamFrom(recordedEvents es.DomainEvents, id values.CustomerID) error
-	Add(recordedEvents es.DomainEvents, id values.CustomerID) error
-	Purge(id values.CustomerID) error
+	RetrieveCustomerEventStream(id values.CustomerID) (es.DomainEvents, error)
+	RegisterCustomer(recordedEvents es.DomainEvents, id values.CustomerID) error
+	AppendToCustomerEventStream(recordedEvents es.DomainEvents, id values.CustomerID) error
+	PurgeCustomerEventStream(id values.CustomerID) error
 }

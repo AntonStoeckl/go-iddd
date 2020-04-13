@@ -28,7 +28,11 @@ type commandHandlerTestArtifacts struct {
 
 func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 	customerEventStoreMock := new(mocks.ForStoringCustomerEvents)
-	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(
+		customerEventStoreMock.RetrieveCustomerEventStream,
+		customerEventStoreMock.RegisterCustomer,
+		customerEventStoreMock.AppendToCustomerEventStream,
+	)
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -37,14 +41,14 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 		Convey("\nSCENARIO: Concurrency conflict in CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
 				customerEventStoreMock.
-					On("EventStreamFor", ca.customerID).
+					On("RetrieveCustomerEventStream", ca.customerID).
 					Return(es.DomainEvents{ca.customerRegistered}, nil).
 					Times(12)
 
 				Convey("and assuming a concurrency conflict happens once", func() {
 					customerEventStoreMock.
 						On(
-							"Add",
+							"AppendToCustomerEventStream",
 							mock.AnythingOfType("es.DomainEvents"),
 							ca.customerID,
 						).
@@ -53,7 +57,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 
 					customerEventStoreMock.
 						On(
-							"Add",
+							"AppendToCustomerEventStream",
 							mock.AnythingOfType("es.DomainEvents"),
 							ca.customerID,
 						).
@@ -72,7 +76,7 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 				Convey("and assuming a concurrency conflict happens 10 times", func() {
 					customerEventStoreMock.
 						On(
-							"Add",
+							"AppendToCustomerEventStream",
 							mock.AnythingOfType("es.DomainEvents"),
 							ca.customerID,
 						).
@@ -95,7 +99,11 @@ func TestCustomerCommandHandler_ConcurrencyConflictHandling(t *testing.T) {
 
 func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testing.T) {
 	customerEventStoreMock := new(mocks.ForStoringCustomerEvents)
-	commandHandlerWithMock := command.NewCustomerCommandHandler(customerEventStoreMock)
+	commandHandlerWithMock := command.NewCustomerCommandHandler(
+		customerEventStoreMock.RetrieveCustomerEventStream,
+		customerEventStoreMock.RegisterCustomer,
+		customerEventStoreMock.AppendToCustomerEventStream,
+	)
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
@@ -106,7 +114,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 				Convey("and assuming the event stream can't be read", func() {
 					customerEventStoreMock.
 						On(
-							"EventStreamFor",
+							"RetrieveCustomerEventStream",
 							ca.customerID,
 						).
 						Return(nil, lib.ErrTechnical).
@@ -151,13 +159,13 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 				Convey("and assuming the recorded events can't be stored", func() {
 					customerEventStoreMock.
-						On("EventStreamFor", ca.customerID).
+						On("RetrieveCustomerEventStream", ca.customerID).
 						Return(es.DomainEvents{ca.customerRegistered}, nil).
 						Once()
 
 					customerEventStoreMock.
 						On(
-							"Add",
+							"AppendToCustomerEventStream",
 							mock.AnythingOfType("es.DomainEvents"),
 							ca.customerID,
 						).

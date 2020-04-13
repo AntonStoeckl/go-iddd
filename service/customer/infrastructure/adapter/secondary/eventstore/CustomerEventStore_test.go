@@ -32,13 +32,13 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 		var recordedEvents es.DomainEvents
 		id := values.GenerateCustomerID()
 
-		Convey("Given a technical error from the EventStore when EventStreamFor is called", func() {
+		Convey("Given a technical error from the EventStore when RetrieveCustomerEventStream is called", func() {
 			eventStore.
 				On("LoadEventStream", mock.AnythingOfType("es.StreamID"), mock.AnythingOfType("uint"), mock.AnythingOfType("uint")).
 				Return(nil, lib.ErrTechnical)
 
 			Convey("When a Customer's eventStream is retrieved", func() {
-				_, err := customers.EventStreamFor(id)
+				_, err := customers.RetrieveCustomerEventStream(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -51,7 +51,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectBegin().WillReturnError(errors.Newf("mocked error: begin tx failed"))
 
 			Convey("When a Customer is registered", func() {
-				err := customers.CreateStreamFrom(recordedEvents, id)
+				err := customers.RegisterCustomer(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -60,7 +60,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When changes of a Customer are persisted", func() {
-				err := customers.Add(recordedEvents, id)
+				err := customers.AppendToCustomerEventStream(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -69,7 +69,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Purge(id)
+				err := customers.PurgeCustomerEventStream(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -95,7 +95,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 				WillReturnError(errors.Newf("mocked error: commit tx failed"))
 
 			Convey("When a Customer is registered", func() {
-				err := customers.CreateStreamFrom(recordedEvents, id)
+				err := customers.RegisterCustomer(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -104,7 +104,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When changes of a Customer are persisted", func() {
-				err := customers.Add(recordedEvents, id)
+				err := customers.AppendToCustomerEventStream(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -113,7 +113,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Purge(id)
+				err := customers.PurgeCustomerEventStream(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -133,7 +133,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectRollback()
 
 			Convey("When a Customer is registered", func() {
-				err := customers.CreateStreamFrom(recordedEvents, id)
+				err := customers.RegisterCustomer(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -142,7 +142,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			})
 
 			Convey("When changes of a Customer are persisted", func() {
-				err := customers.Add(recordedEvents, id)
+				err := customers.AppendToCustomerEventStream(recordedEvents, id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -166,7 +166,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectCommit()
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Purge(id)
+				err := customers.PurgeCustomerEventStream(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)
@@ -186,7 +186,7 @@ func Test_CustomerEventStore_With_Technical_Errors_From_EventStore(t *testing.T)
 			sqlMock.ExpectRollback()
 
 			Convey("When a Customer is deleted", func() {
-				err := customers.Purge(id)
+				err := customers.PurgeCustomerEventStream(id)
 
 				Convey("It should fail", func() {
 					So(err, ShouldBeError)

@@ -150,10 +150,10 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.Purge(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -301,7 +301,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -400,10 +400,10 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.Purge(otherCustomerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -483,7 +483,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -568,7 +568,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -706,7 +706,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.Purge(customerID)
+			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -729,7 +729,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := acceptanceTestCustomerEventStore.CreateStreamFrom(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.RegisterCustomer(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
@@ -749,7 +749,7 @@ func givenCustomerEmailAddressWasConfirmed(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.Add(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 }
 
@@ -771,7 +771,7 @@ func givenCustomerEmailAddressWasChanged(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.Add(es.DomainEvents{event}, customerID)
+	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.DomainEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return confirmationHash

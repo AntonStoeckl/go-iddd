@@ -11,12 +11,21 @@ import (
 const maxCustomerCommandHandlerRetries = uint8(10)
 
 type CustomerCommandHandler struct {
-	customerEvents ForStoringCustomerEvents
+	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
+	registerCustomer            ForRegisteringCustomers
+	appendToCustomerEventStream ForAppendingToCustomerEventStreams
 }
 
-func NewCustomerCommandHandler(customerEvents ForStoringCustomerEvents) *CustomerCommandHandler {
+func NewCustomerCommandHandler(
+	retrieveCustomerEventStream ForRetrievingCustomerEventStreams,
+	registerCustomers ForRegisteringCustomers,
+	appendToCustomerEventStream ForAppendingToCustomerEventStreams,
+) *CustomerCommandHandler {
+
 	return &CustomerCommandHandler{
-		customerEvents: customerEvents,
+		retrieveCustomerEventStream: retrieveCustomerEventStream,
+		registerCustomer:            registerCustomers,
+		appendToCustomerEventStream: appendToCustomerEventStream,
 	}
 }
 
@@ -37,7 +46,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	doRegister := func() error {
 		recordedEvents := customer.Register(command)
 
-		if err = h.customerEvents.CreateStreamFrom(recordedEvents, command.CustomerID()); err != nil {
+		if err = h.registerCustomer(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -65,7 +74,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 	}
 
 	doConfirmEmailAddress := func() error {
-		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
+		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
 		if err != nil {
 			return err
 		}
@@ -75,7 +84,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 			return err
 		}
 
-		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
+		if err := h.appendToCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -109,7 +118,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 	}
 
 	doChangeEmailAddress := func() error {
-		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
+		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
 		if err != nil {
 			return err
 		}
@@ -119,7 +128,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 			return err
 		}
 
-		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
+		if err := h.appendToCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -148,7 +157,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 	}
 
 	doChangeName := func() error {
-		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
+		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
 		if err != nil {
 			return err
 		}
@@ -158,7 +167,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 			return err
 		}
 
-		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
+		if err := h.appendToCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 
@@ -182,14 +191,14 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 	}
 
 	doDelete := func() error {
-		eventStream, err := h.customerEvents.EventStreamFor(command.CustomerID())
+		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
 		if err != nil {
 			return err
 		}
 
 		recordedEvents := customer.Delete(eventStream)
 
-		if err := h.customerEvents.Add(recordedEvents, command.CustomerID()); err != nil {
+		if err := h.appendToCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 

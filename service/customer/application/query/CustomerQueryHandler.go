@@ -1,6 +1,7 @@
 package query
 
 import (
+	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
@@ -8,12 +9,12 @@ import (
 )
 
 type CustomerQueryHandler struct {
-	customerEvents ForReadingCustomerEventStreams
+	retrieveCustomerEventStream command.ForRetrievingCustomerEventStreams
 }
 
-func NewCustomerQueryHandler(customerEvents ForReadingCustomerEventStreams) *CustomerQueryHandler {
+func NewCustomerQueryHandler(retrieveCustomerEventStream command.ForRetrievingCustomerEventStreams) *CustomerQueryHandler {
 	return &CustomerQueryHandler{
-		customerEvents: customerEvents,
+		retrieveCustomerEventStream: retrieveCustomerEventStream,
 	}
 }
 
@@ -26,7 +27,7 @@ func (h *CustomerQueryHandler) CustomerViewByID(customerID string) (customer.Vie
 		return customer.View{}, errors.Wrap(err, wrapWithMsg)
 	}
 
-	eventStream, err := h.customerEvents.EventStreamFor(customerIDValue)
+	eventStream, err := h.retrieveCustomerEventStream(customerIDValue)
 	if err != nil {
 		return customer.View{}, errors.Wrap(err, wrapWithMsg)
 	}
