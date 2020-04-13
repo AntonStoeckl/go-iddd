@@ -9,9 +9,8 @@ import (
 
 type Config struct {
 	Postgres struct {
-		DSN                      string
-		MigrationsPathEventstore string
-		MigrationsPathCustomer   string
+		DSN                    string
+		MigrationsPathCustomer string
 	}
 	GRPC struct {
 		HostAndPort string
@@ -27,10 +26,6 @@ func MustBuildConfigFromEnv(logger *Logger) *Config {
 	msg := "mustBuildConfigFromEnv: %s - Hasta la vista, baby!"
 
 	if conf.Postgres.DSN, err = conf.stringFromEnv("POSTGRES_DSN"); err != nil {
-		logger.Fatalf(msg, err)
-	}
-
-	if conf.Postgres.MigrationsPathEventstore, err = conf.stringFromEnv("POSTGRES_MIGRATIONS_PATH_EVENTSTORE"); err != nil {
 		logger.Fatalf(msg, err)
 	}
 

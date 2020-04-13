@@ -41,7 +41,7 @@ func (migrator *Migrator) WithLogger(logger migrate.Logger) *Migrator {
 }
 
 func (migrator *Migrator) configure(postgresDBConn *sql.DB, migrationsPath string) error {
-	config := &postgres.Config{MigrationsTable: "eventstore_migrations"}
+	config := &postgres.Config{MigrationsTable: "customer_migrations"}
 
 	driver, err := postgres.WithInstance(postgresDBConn, config)
 	if err != nil {

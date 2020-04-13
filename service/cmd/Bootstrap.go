@@ -3,9 +3,9 @@ package cmd
 import (
 	"database/sql"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres/database"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
-	"github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres/database"
 )
 
 func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
@@ -27,27 +27,9 @@ func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
 
 	/***/
 
-	logger.Info("bootstrap: running DB migrations for eventstore ...")
-
-	migratorEventstore, err := database.NewMigrator(db, config.Postgres.MigrationsPathEventstore)
-	if err != nil {
-		logger.Errorf("bootstrap: failed to create DB migrator for eventstore: %s", err)
-
-		return nil, err
-	}
-
-	err = migratorEventstore.Up()
-	if err != nil {
-		logger.Errorf("bootstrap: failed to run DB migrations for eventstore: %s", err)
-
-		return nil, err
-	}
-
-	/***/
-
 	logger.Info("bootstrap: running DB migrations for customer ...")
 
-	migratorCustomer, err := postgres.NewMigrator(db, config.Postgres.MigrationsPathCustomer)
+	migratorCustomer, err := database.NewMigrator(db, config.Postgres.MigrationsPathCustomer)
 	if err != nil {
 		logger.Errorf("bootstrap: failed to create DB migrator for customer: %s", err)
 

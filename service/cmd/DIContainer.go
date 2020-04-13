@@ -3,13 +3,13 @@ package cmd
 import (
 	"database/sql"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/eventstore"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-	libPostgres "github.com/AntonStoeckl/go-iddd/service/lib/eventstore/postgres"
 	"github.com/cockroachdb/errors"
 )
 
@@ -22,7 +22,7 @@ type DIContainer struct {
 	postgresDBConn         *sql.DB
 	marshalCustomerEvent   es.MarshalDomainEvent
 	unmarshalCustomerEvent es.UnmarshalDomainEvent
-	customerEventStore     *eventstore.CustomerEventStore
+	customerEventStore     *postgres.CustomerEventStore
 	customerCommandHandler *command.CustomerCommandHandler
 	customerQueryHandler   *query.CustomerQueryHandler
 	customerGRPCServer     customergrpc.CustomerServer
@@ -60,17 +60,14 @@ func (container DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.postgresDBConn
 }
 
-func (container DIContainer) GetCustomerEventStore() *eventstore.CustomerEventStore {
+func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
 	if container.customerEventStore == nil {
-		container.customerEventStore = eventstore.NewCustomerEventStore(
-			libPostgres.NewEventStore(
-				container.postgresDBConn,
-				eventStoreTableName,
-				container.marshalCustomerEvent,
-				container.unmarshalCustomerEvent,
-			),
+		container.customerEventStore = postgres.NewCustomerEventStore(
 			container.postgresDBConn,
+			eventStoreTableName,
 			uniqueEmailAddressesTableName,
+			container.marshalCustomerEvent,
+			container.unmarshalCustomerEvent,
 		)
 	}
 

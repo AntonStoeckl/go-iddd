@@ -3,10 +3,11 @@ package application_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/eventstore"
 )
 
 type benchmarkTestArtifacts struct {
@@ -122,7 +123,7 @@ func prepareForBenchmark(
 
 func cleanUpAfterBenchmark(
 	b *testing.B,
-	eventstore *eventstore.CustomerEventStore,
+	eventstore *postgres.CustomerEventStore,
 	commandHandler *command.CustomerCommandHandler,
 	id values.CustomerID,
 ) {

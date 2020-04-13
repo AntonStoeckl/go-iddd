@@ -10,17 +10,6 @@ generate_proto:
 		--swagger_out=logtostderr=true:service/customer/infrastructure/adapter/primary/grpc \
 		service/customer/infrastructure/adapter/primary/grpc/customer.proto
 
-generate_mocked_EventStore:
-	@mockery \
-		-name EventStore \
-		-dir service/lib/es \
-		-outpkg mocks \
-		-output service/lib/eventstore/mocks \
-		-note "+build test"
-
-generate_all_mocks: \
-	generate_mocked_EventStore
-
 lint:
 	golangci-lint run --build-tags test ./...
 
