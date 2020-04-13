@@ -4,7 +4,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/cockroachdb/errors"
 )
 
@@ -14,18 +13,21 @@ type CustomerCommandHandler struct {
 	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
 	registerCustomer            ForRegisteringCustomers
 	appendToCustomerEventStream ForAppendingToCustomerEventStreams
+	retryCommand                ForRetryingCommands
 }
 
 func NewCustomerCommandHandler(
 	retrieveCustomerEventStream ForRetrievingCustomerEventStreams,
 	registerCustomers ForRegisteringCustomers,
 	appendToCustomerEventStream ForAppendingToCustomerEventStreams,
+	retryCommand ForRetryingCommands,
 ) *CustomerCommandHandler {
 
 	return &CustomerCommandHandler{
 		retrieveCustomerEventStream: retrieveCustomerEventStream,
 		registerCustomer:            registerCustomers,
 		appendToCustomerEventStream: appendToCustomerEventStream,
+		retryCommand:                retryCommand,
 	}
 }
 
@@ -53,7 +55,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 		return nil
 	}
 
-	if err = lib.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
+	if err = h.retryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
 		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -97,7 +99,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 		return nil
 	}
 
-	if err := lib.RetryOnConcurrencyConflict(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := h.retryCommand(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -135,7 +137,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 		return nil
 	}
 
-	if err := lib.RetryOnConcurrencyConflict(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := h.retryCommand(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -174,7 +176,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 		return nil
 	}
 
-	if err := lib.RetryOnConcurrencyConflict(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
+	if err := h.retryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -205,7 +207,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 		return nil
 	}
 
-	if err := lib.RetryOnConcurrencyConflict(doDelete, maxCustomerCommandHandlerRetries); err != nil {
+	if err := h.retryCommand(doDelete, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 

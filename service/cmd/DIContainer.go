@@ -94,6 +94,7 @@ func (container DIContainer) GetCustomerCommandHandler() *command.CustomerComman
 			container.GetCustomerEventStore().RetrieveCustomerEventStream,
 			container.GetCustomerEventStore().RegisterCustomer,
 			container.GetCustomerEventStore().AppendToCustomerEventStream,
+			lib.RetryOnConcurrencyConflict,
 		)
 	}
 

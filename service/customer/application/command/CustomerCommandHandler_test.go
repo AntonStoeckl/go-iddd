@@ -32,6 +32,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 		customerEventStoreMock.RetrieveCustomerEventStream,
 		customerEventStoreMock.RegisterCustomer,
 		customerEventStoreMock.AppendToCustomerEventStream,
+		lib.RetryOnConcurrencyConflict,
 	)
 
 	Convey("Prepare test artifacts", t, func() {
