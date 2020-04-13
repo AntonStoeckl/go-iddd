@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 )
 

@@ -3,14 +3,13 @@ package customer_test
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/cockroachdb/errors"
-
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -7,7 +7,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
