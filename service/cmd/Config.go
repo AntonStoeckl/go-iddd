@@ -20,25 +20,34 @@ type Config struct {
 	}
 }
 
+// This is also used by Config_test.go to check that all keys exist in Env,
+// so always add new keys here!
+var ConfigExpectedEnvKeys = map[string]string{
+	"pgDSN":  "POSTGRES_DSN",
+	"pgMPC":  "POSTGRES_MIGRATIONS_PATH_CUSTOMER",
+	"grpcHP": "GRPC_HOST_AND_PORT",
+	"restHP": "REST_HOST_AND_PORT",
+}
+
 func MustBuildConfigFromEnv(logger *Logger) *Config {
 	var err error
 	conf := &Config{}
 	msg := "mustBuildConfigFromEnv: %s - Hasta la vista, baby!"
 
-	if conf.Postgres.DSN, err = conf.stringFromEnv("POSTGRES_DSN"); err != nil {
-		logger.Fatalf(msg, err)
+	if conf.Postgres.DSN, err = conf.stringFromEnv(ConfigExpectedEnvKeys["pgDSN"]); err != nil {
+		logger.Panicf(msg, err)
 	}
 
-	if conf.Postgres.MigrationsPathCustomer, err = conf.stringFromEnv("POSTGRES_MIGRATIONS_PATH_CUSTOMER"); err != nil {
-		logger.Fatalf(msg, err)
+	if conf.Postgres.MigrationsPathCustomer, err = conf.stringFromEnv(ConfigExpectedEnvKeys["pgMPC"]); err != nil {
+		logger.Panicf(msg, err)
 	}
 
-	if conf.GRPC.HostAndPort, err = conf.stringFromEnv("GRPC_HOST_AND_PORT"); err != nil {
-		logger.Fatalf(msg, err)
+	if conf.GRPC.HostAndPort, err = conf.stringFromEnv(ConfigExpectedEnvKeys["grpcHP"]); err != nil {
+		logger.Panicf(msg, err)
 	}
 
-	if conf.REST.HostAndPort, err = conf.stringFromEnv("REST_HOST_AND_PORT"); err != nil {
-		logger.Fatalf(msg, err)
+	if conf.REST.HostAndPort, err = conf.stringFromEnv(ConfigExpectedEnvKeys["restHP"]); err != nil {
+		logger.Panicf(msg, err)
 	}
 
 	return conf
