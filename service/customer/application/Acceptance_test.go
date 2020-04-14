@@ -16,7 +16,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var acceptanceTestCustomerEventStore command.ForStoringCustomerEvents
+var atRegisterCustomer command.ForRegisteringCustomers
+var atAppendToCustomerEventStream command.ForAppendingToCustomerEventStreams
+var atPurgeCustomerEventStream command.ForPurgingCustomerEventStreams
 
 type acceptanceTestCollaborators struct {
 	registerCustomer            application.ForRegisteringCustomers
@@ -150,10 +152,10 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(otherCustomerID)
+			err = atPurgeCustomerEventStream(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -301,7 +303,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -400,10 +402,10 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(otherCustomerID)
+			err = atPurgeCustomerEventStream(otherCustomerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -483,7 +485,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -568,7 +570,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -706,7 +708,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		})
 
 		Reset(func() {
-			err = acceptanceTestCustomerEventStore.PurgeCustomerEventStream(customerID)
+			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -729,7 +731,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := acceptanceTestCustomerEventStore.RegisterCustomer(es.RecordedEvents{event}, customerID)
+	err := atRegisterCustomer(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
@@ -749,7 +751,7 @@ func givenCustomerEmailAddressWasConfirmed(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
+	err := atAppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 }
 
@@ -771,7 +773,7 @@ func givenCustomerEmailAddressWasChanged(
 		streamVersion,
 	)
 
-	err := acceptanceTestCustomerEventStore.AppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
+	err := atAppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return confirmationHash
@@ -785,7 +787,10 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 		panic(err)
 	}
 
-	acceptanceTestCustomerEventStore = diContainer.GetCustomerEventStore()
+	eventStore := diContainer.GetCustomerEventStore()
+	atRegisterCustomer = eventStore.RegisterCustomer
+	atAppendToCustomerEventStream = eventStore.AppendToCustomerEventStream
+	atPurgeCustomerEventStream = eventStore.PurgeCustomerEventStream
 
 	return acceptanceTestCollaborators{
 		registerCustomer:            diContainer.GetCustomerCommandHandler().RegisterCustomer,
