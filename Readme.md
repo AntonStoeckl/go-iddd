@@ -20,7 +20,9 @@ $PathToProjectRoot$ with the path to the root of the go-idd project sources.
 
 ```
 POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_local?sslmode=disable
-POSTGRES_MIGRATIONS_PATH=$PathToProjectRoot$/go-iddd/service/lib/eventstore/postgres/database/migrations
+POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customer/infrastructure/secondary/postgres/database/migrations
+GRPC_HOST_AND_PORT=localhost:5566
+REST_HOST_AND_PORT=localhost:8085
 ```
 
 ##### To be able to run the tests
@@ -30,8 +32,9 @@ $PathToProjectRoot$ with the path to the root of the go-idd project sources.
 
 ```
 POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_test?sslmode=disable
-POSTGRES_MIGRATIONS_PATH_EVENTSTORE=$PathToProjectRoot$/go-iddd/service/lib/eventstore/postgres/database/migrations
 POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customer/infrastructure/secondary/postgres/database/migrations
+GRPC_HOST_AND_PORT=localhost:5566
+REST_HOST_AND_PORT=localhost:8085
 ```
 
 ##### To run HTTP requests with GoLand's (IntelliJ) new built-in HTTP client
