@@ -5,9 +5,8 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/cockroachdb/errors"
-
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
