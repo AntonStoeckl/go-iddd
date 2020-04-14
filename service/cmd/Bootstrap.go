@@ -35,6 +35,8 @@ func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
 		return nil, err
 	}
 
+	migratorCustomer.WithLogger(logger)
+
 	err = migratorCustomer.Up()
 	if err != nil {
 		logger.Errorf("bootstrap: failed to run DB migrations for customer: %s", err)
