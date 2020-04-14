@@ -31,57 +31,6 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
-				Convey("and assuming the event stream can't be read", func() {
-					commandHandler := command.NewCustomerCommandHandler(
-						func(id values.CustomerID) (es.EventStream, error) {
-							return nil, lib.ErrTechnical
-						},
-						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
-							return nil
-						},
-						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
-							return nil
-						},
-						lib.RetryOnConcurrencyConflict,
-					)
-
-					Convey("When he tries to confirm his email address", func() {
-						err = commandHandler.ConfirmCustomerEmailAddress(ca.customerID.String(), ca.confirmationHash.String())
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to change his email address", func() {
-						err = commandHandler.ChangeCustomerEmailAddress(ca.customerID.String(), ca.newEmailAddress)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to change his name", func() {
-						err = commandHandler.ChangeCustomerName(ca.customerID.String(), ca.givenName, ca.familyName)
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-
-					Convey("When he tries to delete his account", func() {
-						err = commandHandler.DeleteCustomer(ca.customerID.String())
-
-						Convey("Then he should receive an error", func() {
-							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
-						})
-					})
-				})
-
 				Convey("and assuming the recorded events can't be stored", func() {
 					commandHandler := command.NewCustomerCommandHandler(
 						func(id values.CustomerID) (es.EventStream, error) {
