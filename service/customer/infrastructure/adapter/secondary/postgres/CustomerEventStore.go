@@ -65,9 +65,9 @@ func (s *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, 
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
+	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
 
-	if err = s.assertUniqueEmailAddress(uniqueEmailAddressAssertions, tx); err != nil {
+	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -99,9 +99,9 @@ func (s *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.Recor
 		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
 	}
 
-	uniqueEmailAddressAssertions := customer.BuildUniqueEmailAddressAssertionsFrom(recordedEvents)
+	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
 
-	if err = s.assertUniqueEmailAddress(uniqueEmailAddressAssertions, tx); err != nil {
+	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -261,7 +261,7 @@ func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
 
 /***** local methods for asserting unique email addresses *****/
 
-func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.UniqueEmailAddressAssertions, tx *sql.Tx) error {
+func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.AssertionsForUniqueEmailAddresses, tx *sql.Tx) error {
 	wrapWithMsg := "assertUniqueEmailAddresse"
 
 	for _, assertion := range assertions {
