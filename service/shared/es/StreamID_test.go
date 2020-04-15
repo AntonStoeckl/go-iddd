@@ -3,7 +3,7 @@ package es_test
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

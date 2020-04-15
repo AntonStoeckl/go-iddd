@@ -1,7 +1,7 @@
 package value
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/google/uuid"
 )
@@ -17,7 +17,7 @@ func GenerateCustomerID() CustomerID {
 func BuildCustomerID(value string) (CustomerID, error) {
 	if value == "" {
 		err := errors.New("empty input for CustomerID")
-		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, "BuildCustomerID")
+		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, "BuildCustomerID")
 
 		return CustomerID{}, err
 	}

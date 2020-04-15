@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 )
 
 type View struct {

@@ -4,11 +4,10 @@ import (
 	"database/sql"
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
-
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/secondary/postgres"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 )
 
@@ -34,7 +33,7 @@ func NewDIContainer(
 ) (*DIContainer, error) {
 
 	if postgresDBConn == nil {
-		return nil, errors.Mark(errors.New("newDIContainer: postgres DB connection must not be nil"), lib.ErrTechnical)
+		return nil, errors.Mark(errors.New("newDIContainer: postgres DB connection must not be nil"), shared.ErrTechnical)
 	}
 
 	container := &DIContainer{
@@ -79,7 +78,7 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCo
 			container.GetCustomerEventStore().RetrieveEventStream,
 			container.GetCustomerEventStore().StartEventStream,
 			container.GetCustomerEventStore().AppendToEventStream,
-			lib.RetryOnConcurrencyConflict,
+			shared.RetryOnConcurrencyConflict,
 		)
 	}
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	"github.com/lib/pq"
 )
@@ -50,7 +50,7 @@ func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventS
 
 	if len(eventStream) == 0 {
 		err := errors.New("customer not found")
-		return nil, lib.MarkAndWrapError(err, lib.ErrNotFound, wrapWithMsg)
+		return nil, shared.MarkAndWrapError(err, shared.ErrNotFound, wrapWithMsg)
 	}
 
 	return eventStream, nil
@@ -62,7 +62,7 @@ func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, 
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
@@ -76,15 +76,15 @@ func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, 
 	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
 		_ = tx.Rollback()
 
-		if errors.Is(err, lib.ErrConcurrencyConflict) {
-			return lib.MarkAndWrapError(errors.New("found duplicate customer"), lib.ErrDuplicate, wrapWithMsg)
+		if errors.Is(err, shared.ErrConcurrencyConflict) {
+			return shared.MarkAndWrapError(errors.New("found duplicate customer"), shared.ErrDuplicate, wrapWithMsg)
 		}
 
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	return nil
@@ -96,7 +96,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
@@ -114,7 +114,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 	}
 
 	if err = tx.Commit(); err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	return nil
@@ -126,7 +126,7 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	if err = s.clearUniqueEmailAddress(id, tx); err != nil {
@@ -136,7 +136,7 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 	}
 
 	if err = tx.Commit(); err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	if err := s.purgeEventStream(s.streamID(id)); err != nil {
@@ -170,7 +170,7 @@ func (s *CustomerEventStore) loadEventStream(
 
 	eventRows, err := s.db.Query(query, streamID.String(), fromVersion, maxEvents)
 	if err != nil {
-		return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+		return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
 	var eventStream es.EventStream
@@ -181,15 +181,15 @@ func (s *CustomerEventStore) loadEventStream(
 
 	for eventRows.Next() {
 		if eventRows.Err() != nil {
-			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 		}
 
 		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
-			return nil, lib.MarkAndWrapError(err, lib.ErrTechnical, wrapWithMsg)
+			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 		}
 
 		if domainEvent, err = s.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
-			return nil, lib.MarkAndWrapError(err, lib.ErrUnmarshalingFailed, wrapWithMsg)
+			return nil, shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, wrapWithMsg)
 		}
 
 		eventStream = append(eventStream, domainEvent)
@@ -216,7 +216,7 @@ func (s *CustomerEventStore) appendEventsToStream(
 
 		eventJson, err = s.marshalDomainEvent(event)
 		if err != nil {
-			return lib.MarkAndWrapError(err, lib.ErrMarshalingFailed, wrapWithMsg)
+			return shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, wrapWithMsg)
 		}
 
 		_, err = tx.Exec(
@@ -241,7 +241,7 @@ func (s *CustomerEventStore) purgeEventStream(streamID es.StreamID) error {
 	query := strings.Replace(queryTemplate, "%name%", s.eventStoreTableName, 1)
 
 	if _, err := s.db.Exec(query, streamID.String()); err != nil {
-		return lib.MarkAndWrapError(err, lib.ErrTechnical, "purgeEventStream")
+		return shared.MarkAndWrapError(err, shared.ErrTechnical, "purgeEventStream")
 	}
 
 	return nil
@@ -252,11 +252,11 @@ func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
 	case *pq.Error:
 		switch actualErr.Code {
 		case "23505":
-			return errors.Mark(err, lib.ErrConcurrencyConflict)
+			return errors.Mark(err, shared.ErrConcurrencyConflict)
 		}
 	}
 
-	return errors.Mark(err, lib.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
+	return errors.Mark(err, shared.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
 }
 
 /***** local methods for asserting unique email addresses *****/
@@ -369,9 +369,9 @@ func (s *CustomerEventStore) mapUniqueEmailAddressPostgresErrors(err error) erro
 	case *pq.Error:
 		switch actualErr.Code {
 		case "23505":
-			return errors.Mark(errors.Newf("duplicate email address"), lib.ErrDuplicate)
+			return errors.Mark(errors.Newf("duplicate email address"), shared.ErrDuplicate)
 		}
 	}
 
-	return errors.Mark(err, lib.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
+	return errors.Mark(err, shared.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
 }

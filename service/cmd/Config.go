@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
@@ -56,7 +56,7 @@ func MustBuildConfigFromEnv(logger *Logger) *Config {
 func (conf Config) stringFromEnv(envKey string) (string, error) {
 	envVal, ok := os.LookupEnv(envKey)
 	if !ok {
-		return "", errors.Mark(errors.Newf("config value [%s] missing in env", envKey), lib.ErrTechnical)
+		return "", errors.Mark(errors.Newf("config value [%s] missing in env", envKey), shared.ErrTechnical)
 	}
 
 	return envVal, nil

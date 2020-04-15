@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -45,13 +45,13 @@ func (migrator *Migrator) configure(postgresDBConn *sql.DB, migrationsPath strin
 
 	driver, err := postgres.WithInstance(postgresDBConn, config)
 	if err != nil {
-		return errors.Wrap(errors.Mark(err, lib.ErrTechnical), "failed to create Postgres driver for migrator")
+		return errors.Wrap(errors.Mark(err, shared.ErrTechnical), "failed to create Postgres driver for migrator")
 	}
 
 	sourceURL := fmt.Sprintf("file://%s", migrationsPath)
 	realMigrator, err := migrate.NewWithDatabaseInstance(sourceURL, "postgres", driver)
 	if err != nil {
-		return errors.Wrap(errors.Mark(err, lib.ErrTechnical), "failed to create migrator instance")
+		return errors.Wrap(errors.Mark(err, shared.ErrTechnical), "failed to create migrator instance")
 	}
 
 	migrator.postgresMigrator = realMigrator

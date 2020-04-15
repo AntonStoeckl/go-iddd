@@ -10,8 +10,8 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -128,7 +128,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
 
@@ -137,7 +137,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
 
@@ -146,7 +146,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 				})
 			})
 		})
@@ -217,7 +217,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 					err = ac.confirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
 
 					Convey("Then he should receive an error", func() {
-						So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
 
 						Convey("And his email address should still be unconfirmed", func() {
 							actualCustomerView, err = ac.customerViewByID(customerID.String())
@@ -242,7 +242,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 						err = ac.confirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
 
 						Convey("Then he should receive an error", func() {
-							So(errors.Is(err, lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrDomainConstraintsViolation), ShouldBeTrue)
 
 							Convey("And his email address should still be confirmed", func() {
 								actualCustomerView, err = ac.customerViewByID(customerID.String())
@@ -296,7 +296,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 					Convey("Then he should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 			})
@@ -376,7 +376,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 							Convey("Then she should receive an error", func() {
 								So(err, ShouldBeError)
-								So(errors.Is(err, lib.ErrDuplicate), ShouldBeTrue)
+								So(errors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
 							})
 						})
 					})
@@ -395,7 +395,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 			})
@@ -469,7 +469,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 
 					Convey("Then he should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 
@@ -478,7 +478,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 
 					Convey("Then he should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 			})
@@ -522,7 +522,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 							So(actualCustomerView, ShouldBeZeroValue)
 						})
 					})
@@ -534,7 +534,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 						Convey("Then her account should still be deleted", func() {
 							actualCustomerView, err = ac.customerViewByID(customerID.String())
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 							So(actualCustomerView, ShouldBeZeroValue)
 						})
 					})
@@ -544,7 +544,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 						})
 					})
 
@@ -553,7 +553,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 						})
 					})
 
@@ -562,7 +562,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 						})
 					})
 				})
@@ -598,7 +598,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 					So(actualCustomerView, ShouldBeZeroValue)
 				})
 			})
@@ -608,7 +608,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 				})
 			})
 
@@ -617,7 +617,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 				})
 			})
 
@@ -626,7 +626,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 				})
 			})
 
@@ -635,7 +635,7 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 
 				Convey("Then he should receive an error", func() {
 					So(err, ShouldBeError)
-					So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+					So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 				})
 			})
 		})
@@ -665,7 +665,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 
@@ -674,7 +674,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 
@@ -683,7 +683,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 
@@ -692,7 +692,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 
@@ -701,7 +701,7 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
-						So(errors.Is(err, lib.ErrInputIsInvalid), ShouldBeTrue)
+						So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
 					})
 				})
 			})

@@ -2,8 +2,8 @@ package serialization
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -30,7 +30,7 @@ func MarshalCustomerEvent(event es.DomainEvent) ([]byte, error) {
 		json = marshalCustomerDeleted(actualEvent)
 	default:
 		err = errors.Wrapf(errors.New("event is unknown"), "marshalCustomerEvent [%s] failed", event.Meta().EventName())
-		return nil, errors.Mark(err, lib.ErrMarshalingFailed)
+		return nil, errors.Mark(err, shared.ErrMarshalingFailed)
 	}
 
 	return json, nil

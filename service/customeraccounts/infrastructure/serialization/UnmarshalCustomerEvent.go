@@ -3,8 +3,8 @@ package serialization
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -35,7 +35,7 @@ func UnmarshalCustomerEvent(
 		event = unmarshalCustomerDeletedFromJSON(payload, streamVersion)
 	default:
 		err := errors.Wrapf(errors.New("event is unknown"), "unmarshalCustomerEvent [%s] failed", name)
-		return nil, errors.Mark(err, lib.ErrUnmarshalingFailed)
+		return nil, errors.Mark(err, shared.ErrUnmarshalingFailed)
 	}
 
 	return event, nil
@@ -95,7 +95,7 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		value.RebuildCustomerID(unmarshaledData.CustomerID),
 		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		errors.Mark(errors.New(unmarshaledData.Reason), lib.ErrDomainConstraintsViolation),
+		errors.Mark(errors.New(unmarshaledData.Reason), shared.ErrDomainConstraintsViolation),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 

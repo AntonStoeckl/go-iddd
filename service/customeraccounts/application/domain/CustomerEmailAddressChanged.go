@@ -2,7 +2,7 @@ package domain
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 )
 
 type CustomerEmailAddressChanged struct {

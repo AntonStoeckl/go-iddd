@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -49,7 +49,7 @@ func TestNewDIContainer(t *testing.T) {
 
 		Convey("Then it should fail", func() {
 			So(err, ShouldBeError)
-			So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 		})
 	})
 }

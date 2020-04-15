@@ -6,8 +6,8 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -80,7 +80,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	Convey("When CustomerEmailAddressConfirmationFailed is marshaled and unmarshaled", t, func() {
 		originalEvent := domain.BuildCustomerEmailAddressConfirmationFailed(
-			customerID, emailAddress, confirmationHash, errors.Mark(errors.New(failureReason), lib.ErrDomainConstraintsViolation), streamVersion,
+			customerID, emailAddress, confirmationHash, errors.Mark(errors.New(failureReason), shared.ErrDomainConstraintsViolation), streamVersion,
 		)
 
 		oEventName := originalEvent.Meta().EventName()
@@ -111,8 +111,8 @@ func assertEventMetaResembles(originalEvent es.DomainEvent, unmarshaledEvent es.
 	So(unmarshaledEvent.IsFailureEvent(), ShouldEqual, originalEvent.IsFailureEvent())
 	So(unmarshaledEvent.FailureReason(), ShouldBeError)
 	So(unmarshaledEvent.FailureReason().Error(), ShouldEqual, originalEvent.FailureReason().Error())
-	So(errors.Is(originalEvent.FailureReason(), lib.ErrDomainConstraintsViolation), ShouldBeTrue)
-	So(errors.Is(unmarshaledEvent.FailureReason(), lib.ErrDomainConstraintsViolation), ShouldBeTrue)
+	So(errors.Is(originalEvent.FailureReason(), shared.ErrDomainConstraintsViolation), ShouldBeTrue)
+	So(errors.Is(unmarshaledEvent.FailureReason(), shared.ErrDomainConstraintsViolation), ShouldBeTrue)
 }
 
 func TestMarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
@@ -120,7 +120,7 @@ func TestMarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 		_, err := MarshalCustomerEvent(SomeEvent{})
 
 		Convey("Then it should fail", func() {
-			So(errors.Is(err, lib.ErrMarshalingFailed), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrMarshalingFailed), ShouldBeTrue)
 		})
 	})
 }
@@ -130,7 +130,7 @@ func TestUnmarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 		_, err := UnmarshalCustomerEvent("unknown", []byte{}, 1)
 
 		Convey("Then it should fail", func() {
-			So(errors.Is(err, lib.ErrUnmarshalingFailed), ShouldBeTrue)
+			So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 		})
 	})
 }

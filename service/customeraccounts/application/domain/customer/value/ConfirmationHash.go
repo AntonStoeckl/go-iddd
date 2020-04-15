@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
@@ -26,7 +26,7 @@ func GenerateConfirmationHash(using string) ConfirmationHash {
 func BuildConfirmationHash(input string) (ConfirmationHash, error) {
 	if input == "" {
 		err := errors.New("empty input for confirmationHash")
-		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, "BuildConfirmationHash")
+		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, "BuildConfirmationHash")
 
 		return ConfirmationHash{}, err
 	}

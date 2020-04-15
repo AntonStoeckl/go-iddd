@@ -6,8 +6,8 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -153,7 +153,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 						Convey("Then it should report an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrNotFound), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrNotFound), ShouldBeTrue)
 						})
 					})
 				})

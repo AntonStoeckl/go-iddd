@@ -1,4 +1,4 @@
-package lib
+package shared
 
 import (
 	"github.com/cockroachdb/errors"

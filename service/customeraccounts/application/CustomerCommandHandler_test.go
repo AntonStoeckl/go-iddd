@@ -6,8 +6,8 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
-	"github.com/AntonStoeckl/go-iddd/service/lib/es"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
+	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -40,9 +40,9 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 							return nil
 						},
 						func(recordedEvents es.RecordedEvents, id value.CustomerID) error {
-							return lib.ErrTechnical
+							return shared.ErrTechnical
 						},
-						lib.RetryOnConcurrencyConflict,
+						shared.RetryOnConcurrencyConflict,
 					)
 
 					Convey("When he tries to confirm his email address", func() {
@@ -50,7 +50,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						})
 					})
 
@@ -59,7 +59,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						})
 					})
 
@@ -68,7 +68,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						})
 					})
 
@@ -77,7 +77,7 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 
 						Convey("Then he should receive an error", func() {
 							So(err, ShouldBeError)
-							So(errors.Is(err, lib.ErrTechnical), ShouldBeTrue)
+							So(errors.Is(err, shared.ErrTechnical), ShouldBeTrue)
 						})
 					})
 				})

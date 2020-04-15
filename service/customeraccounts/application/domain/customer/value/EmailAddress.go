@@ -3,7 +3,7 @@ package value
 import (
 	"regexp"
 
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
@@ -18,7 +18,7 @@ type EmailAddress struct {
 func BuildEmailAddress(input string) (EmailAddress, error) {
 	if matched := emailAddressRegExp.MatchString(input); !matched {
 		err := errors.New("input has invalid format")
-		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, "BuildEmailAddress")
+		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, "BuildEmailAddress")
 
 		return EmailAddress{}, err
 	}

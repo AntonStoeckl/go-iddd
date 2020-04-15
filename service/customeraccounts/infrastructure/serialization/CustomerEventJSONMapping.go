@@ -1,6 +1,6 @@
 package serialization
 
-import "github.com/AntonStoeckl/go-iddd/service/lib/es"
+import "github.com/AntonStoeckl/go-iddd/service/shared/es"
 
 type CustomerRegisteredForJSON struct {
 	CustomerID       string              `json:"customerID"`

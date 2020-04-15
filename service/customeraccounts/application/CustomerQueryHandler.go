@@ -3,7 +3,7 @@ package application
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
@@ -36,7 +36,7 @@ func (h *CustomerQueryHandler) CustomerViewByID(customerID string) (customer.Vie
 	if customerView.IsDeleted {
 		err := errors.New("customer not found")
 
-		return customer.View{}, lib.MarkAndWrapError(err, lib.ErrNotFound, wrapWithMsg)
+		return customer.View{}, shared.MarkAndWrapError(err, shared.ErrNotFound, wrapWithMsg)
 	}
 
 	return customerView, nil

@@ -1,7 +1,7 @@
 package value
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
@@ -15,14 +15,14 @@ func BuildPersonName(givenName string, familyName string) (PersonName, error) {
 
 	if familyName == "" {
 		err := errors.New("empty input for familyName")
-		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, wrapWithMsg)
+		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, wrapWithMsg)
 
 		return PersonName{}, err
 	}
 
 	if givenName == "" {
 		err := errors.New("empty input for givenName")
-		err = lib.MarkAndWrapError(err, lib.ErrInputIsInvalid, wrapWithMsg)
+		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, wrapWithMsg)
 
 		return PersonName{}, err
 	}

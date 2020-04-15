@@ -1,7 +1,7 @@
 package customergrpc
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/lib"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,19 +11,19 @@ func MapToGRPCErrors(appErr error) error {
 	var code codes.Code
 
 	switch true {
-	case errors.Is(appErr, lib.ErrInputIsInvalid):
+	case errors.Is(appErr, shared.ErrInputIsInvalid):
 		code = codes.InvalidArgument
-	case errors.Is(appErr, lib.ErrNotFound):
+	case errors.Is(appErr, shared.ErrNotFound):
 		code = codes.NotFound
-	case errors.Is(appErr, lib.ErrDuplicate):
+	case errors.Is(appErr, shared.ErrDuplicate):
 		code = codes.AlreadyExists
 
-	case errors.Is(appErr, lib.ErrDomainConstraintsViolation):
+	case errors.Is(appErr, shared.ErrDomainConstraintsViolation):
 		code = codes.FailedPrecondition
 
-	case errors.Is(appErr, lib.ErrMaxRetriesExceeded):
+	case errors.Is(appErr, shared.ErrMaxRetriesExceeded):
 		code = codes.Aborted
-	case errors.Is(appErr, lib.ErrConcurrencyConflict):
+	case errors.Is(appErr, shared.ErrConcurrencyConflict):
 		code = codes.Aborted
 
 	default:
