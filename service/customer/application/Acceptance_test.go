@@ -16,7 +16,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var atRegisterCustomer command.ForRegisteringCustomers
+var atStartCustomerEventStream command.ForStartingCustomerEventStreams
 var atAppendToCustomerEventStream command.ForAppendingToCustomerEventStreams
 var atPurgeCustomerEventStream command.ForPurgingCustomerEventStreams
 
@@ -731,7 +731,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := atRegisterCustomer(es.RecordedEvents{event}, customerID)
+	err := atStartCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
@@ -788,9 +788,9 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	}
 
 	eventStore := diContainer.GetCustomerEventStore()
-	atRegisterCustomer = eventStore.RegisterCustomer
-	atAppendToCustomerEventStream = eventStore.AppendToCustomerEventStream
-	atPurgeCustomerEventStream = eventStore.PurgeCustomerEventStream
+	atStartCustomerEventStream = eventStore.StartEventStream
+	atAppendToCustomerEventStream = eventStore.AppendToEventStream
+	atPurgeCustomerEventStream = eventStore.PurgeEventStream
 
 	return acceptanceTestCollaborators{
 		registerCustomer:            diContainer.GetCustomerCommandHandler().RegisterCustomer,

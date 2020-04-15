@@ -11,21 +11,21 @@ const maxCustomerCommandHandlerRetries = uint8(10)
 
 type CustomerCommandHandler struct {
 	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
-	registerCustomer            ForRegisteringCustomers
+	startCustomerEventStream    ForStartingCustomerEventStreams
 	appendToCustomerEventStream ForAppendingToCustomerEventStreams
 	retryCommand                ForRetryingCommands
 }
 
 func NewCustomerCommandHandler(
 	retrieveCustomerEventStream ForRetrievingCustomerEventStreams,
-	registerCustomers ForRegisteringCustomers,
+	startCustomerEventStream ForStartingCustomerEventStreams,
 	appendToCustomerEventStream ForAppendingToCustomerEventStreams,
 	retryCommand ForRetryingCommands,
 ) *CustomerCommandHandler {
 
 	return &CustomerCommandHandler{
 		retrieveCustomerEventStream: retrieveCustomerEventStream,
-		registerCustomer:            registerCustomers,
+		startCustomerEventStream:    startCustomerEventStream,
 		appendToCustomerEventStream: appendToCustomerEventStream,
 		retryCommand:                retryCommand,
 	}
@@ -48,7 +48,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	doRegister := func() error {
 		recordedEvents := customer.Register(command)
 
-		if err = h.registerCustomer(recordedEvents, command.CustomerID()); err != nil {
+		if err = h.startCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err
 		}
 

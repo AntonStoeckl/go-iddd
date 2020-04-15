@@ -76,9 +76,9 @@ func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStor
 func (container DIContainer) GetCustomerCommandHandler() *command.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
 		container.customerCommandHandler = command.NewCustomerCommandHandler(
-			container.GetCustomerEventStore().RetrieveCustomerEventStream,
-			container.GetCustomerEventStore().RegisterCustomer,
-			container.GetCustomerEventStore().AppendToCustomerEventStream,
+			container.GetCustomerEventStore().RetrieveEventStream,
+			container.GetCustomerEventStore().StartEventStream,
+			container.GetCustomerEventStore().AppendToEventStream,
 			lib.RetryOnConcurrencyConflict,
 		)
 	}
@@ -89,7 +89,7 @@ func (container DIContainer) GetCustomerCommandHandler() *command.CustomerComman
 func (container DIContainer) GetCustomerQueryHandler() *query.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
 		container.customerQueryHandler = query.NewCustomerQueryHandler(
-			container.GetCustomerEventStore().RetrieveCustomerEventStream,
+			container.GetCustomerEventStore().RetrieveEventStream,
 		)
 	}
 

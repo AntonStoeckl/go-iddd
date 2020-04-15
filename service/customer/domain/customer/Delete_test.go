@@ -25,7 +25,7 @@ func TestDelete(t *testing.T) {
 			1,
 		)
 
-		Convey("\nSCENARIO 1: PurgeCustomerEventStream a Customer's account", func() {
+		Convey("\nSCENARIO 1: Delete a Customer's account", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerWasRegistered}
 

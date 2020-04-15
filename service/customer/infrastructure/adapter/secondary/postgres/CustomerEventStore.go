@@ -40,8 +40,8 @@ func NewCustomerEventStore(
 	}
 }
 
-func (s *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (es.EventStream, error) {
-	wrapWithMsg := "customerEventStore.RetrieveCustomerEventStream"
+func (s *CustomerEventStore) RetrieveEventStream(id values.CustomerID) (es.EventStream, error) {
+	wrapWithMsg := "customerEventStore.RetrieveEventStream"
 
 	eventStream, err := s.loadEventStream(s.streamID(id), 0, math.MaxUint32)
 	if err != nil {
@@ -56,9 +56,9 @@ func (s *CustomerEventStore) RetrieveCustomerEventStream(id values.CustomerID) (
 	return eventStream, nil
 }
 
-func (s *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.RegisterCustomer"
+	wrapWithMsg := "customerEventStore.StartEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -90,9 +90,9 @@ func (s *CustomerEventStore) RegisterCustomer(recordedEvents es.RecordedEvents, 
 	return nil
 }
 
-func (s *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.AppendToCustomerEventStream"
+	wrapWithMsg := "customerEventStore.AppendToEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -120,9 +120,9 @@ func (s *CustomerEventStore) AppendToCustomerEventStream(recordedEvents es.Recor
 	return nil
 }
 
-func (s *CustomerEventStore) PurgeCustomerEventStream(id values.CustomerID) error {
+func (s *CustomerEventStore) PurgeEventStream(id values.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.PurgeCustomerEventStream"
+	wrapWithMsg := "customerEventStore.PurgeEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
