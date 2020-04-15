@@ -1,19 +1,19 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerNameChanged struct {
-	customerID values.CustomerID
-	personName values.PersonName
+	customerID value.CustomerID
+	personName value.PersonName
 	meta       es.EventMeta
 }
 
 func BuildCustomerNameChanged(
-	customerID values.CustomerID,
-	personName values.PersonName,
+	customerID value.CustomerID,
+	personName value.PersonName,
 	streamVersion uint,
 ) CustomerNameChanged {
 
@@ -28,8 +28,8 @@ func BuildCustomerNameChanged(
 }
 
 func RebuildCustomerNameChanged(
-	customerID values.CustomerID,
-	personName values.PersonName,
+	customerID value.CustomerID,
+	personName value.PersonName,
 	meta es.EventMeta,
 ) CustomerNameChanged {
 
@@ -42,11 +42,11 @@ func RebuildCustomerNameChanged(
 	return event
 }
 
-func (event CustomerNameChanged) CustomerID() values.CustomerID {
+func (event CustomerNameChanged) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerNameChanged) PersonName() values.PersonName {
+func (event CustomerNameChanged) PersonName() value.PersonName {
 	return event.personName
 }
 

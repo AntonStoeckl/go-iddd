@@ -3,14 +3,15 @@ package application_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
 )
 
 type benchmarkTestArtifacts struct {
-	customerID      values.CustomerID
+	customerID      value.CustomerID
 	emailAddress    string
 	givenName       string
 	familyName      string
@@ -97,7 +98,7 @@ func buildArtifactsForBenchmarkTest() benchmarkTestArtifacts {
 
 func prepareForBenchmark(
 	b *testing.B,
-	commandHandler *command.CustomerCommandHandler,
+	commandHandler *application.CustomerCommandHandler,
 	ba *benchmarkTestArtifacts,
 ) {
 
@@ -123,8 +124,8 @@ func prepareForBenchmark(
 func cleanUpAfterBenchmark(
 	b *testing.B,
 	eventstore *postgres.CustomerEventStore,
-	commandHandler *command.CustomerCommandHandler,
-	id values.CustomerID,
+	commandHandler *application.CustomerCommandHandler,
+	id value.CustomerID,
 ) {
 
 	if err := commandHandler.DeleteCustomer(id.String()); err != nil {

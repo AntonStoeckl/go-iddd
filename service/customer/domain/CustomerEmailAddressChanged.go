@@ -1,23 +1,23 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerEmailAddressChanged struct {
-	customerID           values.CustomerID
-	emailAddress         values.EmailAddress
-	confirmationHash     values.ConfirmationHash
-	previousEmailAddress values.EmailAddress
+	customerID           value.CustomerID
+	emailAddress         value.EmailAddress
+	confirmationHash     value.ConfirmationHash
+	previousEmailAddress value.EmailAddress
 	meta                 es.EventMeta
 }
 
 func BuildCustomerEmailAddressChanged(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
-	previousEmailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
+	previousEmailAddress value.EmailAddress,
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
@@ -34,10 +34,10 @@ func BuildCustomerEmailAddressChanged(
 }
 
 func RebuildCustomerEmailAddressChanged(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
-	previousEmailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
+	previousEmailAddress value.EmailAddress,
 	meta es.EventMeta,
 ) CustomerEmailAddressChanged {
 
@@ -52,19 +52,19 @@ func RebuildCustomerEmailAddressChanged(
 	return event
 }
 
-func (event CustomerEmailAddressChanged) CustomerID() values.CustomerID {
+func (event CustomerEmailAddressChanged) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressChanged) EmailAddress() values.EmailAddress {
+func (event CustomerEmailAddressChanged) EmailAddress() value.EmailAddress {
 	return event.emailAddress
 }
 
-func (event CustomerEmailAddressChanged) ConfirmationHash() values.ConfirmationHash {
+func (event CustomerEmailAddressChanged) ConfirmationHash() value.ConfirmationHash {
 	return event.confirmationHash
 }
 
-func (event CustomerEmailAddressChanged) PreviousEmailAddress() values.EmailAddress {
+func (event CustomerEmailAddressChanged) PreviousEmailAddress() value.EmailAddress {
 	return event.previousEmailAddress
 }
 

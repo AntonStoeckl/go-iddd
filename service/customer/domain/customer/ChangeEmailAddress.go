@@ -1,13 +1,12 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
 
-func ChangeEmailAddress(eventStream es.EventStream, command commands.ChangeCustomerEmailAddress) (es.RecordedEvents, error) {
+func ChangeEmailAddress(eventStream es.EventStream, command domain.ChangeCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if err := assertNotDeleted(customer); err != nil {
@@ -18,7 +17,7 @@ func ChangeEmailAddress(eventStream es.EventStream, command commands.ChangeCusto
 		return nil, nil
 	}
 
-	event := events.BuildCustomerEmailAddressChanged(
+	event := domain.BuildCustomerEmailAddressChanged(
 		customer.id,
 		command.EmailAddress(),
 		command.ConfirmationHash(),

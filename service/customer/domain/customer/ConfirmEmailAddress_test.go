@@ -3,10 +3,10 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -18,13 +18,13 @@ func TestConfirmEmailAddress(t *testing.T) {
 		var err error
 		var recordedEvents es.RecordedEvents
 
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-		invalidConfirmationHash := values.RebuildConfirmationHash("invalid_hash")
-		personName := values.RebuildPersonName("Kevin", "Ball")
+		customerID := value.GenerateCustomerID()
+		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+		invalidConfirmationHash := value.RebuildConfirmationHash("invalid_hash")
+		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		customerWasRegistered := events.BuildCustomerRegistered(
+		customerWasRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -32,19 +32,19 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
-		customerEmailAddressWasConfirmed := events.BuildCustomerEmailAddressConfirmed(
+		customerEmailAddressWasConfirmed := domain.BuildCustomerEmailAddressConfirmed(
 			customerID,
 			emailAddress,
 			2,
 		)
 
-		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
+		confirmEmailAddress, err := domain.BuildConfirmCustomerEmailAddress(
 			customerID.String(),
 			confirmationHash.String(),
 		)
 		So(err, ShouldBeNil)
 
-		confirmEmailAddressWithInvalidHash, err := commands.BuildConfirmCustomerEmailAddress(
+		confirmEmailAddressWithInvalidHash, err := domain.BuildConfirmCustomerEmailAddress(
 			customerID.String(),
 			invalidConfirmationHash.String(),
 		)
@@ -60,7 +60,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 					Convey("Then CustomerEmailAddressConfirmed", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						emailAddressConfirmed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmed)
+						emailAddressConfirmed, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmed)
 						So(ok, ShouldBeTrue)
 						So(emailAddressConfirmed.CustomerID().Equals(customerID), ShouldBeTrue)
 						So(emailAddressConfirmed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
@@ -80,7 +80,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 					Convey("Then CustomerEmailAddressConfirmationFailed", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						emailAddressConfirmationFailed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmationFailed)
+						emailAddressConfirmationFailed, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmationFailed)
 						So(ok, ShouldBeTrue)
 						So(emailAddressConfirmationFailed.CustomerID().Equals(customerID), ShouldBeTrue)
 						So(emailAddressConfirmationFailed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
@@ -125,7 +125,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 						Convey("Then CustomerEmailAddressConfirmationFailed", func() {
 							So(recordedEvents, ShouldHaveLength, 1)
-							emailAddressConfirmationFailed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmationFailed)
+							emailAddressConfirmationFailed, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmationFailed)
 							So(ok, ShouldBeTrue)
 							So(emailAddressConfirmationFailed.CustomerID().Equals(customerID), ShouldBeTrue)
 							So(emailAddressConfirmationFailed.EmailAddress().Equals(emailAddress), ShouldBeTrue)
@@ -146,7 +146,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.BuildCustomerDeleted(customerID, emailAddress, 2),
+						domain.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ConfirmCustomerEmailAddress", func() {

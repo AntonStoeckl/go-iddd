@@ -3,8 +3,8 @@ package cmd
 import (
 	"database/sql"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/query"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
@@ -22,8 +22,8 @@ type DIContainer struct {
 	marshalCustomerEvent   es.MarshalDomainEvent
 	unmarshalCustomerEvent es.UnmarshalDomainEvent
 	customerEventStore     *postgres.CustomerEventStore
-	customerCommandHandler *command.CustomerCommandHandler
-	customerQueryHandler   *query.CustomerQueryHandler
+	customerCommandHandler *application.CustomerCommandHandler
+	customerQueryHandler   *application.CustomerQueryHandler
 	customerGRPCServer     customergrpc.CustomerServer
 }
 
@@ -73,9 +73,9 @@ func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStor
 	return container.customerEventStore
 }
 
-func (container DIContainer) GetCustomerCommandHandler() *command.CustomerCommandHandler {
+func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
 	if container.customerCommandHandler == nil {
-		container.customerCommandHandler = command.NewCustomerCommandHandler(
+		container.customerCommandHandler = application.NewCustomerCommandHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,
 			container.GetCustomerEventStore().StartEventStream,
 			container.GetCustomerEventStore().AppendToEventStream,
@@ -86,9 +86,9 @@ func (container DIContainer) GetCustomerCommandHandler() *command.CustomerComman
 	return container.customerCommandHandler
 }
 
-func (container DIContainer) GetCustomerQueryHandler() *query.CustomerQueryHandler {
+func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
 	if container.customerQueryHandler == nil {
-		container.customerQueryHandler = query.NewCustomerQueryHandler(
+		container.customerQueryHandler = application.NewCustomerQueryHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,
 		)
 	}

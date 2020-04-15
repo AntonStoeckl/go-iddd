@@ -1,12 +1,12 @@
-package commands
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 )
 
 type ConfirmCustomerEmailAddress struct {
-	customerID       values.CustomerID
-	confirmationHash values.ConfirmationHash
+	customerID       value.CustomerID
+	confirmationHash value.ConfirmationHash
 }
 
 func BuildConfirmCustomerEmailAddress(
@@ -14,12 +14,12 @@ func BuildConfirmCustomerEmailAddress(
 	confirmationHash string,
 ) (ConfirmCustomerEmailAddress, error) {
 
-	customerIDValue, err := values.BuildCustomerID(customerID)
+	customerIDValue, err := value.BuildCustomerID(customerID)
 	if err != nil {
 		return ConfirmCustomerEmailAddress{}, err
 	}
 
-	confirmationHashValue, err := values.BuildConfirmationHash(confirmationHash)
+	confirmationHashValue, err := value.BuildConfirmationHash(confirmationHash)
 	if err != nil {
 		return ConfirmCustomerEmailAddress{}, err
 	}
@@ -32,10 +32,10 @@ func BuildConfirmCustomerEmailAddress(
 	return confirmEmailAddress, nil
 }
 
-func (command ConfirmCustomerEmailAddress) CustomerID() values.CustomerID {
+func (command ConfirmCustomerEmailAddress) CustomerID() value.CustomerID {
 	return command.customerID
 }
 
-func (command ConfirmCustomerEmailAddress) ConfirmationHash() values.ConfirmationHash {
+func (command ConfirmCustomerEmailAddress) ConfirmationHash() value.ConfirmationHash {
 	return command.confirmationHash
 }

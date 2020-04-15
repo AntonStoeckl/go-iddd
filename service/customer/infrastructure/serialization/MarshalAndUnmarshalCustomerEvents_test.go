@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -13,12 +14,12 @@ import (
 )
 
 func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
-	customerID := values.GenerateCustomerID()
-	emailAddress := values.RebuildEmailAddress("john@doe.com")
-	newEmailAddress := values.RebuildEmailAddress("john.frank@doe.com")
-	confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-	personName := values.RebuildPersonName("John", "Doe")
-	newPersonName := values.RebuildPersonName("John Frank", "Doe")
+	customerID := value.GenerateCustomerID()
+	emailAddress := value.RebuildEmailAddress("john@doe.com")
+	newEmailAddress := value.RebuildEmailAddress("john.frank@doe.com")
+	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+	personName := value.RebuildPersonName("John", "Doe")
+	newPersonName := value.RebuildPersonName("John Frank", "Doe")
 	failureReason := "wrong confirmation hash supplied"
 
 	var myEvents []es.DomainEvent
@@ -26,35 +27,35 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	myEvents = append(
 		myEvents,
-		events.BuildCustomerRegistered(customerID, emailAddress, confirmationHash, personName, streamVersion),
+		domain.BuildCustomerRegistered(customerID, emailAddress, confirmationHash, personName, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		events.BuildCustomerEmailAddressConfirmed(customerID, emailAddress, streamVersion),
+		domain.BuildCustomerEmailAddressConfirmed(customerID, emailAddress, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		events.BuildCustomerEmailAddressChanged(customerID, newEmailAddress, confirmationHash, emailAddress, streamVersion),
+		domain.BuildCustomerEmailAddressChanged(customerID, newEmailAddress, confirmationHash, emailAddress, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		events.BuildCustomerNameChanged(customerID, newPersonName, streamVersion),
+		domain.BuildCustomerNameChanged(customerID, newPersonName, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		events.BuildCustomerDeleted(customerID, emailAddress, streamVersion),
+		domain.BuildCustomerDeleted(customerID, emailAddress, streamVersion),
 	)
 
 	for idx, event := range myEvents {
@@ -79,7 +80,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	//  is a pointer to an error which does not resemble properly (ShouldResemble uses reflect.DeepEqual)
 
 	Convey("When CustomerEmailAddressConfirmationFailed is marshaled and unmarshaled", t, func() {
-		originalEvent := events.BuildCustomerEmailAddressConfirmationFailed(
+		originalEvent := domain.BuildCustomerEmailAddressConfirmationFailed(
 			customerID, emailAddress, confirmationHash, errors.Mark(errors.New(failureReason), lib.ErrDomainConstraintsViolation), streamVersion,
 		)
 
@@ -94,7 +95,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 		uEventName := unmarshaledEvent.Meta().EventName()
 
 		Convey(fmt.Sprintf("Then the unmarshaled %s should resemble the original %s", oEventName, uEventName), func() {
-			unmarshaledEvent, ok := unmarshaledEvent.(events.CustomerEmailAddressConfirmationFailed)
+			unmarshaledEvent, ok := unmarshaledEvent.(domain.CustomerEmailAddressConfirmationFailed)
 			So(ok, ShouldBeTrue)
 			So(unmarshaledEvent.CustomerID().Equals(originalEvent.CustomerID()), ShouldBeTrue)
 			So(unmarshaledEvent.EmailAddress().Equals(originalEvent.EmailAddress()), ShouldBeTrue)

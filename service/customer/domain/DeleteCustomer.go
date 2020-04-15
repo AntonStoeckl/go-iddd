@@ -1,18 +1,18 @@
-package commands
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 )
 
 type DeleteCustomer struct {
-	customerID values.CustomerID
+	customerID value.CustomerID
 }
 
 func BuildDeleteCustomer(
 	customerID string,
 ) (DeleteCustomer, error) {
 
-	customerIDValue, err := values.BuildCustomerID(customerID)
+	customerIDValue, err := value.BuildCustomerID(customerID)
 	if err != nil {
 		return DeleteCustomer{}, err
 	}
@@ -24,6 +24,6 @@ func BuildDeleteCustomer(
 	return deleteCustomer, nil
 }
 
-func (command DeleteCustomer) CustomerID() values.CustomerID {
+func (command DeleteCustomer) CustomerID() value.CustomerID {
 	return command.customerID
 }

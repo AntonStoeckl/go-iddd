@@ -1,19 +1,19 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerEmailAddressConfirmed struct {
-	customerID   values.CustomerID
-	emailAddress values.EmailAddress
+	customerID   value.CustomerID
+	emailAddress value.EmailAddress
 	meta         es.EventMeta
 }
 
 func BuildCustomerEmailAddressConfirmed(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmed {
 
@@ -28,8 +28,8 @@ func BuildCustomerEmailAddressConfirmed(
 }
 
 func RebuildCustomerEmailAddressConfirmed(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
 	meta es.EventMeta,
 ) CustomerEmailAddressConfirmed {
 
@@ -42,11 +42,11 @@ func RebuildCustomerEmailAddressConfirmed(
 	return event
 }
 
-func (event CustomerEmailAddressConfirmed) CustomerID() values.CustomerID {
+func (event CustomerEmailAddressConfirmed) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressConfirmed) EmailAddress() values.EmailAddress {
+func (event CustomerEmailAddressConfirmed) EmailAddress() value.EmailAddress {
 	return event.emailAddress
 }
 

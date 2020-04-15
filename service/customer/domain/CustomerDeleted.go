@@ -1,19 +1,19 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerDeleted struct {
-	customerID   values.CustomerID
-	emailAddress values.EmailAddress
+	customerID   value.CustomerID
+	emailAddress value.EmailAddress
 	meta         es.EventMeta
 }
 
 func BuildCustomerDeleted(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
 	streamVersion uint,
 ) CustomerDeleted {
 
@@ -28,8 +28,8 @@ func BuildCustomerDeleted(
 }
 
 func RebuildCustomerDeleted(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
 	meta es.EventMeta,
 ) CustomerDeleted {
 
@@ -42,11 +42,11 @@ func RebuildCustomerDeleted(
 	return event
 }
 
-func (event CustomerDeleted) CustomerID() values.CustomerID {
+func (event CustomerDeleted) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerDeleted) EmailAddress() values.EmailAddress {
+func (event CustomerDeleted) EmailAddress() value.EmailAddress {
 	return event.emailAddress
 }
 

@@ -1,7 +1,7 @@
 package serialization
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -16,17 +16,17 @@ func MarshalCustomerEvent(event es.DomainEvent) ([]byte, error) {
 	var json []byte
 
 	switch actualEvent := event.(type) {
-	case events.CustomerRegistered:
+	case domain.CustomerRegistered:
 		json = marshalCustomerRegistered(actualEvent)
-	case events.CustomerEmailAddressConfirmed:
+	case domain.CustomerEmailAddressConfirmed:
 		json = marshalCustomerEmailAddressConfirmed(actualEvent)
-	case events.CustomerEmailAddressConfirmationFailed:
+	case domain.CustomerEmailAddressConfirmationFailed:
 		json = marshalCustomerEmailAddressConfirmationFailed(actualEvent)
-	case events.CustomerEmailAddressChanged:
+	case domain.CustomerEmailAddressChanged:
 		json = marshalCustomerEmailAddressChanged(actualEvent)
-	case events.CustomerNameChanged:
+	case domain.CustomerNameChanged:
 		json = marshalCustomerNameChanged(actualEvent)
-	case events.CustomerDeleted:
+	case domain.CustomerDeleted:
 		json = marshalCustomerDeleted(actualEvent)
 	default:
 		err = errors.Wrapf(errors.New("event is unknown"), "marshalCustomerEvent [%s] failed", event.Meta().EventName())
@@ -36,7 +36,7 @@ func MarshalCustomerEvent(event es.DomainEvent) ([]byte, error) {
 	return json, nil
 }
 
-func marshalCustomerRegistered(event events.CustomerRegistered) []byte {
+func marshalCustomerRegistered(event domain.CustomerRegistered) []byte {
 
 	data := CustomerRegisteredForJSON{
 		CustomerID:       event.CustomerID().String(),
@@ -52,7 +52,7 @@ func marshalCustomerRegistered(event events.CustomerRegistered) []byte {
 	return json
 }
 
-func marshalCustomerEmailAddressConfirmed(event events.CustomerEmailAddressConfirmed) []byte {
+func marshalCustomerEmailAddressConfirmed(event domain.CustomerEmailAddressConfirmed) []byte {
 	data := CustomerEmailAddressConfirmedForJSON{
 		CustomerID:   event.CustomerID().String(),
 		EmailAddress: event.EmailAddress().String(),
@@ -64,7 +64,7 @@ func marshalCustomerEmailAddressConfirmed(event events.CustomerEmailAddressConfi
 	return json
 }
 
-func marshalCustomerEmailAddressConfirmationFailed(event events.CustomerEmailAddressConfirmationFailed) []byte {
+func marshalCustomerEmailAddressConfirmationFailed(event domain.CustomerEmailAddressConfirmationFailed) []byte {
 	data := CustomerEmailAddressConfirmationFailedForJSON{
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
@@ -78,7 +78,7 @@ func marshalCustomerEmailAddressConfirmationFailed(event events.CustomerEmailAdd
 	return json
 }
 
-func marshalCustomerEmailAddressChanged(event events.CustomerEmailAddressChanged) []byte {
+func marshalCustomerEmailAddressChanged(event domain.CustomerEmailAddressChanged) []byte {
 	data := CustomerEmailAddressChangedForJSON{
 		CustomerID:           event.CustomerID().String(),
 		EmailAddress:         event.EmailAddress().String(),
@@ -92,7 +92,7 @@ func marshalCustomerEmailAddressChanged(event events.CustomerEmailAddressChanged
 	return json
 }
 
-func marshalCustomerNameChanged(event events.CustomerNameChanged) []byte {
+func marshalCustomerNameChanged(event domain.CustomerNameChanged) []byte {
 	data := CustomerNameChangedForJSON{
 		CustomerID: event.CustomerID().String(),
 		GivenName:  event.PersonName().GivenName(),
@@ -105,7 +105,7 @@ func marshalCustomerNameChanged(event events.CustomerNameChanged) []byte {
 	return json
 }
 
-func marshalCustomerDeleted(event events.CustomerDeleted) []byte {
+func marshalCustomerDeleted(event domain.CustomerDeleted) []byte {
 	data := CustomerDeletedForJSON{
 		CustomerID:   event.CustomerID().String(),
 		EmailAddress: event.EmailAddress().String(),

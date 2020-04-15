@@ -1,8 +1,8 @@
 package serialization
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -44,17 +44,17 @@ func UnmarshalCustomerEvent(
 func unmarshalCustomerRegisteredFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerRegistered {
+) domain.CustomerRegistered {
 
 	unmarshaledData := &CustomerRegisteredForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerRegistered(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		values.RebuildPersonName(
+	event := domain.RebuildCustomerRegistered(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		value.RebuildPersonName(
 			unmarshaledData.PersonGivenName,
 			unmarshaledData.PersonFamilyName,
 		),
@@ -67,15 +67,15 @@ func unmarshalCustomerRegisteredFromJSON(
 func unmarshalCustomerEmailAddressConfirmedFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerEmailAddressConfirmed {
+) domain.CustomerEmailAddressConfirmed {
 
 	unmarshaledData := &CustomerEmailAddressConfirmedForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerEmailAddressConfirmed(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+	event := domain.RebuildCustomerEmailAddressConfirmed(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -85,16 +85,16 @@ func unmarshalCustomerEmailAddressConfirmedFromJSON(
 func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerEmailAddressConfirmationFailed {
+) domain.CustomerEmailAddressConfirmationFailed {
 
 	unmarshaledData := &CustomerEmailAddressConfirmationFailedForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerEmailAddressConfirmationFailed(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+	event := domain.RebuildCustomerEmailAddressConfirmationFailed(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
 		errors.Mark(errors.New(unmarshaledData.Reason), lib.ErrDomainConstraintsViolation),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
@@ -105,17 +105,17 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 func unmarshalCustomerEmailAddressChangedFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerEmailAddressChanged {
+) domain.CustomerEmailAddressChanged {
 
 	unmarshaledData := &CustomerEmailAddressChangedForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerEmailAddressChanged(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		values.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		values.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
+	event := domain.RebuildCustomerEmailAddressChanged(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
+		value.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -125,15 +125,15 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 func unmarshalCustomerNameChangedFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerNameChanged {
+) domain.CustomerNameChanged {
 
 	unmarshaledData := &CustomerNameChangedForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerNameChanged(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildPersonName(
+	event := domain.RebuildCustomerNameChanged(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildPersonName(
 			unmarshaledData.GivenName,
 			unmarshaledData.FamilyName,
 		),
@@ -146,15 +146,15 @@ func unmarshalCustomerNameChangedFromJSON(
 func unmarshalCustomerDeletedFromJSON(
 	data []byte,
 	streamVersion uint,
-) events.CustomerDeleted {
+) domain.CustomerDeleted {
 
 	unmarshaledData := &CustomerDeletedForJSON{}
 
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
-	event := events.RebuildCustomerDeleted(
-		values.RebuildCustomerID(unmarshaledData.CustomerID),
-		values.RebuildEmailAddress(unmarshaledData.EmailAddress),
+	event := domain.RebuildCustomerDeleted(
+		value.RebuildCustomerID(unmarshaledData.CustomerID),
+		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 

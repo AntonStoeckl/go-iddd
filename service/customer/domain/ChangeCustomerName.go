@@ -1,12 +1,12 @@
-package commands
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 )
 
 type ChangeCustomerName struct {
-	customerID values.CustomerID
-	personName values.PersonName
+	customerID value.CustomerID
+	personName value.PersonName
 }
 
 func BuildChangeCustomerName(
@@ -15,12 +15,12 @@ func BuildChangeCustomerName(
 	familyName string,
 ) (ChangeCustomerName, error) {
 
-	customerIDValue, err := values.BuildCustomerID(customerID)
+	customerIDValue, err := value.BuildCustomerID(customerID)
 	if err != nil {
 		return ChangeCustomerName{}, err
 	}
 
-	personNameValue, err := values.BuildPersonName(givenName, familyName)
+	personNameValue, err := value.BuildPersonName(givenName, familyName)
 	if err != nil {
 		return ChangeCustomerName{}, err
 	}
@@ -33,10 +33,10 @@ func BuildChangeCustomerName(
 	return changeEmailAddress, nil
 }
 
-func (command ChangeCustomerName) CustomerID() values.CustomerID {
+func (command ChangeCustomerName) CustomerID() value.CustomerID {
 	return command.customerID
 }
 
-func (command ChangeCustomerName) PersonName() values.PersonName {
+func (command ChangeCustomerName) PersonName() value.PersonName {
 	return command.personName
 }

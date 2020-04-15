@@ -1,9 +1,9 @@
-package command
+package application
 
 import (
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/cockroachdb/errors"
 )
 
@@ -35,14 +35,14 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	emailAddress string,
 	givenName string,
 	familyName string,
-) (values.CustomerID, error) {
+) (value.CustomerID, error) {
 
 	var err error
-	var command commands.RegisterCustomer
+	var command domain.RegisterCustomer
 	wrapWithMsg := "customerCommandHandler.RegisterCustomer"
 
-	if command, err = commands.BuildRegisterCustomer(emailAddress, givenName, familyName); err != nil {
-		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+	if command, err = domain.BuildRegisterCustomer(emailAddress, givenName, familyName); err != nil {
+		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
 	doRegister := func() error {
@@ -56,7 +56,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	}
 
 	if err = h.retryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
-		return values.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
 	return command.CustomerID(), nil
@@ -68,10 +68,10 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 ) error {
 
 	var err error
-	var command commands.ConfirmCustomerEmailAddress
+	var command domain.ConfirmCustomerEmailAddress
 	wrapWithMsg := "customerCommandHandler.ConfirmCustomerEmailAddress"
 
-	if command, err = commands.BuildConfirmCustomerEmailAddress(customerID, confirmationHash); err != nil {
+	if command, err = domain.BuildConfirmCustomerEmailAddress(customerID, confirmationHash); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -112,10 +112,10 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 ) error {
 
 	var err error
-	var command commands.ChangeCustomerEmailAddress
+	var command domain.ChangeCustomerEmailAddress
 	wrapWithMsg := "customerCommandHandler.ChangeCustomerEmailAddress"
 
-	if command, err = commands.BuildChangeCustomerEmailAddress(customerID, emailAddress); err != nil {
+	if command, err = domain.BuildChangeCustomerEmailAddress(customerID, emailAddress); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -151,10 +151,10 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 ) error {
 
 	var err error
-	var command commands.ChangeCustomerName
+	var command domain.ChangeCustomerName
 	wrapWithMsg := "customerCommandHandler.ChangeCustomerName"
 
-	if command, err = commands.BuildChangeCustomerName(customerID, givenName, familyName); err != nil {
+	if command, err = domain.BuildChangeCustomerName(customerID, givenName, familyName); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -185,10 +185,10 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 
 func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 	var err error
-	var command commands.DeleteCustomer
+	var command domain.DeleteCustomer
 	wrapWithMsg := "customerCommandHandler.DeleteCustomer"
 
-	if command, err = commands.BuildDeleteCustomer(customerID); err != nil {
+	if command, err = domain.BuildDeleteCustomer(customerID); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 

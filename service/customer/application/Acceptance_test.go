@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customer/application"
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var atStartCustomerEventStream command.ForStartingCustomerEventStreams
-var atAppendToCustomerEventStream command.ForAppendingToCustomerEventStreams
-var atPurgeCustomerEventStream command.ForPurgingCustomerEventStreams
+var atStartCustomerEventStream application.ForStartingCustomerEventStreams
+var atAppendToCustomerEventStream application.ForAppendingToCustomerEventStreams
+var atPurgeCustomerEventStream application.ForPurgingCustomerEventStreams
 
 type acceptanceTestCollaborators struct {
 	registerCustomer            application.ForRegisteringCustomers
@@ -43,8 +43,8 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
-		var otherCustomerID values.CustomerID
+		var customerID value.CustomerID
+		var otherCustomerID value.CustomerID
 		var expectedCustomerView customer.View
 		var actualCustomerView customer.View
 
@@ -166,8 +166,8 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
-		var confirmationHash values.ConfirmationHash
+		var customerID value.CustomerID
+		var confirmationHash value.ConfirmationHash
 		var expectedCustomerView customer.View
 		var actualCustomerView customer.View
 
@@ -314,8 +314,8 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
-		var otherCustomerID values.CustomerID
+		var customerID value.CustomerID
+		var otherCustomerID value.CustomerID
 		var expectedCustomerView customer.View
 		var actualCustomerView customer.View
 
@@ -416,7 +416,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
+		var customerID value.CustomerID
 		var expectedCustomerView customer.View
 		var actualCustomerView customer.View
 
@@ -496,8 +496,8 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
-		var confirmationHash values.ConfirmationHash
+		var customerID value.CustomerID
+		var confirmationHash value.ConfirmationHash
 		var actualCustomerView customer.View
 
 		aa := acceptanceTestArtifacts{
@@ -589,8 +589,8 @@ func TestCustomerAcceptanceScenarios_WhenCustomerWasNeverRegistered(t *testing.T
 			newFamilyName:   "Pratt",
 		}
 
-		customerID := values.GenerateCustomerID()
-		confirmationHash := values.RebuildConfirmationHash(aa.newEmailAddress)
+		customerID := value.GenerateCustomerID()
+		confirmationHash := value.RebuildConfirmationHash(aa.newEmailAddress)
 
 		Convey("\nSCENARIO: A hacker tries to play around with a non existing Customer account by guessing IDs", func() {
 			Convey("When he tries to retrieve data for a non existing account", func() {
@@ -647,8 +647,8 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 	Convey("Prepare test artifacts", t, func() {
 		var err error
-		var customerID values.CustomerID
-		var confirmationHash values.ConfirmationHash
+		var customerID value.CustomerID
+		var confirmationHash value.ConfirmationHash
 
 		aa := acceptanceTestArtifacts{
 			emailAddress: "fiona@gallagher.net",
@@ -716,14 +716,14 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 
 func givenCustomerRegistered(
 	aa acceptanceTestArtifacts,
-) (values.CustomerID, values.ConfirmationHash) {
+) (value.CustomerID, value.ConfirmationHash) {
 
-	customerID := values.GenerateCustomerID()
-	emailAddress := values.RebuildEmailAddress(aa.emailAddress)
-	confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-	personName := values.RebuildPersonName(aa.givenName, aa.familyName)
+	customerID := value.GenerateCustomerID()
+	emailAddress := value.RebuildEmailAddress(aa.emailAddress)
+	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+	personName := value.RebuildPersonName(aa.givenName, aa.familyName)
 
-	event := events.BuildCustomerRegistered(
+	event := domain.BuildCustomerRegistered(
 		customerID,
 		emailAddress,
 		confirmationHash,
@@ -738,14 +738,14 @@ func givenCustomerRegistered(
 }
 
 func givenCustomerEmailAddressWasConfirmed(
-	customerID values.CustomerID,
+	customerID value.CustomerID,
 	aa acceptanceTestArtifacts,
 	streamVersion uint,
 ) {
 
-	emailAddress := values.RebuildEmailAddress(aa.emailAddress)
+	emailAddress := value.RebuildEmailAddress(aa.emailAddress)
 
-	event := events.BuildCustomerEmailAddressConfirmed(
+	event := domain.BuildCustomerEmailAddressConfirmed(
 		customerID,
 		emailAddress,
 		streamVersion,
@@ -756,16 +756,16 @@ func givenCustomerEmailAddressWasConfirmed(
 }
 
 func givenCustomerEmailAddressWasChanged(
-	customerID values.CustomerID,
+	customerID value.CustomerID,
 	aa acceptanceTestArtifacts,
 	streamVersion uint,
-) values.ConfirmationHash {
+) value.ConfirmationHash {
 
-	emailAddress := values.RebuildEmailAddress(aa.newEmailAddress)
-	previousEmailAddress := values.RebuildEmailAddress(aa.emailAddress)
-	confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
+	emailAddress := value.RebuildEmailAddress(aa.newEmailAddress)
+	previousEmailAddress := value.RebuildEmailAddress(aa.emailAddress)
+	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 
-	event := events.BuildCustomerEmailAddressChanged(
+	event := domain.BuildCustomerEmailAddressChanged(
 		customerID,
 		emailAddress,
 		confirmationHash,
@@ -803,7 +803,7 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 }
 
 func buildDefaultCustomerViewForAcceptanceTest(
-	customerID values.CustomerID,
+	customerID value.CustomerID,
 	aa acceptanceTestArtifacts,
 ) customer.View {
 

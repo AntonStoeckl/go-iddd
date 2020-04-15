@@ -1,23 +1,23 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerRegistered struct {
-	customerID       values.CustomerID
-	emailAddress     values.EmailAddress
-	confirmationHash values.ConfirmationHash
-	personName       values.PersonName
+	customerID       value.CustomerID
+	emailAddress     value.EmailAddress
+	confirmationHash value.ConfirmationHash
+	personName       value.PersonName
 	meta             es.EventMeta
 }
 
 func BuildCustomerRegistered(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
-	personName values.PersonName,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
+	personName value.PersonName,
 	streamVersion uint,
 ) CustomerRegistered {
 
@@ -34,10 +34,10 @@ func BuildCustomerRegistered(
 }
 
 func RebuildCustomerRegistered(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
-	personName values.PersonName,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
+	personName value.PersonName,
 	meta es.EventMeta,
 ) CustomerRegistered {
 
@@ -52,19 +52,19 @@ func RebuildCustomerRegistered(
 	return event
 }
 
-func (event CustomerRegistered) CustomerID() values.CustomerID {
+func (event CustomerRegistered) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerRegistered) EmailAddress() values.EmailAddress {
+func (event CustomerRegistered) EmailAddress() value.EmailAddress {
 	return event.emailAddress
 }
 
-func (event CustomerRegistered) ConfirmationHash() values.ConfirmationHash {
+func (event CustomerRegistered) ConfirmationHash() value.ConfirmationHash {
 	return event.confirmationHash
 }
 
-func (event CustomerRegistered) PersonName() values.PersonName {
+func (event CustomerRegistered) PersonName() value.PersonName {
 	return event.personName
 }
 

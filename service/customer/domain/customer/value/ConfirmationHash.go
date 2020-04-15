@@ -1,4 +1,4 @@
-package values
+package value
 
 import (
 	"crypto/sha256"

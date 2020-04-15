@@ -1,4 +1,4 @@
-package values
+package value
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/lib"

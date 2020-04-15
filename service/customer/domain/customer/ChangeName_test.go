@@ -3,10 +3,10 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -18,13 +18,13 @@ func TestChangeName(t *testing.T) {
 		var err error
 		var recordedEvents es.RecordedEvents
 
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-		personName := values.RebuildPersonName("Kevin", "Ball")
-		changedPersonName := values.RebuildPersonName("Latoya", "Ball")
+		customerID := value.GenerateCustomerID()
+		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+		personName := value.RebuildPersonName("Kevin", "Ball")
+		changedPersonName := value.RebuildPersonName("Latoya", "Ball")
 
-		customerWasRegistered := events.BuildCustomerRegistered(
+		customerWasRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -32,7 +32,7 @@ func TestChangeName(t *testing.T) {
 			1,
 		)
 
-		changeName, err := commands.BuildChangeCustomerName(
+		changeName, err := domain.BuildChangeCustomerName(
 			customerID.String(),
 			changedPersonName.GivenName(),
 			changedPersonName.FamilyName(),
@@ -49,7 +49,7 @@ func TestChangeName(t *testing.T) {
 
 					Convey("Then CustomerNameChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						nameChanged, ok := recordedEvents[0].(events.CustomerNameChanged)
+						nameChanged, ok := recordedEvents[0].(domain.CustomerNameChanged)
 						So(ok, ShouldBeTrue)
 						So(nameChanged, ShouldNotBeNil)
 						So(nameChanged.CustomerID().Equals(customerID), ShouldBeTrue)
@@ -67,7 +67,7 @@ func TestChangeName(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerName", func() {
-					changeName, err = commands.BuildChangeCustomerName(
+					changeName, err = domain.BuildChangeCustomerName(
 						customerID.String(),
 						personName.GivenName(),
 						personName.FamilyName(),
@@ -89,7 +89,7 @@ func TestChangeName(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerNameChanged", func() {
-					nameChanged := events.BuildCustomerNameChanged(
+					nameChanged := domain.BuildCustomerNameChanged(
 						customerID,
 						changedPersonName,
 						2,
@@ -116,7 +116,7 @@ func TestChangeName(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.BuildCustomerDeleted(customerID, emailAddress, 2),
+						domain.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ChangeCustomerName", func() {

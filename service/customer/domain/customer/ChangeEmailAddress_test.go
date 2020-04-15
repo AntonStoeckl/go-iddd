@@ -3,10 +3,10 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -18,13 +18,13 @@ func TestChangeEmailAddress(t *testing.T) {
 		var err error
 		var recordedEvents es.RecordedEvents
 
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-		personName := values.RebuildPersonName("Kevin", "Ball")
-		changedEmailAddress := values.RebuildEmailAddress("latoya@ball.net")
+		customerID := value.GenerateCustomerID()
+		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+		personName := value.RebuildPersonName("Kevin", "Ball")
+		changedEmailAddress := value.RebuildEmailAddress("latoya@ball.net")
 
-		customerWasRegistered := events.BuildCustomerRegistered(
+		customerWasRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -32,13 +32,13 @@ func TestChangeEmailAddress(t *testing.T) {
 			1,
 		)
 
-		customerEmailAddressWasConfirmed := events.BuildCustomerEmailAddressConfirmed(
+		customerEmailAddressWasConfirmed := domain.BuildCustomerEmailAddressConfirmed(
 			customerID,
 			emailAddress,
 			2,
 		)
 
-		changeEmailAddress, err := commands.BuildChangeCustomerEmailAddress(
+		changeEmailAddress, err := domain.BuildChangeCustomerEmailAddress(
 			customerID.String(),
 			changedEmailAddress.String(),
 		)
@@ -46,7 +46,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
 
-		confirmEmailAddress, err := commands.BuildConfirmCustomerEmailAddress(
+		confirmEmailAddress, err := domain.BuildConfirmCustomerEmailAddress(
 			customerID.String(),
 			changedConfirmationHash.String(),
 		)
@@ -62,7 +62,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 					Convey("Then CustomerEmailAddressChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						emailAddressChanged, ok := recordedEvents[0].(events.CustomerEmailAddressChanged)
+						emailAddressChanged, ok := recordedEvents[0].(domain.CustomerEmailAddressChanged)
 						So(ok, ShouldBeTrue)
 						So(emailAddressChanged, ShouldNotBeNil)
 						So(emailAddressChanged.CustomerID().Equals(customerID), ShouldBeTrue)
@@ -82,7 +82,7 @@ func TestChangeEmailAddress(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					changeEmailAddress, err = commands.BuildChangeCustomerEmailAddress(
+					changeEmailAddress, err = domain.BuildChangeCustomerEmailAddress(
 						customerID.String(),
 						emailAddress.String(),
 					)
@@ -103,7 +103,7 @@ func TestChangeEmailAddress(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerEmailAddressChanged", func() {
-					emailAddressChanged := events.BuildCustomerEmailAddressChanged(
+					emailAddressChanged := domain.BuildCustomerEmailAddressChanged(
 						customerID,
 						changedEmailAddress,
 						changedConfirmationHash,
@@ -133,7 +133,7 @@ func TestChangeEmailAddress(t *testing.T) {
 					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
 
 					Convey("and CustomerEmailAddressChanged", func() {
-						emailAddressChanged := events.BuildCustomerEmailAddressChanged(
+						emailAddressChanged := domain.BuildCustomerEmailAddressChanged(
 							customerID,
 							changedEmailAddress,
 							changedConfirmationHash,
@@ -149,7 +149,7 @@ func TestChangeEmailAddress(t *testing.T) {
 
 							Convey("Then CustomerEmailAddressConfirmed", func() {
 								So(recordedEvents, ShouldHaveLength, 1)
-								emailAddressConfirmed, ok := recordedEvents[0].(events.CustomerEmailAddressConfirmed)
+								emailAddressConfirmed, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmed)
 								So(ok, ShouldBeTrue)
 								So(emailAddressConfirmed.CustomerID().Equals(customerID), ShouldBeTrue)
 								So(emailAddressConfirmed.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
@@ -170,7 +170,7 @@ func TestChangeEmailAddress(t *testing.T) {
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						events.BuildCustomerDeleted(customerID, emailAddress, 2),
+						domain.BuildCustomerDeleted(customerID, emailAddress, 2),
 					)
 
 					Convey("When ChangeCustomerEmailAddress", func() {

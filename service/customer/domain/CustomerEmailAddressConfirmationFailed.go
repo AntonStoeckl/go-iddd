@@ -1,22 +1,22 @@
-package events
+package domain
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
 type CustomerEmailAddressConfirmationFailed struct {
-	customerID       values.CustomerID
-	emailAddress     values.EmailAddress
-	confirmationHash values.ConfirmationHash
+	customerID       value.CustomerID
+	emailAddress     value.EmailAddress
+	confirmationHash value.ConfirmationHash
 	reason           error
 	meta             es.EventMeta
 }
 
 func BuildCustomerEmailAddressConfirmationFailed(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
 	reason error,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmationFailed {
@@ -34,9 +34,9 @@ func BuildCustomerEmailAddressConfirmationFailed(
 }
 
 func RebuildCustomerEmailAddressConfirmationFailed(
-	customerID values.CustomerID,
-	emailAddress values.EmailAddress,
-	confirmationHash values.ConfirmationHash,
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
 	reason error,
 	meta es.EventMeta,
 ) CustomerEmailAddressConfirmationFailed {
@@ -52,15 +52,15 @@ func RebuildCustomerEmailAddressConfirmationFailed(
 	return event
 }
 
-func (event CustomerEmailAddressConfirmationFailed) CustomerID() values.CustomerID {
+func (event CustomerEmailAddressConfirmationFailed) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressConfirmationFailed) EmailAddress() values.EmailAddress {
+func (event CustomerEmailAddressConfirmationFailed) EmailAddress() value.EmailAddress {
 	return event.emailAddress
 }
 
-func (event CustomerEmailAddressConfirmationFailed) ConfirmationHash() values.ConfirmationHash {
+func (event CustomerEmailAddressConfirmationFailed) ConfirmationHash() value.ConfirmationHash {
 	return event.confirmationHash
 }
 

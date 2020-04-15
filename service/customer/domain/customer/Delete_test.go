@@ -3,21 +3,22 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestDelete(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		customerID := values.GenerateCustomerID()
-		emailAddress := values.RebuildEmailAddress("kevin@ball.com")
-		confirmationHash := values.GenerateConfirmationHash(emailAddress.String())
-		personName := values.RebuildPersonName("Kevin", "Ball")
+		customerID := value.GenerateCustomerID()
+		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		customerWasRegistered := events.BuildCustomerRegistered(
+		customerWasRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
@@ -34,7 +35,7 @@ func TestDelete(t *testing.T) {
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						customerDeleted, ok := recordedEvents[0].(events.CustomerDeleted)
+						customerDeleted, ok := recordedEvents[0].(domain.CustomerDeleted)
 						So(ok, ShouldBeTrue)
 						So(customerDeleted, ShouldNotBeNil)
 						So(customerDeleted.CustomerID().Equals(customerID), ShouldBeTrue)
@@ -52,7 +53,7 @@ func TestDelete(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("and CustomerDeleted", func() {
-					customerDeleted := events.BuildCustomerDeleted(customerID, emailAddress, 2)
+					customerDeleted := domain.BuildCustomerDeleted(customerID, emailAddress, 2)
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {

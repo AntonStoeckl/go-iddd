@@ -1,13 +1,12 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
 
-func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCustomerEmailAddress) (es.RecordedEvents, error) {
+func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if err := assertNotDeleted(customer); err != nil {
@@ -15,7 +14,7 @@ func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCus
 	}
 
 	if err := assertMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()); err != nil {
-		event := events.BuildCustomerEmailAddressConfirmationFailed(
+		event := domain.BuildCustomerEmailAddressConfirmationFailed(
 			customer.id,
 			customer.emailAddress,
 			command.ConfirmationHash(),
@@ -30,7 +29,7 @@ func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCus
 		return nil, nil
 	}
 
-	event := events.BuildCustomerEmailAddressConfirmed(
+	event := domain.BuildCustomerEmailAddressConfirmed(
 		customer.id,
 		customer.emailAddress,
 		customer.currentStreamVersion+1,

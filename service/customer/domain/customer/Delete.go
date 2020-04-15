@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 )
 
@@ -12,7 +12,7 @@ func Delete(eventStream es.EventStream) es.RecordedEvents {
 		return nil
 	}
 
-	event := events.BuildCustomerDeleted(
+	event := domain.BuildCustomerDeleted(
 		customer.id,
 		customer.emailAddress,
 		customer.currentStreamVersion+1,

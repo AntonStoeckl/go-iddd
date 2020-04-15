@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -40,7 +40,7 @@ func NewCustomerEventStore(
 	}
 }
 
-func (s *CustomerEventStore) RetrieveEventStream(id values.CustomerID) (es.EventStream, error) {
+func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventStream, error) {
 	wrapWithMsg := "customerEventStore.RetrieveEventStream"
 
 	eventStream, err := s.loadEventStream(s.streamID(id), 0, math.MaxUint32)
@@ -56,7 +56,7 @@ func (s *CustomerEventStore) RetrieveEventStream(id values.CustomerID) (es.Event
 	return eventStream, nil
 }
 
-func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.StartEventStream"
 
@@ -90,7 +90,7 @@ func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, 
 	return nil
 }
 
-func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.AppendToEventStream"
 
@@ -120,7 +120,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 	return nil
 }
 
-func (s *CustomerEventStore) PurgeEventStream(id values.CustomerID) error {
+func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 	var err error
 	wrapWithMsg := "customerEventStore.PurgeEventStream"
 
@@ -146,7 +146,7 @@ func (s *CustomerEventStore) PurgeEventStream(id values.CustomerID) error {
 	return nil
 }
 
-func (s *CustomerEventStore) streamID(id values.CustomerID) es.StreamID {
+func (s *CustomerEventStore) streamID(id value.CustomerID) es.StreamID {
 	return es.NewStreamID(streamPrefix + "-" + id.String())
 }
 
@@ -284,7 +284,7 @@ func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.Assert
 	return nil
 }
 
-func (s *CustomerEventStore) clearUniqueEmailAddress(customerID values.CustomerID, tx *sql.Tx) error {
+func (s *CustomerEventStore) clearUniqueEmailAddress(customerID value.CustomerID, tx *sql.Tx) error {
 	queryTemplate := `DELETE FROM %tablename% WHERE customer_id = $1`
 	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
 
@@ -301,8 +301,8 @@ func (s *CustomerEventStore) clearUniqueEmailAddress(customerID values.CustomerI
 }
 
 func (s *CustomerEventStore) tryToAdd(
-	emailAddress values.EmailAddress,
-	customerID values.CustomerID,
+	emailAddress value.EmailAddress,
+	customerID value.CustomerID,
 	tx *sql.Tx,
 ) error {
 
@@ -323,8 +323,8 @@ func (s *CustomerEventStore) tryToAdd(
 }
 
 func (s *CustomerEventStore) tryToReplace(
-	previousEmailAddress values.EmailAddress,
-	newEmailAddress values.EmailAddress,
+	previousEmailAddress value.EmailAddress,
+	newEmailAddress value.EmailAddress,
 	tx *sql.Tx,
 ) error {
 
@@ -345,7 +345,7 @@ func (s *CustomerEventStore) tryToReplace(
 }
 
 func (s *CustomerEventStore) remove(
-	newEmailAddress values.EmailAddress,
+	newEmailAddress value.EmailAddress,
 	tx *sql.Tx,
 ) error {
 

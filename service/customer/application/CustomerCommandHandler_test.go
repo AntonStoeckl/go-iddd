@@ -1,11 +1,13 @@
-package command_test
+package application_test
 
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/application/command"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/values"
+	"github.com/AntonStoeckl/go-iddd/service/customer/application"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain"
+
+	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
@@ -19,9 +21,9 @@ type commandHandlerTestArtifacts struct {
 	newEmailAddress    string
 	newGivenName       string
 	newFamilyName      string
-	customerID         values.CustomerID
-	confirmationHash   values.ConfirmationHash
-	customerRegistered events.CustomerRegistered
+	customerID         value.CustomerID
+	confirmationHash   value.ConfirmationHash
+	customerRegistered domain.CustomerRegistered
 }
 
 func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testing.T) {
@@ -32,14 +34,14 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 		Convey("\nSCENARIO: Technical problems with the CustomerEventStore", func() {
 			Convey("Given a registered Customer", func() {
 				Convey("and assuming the recorded events can't be stored", func() {
-					commandHandler := command.NewCustomerCommandHandler(
-						func(id values.CustomerID) (es.EventStream, error) {
+					commandHandler := application.NewCustomerCommandHandler(
+						func(id value.CustomerID) (es.EventStream, error) {
 							return es.EventStream{ca.customerRegistered}, nil
 						},
-						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+						func(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 							return nil
 						},
-						func(recordedEvents es.RecordedEvents, id values.CustomerID) error {
+						func(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 							return lib.ErrTechnical
 						},
 						lib.RetryOnConcurrencyConflict,
@@ -96,14 +98,14 @@ func buildArtifactsForCommandHandlerTest() commandHandlerTestArtifacts {
 	ca.newGivenName = "Fiona"
 	ca.newFamilyName = "Pratt"
 
-	ca.customerID = values.GenerateCustomerID()
-	ca.confirmationHash = values.GenerateConfirmationHash(ca.emailAddress)
+	ca.customerID = value.GenerateCustomerID()
+	ca.confirmationHash = value.GenerateConfirmationHash(ca.emailAddress)
 
-	ca.customerRegistered = events.BuildCustomerRegistered(
+	ca.customerRegistered = domain.BuildCustomerRegistered(
 		ca.customerID,
-		values.RebuildEmailAddress(ca.emailAddress),
+		value.RebuildEmailAddress(ca.emailAddress),
 		ca.confirmationHash,
-		values.RebuildPersonName(ca.givenName, ca.familyName),
+		value.RebuildPersonName(ca.givenName, ca.familyName),
 		1,
 	)
 
