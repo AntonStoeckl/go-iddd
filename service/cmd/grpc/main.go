@@ -10,6 +10,7 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
@@ -31,7 +32,7 @@ var (
 func main() {
 	var err error
 
-	logger := cmd.NewStandardLogger()
+	logger := shared.NewStandardLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 
 	diContainer, err = cmd.Bootstrap(config, logger)
@@ -48,7 +49,7 @@ func main() {
 	waitForStopSignal(stopSignalChannel, logger)
 }
 
-func mustStartGRPC(config *cmd.Config, logger *cmd.Logger) {
+func mustStartGRPC(config *cmd.Config, logger *shared.Logger) {
 	logger.Info("configuring gRPC server ...")
 
 	listener, err := net.Listen("tcp", config.GRPC.HostAndPort)
@@ -69,7 +70,7 @@ func mustStartGRPC(config *cmd.Config, logger *cmd.Logger) {
 	}
 }
 
-func mustStartREST(config *cmd.Config, logger *cmd.Logger) {
+func mustStartREST(config *cmd.Config, logger *shared.Logger) {
 	var err error
 	var ctx context.Context
 
@@ -119,7 +120,7 @@ func mustStartREST(config *cmd.Config, logger *cmd.Logger) {
 	}
 }
 
-func waitForStopSignal(stopSignalChannel chan os.Signal, logger *cmd.Logger) {
+func waitForStopSignal(stopSignalChannel chan os.Signal, logger *shared.Logger) {
 	logger.Info("start waiting for stop signal ...")
 
 	s := <-stopSignalChannel
@@ -132,7 +133,7 @@ func waitForStopSignal(stopSignalChannel chan os.Signal, logger *cmd.Logger) {
 	}
 }
 
-func shutdown(logger *cmd.Logger) {
+func shutdown(logger *shared.Logger) {
 	logger.Info("shutdown: stopping services ...")
 
 	if cancelCtx != nil {

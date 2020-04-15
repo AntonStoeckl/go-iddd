@@ -5,11 +5,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestMustBuildConfigFromEnv(t *testing.T) {
-	logger := NewNilLogger()
+	logger := shared.NewNilLogger()
 
 	Convey("Given all values are set in Env", t, func() {
 		Convey("When MustBuildConfigFromEnv is invoked", func() {

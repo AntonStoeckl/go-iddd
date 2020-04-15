@@ -7,6 +7,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/secondary/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 )
 
 type benchmarkTestArtifacts struct {
@@ -20,7 +21,7 @@ type benchmarkTestArtifacts struct {
 }
 
 func BenchmarkCustomerCommand(b *testing.B) {
-	logger := cmd.NewNilLogger()
+	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
@@ -54,7 +55,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 }
 
 func BenchmarkCustomerQuery(b *testing.B) {
-	logger := cmd.NewNilLogger()
+	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {

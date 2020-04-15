@@ -29,7 +29,7 @@ var ConfigExpectedEnvKeys = map[string]string{
 	"restHP": "REST_HOST_AND_PORT",
 }
 
-func MustBuildConfigFromEnv(logger *Logger) *Config {
+func MustBuildConfigFromEnv(logger *shared.Logger) *Config {
 	var err error
 	conf := &Config{}
 	msg := "mustBuildConfigFromEnv: %s - Hasta la vista, baby!"

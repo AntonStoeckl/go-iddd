@@ -5,9 +5,10 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/secondary/postgres/database"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 )
 
-func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
+func Bootstrap(config *Config, logger *shared.Logger) (*DIContainer, error) {
 	logger.Info("bootstrap: opening Postgres DB connection ...")
 
 	db, err := sql.Open("postgres", config.Postgres.DSN)
