@@ -8,7 +8,7 @@ import (
 func Delete(eventStream es.EventStream) es.RecordedEvents {
 	customer := buildCurrentStateFrom(eventStream)
 
-	if !wasNotDeleted(customer) {
+	if err := assertNotDeleted(customer); err != nil {
 		return nil
 	}
 

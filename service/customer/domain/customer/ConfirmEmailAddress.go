@@ -13,8 +13,8 @@ const failureReasonWrongHash = "wrong confirmation hash supplied"
 func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
-	if !wasNotDeleted(customer) {
-		return nil, errors.Wrap(wasDeletedErr, "confirmEmailAddress")
+	if err := assertNotDeleted(customer); err != nil {
+		return nil, errors.Wrap(err, "confirmEmailAddress")
 	}
 
 	if !hasSuppliedMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()) {

@@ -10,8 +10,8 @@ import (
 func ChangeEmailAddress(eventStream es.EventStream, command commands.ChangeCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
-	if !wasNotDeleted(customer) {
-		return nil, errors.Wrap(wasDeletedErr, "changeEmailAddress")
+	if err := assertNotDeleted(customer); err != nil {
+		return nil, errors.Wrap(err, "changeEmailAddress")
 	}
 
 	if customer.emailAddress.Equals(command.EmailAddress()) {

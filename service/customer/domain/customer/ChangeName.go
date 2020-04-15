@@ -10,8 +10,8 @@ import (
 func ChangeName(eventStream es.EventStream, command commands.ChangeCustomerName) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
 
-	if !wasNotDeleted(customer) {
-		return nil, errors.Wrap(wasDeletedErr, "changeCustomerName")
+	if err := assertNotDeleted(customer); err != nil {
+		return nil, errors.Wrap(err, "changeCustomerName")
 	}
 
 	if customer.personName.Equals(command.PersonName()) {
