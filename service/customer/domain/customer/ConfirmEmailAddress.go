@@ -3,12 +3,9 @@ package customer
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/commands"
 	"github.com/AntonStoeckl/go-iddd/service/customer/domain/customer/events"
-	"github.com/AntonStoeckl/go-iddd/service/lib"
 	"github.com/AntonStoeckl/go-iddd/service/lib/es"
 	"github.com/cockroachdb/errors"
 )
-
-const failureReasonWrongHash = "wrong confirmation hash supplied"
 
 func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCustomerEmailAddress) (es.RecordedEvents, error) {
 	customer := buildCurrentStateFrom(eventStream)
@@ -17,12 +14,12 @@ func ConfirmEmailAddress(eventStream es.EventStream, command commands.ConfirmCus
 		return nil, errors.Wrap(err, "confirmEmailAddress")
 	}
 
-	if !hasSuppliedMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()) {
+	if err := assertMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()); err != nil {
 		event := events.BuildCustomerEmailAddressConfirmationFailed(
 			customer.id,
 			customer.emailAddress,
 			command.ConfirmationHash(),
-			errors.Mark(errors.New(failureReasonWrongHash), lib.ErrDomainConstraintsViolation),
+			err,
 			customer.currentStreamVersion+1,
 		)
 
