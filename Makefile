@@ -2,13 +2,13 @@ GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem
 
 generate_proto:
 	@protoc \
-		-I service/customer/infrastructure/adapter/primary/grpc \
+		-I service/customeraccounts/infrastructure/adapter/primary/grpc \
 		-I /usr/local/include \
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
-		--go_out=plugins=grpc:service/customer/infrastructure/adapter/primary/grpc \
-		--grpc-gateway_out=logtostderr=true:service/customer/infrastructure/adapter/primary/grpc \
-		--swagger_out=logtostderr=true:service/customer/infrastructure/adapter/primary/grpc \
-		service/customer/infrastructure/adapter/primary/grpc/customer.proto
+		--go_out=plugins=grpc:service/customeraccounts/infrastructure/adapter/primary/grpc \
+		--grpc-gateway_out=logtostderr=true:service/customeraccounts/infrastructure/adapter/primary/grpc \
+		--swagger_out=logtostderr=true:service/customeraccounts/infrastructure/adapter/primary/grpc \
+		service/customeraccounts/infrastructure/adapter/primary/grpc/customer.proto
 
 lint:
 	golangci-lint run --build-tags test ./...

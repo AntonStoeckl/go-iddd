@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	customergrpc "github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/primary/grpc"
+	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"

@@ -3,8 +3,8 @@ package cmd
 import (
 	"database/sql"
 
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/adapter/secondary/postgres/database"
-	"github.com/AntonStoeckl/go-iddd/service/customer/infrastructure/serialization"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/secondary/postgres/database"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
 )
 
 func Bootstrap(config *Config, logger *Logger) (*DIContainer, error) {
