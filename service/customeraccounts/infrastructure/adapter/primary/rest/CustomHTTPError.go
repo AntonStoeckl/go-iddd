@@ -1,4 +1,4 @@
-package customergrpc
+package customerrest
 
 import (
 	"context"

@@ -3,7 +3,7 @@ module github.com/AntonStoeckl/go-iddd
 go 1.13
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.4.1
+	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
 	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
 	github.com/cockroachdb/errors v1.2.4
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
@@ -22,7 +22,7 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/net v0.0.0-20200319234117-63522dbf7eec // indirect
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect

@@ -2,11 +2,13 @@
 // source: customer.proto
 
 /*
-Package customergrpc is a reverse proxy.
+Package customerrest is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package customergrpc
+package customerrest
+
+import customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
 
 import (
 	"context"
@@ -28,8 +30,8 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
-func request_Customer_Register_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RegisterRequest
+func request_Customer_Register_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.RegisterRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -45,8 +47,8 @@ func request_Customer_Register_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_Customer_Register_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RegisterRequest
+func local_request_Customer_Register_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.RegisterRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -62,8 +64,8 @@ func local_request_Customer_Register_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmEmailAddressRequest
+func request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ConfirmEmailAddressRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -97,8 +99,8 @@ func request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler runti
 
 }
 
-func local_request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ConfirmEmailAddressRequest
+func local_request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ConfirmEmailAddressRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -132,8 +134,8 @@ func local_request_Customer_ConfirmEmailAddress_0(ctx context.Context, marshaler
 
 }
 
-func request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChangeEmailAddressRequest
+func request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ChangeEmailAddressRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -167,8 +169,8 @@ func request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler runtim
 
 }
 
-func local_request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChangeEmailAddressRequest
+func local_request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ChangeEmailAddressRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -202,8 +204,8 @@ func local_request_Customer_ChangeEmailAddress_0(ctx context.Context, marshaler 
 
 }
 
-func request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChangeNameRequest
+func request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ChangeNameRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -237,8 +239,8 @@ func request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChangeNameRequest
+func local_request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.ChangeNameRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -272,8 +274,8 @@ func local_request_Customer_ChangeName_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_Customer_Delete_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteRequest
+func request_Customer_Delete_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.DeleteRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -299,8 +301,8 @@ func request_Customer_Delete_0(ctx context.Context, marshaler runtime.Marshaler,
 
 }
 
-func local_request_Customer_Delete_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteRequest
+func local_request_Customer_Delete_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.DeleteRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -326,8 +328,8 @@ func local_request_Customer_Delete_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func request_Customer_RetrieveView_0(ctx context.Context, marshaler runtime.Marshaler, client CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RetrieveViewRequest
+func request_Customer_RetrieveView_0(ctx context.Context, marshaler runtime.Marshaler, client customergrpc.CustomerClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.RetrieveViewRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -353,8 +355,8 @@ func request_Customer_RetrieveView_0(ctx context.Context, marshaler runtime.Mars
 
 }
 
-func local_request_Customer_RetrieveView_0(ctx context.Context, marshaler runtime.Marshaler, server CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq RetrieveViewRequest
+func local_request_Customer_RetrieveView_0(ctx context.Context, marshaler runtime.Marshaler, server customergrpc.CustomerServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq customergrpc.RetrieveViewRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -383,7 +385,7 @@ func local_request_Customer_RetrieveView_0(ctx context.Context, marshaler runtim
 // RegisterCustomerHandlerServer registers the http handlers for service Customer to "mux".
 // UnaryRPC     :call CustomerServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-func RegisterCustomerHandlerServer(ctx context.Context, mux *runtime.ServeMux, server CustomerServer) error {
+func RegisterCustomerHandlerServer(ctx context.Context, mux *runtime.ServeMux, server customergrpc.CustomerServer) error {
 
 	mux.Handle("POST", pattern_Customer_Register_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -536,7 +538,7 @@ func RegisterCustomerHandlerFromEndpoint(ctx context.Context, mux *runtime.Serve
 // RegisterCustomerHandler registers the http handlers for service Customer to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
 func RegisterCustomerHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterCustomerHandlerClient(ctx, mux, NewCustomerClient(conn))
+	return RegisterCustomerHandlerClient(ctx, mux, customergrpc.NewCustomerClient(conn))
 }
 
 // RegisterCustomerHandlerClient registers the http handlers for service Customer
@@ -544,7 +546,7 @@ func RegisterCustomerHandler(ctx context.Context, mux *runtime.ServeMux, conn *g
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "CustomerClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "CustomerClient" to call the correct interceptors.
-func RegisterCustomerHandlerClient(ctx context.Context, mux *runtime.ServeMux, client CustomerClient) error {
+func RegisterCustomerHandlerClient(ctx context.Context, mux *runtime.ServeMux, client customergrpc.CustomerClient) error {
 
 	mux.Handle("POST", pattern_Customer_Register_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
