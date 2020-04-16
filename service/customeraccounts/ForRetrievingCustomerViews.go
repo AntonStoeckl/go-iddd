@@ -1,4 +1,4 @@
-package application
+package customeraccounts
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"

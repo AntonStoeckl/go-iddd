@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -14,7 +13,7 @@ type customerServer struct {
 	changeEmailAddress  customeraccounts.ForChangingCustomerEmailAddresses
 	changeName          customeraccounts.ForChangingCustomerNames
 	delete              customeraccounts.ForDeletingCustomers
-	retrieveView        application.ForRetrievingCustomerViews
+	retrieveView        customeraccounts.ForRetrievingCustomerViews
 }
 
 func NewCustomerServer(
@@ -23,7 +22,7 @@ func NewCustomerServer(
 	changeEmailAddress customeraccounts.ForChangingCustomerEmailAddresses,
 	changeName customeraccounts.ForChangingCustomerNames,
 	delete customeraccounts.ForDeletingCustomers,
-	retrieveView application.ForRetrievingCustomerViews,
+	retrieveView customeraccounts.ForRetrievingCustomerViews,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,

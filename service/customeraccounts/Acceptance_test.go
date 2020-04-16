@@ -26,7 +26,7 @@ type acceptanceTestCollaborators struct {
 	changeCustomerEmailAddress  customeraccounts.ForChangingCustomerEmailAddresses
 	changeCustomerName          customeraccounts.ForChangingCustomerNames
 	deleteCustomer              customeraccounts.ForDeletingCustomers
-	customerViewByID            application.ForRetrievingCustomerViews
+	customerViewByID            customeraccounts.ForRetrievingCustomerViews
 }
 
 type acceptanceTestArtifacts struct {
