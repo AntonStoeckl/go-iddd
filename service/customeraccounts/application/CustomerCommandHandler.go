@@ -4,30 +4,28 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/cockroachdb/errors"
 )
 
 const maxCustomerCommandHandlerRetries = uint8(10)
 
 type CustomerCommandHandler struct {
-	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
-	startCustomerEventStream    ForStartingCustomerEventStreams
-	appendToCustomerEventStream ForAppendingToCustomerEventStreams
-	retryCommand                ForRetryingCommands
+	retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams
+	startCustomerEventStream    customer.ForStartingCustomerEventStreams
+	appendToCustomerEventStream customer.ForAppendingToCustomerEventStreams
 }
 
 func NewCustomerCommandHandler(
-	retrieveCustomerEventStream ForRetrievingCustomerEventStreams,
-	startCustomerEventStream ForStartingCustomerEventStreams,
-	appendToCustomerEventStream ForAppendingToCustomerEventStreams,
-	retryCommand ForRetryingCommands,
+	retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams,
+	startCustomerEventStream customer.ForStartingCustomerEventStreams,
+	appendToCustomerEventStream customer.ForAppendingToCustomerEventStreams,
 ) *CustomerCommandHandler {
 
 	return &CustomerCommandHandler{
 		retrieveCustomerEventStream: retrieveCustomerEventStream,
 		startCustomerEventStream:    startCustomerEventStream,
 		appendToCustomerEventStream: appendToCustomerEventStream,
-		retryCommand:                retryCommand,
 	}
 }
 
@@ -55,7 +53,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 		return nil
 	}
 
-	if err = h.retryCommand(doRegister, maxCustomerCommandHandlerRetries); err != nil {
+	if err = shared.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
 		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -99,7 +97,7 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 		return nil
 	}
 
-	if err := h.retryCommand(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := shared.RetryOnConcurrencyConflict(doConfirmEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -137,7 +135,7 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 		return nil
 	}
 
-	if err := h.retryCommand(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
+	if err := shared.RetryOnConcurrencyConflict(doChangeEmailAddress, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -176,7 +174,7 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 		return nil
 	}
 
-	if err := h.retryCommand(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
+	if err := shared.RetryOnConcurrencyConflict(doChangeName, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
@@ -207,7 +205,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 		return nil
 	}
 
-	if err := h.retryCommand(doDelete, maxCustomerCommandHandlerRetries); err != nil {
+	if err := shared.RetryOnConcurrencyConflict(doDelete, maxCustomerCommandHandlerRetries); err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
 

@@ -78,7 +78,6 @@ func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCo
 			container.GetCustomerEventStore().RetrieveEventStream,
 			container.GetCustomerEventStore().StartEventStream,
 			container.GetCustomerEventStore().AppendToEventStream,
-			shared.RetryOnConcurrencyConflict,
 		)
 	}
 

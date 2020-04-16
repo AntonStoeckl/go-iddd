@@ -1,11 +1,10 @@
-package customeraccounts_test
+package application_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
@@ -16,17 +15,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var atStartCustomerEventStream application.ForStartingCustomerEventStreams
-var atAppendToCustomerEventStream application.ForAppendingToCustomerEventStreams
-var atPurgeCustomerEventStream application.ForPurgingCustomerEventStreams
+var atStartCustomerEventStream customer.ForStartingCustomerEventStreams
+var atAppendToCustomerEventStream customer.ForAppendingToCustomerEventStreams
+var atPurgeCustomerEventStream customer.ForPurgingCustomerEventStreams
 
 type acceptanceTestCollaborators struct {
-	registerCustomer            customeraccounts.ForRegisteringCustomers
-	confirmCustomerEmailAddress customeraccounts.ForConfirmingCustomerEmailAddresses
-	changeCustomerEmailAddress  customeraccounts.ForChangingCustomerEmailAddresses
-	changeCustomerName          customeraccounts.ForChangingCustomerNames
-	deleteCustomer              customeraccounts.ForDeletingCustomers
-	customerViewByID            customeraccounts.ForRetrievingCustomerViews
+	registerCustomer            application.ForRegisteringCustomers
+	confirmCustomerEmailAddress application.ForConfirmingCustomerEmailAddresses
+	changeCustomerEmailAddress  application.ForChangingCustomerEmailAddresses
+	changeCustomerName          application.ForChangingCustomerNames
+	deleteCustomer              application.ForDeletingCustomers
+	customerViewByID            application.ForRetrievingCustomerViews
 }
 
 type acceptanceTestArtifacts struct {

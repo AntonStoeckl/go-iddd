@@ -42,7 +42,6 @@ func TestCustomerCommandHandler_TechnicalProblemsWithCustomerEventStore(t *testi
 						func(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 							return shared.ErrTechnical
 						},
-						shared.RetryOnConcurrencyConflict,
 					)
 
 					Convey("When he tries to confirm his email address", func() {

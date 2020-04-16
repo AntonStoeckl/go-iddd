@@ -2,4 +2,4 @@ package application
 
 import "github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
 
-type ForPurgingCustomerEventStreams func(id value.CustomerID) error
+type ForRegisteringCustomers func(emailAddress, givenName, familyName string) (value.CustomerID, error)

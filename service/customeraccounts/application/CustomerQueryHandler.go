@@ -8,10 +8,10 @@ import (
 )
 
 type CustomerQueryHandler struct {
-	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
+	retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams
 }
 
-func NewCustomerQueryHandler(retrieveCustomerEventStream ForRetrievingCustomerEventStreams) *CustomerQueryHandler {
+func NewCustomerQueryHandler(retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams) *CustomerQueryHandler {
 	return &CustomerQueryHandler{
 		retrieveCustomerEventStream: retrieveCustomerEventStream,
 	}
