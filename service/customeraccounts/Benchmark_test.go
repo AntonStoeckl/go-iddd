@@ -6,7 +6,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/secondary/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 )
 

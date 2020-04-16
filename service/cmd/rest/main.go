@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
-	customerrest "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/rest"
+	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/grpc"
+	customerrest "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/rest"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
@@ -69,7 +69,7 @@ func mustStartREST(config *cmd.Config, logger *shared.Logger) {
 	mux.HandleFunc(
 		"/v1/customer/swagger.json",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "service/customeraccounts/infrastructure/adapter/primary/rest/customer.swagger.json")
+			http.ServeFile(w, r, "service/customeraccounts/infrastructure/adapter/rest/customer.swagger.json")
 		},
 	)
 

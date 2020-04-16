@@ -14,11 +14,11 @@ type errorBody struct {
 }
 
 func CustomHTTPError(
-	ctx context.Context,
-	serveMux *runtime.ServeMux,
+	_ context.Context,
+	_ *runtime.ServeMux,
 	marshaler runtime.Marshaler,
 	w http.ResponseWriter,
-	req *http.Request,
+	_ *http.Request,
 	err error,
 ) {
 
@@ -34,10 +34,6 @@ func CustomHTTPError(
 	)
 
 	if jErr != nil {
-		_, _ = w.Write([]byte(fallback)) // useless to handle an error happening when writing a fallback error
+		_, _ = w.Write([]byte(fallback)) // useless to handle an error happening while writing a fallback error
 	}
-
-	_ = ctx      // currently not used
-	_ = serveMux // currently not used
-	_ = req      // currently not used
 }

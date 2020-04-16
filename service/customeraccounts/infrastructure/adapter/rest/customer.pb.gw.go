@@ -8,7 +8,7 @@ It translates gRPC into RESTful JSON APIs.
 */
 package customerrest
 
-import customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/primary/grpc"
+import customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/grpc"
 
 import (
 	"context"
