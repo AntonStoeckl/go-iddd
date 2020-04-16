@@ -81,7 +81,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
 					_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
-					Convey(fmt.Sprintf("Then she should receive an error"), func() {
+					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
 					})
 				})
@@ -99,7 +99,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
 						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
-						Convey(fmt.Sprintf("Then she should be able to register"), func() {
+						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
 						})
 					})
@@ -112,7 +112,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
 						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
 
-						Convey(fmt.Sprintf("Then she should be able to register"), func() {
+						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
 						})
 					})
