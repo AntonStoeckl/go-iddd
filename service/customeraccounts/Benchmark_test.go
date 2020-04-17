@@ -1,4 +1,4 @@
-package application_test
+package customeraccounts_test
 
 import (
 	"testing"
