@@ -73,7 +73,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO: A prospective Customer can't register because email address is already used", func() {
+		Convey("\nSCENARIO: A prospective Customer can't register because her email address is already used", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
 				customerID, _ = givenCustomerRegistered(aa)
 
@@ -486,6 +486,62 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 		Reset(func() {
 			err = atPurgeCustomerEventStream(customerID)
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestCustomerAcceptanceScenarios_ForAddingBillingProfiles(t *testing.T) {
+	Convey("Prepare test artifacts", t, func() {
+		aa := acceptanceTestArtifacts{
+			emailAddress: "karen@jackson.net",
+			givenName:    "Karen",
+			familyName:   "Jackson",
+		}
+
+		Convey("\nSCENARIO: A Customer adds a billing profile to her account", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				Convey("When she adds a billing profile ", func() {
+					Convey("Then her account should contain one billing profile", func() {
+
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestCustomerAcceptanceScenarios_ForRemovingBillingProfiles(t *testing.T) {
+	Convey("Prepare test artifacts", t, func() {
+		aa := acceptanceTestArtifacts{
+			emailAddress: "karen@jackson.net",
+			givenName:    "Karen",
+			familyName:   "Jackson",
+		}
+
+		Convey("\nSCENARIO: A Customer removes a billing profile from her account", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				Convey("And given she added a billing profile", func() {
+					Convey("And given she added another billing profile", func() {
+						Convey("When she removes the first billing profile from her account", func() {
+							Convey("Then her account should contain only the second billing profile", func() {
+
+							})
+						})
+					})
+				})
+			})
+		})
+
+		Convey("\nSCENARIO: A Customer tries to remove the only billing profile from her account", func() {
+			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
+				Convey("And given she added a billing profile", func() {
+					Convey("When she tries to remove the billing profile from her account", func() {
+						Convey("Then she should receive an error", func() {
+
+						})
+					})
+				})
+			})
 		})
 	})
 }
