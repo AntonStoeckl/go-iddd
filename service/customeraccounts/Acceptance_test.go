@@ -131,7 +131,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				})
 			})
 
-			Convey("When she supplies with an empty givenName", func() {
+			Convey("When she supplies an empty givenName", func() {
 				_, err = ac.registerCustomer(aa.emailAddress, "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
@@ -140,7 +140,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				})
 			})
 
-			Convey("When she supplies with an empty familyName", func() {
+			Convey("When she supplies an empty familyName", func() {
 				_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
