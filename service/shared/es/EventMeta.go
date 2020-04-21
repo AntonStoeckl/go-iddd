@@ -16,11 +16,6 @@ type EventMeta struct {
 	streamVersion uint
 }
 
-type EventMetaForJSON struct {
-	EventName  string `json:"eventName"`
-	OccurredAt string `json:"occurredAt"`
-}
-
 func BuildEventMeta(
 	event DomainEvent,
 	streamVersion uint,
