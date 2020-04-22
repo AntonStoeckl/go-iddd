@@ -25,12 +25,14 @@ func TestDelete(t *testing.T) {
 			1,
 		)
 
+		deleteCmd := domain.BuildDeleteCustomer(customerID)
+
 		Convey("\nSCENARIO 1: Delete a Customer's account", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When DeleteCustomer", func() {
-					recordedEvents := customer.Delete(eventStream)
+					recordedEvents := customer.Delete(eventStream, deleteCmd)
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -56,7 +58,7 @@ func TestDelete(t *testing.T) {
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {
-						recordedEvents := customer.Delete(eventStream)
+						recordedEvents := customer.Delete(eventStream, deleteCmd)
 
 						Convey("Then no Event", func() {
 							So(recordedEvents, ShouldBeEmpty)

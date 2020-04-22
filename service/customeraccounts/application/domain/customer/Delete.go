@@ -5,7 +5,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 )
 
-func Delete(eventStream es.EventStream) es.RecordedEvents {
+func Delete(eventStream es.EventStream, command domain.DeleteCustomer) es.RecordedEvents {
 	customer := buildCurrentStateFrom(eventStream)
 
 	if err := assertNotDeleted(customer); err != nil {
@@ -13,7 +13,7 @@ func Delete(eventStream es.EventStream) es.RecordedEvents {
 	}
 
 	event := domain.BuildCustomerDeleted(
-		customer.id,
+		command.CustomerID(),
 		customer.emailAddress,
 		customer.currentStreamVersion+1,
 	)

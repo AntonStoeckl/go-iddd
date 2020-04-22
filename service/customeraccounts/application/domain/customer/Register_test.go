@@ -3,6 +3,8 @@ package customer_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
+
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,12 +12,20 @@ import (
 
 func TestRegister(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		register, err := domain.BuildRegisterCustomer(
-			"kevin@ball.com",
-			"Kevin",
-			"Ball",
-		)
+		var err error
+
+		emailAddress, err := value.BuildEmailAddress("kevin@ball.com")
 		So(err, ShouldBeNil)
+
+		personName, err := value.BuildPersonName("Kevin", "Ball")
+		So(err, ShouldBeNil)
+
+		register := domain.BuildRegisterCustomer(
+			value.GenerateCustomerID(),
+			emailAddress,
+			value.GenerateConfirmationHash("kevin@ball.com"),
+			personName,
+		)
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {

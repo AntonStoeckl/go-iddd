@@ -9,19 +9,14 @@ type DeleteCustomer struct {
 }
 
 func BuildDeleteCustomer(
-	customerID string,
-) (DeleteCustomer, error) {
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return DeleteCustomer{}, err
-	}
+	customerID value.CustomerID,
+) DeleteCustomer {
 
 	deleteCustomer := DeleteCustomer{
-		customerID: customerIDValue,
+		customerID: customerID,
 	}
 
-	return deleteCustomer, nil
+	return deleteCustomer
 }
 
 func (command DeleteCustomer) CustomerID() value.CustomerID {

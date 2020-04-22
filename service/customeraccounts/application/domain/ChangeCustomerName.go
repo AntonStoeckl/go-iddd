@@ -10,27 +10,16 @@ type ChangeCustomerName struct {
 }
 
 func BuildChangeCustomerName(
-	customerID string,
-	givenName string,
-	familyName string,
-) (ChangeCustomerName, error) {
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return ChangeCustomerName{}, err
-	}
-
-	personNameValue, err := value.BuildPersonName(givenName, familyName)
-	if err != nil {
-		return ChangeCustomerName{}, err
-	}
+	customerID value.CustomerID,
+	personName value.PersonName,
+) ChangeCustomerName {
 
 	changeEmailAddress := ChangeCustomerName{
-		customerID: customerIDValue,
-		personName: personNameValue,
+		customerID: customerID,
+		personName: personName,
 	}
 
-	return changeEmailAddress, nil
+	return changeEmailAddress
 }
 
 func (command ChangeCustomerName) CustomerID() value.CustomerID {

@@ -37,19 +37,17 @@ func TestChangeEmailAddress(t *testing.T) {
 			2,
 		)
 
-		changeEmailAddress, err := domain.BuildChangeCustomerEmailAddress(
-			customerID.String(),
-			changedEmailAddress.String(),
+		changeEmailAddress := domain.BuildChangeCustomerEmailAddress(
+			customerID,
+			changedEmailAddress,
 		)
-		So(err, ShouldBeNil)
 
 		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
 
-		confirmEmailAddress, err := domain.BuildConfirmCustomerEmailAddress(
-			customerID.String(),
-			changedConfirmationHash.String(),
+		confirmEmailAddress := domain.BuildConfirmCustomerEmailAddress(
+			customerID,
+			changedConfirmationHash,
 		)
-		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO 1: Change a Customer's emailAddress", func() {
 			Convey("Given CustomerRegistered", func() {
@@ -81,11 +79,10 @@ func TestChangeEmailAddress(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					changeEmailAddress, err = domain.BuildChangeCustomerEmailAddress(
-						customerID.String(),
-						emailAddress.String(),
+					changeEmailAddress = domain.BuildChangeCustomerEmailAddress(
+						customerID,
+						emailAddress,
 					)
-					So(err, ShouldBeNil)
 
 					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
 					So(err, ShouldBeNil)

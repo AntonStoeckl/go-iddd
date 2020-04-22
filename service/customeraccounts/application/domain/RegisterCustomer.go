@@ -12,29 +12,20 @@ type RegisterCustomer struct {
 }
 
 func BuildRegisterCustomer(
-	emailAddress string,
-	givenName string,
-	familyName string,
-) (RegisterCustomer, error) {
-
-	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
-	if err != nil {
-		return RegisterCustomer{}, err
-	}
-
-	personNameValue, err := value.BuildPersonName(givenName, familyName)
-	if err != nil {
-		return RegisterCustomer{}, err
-	}
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
+	personName value.PersonName,
+) RegisterCustomer {
 
 	register := RegisterCustomer{
-		customerID:       value.GenerateCustomerID(),
-		emailAddress:     emailAddressValue,
-		confirmationHash: value.GenerateConfirmationHash(emailAddressValue.String()),
-		personName:       personNameValue,
+		customerID:       customerID,
+		emailAddress:     emailAddress,
+		confirmationHash: confirmationHash,
+		personName:       personName,
 	}
 
-	return register, nil
+	return register
 }
 
 func (command RegisterCustomer) CustomerID() value.CustomerID {

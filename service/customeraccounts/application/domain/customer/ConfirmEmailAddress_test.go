@@ -37,17 +37,15 @@ func TestConfirmEmailAddress(t *testing.T) {
 			2,
 		)
 
-		confirmEmailAddress, err := domain.BuildConfirmCustomerEmailAddress(
-			customerID.String(),
-			confirmationHash.String(),
+		confirmEmailAddress := domain.BuildConfirmCustomerEmailAddress(
+			customerID,
+			confirmationHash,
 		)
-		So(err, ShouldBeNil)
 
-		confirmEmailAddressWithInvalidHash, err := domain.BuildConfirmCustomerEmailAddress(
-			customerID.String(),
-			invalidConfirmationHash.String(),
+		confirmEmailAddressWithInvalidHash := domain.BuildConfirmCustomerEmailAddress(
+			customerID,
+			invalidConfirmationHash,
 		)
-		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO 1: Confirm a Customer's emailAddress with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {

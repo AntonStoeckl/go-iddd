@@ -31,12 +31,10 @@ func TestChangeName(t *testing.T) {
 			1,
 		)
 
-		changeName, err := domain.BuildChangeCustomerName(
-			customerID.String(),
-			changedPersonName.GivenName(),
-			changedPersonName.FamilyName(),
+		changeName := domain.BuildChangeCustomerName(
+			customerID,
+			changedPersonName,
 		)
-		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO 1: Change a Customer's name", func() {
 			Convey("Given CustomerRegistered", func() {
@@ -66,12 +64,10 @@ func TestChangeName(t *testing.T) {
 				eventStream := es.EventStream{customerWasRegistered}
 
 				Convey("When ChangeCustomerName", func() {
-					changeName, err = domain.BuildChangeCustomerName(
-						customerID.String(),
-						personName.GivenName(),
-						personName.FamilyName(),
+					changeName = domain.BuildChangeCustomerName(
+						customerID,
+						personName,
 					)
-					So(err, ShouldBeNil)
 
 					recordedEvents, err = customer.ChangeName(eventStream, changeName)
 					So(err, ShouldBeNil)

@@ -39,9 +39,22 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	var command domain.RegisterCustomer
 	wrapWithMsg := "customerCommandHandler.RegisterCustomer"
 
-	if command, err = domain.BuildRegisterCustomer(emailAddress, givenName, familyName); err != nil {
+	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
+	if err != nil {
 		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
+
+	personNameValue, err := value.BuildPersonName(givenName, familyName)
+	if err != nil {
+		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+	}
+
+	command = domain.BuildRegisterCustomer(
+		value.GenerateCustomerID(),
+		emailAddressValue,
+		value.GenerateConfirmationHash(emailAddressValue.String()),
+		personNameValue,
+	)
 
 	doRegister := func() error {
 		recordedEvents := customer.Register(command)
@@ -69,9 +82,17 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 	var command domain.ConfirmCustomerEmailAddress
 	wrapWithMsg := "customerCommandHandler.ConfirmCustomerEmailAddress"
 
-	if command, err = domain.BuildConfirmCustomerEmailAddress(customerID, confirmationHash); err != nil {
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
+
+	confirmationHashValue, err := value.BuildConfirmationHash(confirmationHash)
+	if err != nil {
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	command = domain.BuildConfirmCustomerEmailAddress(customerIDValue, confirmationHashValue)
 
 	doConfirmEmailAddress := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
@@ -113,9 +134,17 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 	var command domain.ChangeCustomerEmailAddress
 	wrapWithMsg := "customerCommandHandler.ChangeCustomerEmailAddress"
 
-	if command, err = domain.BuildChangeCustomerEmailAddress(customerID, emailAddress); err != nil {
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
+
+	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
+	if err != nil {
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	command = domain.BuildChangeCustomerEmailAddress(customerIDValue, emailAddressValue)
 
 	doChangeEmailAddress := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
@@ -152,9 +181,17 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 	var command domain.ChangeCustomerName
 	wrapWithMsg := "customerCommandHandler.ChangeCustomerName"
 
-	if command, err = domain.BuildChangeCustomerName(customerID, givenName, familyName); err != nil {
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
+
+	personNameValue, err := value.BuildPersonName(givenName, familyName)
+	if err != nil {
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	command = domain.BuildChangeCustomerName(customerIDValue, personNameValue)
 
 	doChangeName := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
@@ -186,9 +223,12 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 	var command domain.DeleteCustomer
 	wrapWithMsg := "customerCommandHandler.DeleteCustomer"
 
-	if command, err = domain.BuildDeleteCustomer(customerID); err != nil {
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
 		return errors.Wrap(err, wrapWithMsg)
 	}
+
+	command = domain.BuildDeleteCustomer(customerIDValue)
 
 	doDelete := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
@@ -196,7 +236,7 @@ func (h *CustomerCommandHandler) DeleteCustomer(customerID string) error {
 			return err
 		}
 
-		recordedEvents := customer.Delete(eventStream)
+		recordedEvents := customer.Delete(eventStream, command)
 
 		if err := h.appendToCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
 			return err

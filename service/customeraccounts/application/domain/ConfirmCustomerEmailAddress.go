@@ -10,26 +10,16 @@ type ConfirmCustomerEmailAddress struct {
 }
 
 func BuildConfirmCustomerEmailAddress(
-	customerID string,
-	confirmationHash string,
-) (ConfirmCustomerEmailAddress, error) {
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return ConfirmCustomerEmailAddress{}, err
-	}
-
-	confirmationHashValue, err := value.BuildConfirmationHash(confirmationHash)
-	if err != nil {
-		return ConfirmCustomerEmailAddress{}, err
-	}
+	customerID value.CustomerID,
+	confirmationHash value.ConfirmationHash,
+) ConfirmCustomerEmailAddress {
 
 	confirmEmailAddress := ConfirmCustomerEmailAddress{
-		customerID:       customerIDValue,
-		confirmationHash: confirmationHashValue,
+		customerID:       customerID,
+		confirmationHash: confirmationHash,
 	}
 
-	return confirmEmailAddress, nil
+	return confirmEmailAddress
 }
 
 func (command ConfirmCustomerEmailAddress) CustomerID() value.CustomerID {

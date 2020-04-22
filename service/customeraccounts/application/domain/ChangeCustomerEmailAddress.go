@@ -11,27 +11,17 @@ type ChangeCustomerEmailAddress struct {
 }
 
 func BuildChangeCustomerEmailAddress(
-	customerID string,
-	emailAddress string,
-) (ChangeCustomerEmailAddress, error) {
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return ChangeCustomerEmailAddress{}, err
-	}
-
-	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
-	if err != nil {
-		return ChangeCustomerEmailAddress{}, err
-	}
+	customerID value.CustomerID,
+	emailAddress value.EmailAddress,
+) ChangeCustomerEmailAddress {
 
 	changeEmailAddress := ChangeCustomerEmailAddress{
-		customerID:       customerIDValue,
-		emailAddress:     emailAddressValue,
-		confirmationHash: value.GenerateConfirmationHash(emailAddressValue.String()),
+		customerID:       customerID,
+		emailAddress:     emailAddress,
+		confirmationHash: value.GenerateConfirmationHash(emailAddress.String()),
 	}
 
-	return changeEmailAddress, nil
+	return changeEmailAddress
 }
 
 func (command ChangeCustomerEmailAddress) CustomerID() value.CustomerID {
