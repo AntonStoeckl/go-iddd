@@ -2,7 +2,9 @@ package domain
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
+	"github.com/cockroachdb/errors"
 )
 
 type CustomerEmailAddressConfirmationFailed struct {
@@ -34,18 +36,18 @@ func BuildCustomerEmailAddressConfirmationFailed(
 }
 
 func RebuildCustomerEmailAddressConfirmationFailed(
-	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
-	confirmationHash value.ConfirmationHash,
-	reason error,
+	customerID string,
+	emailAddress string,
+	confirmationHash string,
+	reason string,
 	meta es.EventMeta,
 ) CustomerEmailAddressConfirmationFailed {
 
 	event := CustomerEmailAddressConfirmationFailed{
-		customerID:       customerID,
-		emailAddress:     emailAddress,
-		confirmationHash: confirmationHash,
-		reason:           reason,
+		customerID:       value.RebuildCustomerID(customerID),
+		emailAddress:     value.RebuildEmailAddress(emailAddress),
+		confirmationHash: value.RebuildConfirmationHash(confirmationHash),
+		reason:           errors.Mark(errors.New(reason), shared.ErrDomainConstraintsViolation),
 		meta:             meta,
 	}
 

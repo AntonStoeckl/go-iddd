@@ -28,14 +28,14 @@ func BuildCustomerDeleted(
 }
 
 func RebuildCustomerDeleted(
-	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
+	customerID string,
+	emailAddress string,
 	meta es.EventMeta,
 ) CustomerDeleted {
 
 	event := CustomerDeleted{
-		customerID:   customerID,
-		emailAddress: emailAddress,
+		customerID:   value.RebuildCustomerID(customerID),
+		emailAddress: value.RebuildEmailAddress(emailAddress),
 		meta:         meta,
 	}
 

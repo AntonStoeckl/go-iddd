@@ -2,7 +2,6 @@ package serialization
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
@@ -51,13 +50,11 @@ func unmarshalCustomerRegisteredFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerRegistered(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		value.RebuildPersonName(
-			unmarshaledData.PersonGivenName,
-			unmarshaledData.PersonFamilyName,
-		),
+		unmarshaledData.CustomerID,
+		unmarshaledData.EmailAddress,
+		unmarshaledData.ConfirmationHash,
+		unmarshaledData.PersonGivenName,
+		unmarshaledData.PersonFamilyName,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -74,8 +71,8 @@ func unmarshalCustomerEmailAddressConfirmedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerEmailAddressConfirmed(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		unmarshaledData.CustomerID,
+		unmarshaledData.EmailAddress,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -92,10 +89,10 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerEmailAddressConfirmationFailed(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		errors.Mark(errors.New(unmarshaledData.Reason), shared.ErrDomainConstraintsViolation),
+		unmarshaledData.CustomerID,
+		unmarshaledData.EmailAddress,
+		unmarshaledData.ConfirmationHash,
+		unmarshaledData.Reason,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -112,10 +109,10 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerEmailAddressChanged(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
-		value.RebuildConfirmationHash(unmarshaledData.ConfirmationHash),
-		value.RebuildEmailAddress(unmarshaledData.PreviousEmailAddress),
+		unmarshaledData.CustomerID,
+		unmarshaledData.EmailAddress,
+		unmarshaledData.ConfirmationHash,
+		unmarshaledData.PreviousEmailAddress,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -132,11 +129,9 @@ func unmarshalCustomerNameChangedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerNameChanged(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildPersonName(
-			unmarshaledData.GivenName,
-			unmarshaledData.FamilyName,
-		),
+		unmarshaledData.CustomerID,
+		unmarshaledData.GivenName,
+		unmarshaledData.FamilyName,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
@@ -153,8 +148,8 @@ func unmarshalCustomerDeletedFromJSON(
 	_ = jsoniter.ConfigFastest.Unmarshal(data, unmarshaledData) // err intentionally ignored - see top comment
 
 	event := domain.RebuildCustomerDeleted(
-		value.RebuildCustomerID(unmarshaledData.CustomerID),
-		value.RebuildEmailAddress(unmarshaledData.EmailAddress),
+		unmarshaledData.CustomerID,
+		unmarshaledData.EmailAddress,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
