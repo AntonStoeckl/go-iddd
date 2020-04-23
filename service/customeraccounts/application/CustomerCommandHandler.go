@@ -57,9 +57,9 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	)
 
 	doRegister := func() error {
-		recordedEvents := customer.Register(command)
+		customerRegistered := customer.Register(command)
 
-		if err = h.startCustomerEventStream(recordedEvents, command.CustomerID()); err != nil {
+		if err = h.startCustomerEventStream(customerRegistered); err != nil {
 			return err
 		}
 

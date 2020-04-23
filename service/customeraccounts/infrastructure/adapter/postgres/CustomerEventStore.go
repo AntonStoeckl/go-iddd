@@ -5,6 +5,8 @@ import (
 	"math"
 	"strings"
 
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
+
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
@@ -56,7 +58,7 @@ func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventS
 	return eventStream, nil
 }
 
-func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, id value.CustomerID) error {
+func (s *CustomerEventStore) StartEventStream(customerRegistered domain.CustomerRegistered) error {
 	var err error
 	wrapWithMsg := "customerEventStore.StartEventStream"
 
@@ -65,7 +67,7 @@ func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, 
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
+	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(customerRegistered)
 
 	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
@@ -73,7 +75,7 @@ func (s *CustomerEventStore) StartEventStream(recordedEvents es.RecordedEvents, 
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
+	if err = s.appendEventsToStream(tx, s.streamID(customerRegistered.CustomerID()), customerRegistered); err != nil {
 		_ = tx.Rollback()
 
 		if errors.Is(err, shared.ErrConcurrencyConflict) {
@@ -99,7 +101,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents)
+	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents...)
 
 	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
@@ -107,7 +109,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
+	if err = s.appendEventsToStream(tx, s.streamID(id), recordedEvents...); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -199,9 +201,9 @@ func (s *CustomerEventStore) loadEventStream(
 }
 
 func (s *CustomerEventStore) appendEventsToStream(
-	streamID es.StreamID,
-	events es.RecordedEvents,
 	tx *sql.Tx,
+	streamID es.StreamID,
+	events ...es.DomainEvent,
 ) error {
 
 	var err error

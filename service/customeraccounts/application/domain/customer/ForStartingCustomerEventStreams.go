@@ -1,8 +1,7 @@
 package customer
 
 import (
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/service/shared/es"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
 )
 
-type ForStartingCustomerEventStreams func(recordedEvents es.RecordedEvents, id value.CustomerID) error
+type ForStartingCustomerEventStreams func(customerRegistered domain.CustomerRegistered) error

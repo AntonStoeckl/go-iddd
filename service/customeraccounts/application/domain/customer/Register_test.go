@@ -29,12 +29,9 @@ func TestRegister(t *testing.T) {
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {
-				recordedEvents := customer.Register(register)
+				registered := customer.Register(register)
 
 				Convey("Then CustomerRegistered", func() {
-					So(recordedEvents, ShouldHaveLength, 1)
-					registered, ok := recordedEvents[0].(domain.CustomerRegistered)
-					So(ok, ShouldBeTrue)
 					So(registered.CustomerID().Equals(register.CustomerID()), ShouldBeTrue)
 					So(registered.EmailAddress().Equals(register.EmailAddress()), ShouldBeTrue)
 					So(registered.ConfirmationHash().Equals(register.ConfirmationHash()), ShouldBeTrue)

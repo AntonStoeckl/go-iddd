@@ -2,17 +2,16 @@ package customer
 
 import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 )
 
-func Register(with domain.RegisterCustomer) es.RecordedEvents {
-	return es.RecordedEvents{
-		domain.BuildCustomerRegistered(
-			with.CustomerID(),
-			with.EmailAddress(),
-			with.ConfirmationHash(),
-			with.PersonName(),
-			1,
-		),
-	}
+func Register(with domain.RegisterCustomer) domain.CustomerRegistered {
+	event := domain.BuildCustomerRegistered(
+		with.CustomerID(),
+		with.EmailAddress(),
+		with.ConfirmationHash(),
+		with.PersonName(),
+		1,
+	)
+
+	return event
 }

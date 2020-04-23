@@ -778,7 +778,7 @@ func givenCustomerRegistered(
 	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 	personName := value.RebuildPersonName(aa.givenName, aa.familyName)
 
-	event := domain.BuildCustomerRegistered(
+	registered := domain.BuildCustomerRegistered(
 		customerID,
 		emailAddress,
 		confirmationHash,
@@ -786,7 +786,7 @@ func givenCustomerRegistered(
 		1,
 	)
 
-	err := atStartCustomerEventStream(es.RecordedEvents{event}, customerID)
+	err := atStartCustomerEventStream(registered)
 	So(err, ShouldBeNil)
 
 	return customerID, confirmationHash
