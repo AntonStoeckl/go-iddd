@@ -15,9 +15,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var atStartCustomerEventStream customer.ForStartingCustomerEventStreams
-var atAppendToCustomerEventStream customer.ForAppendingToCustomerEventStreams
-var atPurgeCustomerEventStream customer.ForPurgingCustomerEventStreams
+var atStartCustomerEventStream application.ForStartingCustomerEventStreams
+var atAppendToCustomerEventStream application.ForAppendingToCustomerEventStreams
+var atPurgeCustomerEventStream application.ForPurgingCustomerEventStreams
 
 type acceptanceTestCollaborators struct {
 	registerCustomer            application.ForRegisteringCustomers

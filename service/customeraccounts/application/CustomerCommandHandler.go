@@ -11,15 +11,15 @@ import (
 const maxCustomerCommandHandlerRetries = uint8(10)
 
 type CustomerCommandHandler struct {
-	retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams
-	startCustomerEventStream    customer.ForStartingCustomerEventStreams
-	appendToCustomerEventStream customer.ForAppendingToCustomerEventStreams
+	retrieveCustomerEventStream ForRetrievingCustomerEventStreams
+	startCustomerEventStream    ForStartingCustomerEventStreams
+	appendToCustomerEventStream ForAppendingToCustomerEventStreams
 }
 
 func NewCustomerCommandHandler(
-	retrieveCustomerEventStream customer.ForRetrievingCustomerEventStreams,
-	startCustomerEventStream customer.ForStartingCustomerEventStreams,
-	appendToCustomerEventStream customer.ForAppendingToCustomerEventStreams,
+	retrieveCustomerEventStream ForRetrievingCustomerEventStreams,
+	startCustomerEventStream ForStartingCustomerEventStreams,
+	appendToCustomerEventStream ForAppendingToCustomerEventStreams,
 ) *CustomerCommandHandler {
 
 	return &CustomerCommandHandler{
