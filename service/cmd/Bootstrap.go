@@ -3,6 +3,7 @@ package cmd
 import (
 	"database/sql"
 
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/postgres/database"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
@@ -53,6 +54,7 @@ func Bootstrap(config *Config, logger *shared.Logger) (*DIContainer, error) {
 		db,
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,
+		customer.BuildUniqueEmailAddressAssertions,
 	)
 	if err != nil {
 		logger.Errorf("bootstrap: failed to build the DI container: %s", err)

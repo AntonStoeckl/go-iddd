@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
@@ -18,27 +17,30 @@ import (
 const streamPrefix = "customer"
 
 type CustomerEventStore struct {
-	db                            *sql.DB
-	eventStoreTableName           string
-	uniqueEmailAddressesTableName string
-	marshalDomainEvent            es.MarshalDomainEvent
-	unmarshalDomainEvent          es.UnmarshalDomainEvent
+	db                                *sql.DB
+	eventStoreTableName               string
+	marshalDomainEvent                es.MarshalDomainEvent
+	unmarshalDomainEvent              es.UnmarshalDomainEvent
+	uniqueEmailAddressesTableName     string
+	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions
 }
 
 func NewCustomerEventStore(
 	db *sql.DB,
 	eventStoreTableName string,
-	uniqueEmailAddressesTableName string,
 	marshalDomainEvent es.MarshalDomainEvent,
 	unmarshalDomainEvent es.UnmarshalDomainEvent,
+	uniqueEmailAddressesTableName string,
+	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
 ) *CustomerEventStore {
 
 	return &CustomerEventStore{
-		db:                            db,
-		eventStoreTableName:           eventStoreTableName,
-		uniqueEmailAddressesTableName: uniqueEmailAddressesTableName,
-		marshalDomainEvent:            marshalDomainEvent,
-		unmarshalDomainEvent:          unmarshalDomainEvent,
+		db:                                db,
+		eventStoreTableName:               eventStoreTableName,
+		marshalDomainEvent:                marshalDomainEvent,
+		unmarshalDomainEvent:              unmarshalDomainEvent,
+		uniqueEmailAddressesTableName:     uniqueEmailAddressesTableName,
+		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
 	}
 }
 
@@ -67,7 +69,7 @@ func (s *CustomerEventStore) StartEventStream(customerRegistered domain.Customer
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(customerRegistered)
+	assertionsForUniqueEmailAddresses := s.buildUniqueEmailAddressAssertions(customerRegistered)
 
 	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
@@ -101,7 +103,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	assertionsForUniqueEmailAddresses := customer.BuildAssertionsForUniqueEmailAddresses(recordedEvents...)
+	assertionsForUniqueEmailAddresses := s.buildUniqueEmailAddressAssertions(recordedEvents...)
 
 	if err = s.assertUniqueEmailAddress(assertionsForUniqueEmailAddresses, tx); err != nil {
 		_ = tx.Rollback()
@@ -263,7 +265,7 @@ func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
 
 /***** local methods for asserting unique email addresses *****/
 
-func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.AssertionsForUniqueEmailAddresses, tx *sql.Tx) error {
+func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.UniqueEmailAddressAssertions, tx *sql.Tx) error {
 	wrapWithMsg := "assertUniqueEmailAddresse"
 
 	for _, assertion := range assertions {
