@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"

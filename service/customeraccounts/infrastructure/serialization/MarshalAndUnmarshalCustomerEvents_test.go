@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"

@@ -3,8 +3,8 @@ package cmd
 import (
 	"database/sql"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/service/shared"

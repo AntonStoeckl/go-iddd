@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
@@ -20,12 +21,12 @@ var atAppendToCustomerEventStream application.ForAppendingToCustomerEventStreams
 var atPurgeCustomerEventStream application.ForPurgingCustomerEventStreams
 
 type acceptanceTestCollaborators struct {
-	registerCustomer            application.ForRegisteringCustomers
-	confirmCustomerEmailAddress application.ForConfirmingCustomerEmailAddresses
-	changeCustomerEmailAddress  application.ForChangingCustomerEmailAddresses
-	changeCustomerName          application.ForChangingCustomerNames
-	deleteCustomer              application.ForDeletingCustomers
-	customerViewByID            application.ForRetrievingCustomerViews
+	registerCustomer            hexagon.ForRegisteringCustomers
+	confirmCustomerEmailAddress hexagon.ForConfirmingCustomerEmailAddresses
+	changeCustomerEmailAddress  hexagon.ForChangingCustomerEmailAddresses
+	changeCustomerName          hexagon.ForChangingCustomerNames
+	deleteCustomer              hexagon.ForDeletingCustomers
+	customerViewByID            hexagon.ForRetrievingCustomerViews
 }
 
 type acceptanceTestArtifacts struct {

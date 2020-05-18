@@ -3,26 +3,26 @@ package customergrpc
 import (
 	"context"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/application"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
 type customerServer struct {
-	register            application.ForRegisteringCustomers
-	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses
-	changeEmailAddress  application.ForChangingCustomerEmailAddresses
-	changeName          application.ForChangingCustomerNames
-	delete              application.ForDeletingCustomers
-	retrieveView        application.ForRetrievingCustomerViews
+	register            hexagon.ForRegisteringCustomers
+	confirmEmailAddress hexagon.ForConfirmingCustomerEmailAddresses
+	changeEmailAddress  hexagon.ForChangingCustomerEmailAddresses
+	changeName          hexagon.ForChangingCustomerNames
+	delete              hexagon.ForDeletingCustomers
+	retrieveView        hexagon.ForRetrievingCustomerViews
 }
 
 func NewCustomerServer(
-	register application.ForRegisteringCustomers,
-	confirmEmailAddress application.ForConfirmingCustomerEmailAddresses,
-	changeEmailAddress application.ForChangingCustomerEmailAddresses,
-	changeName application.ForChangingCustomerNames,
-	delete application.ForDeletingCustomers,
-	retrieveView application.ForRetrievingCustomerViews,
+	register hexagon.ForRegisteringCustomers,
+	confirmEmailAddress hexagon.ForConfirmingCustomerEmailAddresses,
+	changeEmailAddress hexagon.ForChangingCustomerEmailAddresses,
+	changeName hexagon.ForChangingCustomerNames,
+	delete hexagon.ForDeletingCustomers,
+	retrieveView hexagon.ForRetrievingCustomerViews,
 ) *customerServer {
 	server := &customerServer{
 		register:            register,
