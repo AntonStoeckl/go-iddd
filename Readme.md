@@ -1,9 +1,12 @@
-# Work in progress!
+# A sample project about implementing Domain-Driven Design and Hexagonal Architecture (Ports&Adapters) with Go!
 
-Once finished, this should server as a showcase how I implement a DDD style project in Go(lang),
-with Ports & Adapter architecture and EventSourcing.
+This code is the basis for a series of blog posts:
 
-I plan to use it for a series of blog posts about this topic.
+[Implementing Domain-Driven Design and Hexagonal Architecture with Go - Part 1](https://medium.com/@TonyBologni/implementing-domain-driven-design-and-hexagonal-architecture-with-go-1-292938c0a4d4)
+
+[Implementing Domain-Driven Design and Hexagonal Architecture with Go - Part 2](https://medium.com/@TonyBologni/implementing-domain-driven-design-and-hexagonal-architecture-with-go-2-efd432505554)
+
+Part 3 (about Hexagonal Architecture) is ongoing
 
 ### Setup for local development
 
