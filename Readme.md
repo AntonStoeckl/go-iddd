@@ -8,6 +8,8 @@ This code is the basis for a series of blog posts:
 
 Part 3 (about Hexagonal Architecture) is ongoing
 
+The code those blog posts are about is frozen in this branch: [freeze_blog-posts_1-3](https://github.com/AntonStoeckl/go-iddd/tree/freeze_blog-posts_1-3)
+
 ### Setup for local development
 
 #### Start Docker container(s)
