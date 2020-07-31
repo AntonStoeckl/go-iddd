@@ -21,7 +21,7 @@ Run `docker-compose up -d` in the project root.
 ##### To be able to start the service
 
 Create local.env file in the project root (.env files is gitignored there) with following contents and replace
-$PathToProjectRoot$ with the path to the root of the go-idd project sources.
+$PathToProjectRoot$ with the path to the root of the go-iddd project sources.
 
 ```
 POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_local?sslmode=disable
@@ -33,7 +33,7 @@ REST_HOST_AND_PORT=localhost:8085
 ##### To be able to run the tests
 
 Create test.env file in the project root (.env files is gitignored there) with following contents and replace
-$PathToProjectRoot$ with the path to the root of the go-idd project sources.
+$PathToProjectRoot$ with the path to the root of the go-iddd project sources.
 
 ```
 POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_test?sslmode=disable
