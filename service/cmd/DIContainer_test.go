@@ -25,10 +25,10 @@ func TestNewDIContainer(t *testing.T) {
 		}
 
 		diContainer, err := NewDIContainer(
-			db,
 			marshalDomainEvent,
 			unmarshalDomainEvent,
 			customer.BuildUniqueEmailAddressAssertions,
+			WithPostgresDBConn(db),
 		)
 
 		Convey("Then it should succeed", func() {
@@ -44,10 +44,10 @@ func TestNewDIContainer(t *testing.T) {
 		var db *sql.DB
 
 		_, err := NewDIContainer(
-			db,
 			func(event es.DomainEvent) ([]byte, error) { return nil, nil },
 			func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) { return nil, nil },
 			func(recordedEvents ...es.DomainEvent) customer.UniqueEmailAddressAssertions { return nil },
+			WithPostgresDBConn(db),
 		)
 
 		Convey("Then it should fail", func() {

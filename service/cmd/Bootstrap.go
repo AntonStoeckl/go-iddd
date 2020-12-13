@@ -51,10 +51,10 @@ func Bootstrap(config *Config, logger *shared.Logger) (*DIContainer, error) {
 	logger.Info("bootstrap: building DI container ...")
 
 	diContainer, err := NewDIContainer(
-		db,
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,
 		customer.BuildUniqueEmailAddressAssertions,
+		WithPostgresDBConn(db),
 	)
 	if err != nil {
 		logger.Errorf("bootstrap: failed to build the DI container: %s", err)

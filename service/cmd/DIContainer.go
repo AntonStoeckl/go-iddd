@@ -17,6 +17,20 @@ const (
 	uniqueEmailAddressesTableName = "unique_email_addresses"
 )
 
+type DIOption func(container *DIContainer) error
+
+func WithPostgresDBConn(postgresDBConn *sql.DB) DIOption {
+	return func(container *DIContainer) error {
+		if postgresDBConn == nil {
+			return errors.New("postgres DB connection must not be nil")
+		}
+
+		container.postgresDBConn = postgresDBConn
+
+		return nil
+	}
+}
+
 type DIContainer struct {
 	postgresDBConn                    *sql.DB
 	customerEventStore                *postgres.CustomerEventStore
@@ -29,21 +43,22 @@ type DIContainer struct {
 }
 
 func NewDIContainer(
-	postgresDBConn *sql.DB,
 	marshalCustomerEvent es.MarshalDomainEvent,
 	unmarshalCustomerEvent es.UnmarshalDomainEvent,
 	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
+	opts ...DIOption,
 ) (*DIContainer, error) {
 
-	if postgresDBConn == nil {
-		return nil, errors.Mark(errors.New("newDIContainer: postgres DB connection must not be nil"), shared.ErrTechnical)
-	}
-
 	container := &DIContainer{
-		postgresDBConn:                    postgresDBConn,
 		marshalCustomerEvent:              marshalCustomerEvent,
 		unmarshalCustomerEvent:            unmarshalCustomerEvent,
 		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
+	}
+
+	for _, opt := range opts {
+		if err := opt(container); err != nil {
+			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, "newDIContainer")
+		}
 	}
 
 	container.init()
