@@ -12,22 +12,26 @@ import (
 )
 
 func TestNewDIContainer(t *testing.T) {
+	marshalDomainEvent := func(event es.DomainEvent) ([]byte, error) {
+		return nil, nil
+	}
+
+	unmarshalDomainEvent := func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
+		return nil, nil
+	}
+
+	buildUniqueEmailAddressAssertions := func(recordedEvents ...es.DomainEvent) customer.UniqueEmailAddressAssertions {
+		return nil
+	}
+
 	Convey("When a DIContainer is created with valid input", t, func() {
 		db, err := sql.Open("postgres", "postgresql://test:test@localhost:15432/test?sslmode=disable")
 		So(err, ShouldBeNil)
 
-		marshalDomainEvent := func(event es.DomainEvent) ([]byte, error) {
-			return nil, nil
-		}
-
-		unmarshalDomainEvent := func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) {
-			return nil, nil
-		}
-
 		diContainer, err := NewDIContainer(
 			marshalDomainEvent,
 			unmarshalDomainEvent,
-			customer.BuildUniqueEmailAddressAssertions,
+			buildUniqueEmailAddressAssertions,
 			WithPostgresDBConn(db),
 		)
 
@@ -44,9 +48,9 @@ func TestNewDIContainer(t *testing.T) {
 		var db *sql.DB
 
 		_, err := NewDIContainer(
-			func(event es.DomainEvent) ([]byte, error) { return nil, nil },
-			func(name string, payload []byte, streamVersion uint) (es.DomainEvent, error) { return nil, nil },
-			func(recordedEvents ...es.DomainEvent) customer.UniqueEmailAddressAssertions { return nil },
+			marshalDomainEvent,
+			unmarshalDomainEvent,
+			buildUniqueEmailAddressAssertions,
 			WithPostgresDBConn(db),
 		)
 
