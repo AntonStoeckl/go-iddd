@@ -67,10 +67,10 @@ func NewDIContainer(
 }
 
 func (container DIContainer) init() {
-	container.GetCustomerEventStore()
-	container.GetCustomerCommandHandler()
-	container.GetCustomerQueryHandler()
-	container.GetCustomerGRPCServer()
+	_ = container.GetCustomerEventStore()
+	_ = container.GetCustomerCommandHandler()
+	_ = container.GetCustomerQueryHandler()
+	_ = container.GetCustomerGRPCServer()
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
