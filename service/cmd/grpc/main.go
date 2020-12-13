@@ -13,52 +13,65 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-var (
-	diContainer *cmd.DIContainer
-	grpcServer  *grpc.Server
-)
-
 func main() {
 	var err error
 
 	logger := shared.NewStandardLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 
-	diContainer, err = cmd.Bootstrap(config, logger)
+	diContainer, err := cmd.Bootstrap(config, logger)
 	if err != nil {
-		shutdown(logger)
+		shutdown(logger, diContainer, nil)
 	}
 
 	stopSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(stopSignalChannel, os.Interrupt)
 
-	go mustStartGRPC(config, logger)
+	grpcServer := buildGRPCServer(diContainer)
 
-	waitForStopSignal(stopSignalChannel, logger)
+	go mustStartGRPC(config, logger, diContainer, grpcServer)
+
+	waitForStopSignal(stopSignalChannel, logger, diContainer, grpcServer)
 }
 
-func mustStartGRPC(config *cmd.Config, logger *shared.Logger) {
+func buildGRPCServer(diContainer *cmd.DIContainer) *grpc.Server {
+	grpcServer := grpc.NewServer()
+	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerGRPCServer())
+	reflection.Register(grpcServer)
+
+	return grpcServer
+}
+
+func mustStartGRPC(
+	config *cmd.Config,
+	logger *shared.Logger,
+	diContainer *cmd.DIContainer,
+	grpcServer *grpc.Server,
+) {
+
 	logger.Info("configuring gRPC server ...")
 
 	listener, err := net.Listen("tcp", config.GRPC.HostAndPort)
 	if err != nil {
 		logger.Errorf("failed to listen: %v", err)
-		shutdown(logger)
+		shutdown(logger, diContainer, grpcServer)
 	}
-
-	grpcServer = grpc.NewServer()
-	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerGRPCServer())
-	reflection.Register(grpcServer)
 
 	logger.Infof("starting gRPC server listening at %s ...", config.GRPC.HostAndPort)
 
 	if err := grpcServer.Serve(listener); err != nil {
 		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown(logger)
+		shutdown(logger, diContainer, grpcServer)
 	}
 }
 
-func waitForStopSignal(stopSignalChannel chan os.Signal, logger *shared.Logger) {
+func waitForStopSignal(
+	stopSignalChannel chan os.Signal,
+	logger *shared.Logger,
+	diContainer *cmd.DIContainer,
+	grpcServer *grpc.Server,
+) {
+
 	logger.Info("start waiting for stop signal ...")
 
 	s := <-stopSignalChannel
@@ -67,11 +80,16 @@ func waitForStopSignal(stopSignalChannel chan os.Signal, logger *shared.Logger) 
 	case os.Signal:
 		logger.Infof("received '%s'", s)
 		close(stopSignalChannel)
-		shutdown(logger)
+		shutdown(logger, diContainer, grpcServer)
 	}
 }
 
-func shutdown(logger *shared.Logger) {
+func shutdown(
+	logger *shared.Logger,
+	diContainer *cmd.DIContainer,
+	grpcServer *grpc.Server,
+) {
+
 	logger.Info("shutdown: stopping services ...")
 
 	if grpcServer != nil {
@@ -79,9 +97,7 @@ func shutdown(logger *shared.Logger) {
 		grpcServer.GracefulStop()
 	}
 
-	postgresDBConn := diContainer.GetPostgresDBConn()
-
-	if postgresDBConn != nil {
+	if postgresDBConn := diContainer.GetPostgresDBConn(); postgresDBConn != nil {
 		logger.Info("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
 			logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
