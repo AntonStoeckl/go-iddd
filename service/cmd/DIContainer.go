@@ -88,17 +88,7 @@ func MustBuildDIContainer(
 		}
 	}
 
-	container.init()
-
 	return container
-}
-
-func (container DIContainer) init() {
-	_ = container.GetCustomerEventStore()
-	_ = container.GetCustomerCommandHandler()
-	_ = container.GetCustomerQueryHandler()
-	_ = container.GetGRPCCustomerServer()
-	_ = container.GetGRPCServer()
 }
 
 func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
