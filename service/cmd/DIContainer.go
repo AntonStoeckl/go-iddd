@@ -67,29 +67,6 @@ type DIContainer struct {
 	}
 }
 
-func NewDIContainer(
-	marshalCustomerEvent es.MarshalDomainEvent,
-	unmarshalCustomerEvent es.UnmarshalDomainEvent,
-	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
-	opts ...DIOption,
-) (*DIContainer, error) {
-
-	container := &DIContainer{}
-	container.dependency.marshalCustomerEvent = marshalCustomerEvent
-	container.dependency.unmarshalCustomerEvent = unmarshalCustomerEvent
-	container.dependency.buildUniqueEmailAddressAssertions = buildUniqueEmailAddressAssertions
-
-	for _, opt := range opts {
-		if err := opt(container); err != nil {
-			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, "newDIContainer")
-		}
-	}
-
-	container.init()
-
-	return container, nil
-}
-
 func MustBuildDIContainer(
 	config *Config,
 	logger *shared.Logger,
