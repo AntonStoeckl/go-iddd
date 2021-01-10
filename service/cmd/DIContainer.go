@@ -24,10 +24,10 @@ type DIOption func(container *DIContainer) error
 func WithPostgresDBConn(postgresDBConn *sql.DB) DIOption {
 	return func(container *DIContainer) error {
 		if postgresDBConn == nil {
-			return errors.New("postgresDBConn must not be nil")
+			return errors.New("pgDBConn must not be nil")
 		}
 
-		container.postgresDBConn = postgresDBConn
+		container.infra.pgDBConn = postgresDBConn
 
 		return nil
 	}
@@ -39,23 +39,32 @@ func WithGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOp
 			return errors.New("grpcCustomerServer must not be nil")
 		}
 
-		container.grpcCustomerServer = customerGRPCServer
+		container.service.grpcCustomerServer = customerGRPCServer
 
 		return nil
 	}
 }
 
 type DIContainer struct {
-	config                            *Config
-	postgresDBConn                    *sql.DB
-	customerEventStore                *postgres.CustomerEventStore
-	marshalCustomerEvent              es.MarshalDomainEvent
-	unmarshalCustomerEvent            es.UnmarshalDomainEvent
-	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions
-	customerCommandHandler            *application.CustomerCommandHandler
-	customerQueryHandler              *application.CustomerQueryHandler
-	grpcCustomerServer                customergrpc.CustomerServer
-	grpcServer                        *grpc.Server
+	config *Config
+
+	infra struct {
+		pgDBConn *sql.DB
+	}
+
+	dependency struct {
+		marshalCustomerEvent              es.MarshalDomainEvent
+		unmarshalCustomerEvent            es.UnmarshalDomainEvent
+		buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions
+	}
+
+	service struct {
+		customerEventStore     *postgres.CustomerEventStore
+		customerCommandHandler *application.CustomerCommandHandler
+		customerQueryHandler   *application.CustomerQueryHandler
+		grpcCustomerServer     customergrpc.CustomerServer
+		grpcServer             *grpc.Server
+	}
 }
 
 func NewDIContainer(
@@ -65,11 +74,10 @@ func NewDIContainer(
 	opts ...DIOption,
 ) (*DIContainer, error) {
 
-	container := &DIContainer{
-		marshalCustomerEvent:              marshalCustomerEvent,
-		unmarshalCustomerEvent:            unmarshalCustomerEvent,
-		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
-	}
+	container := &DIContainer{}
+	container.dependency.marshalCustomerEvent = marshalCustomerEvent
+	container.dependency.unmarshalCustomerEvent = unmarshalCustomerEvent
+	container.dependency.buildUniqueEmailAddressAssertions = buildUniqueEmailAddressAssertions
 
 	for _, opt := range opts {
 		if err := opt(container); err != nil {
@@ -91,12 +99,11 @@ func MustBuildDIContainer(
 	opts ...DIOption,
 ) *DIContainer {
 
-	container := &DIContainer{
-		config:                            config,
-		marshalCustomerEvent:              marshalCustomerEvent,
-		unmarshalCustomerEvent:            unmarshalCustomerEvent,
-		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
-	}
+	container := &DIContainer{}
+	container.config = config
+	container.dependency.marshalCustomerEvent = marshalCustomerEvent
+	container.dependency.unmarshalCustomerEvent = unmarshalCustomerEvent
+	container.dependency.buildUniqueEmailAddressAssertions = buildUniqueEmailAddressAssertions
 
 	for _, opt := range opts {
 		if err := opt(container); err != nil {
@@ -118,49 +125,49 @@ func (container DIContainer) init() {
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
-	return container.postgresDBConn
+	return container.infra.pgDBConn
 }
 
 func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
-	if container.customerEventStore == nil {
-		container.customerEventStore = postgres.NewCustomerEventStore(
-			container.postgresDBConn,
+	if container.service.customerEventStore == nil {
+		container.service.customerEventStore = postgres.NewCustomerEventStore(
+			container.infra.pgDBConn,
 			eventStoreTableName,
-			container.marshalCustomerEvent,
-			container.unmarshalCustomerEvent,
+			container.dependency.marshalCustomerEvent,
+			container.dependency.unmarshalCustomerEvent,
 			uniqueEmailAddressesTableName,
-			container.buildUniqueEmailAddressAssertions,
+			container.dependency.buildUniqueEmailAddressAssertions,
 		)
 	}
 
-	return container.customerEventStore
+	return container.service.customerEventStore
 }
 
 func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
-	if container.customerCommandHandler == nil {
-		container.customerCommandHandler = application.NewCustomerCommandHandler(
+	if container.service.customerCommandHandler == nil {
+		container.service.customerCommandHandler = application.NewCustomerCommandHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,
 			container.GetCustomerEventStore().StartEventStream,
 			container.GetCustomerEventStore().AppendToEventStream,
 		)
 	}
 
-	return container.customerCommandHandler
+	return container.service.customerCommandHandler
 }
 
 func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
-	if container.customerQueryHandler == nil {
-		container.customerQueryHandler = application.NewCustomerQueryHandler(
+	if container.service.customerQueryHandler == nil {
+		container.service.customerQueryHandler = application.NewCustomerQueryHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,
 		)
 	}
 
-	return container.customerQueryHandler
+	return container.service.customerQueryHandler
 }
 
 func (container DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer {
-	if container.grpcCustomerServer == nil {
-		container.grpcCustomerServer = customergrpc.NewCustomerServer(
+	if container.service.grpcCustomerServer == nil {
+		container.service.grpcCustomerServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
 			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
 			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
@@ -170,15 +177,15 @@ func (container DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer
 		)
 	}
 
-	return container.grpcCustomerServer
+	return container.service.grpcCustomerServer
 }
 
 func (container DIContainer) GetGRPCServer() *grpc.Server {
-	if container.grpcServer == nil {
-		container.grpcServer = grpc.NewServer()
-		customergrpc.RegisterCustomerServer(container.grpcServer, container.GetGRPCCustomerServer())
-		reflection.Register(container.grpcServer)
+	if container.service.grpcServer == nil {
+		container.service.grpcServer = grpc.NewServer()
+		customergrpc.RegisterCustomerServer(container.service.grpcServer, container.GetGRPCCustomerServer())
+		reflection.Register(container.service.grpcServer)
 	}
 
-	return container.grpcServer
+	return container.service.grpcServer
 }
