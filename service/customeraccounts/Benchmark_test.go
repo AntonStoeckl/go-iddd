@@ -3,9 +3,6 @@ package customeraccounts_test
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
-
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer/value"
@@ -29,13 +26,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger,
-		cmd.UsePostgresDBConn(postgresDBConn),
-		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
-		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
-		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
-	)
-
+	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	ba := buildArtifactsForBenchmarkTest()
 	prepareForBenchmark(b, commandHandler, &ba)
@@ -66,13 +57,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger,
-		cmd.UsePostgresDBConn(postgresDBConn),
-		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
-		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
-		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
-	)
-
+	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
 	ba := buildArtifactsForBenchmarkTest()

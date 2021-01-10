@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
-
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
@@ -841,13 +839,7 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger,
-		cmd.UsePostgresDBConn(postgresDBConn),
-		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
-		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
-		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
-	)
-
+	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
 	eventStore := diContainer.GetCustomerEventStore()
 	atStartCustomerEventStream = eventStore.StartEventStream
 	atAppendToCustomerEventStream = eventStore.AppendToEventStream

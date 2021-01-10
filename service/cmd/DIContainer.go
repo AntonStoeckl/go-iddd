@@ -7,6 +7,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
 	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/postgres"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
@@ -88,15 +89,16 @@ type DIContainer struct {
 	}
 }
 
-func MustBuildDIContainer(
-	config *Config,
-	logger *shared.Logger,
-	opts ...DIOption,
-) *DIContainer {
-
+func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOption) *DIContainer {
 	container := &DIContainer{}
 	container.config = config
 
+	/*** Define default dependencies ***/
+	container.dependency.marshalCustomerEvent = serialization.MarshalCustomerEvent
+	container.dependency.unmarshalCustomerEvent = serialization.UnmarshalCustomerEvent
+	container.dependency.buildUniqueEmailAddressAssertions = customer.BuildUniqueEmailAddressAssertions
+
+	/*** Apply options for infra, dependencies, services ***/
 	for _, opt := range opts {
 		if err := opt(container); err != nil {
 			logger.Panicf("mustBuildDIContainer: %s", err)
