@@ -10,6 +10,8 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	"github.com/AntonStoeckl/go-iddd/service/shared/es"
 	"github.com/cockroachdb/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -22,10 +24,22 @@ type DIOption func(container *DIContainer) error
 func WithPostgresDBConn(postgresDBConn *sql.DB) DIOption {
 	return func(container *DIContainer) error {
 		if postgresDBConn == nil {
-			return errors.New("postgres DB connection must not be nil")
+			return errors.New("postgresDBConn must not be nil")
 		}
 
 		container.postgresDBConn = postgresDBConn
+
+		return nil
+	}
+}
+
+func WithGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOption {
+	return func(container *DIContainer) error {
+		if customerGRPCServer == nil {
+			return errors.New("grpcCustomerServer must not be nil")
+		}
+
+		container.grpcCustomerServer = customerGRPCServer
 
 		return nil
 	}
@@ -39,7 +53,8 @@ type DIContainer struct {
 	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions
 	customerCommandHandler            *application.CustomerCommandHandler
 	customerQueryHandler              *application.CustomerQueryHandler
-	customerGRPCServer                customergrpc.CustomerServer
+	grpcCustomerServer                customergrpc.CustomerServer
+	grpcServer                        *grpc.Server
 }
 
 func NewDIContainer(
@@ -70,7 +85,8 @@ func (container DIContainer) init() {
 	_ = container.GetCustomerEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
-	_ = container.GetCustomerGRPCServer()
+	_ = container.GetGRPCCustomerServer()
+	_ = container.GetGRPCServer()
 }
 
 func (container DIContainer) GetPostgresDBConn() *sql.DB {
@@ -114,9 +130,9 @@ func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQuer
 	return container.customerQueryHandler
 }
 
-func (container DIContainer) GetCustomerGRPCServer() customergrpc.CustomerServer {
-	if container.customerGRPCServer == nil {
-		container.customerGRPCServer = customergrpc.NewCustomerServer(
+func (container DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer {
+	if container.grpcCustomerServer == nil {
+		container.grpcCustomerServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
 			container.GetCustomerCommandHandler().ConfirmCustomerEmailAddress,
 			container.GetCustomerCommandHandler().ChangeCustomerEmailAddress,
@@ -126,5 +142,15 @@ func (container DIContainer) GetCustomerGRPCServer() customergrpc.CustomerServer
 		)
 	}
 
-	return container.customerGRPCServer
+	return container.grpcCustomerServer
+}
+
+func (container DIContainer) GetGRPCServer() *grpc.Server {
+	if container.grpcServer == nil {
+		container.grpcServer = grpc.NewServer()
+		customergrpc.RegisterCustomerServer(container.grpcServer, container.GetGRPCCustomerServer())
+		reflection.Register(container.grpcServer)
+	}
+
+	return container.grpcServer
 }
