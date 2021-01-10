@@ -21,13 +21,13 @@ const (
 
 type DIOption func(container *DIContainer) error
 
-func UsePostgresDBConn(postgresDBConn *sql.DB) DIOption {
+func UsePostgresDBConn(dbConn *sql.DB) DIOption {
 	return func(container *DIContainer) error {
-		if postgresDBConn == nil {
+		if dbConn == nil {
 			return errors.New("pgDBConn must not be nil")
 		}
 
-		container.infra.pgDBConn = postgresDBConn
+		container.infra.pgDBConn = dbConn
 
 		return nil
 	}
