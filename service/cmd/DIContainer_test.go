@@ -34,10 +34,10 @@ func TestNewDIContainer(t *testing.T) {
 			_ = MustBuildDIContainer(
 				config,
 				logger,
-				marshalDomainEvent,
-				unmarshalDomainEvent,
-				buildUniqueEmailAddressAssertions,
 				UsePostgresDBConn(db),
+				WithMarshalCustomerEvents(marshalDomainEvent),
+				WithUnmarshalCustomerEvents(unmarshalDomainEvent),
+				WithBuildUniqueEmailAddressAssertions(buildUniqueEmailAddressAssertions),
 			)
 		}
 
@@ -56,10 +56,10 @@ func TestNewDIContainer(t *testing.T) {
 			_ = MustBuildDIContainer(
 				config,
 				logger,
-				marshalDomainEvent,
-				unmarshalDomainEvent,
-				buildUniqueEmailAddressAssertions,
 				UsePostgresDBConn(db),
+				WithMarshalCustomerEvents(marshalDomainEvent),
+				WithUnmarshalCustomerEvents(unmarshalDomainEvent),
+				WithBuildUniqueEmailAddressAssertions(buildUniqueEmailAddressAssertions),
 			)
 		}
 

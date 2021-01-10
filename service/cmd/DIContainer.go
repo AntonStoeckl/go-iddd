@@ -33,6 +33,27 @@ func UsePostgresDBConn(postgresDBConn *sql.DB) DIOption {
 	}
 }
 
+func WithMarshalCustomerEvents(fn es.MarshalDomainEvent) DIOption {
+	return func(container *DIContainer) error {
+		container.dependency.marshalCustomerEvent = fn
+		return nil
+	}
+}
+
+func WithUnmarshalCustomerEvents(fn es.UnmarshalDomainEvent) DIOption {
+	return func(container *DIContainer) error {
+		container.dependency.unmarshalCustomerEvent = fn
+		return nil
+	}
+}
+
+func WithBuildUniqueEmailAddressAssertions(fn customer.ForBuildingUniqueEmailAddressAssertions) DIOption {
+	return func(container *DIContainer) error {
+		container.dependency.buildUniqueEmailAddressAssertions = fn
+		return nil
+	}
+}
+
 func ReplaceGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOption {
 	return func(container *DIContainer) error {
 		if customerGRPCServer == nil {
@@ -70,17 +91,11 @@ type DIContainer struct {
 func MustBuildDIContainer(
 	config *Config,
 	logger *shared.Logger,
-	marshalCustomerEvent es.MarshalDomainEvent,
-	unmarshalCustomerEvent es.UnmarshalDomainEvent,
-	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
 	opts ...DIOption,
 ) *DIContainer {
 
 	container := &DIContainer{}
 	container.config = config
-	container.dependency.marshalCustomerEvent = marshalCustomerEvent
-	container.dependency.unmarshalCustomerEvent = unmarshalCustomerEvent
-	container.dependency.buildUniqueEmailAddressAssertions = buildUniqueEmailAddressAssertions
 
 	for _, opt := range opts {
 		if err := opt(container); err != nil {

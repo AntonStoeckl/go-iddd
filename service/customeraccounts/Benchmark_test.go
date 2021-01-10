@@ -30,10 +30,10 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
 	diContainer := cmd.MustBuildDIContainer(config, logger,
-		serialization.MarshalCustomerEvent,
-		serialization.UnmarshalCustomerEvent,
-		customer.BuildUniqueEmailAddressAssertions,
 		cmd.UsePostgresDBConn(postgresDBConn),
+		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
+		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
+		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
 	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
@@ -67,10 +67,10 @@ func BenchmarkCustomerQuery(b *testing.B) {
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
 	diContainer := cmd.MustBuildDIContainer(config, logger,
-		serialization.MarshalCustomerEvent,
-		serialization.UnmarshalCustomerEvent,
-		customer.BuildUniqueEmailAddressAssertions,
 		cmd.UsePostgresDBConn(postgresDBConn),
+		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
+		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
+		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
 	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()

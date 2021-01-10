@@ -842,10 +842,10 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	config := cmd.MustBuildConfigFromEnv(logger)
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
 	diContainer := cmd.MustBuildDIContainer(config, logger,
-		serialization.MarshalCustomerEvent,
-		serialization.UnmarshalCustomerEvent,
-		customer.BuildUniqueEmailAddressAssertions,
 		cmd.UsePostgresDBConn(postgresDBConn),
+		cmd.WithMarshalCustomerEvents(serialization.MarshalCustomerEvent),
+		cmd.WithUnmarshalCustomerEvents(serialization.UnmarshalCustomerEvent),
+		cmd.WithBuildUniqueEmailAddressAssertions(customer.BuildUniqueEmailAddressAssertions),
 	)
 
 	eventStore := diContainer.GetCustomerEventStore()
