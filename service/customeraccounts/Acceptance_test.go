@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
@@ -838,10 +840,13 @@ func givenCustomerEmailAddressWasChanged(
 func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
-	diContainer, err := cmd.Bootstrap(config, logger)
-	if err != nil {
-		panic(err)
-	}
+	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
+	diContainer := cmd.MustBuildDIContainer(config, logger,
+		serialization.MarshalCustomerEvent,
+		serialization.UnmarshalCustomerEvent,
+		customer.BuildUniqueEmailAddressAssertions,
+		cmd.WithPostgresDBConn(postgresDBConn),
+	)
 
 	eventStore := diContainer.GetCustomerEventStore()
 	atStartCustomerEventStream = eventStore.StartEventStream
