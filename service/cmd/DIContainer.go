@@ -124,10 +124,6 @@ func (container DIContainer) init() {
 	_ = container.GetGRPCServer()
 }
 
-func (container DIContainer) GetPostgresDBConn() *sql.DB {
-	return container.infra.pgDBConn
-}
-
 func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
 	if container.service.customerEventStore == nil {
 		container.service.customerEventStore = postgres.NewCustomerEventStore(
