@@ -54,13 +54,13 @@ func WithBuildUniqueEmailAddressAssertions(fn customer.ForBuildingUniqueEmailAdd
 	}
 }
 
-func ReplaceGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOption {
+func ReplaceGRPCCustomerServer(server customergrpc.CustomerServer) DIOption {
 	return func(container *DIContainer) error {
-		if customerGRPCServer == nil {
+		if server == nil {
 			return errors.New("grpcCustomerServer must not be nil")
 		}
 
-		container.service.grpcCustomerServer = customerGRPCServer
+		container.service.grpcCustomerServer = server
 
 		return nil
 	}
