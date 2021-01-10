@@ -1,52 +1,51 @@
 package main
 
 import (
+	"database/sql"
 	"net"
 	"os"
 	"os/signal"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	customergrpc "github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/adapter/grpc"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	var err error
-
 	logger := shared.NewStandardLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
 
-	diContainer, err := cmd.Bootstrap(config, logger)
-	if err != nil {
-		shutdown(logger, diContainer, nil)
-	}
+	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
+
+	diContainer := cmd.MustBuildDIContainer(
+		config,
+		logger,
+		serialization.MarshalCustomerEvent,
+		serialization.UnmarshalCustomerEvent,
+		customer.BuildUniqueEmailAddressAssertions,
+		cmd.WithPostgresDBConn(postgresDBConn),
+	)
 
 	stopSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(stopSignalChannel, os.Interrupt)
 
-	grpcServer := buildGRPCServer(diContainer)
+	shutdown := func() {
+		shutdown(logger, diContainer.GetGRPCServer(), diContainer.GetPostgresDBConn(), osExit)
+	}
 
-	go mustStartGRPC(config, logger, diContainer, grpcServer)
+	go startGRPCServer(config, logger, diContainer.GetGRPCServer(), shutdown)
 
-	waitForStopSignal(stopSignalChannel, logger, diContainer, grpcServer)
+	waitForStopSignal(stopSignalChannel, logger, shutdown)
 }
 
-func buildGRPCServer(diContainer *cmd.DIContainer) *grpc.Server {
-	grpcServer := grpc.NewServer()
-	customergrpc.RegisterCustomerServer(grpcServer, diContainer.GetCustomerGRPCServer())
-	reflection.Register(grpcServer)
-
-	return grpcServer
-}
-
-func mustStartGRPC(
+func startGRPCServer(
 	config *cmd.Config,
 	logger *shared.Logger,
-	diContainer *cmd.DIContainer,
 	grpcServer *grpc.Server,
+	shutdown func(),
 ) {
 
 	logger.Info("configuring gRPC server ...")
@@ -54,40 +53,40 @@ func mustStartGRPC(
 	listener, err := net.Listen("tcp", config.GRPC.HostAndPort)
 	if err != nil {
 		logger.Errorf("failed to listen: %v", err)
-		shutdown(logger, diContainer, grpcServer)
+		shutdown()
 	}
 
 	logger.Infof("starting gRPC server listening at %s ...", config.GRPC.HostAndPort)
 
 	if err := grpcServer.Serve(listener); err != nil {
 		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown(logger, diContainer, grpcServer)
+		shutdown()
 	}
 }
 
 func waitForStopSignal(
 	stopSignalChannel chan os.Signal,
 	logger *shared.Logger,
-	diContainer *cmd.DIContainer,
-	grpcServer *grpc.Server,
+	shutdown func(),
 ) {
 
 	logger.Info("start waiting for stop signal ...")
 
-	s := <-stopSignalChannel
+	sig := <-stopSignalChannel
 
-	switch s.(type) {
+	switch sig.(type) {
 	case os.Signal:
-		logger.Infof("received '%s'", s)
+		logger.Infof("received '%sig'", sig)
 		close(stopSignalChannel)
-		shutdown(logger, diContainer, grpcServer)
+		shutdown()
 	}
 }
 
 func shutdown(
 	logger *shared.Logger,
-	diContainer *cmd.DIContainer,
 	grpcServer *grpc.Server,
+	postgresDBConn *sql.DB,
+	exit func(),
 ) {
 
 	logger.Info("shutdown: stopping services ...")
@@ -97,7 +96,7 @@ func shutdown(
 		grpcServer.GracefulStop()
 	}
 
-	if postgresDBConn := diContainer.GetPostgresDBConn(); postgresDBConn != nil {
+	if postgresDBConn != nil {
 		logger.Info("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
 			logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
@@ -106,5 +105,9 @@ func shutdown(
 
 	logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
 
+	exit()
+}
+
+func osExit() {
 	os.Exit(0)
 }

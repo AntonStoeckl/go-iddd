@@ -46,6 +46,7 @@ func WithGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOp
 }
 
 type DIContainer struct {
+	config                            *Config
 	postgresDBConn                    *sql.DB
 	customerEventStore                *postgres.CustomerEventStore
 	marshalCustomerEvent              es.MarshalDomainEvent
@@ -79,6 +80,33 @@ func NewDIContainer(
 	container.init()
 
 	return container, nil
+}
+
+func MustBuildDIContainer(
+	config *Config,
+	logger *shared.Logger,
+	marshalCustomerEvent es.MarshalDomainEvent,
+	unmarshalCustomerEvent es.UnmarshalDomainEvent,
+	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
+	opts ...DIOption,
+) *DIContainer {
+
+	container := &DIContainer{
+		config:                            config,
+		marshalCustomerEvent:              marshalCustomerEvent,
+		unmarshalCustomerEvent:            unmarshalCustomerEvent,
+		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
+	}
+
+	for _, opt := range opts {
+		if err := opt(container); err != nil {
+			logger.Panicf("mustBuildDIContainer: %s", err)
+		}
+	}
+
+	container.init()
+
+	return container
 }
 
 func (container DIContainer) init() {
