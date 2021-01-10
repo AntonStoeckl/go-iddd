@@ -3,6 +3,9 @@ package customeraccounts_test
 import (
 	"testing"
 
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
+
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer/value"
@@ -21,12 +24,17 @@ type benchmarkTestArtifacts struct {
 }
 
 func BenchmarkCustomerCommand(b *testing.B) {
+	var err error
+
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
-	diContainer, err := cmd.Bootstrap(config, logger)
-	if err != nil {
-		panic(err)
-	}
+	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
+	diContainer := cmd.MustBuildDIContainer(config, logger,
+		serialization.MarshalCustomerEvent,
+		serialization.UnmarshalCustomerEvent,
+		customer.BuildUniqueEmailAddressAssertions,
+		cmd.WithPostgresDBConn(postgresDBConn),
+	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	ba := buildArtifactsForBenchmarkTest()
@@ -57,10 +65,13 @@ func BenchmarkCustomerCommand(b *testing.B) {
 func BenchmarkCustomerQuery(b *testing.B) {
 	logger := shared.NewNilLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
-	diContainer, err := cmd.Bootstrap(config, logger)
-	if err != nil {
-		panic(err)
-	}
+	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
+	diContainer := cmd.MustBuildDIContainer(config, logger,
+		serialization.MarshalCustomerEvent,
+		serialization.UnmarshalCustomerEvent,
+		customer.BuildUniqueEmailAddressAssertions,
+		cmd.WithPostgresDBConn(postgresDBConn),
+	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
