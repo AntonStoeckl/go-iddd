@@ -21,7 +21,7 @@ const (
 
 type DIOption func(container *DIContainer) error
 
-func WithPostgresDBConn(postgresDBConn *sql.DB) DIOption {
+func UsePostgresDBConn(postgresDBConn *sql.DB) DIOption {
 	return func(container *DIContainer) error {
 		if postgresDBConn == nil {
 			return errors.New("pgDBConn must not be nil")
@@ -33,7 +33,7 @@ func WithPostgresDBConn(postgresDBConn *sql.DB) DIOption {
 	}
 }
 
-func WithGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOption {
+func ReplaceGRPCCustomerServer(customerGRPCServer customergrpc.CustomerServer) DIOption {
 	return func(container *DIContainer) error {
 		if customerGRPCServer == nil {
 			return errors.New("grpcCustomerServer must not be nil")

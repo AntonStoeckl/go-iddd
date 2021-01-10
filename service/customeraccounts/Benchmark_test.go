@@ -33,7 +33,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,
 		customer.BuildUniqueEmailAddressAssertions,
-		cmd.WithPostgresDBConn(postgresDBConn),
+		cmd.UsePostgresDBConn(postgresDBConn),
 	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()
@@ -70,7 +70,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,
 		customer.BuildUniqueEmailAddressAssertions,
-		cmd.WithPostgresDBConn(postgresDBConn),
+		cmd.UsePostgresDBConn(postgresDBConn),
 	)
 
 	commandHandler := diContainer.GetCustomerCommandHandler()

@@ -37,7 +37,7 @@ func TestNewDIContainer(t *testing.T) {
 				marshalDomainEvent,
 				unmarshalDomainEvent,
 				buildUniqueEmailAddressAssertions,
-				WithPostgresDBConn(db),
+				UsePostgresDBConn(db),
 			)
 		}
 
@@ -59,7 +59,7 @@ func TestNewDIContainer(t *testing.T) {
 				marshalDomainEvent,
 				unmarshalDomainEvent,
 				buildUniqueEmailAddressAssertions,
-				WithPostgresDBConn(db),
+				UsePostgresDBConn(db),
 			)
 		}
 

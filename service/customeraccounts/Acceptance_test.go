@@ -845,7 +845,7 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 		serialization.MarshalCustomerEvent,
 		serialization.UnmarshalCustomerEvent,
 		customer.BuildUniqueEmailAddressAssertions,
-		cmd.WithPostgresDBConn(postgresDBConn),
+		cmd.UsePostgresDBConn(postgresDBConn),
 	)
 
 	eventStore := diContainer.GetCustomerEventStore()
