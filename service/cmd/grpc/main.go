@@ -5,10 +5,9 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/hexagon/application/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/service/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"google.golang.org/grpc"
@@ -17,28 +16,21 @@ import (
 func main() {
 	logger := shared.NewStandardLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
-
 	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-
 	diContainer := cmd.MustBuildDIContainer(
 		config,
 		logger,
-		serialization.MarshalCustomerEvent,
-		serialization.UnmarshalCustomerEvent,
-		customer.BuildUniqueEmailAddressAssertions,
-		cmd.WithPostgresDBConn(postgresDBConn),
+		cmd.UsePostgresDBConn(postgresDBConn),
 	)
-
-	stopSignalChannel := make(chan os.Signal, 1)
-	signal.Notify(stopSignalChannel, os.Interrupt)
+	grpcServer := diContainer.GetGRPCServer()
 
 	shutdown := func() {
-		shutdown(logger, diContainer.GetGRPCServer(), diContainer.GetPostgresDBConn(), osExit)
+		shutdown(logger, grpcServer, postgresDBConn, osExit)
 	}
 
-	go startGRPCServer(config, logger, diContainer.GetGRPCServer(), shutdown)
+	go startGRPCServer(config, logger, grpcServer, shutdown)
 
-	waitForStopSignal(stopSignalChannel, logger, shutdown)
+	waitForStopSignal(logger, shutdown)
 }
 
 func startGRPCServer(
@@ -64,19 +56,17 @@ func startGRPCServer(
 	}
 }
 
-func waitForStopSignal(
-	stopSignalChannel chan os.Signal,
-	logger *shared.Logger,
-	shutdown func(),
-) {
-
+func waitForStopSignal(logger *shared.Logger, shutdown func()) {
 	logger.Info("start waiting for stop signal ...")
+
+	stopSignalChannel := make(chan os.Signal, 1)
+	signal.Notify(stopSignalChannel, os.Interrupt, syscall.SIGTERM)
 
 	sig := <-stopSignalChannel
 
 	switch sig.(type) {
 	case os.Signal:
-		logger.Infof("received '%sig'", sig)
+		logger.Infof("received '%s'", sig)
 		close(stopSignalChannel)
 		shutdown()
 	}
