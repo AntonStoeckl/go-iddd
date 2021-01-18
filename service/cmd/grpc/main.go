@@ -25,7 +25,7 @@ func main() {
 	grpcServer := diContainer.GetGRPCServer()
 
 	shutdown := func() {
-		shutdown(logger, grpcServer, postgresDBConn, osExit)
+		shutdown(logger, grpcServer, postgresDBConn, func() { os.Exit(1) })
 	}
 
 	go startGRPCServer(config, logger, grpcServer, shutdown)
@@ -96,8 +96,4 @@ func shutdown(
 	logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
 
 	exit()
-}
-
-func osExit() {
-	os.Exit(0)
 }
