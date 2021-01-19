@@ -136,7 +136,6 @@ func shutdown(
 
 	if grpcClientConn != nil {
 		logger.Info("shutdown: closing gRPC client connection ...")
-
 		if err := grpcClientConn.Close(); err != nil {
 			logger.Warnf("shutdown: failed to close the gRPC client connection: %s", err)
 		}
