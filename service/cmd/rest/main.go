@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
@@ -15,40 +16,38 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	ctxTimeout = 3 * time.Second
-)
-
-var (
-	grpcClientConn *grpc.ClientConn
-	cancelCtx      context.CancelFunc
-	restServer     *http.Server
-)
-
 func main() {
+	var restServer *http.Server
+	var grpcClientConn *grpc.ClientConn
+
 	logger := shared.NewStandardLogger()
 	config := cmd.MustBuildConfigFromEnv(logger)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
 
-	stopSignalChannel := make(chan os.Signal, 1)
-	signal.Notify(stopSignalChannel, os.Interrupt)
+	shutdown := func() {
+		shutdown(logger, cancelCtx, grpcClientConn, restServer, func() { os.Exit(1) })
+	}
 
-	go mustStartREST(config, logger)
+	restServer, grpcClientConn = buildRestServer(config, logger, ctx, shutdown)
 
-	waitForStopSignal(stopSignalChannel, logger)
+	go startRestServer(config, logger, restServer, shutdown)
+
+	waitForStopSignal(logger, shutdown)
 }
 
-func mustStartREST(config *cmd.Config, logger *shared.Logger) {
-	var err error
-	var ctx context.Context
+func buildRestServer(
+	config *cmd.Config,
+	logger *shared.Logger,
+	ctx context.Context,
+	shutdown func(),
+) (*http.Server, *grpc.ClientConn) {
 
 	logger.Info("configuring REST server ...")
 
-	ctx, cancelCtx = context.WithTimeout(context.Background(), ctxTimeout)
-
-	grpcClientConn, err = grpc.DialContext(ctx, config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
+	grpcClientConn, err := grpc.DialContext(ctx, config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		logger.Errorf("fail to dial: %s", err)
-		shutdown(logger)
+		shutdown()
 	}
 
 	rmux := runtime.NewServeMux(
@@ -57,9 +56,9 @@ func mustStartREST(config *cmd.Config, logger *shared.Logger) {
 
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 
-	if err = customerrest.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
+	if err := customerrest.RegisterCustomerHandlerClient(ctx, rmux, client); err != nil {
 		logger.Errorf("failed to register customerHandlerClient: %s", err)
-		shutdown(logger)
+		shutdown()
 	}
 
 	// Serve the swagger-ui and swagger file
@@ -73,34 +72,54 @@ func mustStartREST(config *cmd.Config, logger *shared.Logger) {
 		},
 	)
 
-	restServer = &http.Server{
+	restServer := &http.Server{
 		Addr:    config.REST.HostAndPort,
 		Handler: mux,
 	}
 
+	return restServer, grpcClientConn
+}
+
+func startRestServer(
+	config *cmd.Config,
+	logger *shared.Logger,
+	restServer *http.Server,
+	shutdown func(),
+) {
+
 	logger.Infof("starting REST server listening at %s ...", config.REST.HostAndPort)
 	logger.Infof("will serve Swagger file at: http://%s/v1/customer/swagger.json", config.REST.HostAndPort)
 
-	if err = restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		logger.Errorf("REST server failed to listenAndServe: %s", err)
-		shutdown(logger)
+		shutdown()
 	}
 }
 
-func waitForStopSignal(stopSignalChannel chan os.Signal, logger *shared.Logger) {
+func waitForStopSignal(logger *shared.Logger, shutdown func()) {
 	logger.Info("start waiting for stop signal ...")
 
-	s := <-stopSignalChannel
+	stopSignalChannel := make(chan os.Signal, 1)
+	signal.Notify(stopSignalChannel, os.Interrupt, syscall.SIGTERM)
 
-	switch s.(type) {
+	sig := <-stopSignalChannel
+
+	switch sig.(type) {
 	case os.Signal:
-		logger.Infof("received '%s'", s)
+		logger.Infof("received '%s'", sig)
 		close(stopSignalChannel)
-		shutdown(logger)
+		shutdown()
 	}
 }
 
-func shutdown(logger *shared.Logger) {
+func shutdown(
+	logger *shared.Logger,
+	cancelCtx context.CancelFunc,
+	grpcClientConn *grpc.ClientConn,
+	restServer *http.Server,
+	exit func(),
+) {
+
 	logger.Info("shutdown: stopping services ...")
 
 	if cancelCtx != nil {
@@ -125,5 +144,5 @@ func shutdown(logger *shared.Logger) {
 
 	logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
 
-	os.Exit(0)
+	exit()
 }
