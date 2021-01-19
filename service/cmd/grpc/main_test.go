@@ -72,7 +72,7 @@ func TestStartGRPCServer(t *testing.T) {
 								Convey("Shutdown should close PostgreSQL connection", func() {
 									err := postgresDBConn.Ping()
 									So(err, ShouldBeError)
-									So(err.Error(), ShouldEqual, "sql: database is closed")
+									So(err.Error(), ShouldContainSubstring, "database is closed")
 
 									Convey("Shutdown should call exit", func() {
 										So(exitWasCalled, ShouldBeTrue)
