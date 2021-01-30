@@ -42,31 +42,42 @@ func TestStartRestServer(t *testing.T) {
 		go startRestServer(config, logger, restServer, myShutdown)
 
 		Convey("REST server should handle successful requests", func() {
+			var err error
+			var resp *resty.Response
+
+			hostAndPort := config.REST.HostAndPort
+			mockedCustomerID := "11111111"
+			notExistingCustomerID := "66666666"
+
 			client := resty.New()
 
 			// TODO: why the hack does this 404?
-			//resp, err := client.R().Get("http://localhost:8085/v1/customer/swagger.json")
+			//resp, err = client.R().
+			//	Get(fmt.Sprintf("http://%s/v1/customer/swagger.json", config.REST.HostAndPort))
+			//So(err, ShouldBeNil)
+			//So(resp.StatusCode(), ShouldEqual, 200)
 
 			result := &struct {
 				ID string `json:"id"`
-			}{}
+			}{ID: mockedCustomerID}
 
-			resp, err := client.R().
+			resp, err = client.R().
 				SetHeader("Content-Type", "application/json").
 				SetBody(`{"emailAddress": "anton+10@stoeckl.de", "familyName": "Stöckl", "givenName": "Anton"}`).
 				SetResult(result).
-				Post("http://localhost:8085/v1/customer")
+				Post(fmt.Sprintf("http://%s/v1/customer", hostAndPort))
 
 			So(err, ShouldBeNil)
 			So(resp.StatusCode(), ShouldEqual, 200)
 
 			resp, err = client.R().
-				Delete(fmt.Sprintf("http://localhost:8085/v1/customer/%s", result.ID))
+				Delete(fmt.Sprintf("http://%s/v1/customer/%s", hostAndPort, result.ID))
 			So(err, ShouldBeNil)
 			So(resp.StatusCode(), ShouldEqual, 200)
 
 			Convey("REST server should handle failed requests", func() {
-				resp, _ := client.R().Get("http://localhost:8085/v1/customer/1234567")
+				resp, _ := client.R().
+					Get(fmt.Sprintf("http://%s/v1/customer/%s", hostAndPort, notExistingCustomerID))
 				So(resp.StatusCode(), ShouldEqual, 404)
 
 				Convey(fmt.Sprintf("Schedule stop signal to be sent after %s", terminateDelay), func() {
@@ -87,7 +98,8 @@ func TestStartRestServer(t *testing.T) {
 									So(errors.Is(ctx.Err(), context.Canceled), ShouldBeTrue)
 
 									Convey("Shutdown should stop REST server", func() {
-										resp, err := client.R().Get("http://localhost:8085/v1/customer/1234")
+										resp, err := client.R().
+											Get(fmt.Sprintf("http://%s/v1/customer/1234", hostAndPort))
 
 										So(err, ShouldBeError)
 										So(err.Error(), ShouldContainSubstring, "connection refused")
