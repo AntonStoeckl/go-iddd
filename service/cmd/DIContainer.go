@@ -110,7 +110,7 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 	return container
 }
 
-func (container DIContainer) init() {
+func (container *DIContainer) init() {
 	_ = container.GetCustomerEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
@@ -118,7 +118,11 @@ func (container DIContainer) init() {
 	_ = container.GetGRPCServer()
 }
 
-func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
+func (container *DIContainer) GetPostgresDBConn() *sql.DB {
+	return container.infra.pgDBConn
+}
+
+func (container *DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
 	if container.service.customerEventStore == nil {
 		container.service.customerEventStore = postgres.NewCustomerEventStore(
 			container.infra.pgDBConn,
@@ -133,7 +137,7 @@ func (container DIContainer) GetCustomerEventStore() *postgres.CustomerEventStor
 	return container.service.customerEventStore
 }
 
-func (container DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
+func (container *DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
 	if container.service.customerCommandHandler == nil {
 		container.service.customerCommandHandler = application.NewCustomerCommandHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,
@@ -155,7 +159,7 @@ func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQuer
 	return container.service.customerQueryHandler
 }
 
-func (container DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer {
+func (container *DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer {
 	if container.service.grpcCustomerServer == nil {
 		container.service.grpcCustomerServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
@@ -170,7 +174,7 @@ func (container DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer
 	return container.service.grpcCustomerServer
 }
 
-func (container DIContainer) GetGRPCServer() *grpc.Server {
+func (container *DIContainer) GetGRPCServer() *grpc.Server {
 	if container.service.grpcServer == nil {
 		container.service.grpcServer = grpc.NewServer()
 		customergrpc.RegisterCustomerServer(container.service.grpcServer, container.GetGRPCCustomerServer())
