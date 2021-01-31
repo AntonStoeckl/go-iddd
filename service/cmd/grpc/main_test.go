@@ -25,59 +25,53 @@ func TestStartGRPCServer(t *testing.T) {
 	diContainer := cmd.MustBuildDIContainer(
 		config,
 		logger,
-		cmd.ReplaceGRPCCustomerServer(buildCustomerGRPCServer()),
 		cmd.UsePostgresDBConn(postgresDBConn),
+		cmd.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
 	)
-	grpcServer := diContainer.GetGRPCServer()
 
 	exitWasCalled := false
-	exit := func() {
+	exitFn := func() {
 		exitWasCalled = true
-	}
-	myShutdown := func() {
-		shutdown(logger, grpcServer, postgresDBConn, exit)
 	}
 
 	terminateDelay := time.Millisecond * 100
 
+	service := InitService(config, logger, exitFn, diContainer)
+
 	Convey("Start the gRPC server as a goroutine", t, func() {
-		go startGRPCServer(config, logger, grpcServer, myShutdown)
+		go service.StartGRPCServer()
 
-		Convey(fmt.Sprintf("Schedule stop signal to be sent after %s", terminateDelay), func() {
-			start := time.Now()
-			go func() {
-				time.Sleep(terminateDelay)
-				_ = syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
-			}()
+		Convey("gPRC server should handle requests", func() {
+			client := customerGRPCClient(config)
+			res, err := client.Register(context.Background(), &customergrpc.RegisterRequest{})
+			So(err, ShouldBeNil)
+			So(res, ShouldNotBeNil)
+			So(res.Id, ShouldNotBeEmpty)
 
-			Convey("gPRC server should handle a request", func() {
-				client := buildCustomerGRPCClient(config)
-				res, err := client.Register(context.Background(), &customergrpc.RegisterRequest{})
-				So(err, ShouldBeNil)
-				So(res, ShouldNotBeNil)
-				So(res.Id, ShouldNotBeEmpty)
+			Convey(fmt.Sprintf("It should wait for stop signal (scheduled after %s)", terminateDelay), func() {
+				start := time.Now()
+				go func() {
+					time.Sleep(terminateDelay)
+					_ = syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
+				}()
 
-				Convey("Start waiting for stop signal", func() {
-					waitForStopSignal(logger, myShutdown)
+				service.WaitForStopSignal()
 
-					Convey("It should wait for stop signal", func() {
-						So(time.Now(), ShouldNotHappenWithin, terminateDelay, start)
+				So(time.Now(), ShouldHappenOnOrAfter, start.Add(terminateDelay))
 
-						Convey("Once stop signal is received, it should call shutdown", func() {
-							Convey("Shutdown should stop gRPC server", func() {
-								_, err = client.Register(context.Background(), &customergrpc.RegisterRequest{})
-								So(err, ShouldBeError)
-								So(status.Code(err), ShouldResemble, codes.Unavailable)
+				Convey("Stop signal should issue Shutdown", func() {
+					Convey("Shutdown should stop gRPC server", func() {
+						_, err = client.Register(context.Background(), &customergrpc.RegisterRequest{})
+						So(err, ShouldBeError)
+						So(status.Code(err), ShouldResemble, codes.Unavailable)
 
-								Convey("Shutdown should close PostgreSQL connection", func() {
-									err := postgresDBConn.Ping()
-									So(err, ShouldBeError)
-									So(err.Error(), ShouldContainSubstring, "database is closed")
+						Convey("Shutdown should close PostgreSQL connection", func() {
+							err := postgresDBConn.Ping()
+							So(err, ShouldBeError)
+							So(err.Error(), ShouldContainSubstring, "database is closed")
 
-									Convey("Shutdown should call exit", func() {
-										So(exitWasCalled, ShouldBeTrue)
-									})
-								})
+							Convey("Shutdown should call exit", func() {
+								So(exitWasCalled, ShouldBeTrue)
 							})
 						})
 					})
@@ -89,7 +83,7 @@ func TestStartGRPCServer(t *testing.T) {
 
 /*** Helper functions ***/
 
-func buildCustomerGRPCServer() customergrpc.CustomerServer {
+func grpcCustomerServerStub() customergrpc.CustomerServer {
 	customerServer := customergrpc.NewCustomerServer(
 		func(emailAddress, givenName, familyName string) (value.CustomerID, error) {
 			return value.GenerateCustomerID(), nil
@@ -114,7 +108,7 @@ func buildCustomerGRPCServer() customergrpc.CustomerServer {
 	return customerServer
 }
 
-func buildCustomerGRPCClient(config *cmd.Config) customergrpc.CustomerClient {
+func customerGRPCClient(config *cmd.Config) customergrpc.CustomerClient {
 	grpcClientConn, _ := grpc.DialContext(context.Background(), config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 

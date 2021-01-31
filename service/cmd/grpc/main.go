@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"net"
 	"os"
 	"os/signal"
@@ -10,54 +9,68 @@ import (
 	"github.com/AntonStoeckl/go-iddd/service/cmd"
 	"github.com/AntonStoeckl/go-iddd/service/shared"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"google.golang.org/grpc"
 )
 
+type Service struct {
+	config       *cmd.Config
+	logger       *shared.Logger
+	diContainter *cmd.DIContainer
+	exitFn       func()
+}
+
 func main() {
-	logger := shared.NewStandardLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
-	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
+	stdLogger := shared.NewStandardLogger()
+	config := cmd.MustBuildConfigFromEnv(stdLogger)
+	exitFn := func() { os.Exit(1) }
+	postgresDBConn := cmd.MustInitPostgresDB(config, stdLogger)
 	diContainer := cmd.MustBuildDIContainer(
 		config,
-		logger,
+		stdLogger,
 		cmd.UsePostgresDBConn(postgresDBConn),
 	)
-	grpcServer := diContainer.GetGRPCServer()
 
-	shutdown := func() {
-		shutdown(logger, grpcServer, postgresDBConn, func() { os.Exit(1) })
-	}
-
-	go startGRPCServer(config, logger, grpcServer, shutdown)
-
-	waitForStopSignal(logger, shutdown)
+	service := InitService(config, stdLogger, exitFn, diContainer)
+	go service.StartGRPCServer()
+	service.WaitForStopSignal()
 }
 
-func startGRPCServer(
+func InitService(
 	config *cmd.Config,
 	logger *shared.Logger,
-	grpcServer *grpc.Server,
-	shutdown func(),
-) {
+	exitFn func(),
+	diContainter *cmd.DIContainer,
+) *Service {
 
-	logger.Info("configuring gRPC server ...")
-
-	listener, err := net.Listen("tcp", config.GRPC.HostAndPort)
-	if err != nil {
-		logger.Errorf("failed to listen: %v", err)
-		shutdown()
+	service := Service{
+		config:       config,
+		logger:       logger,
+		exitFn:       exitFn,
+		diContainter: diContainter,
 	}
 
-	logger.Infof("starting gRPC server listening at %s ...", config.GRPC.HostAndPort)
+	return &service
+}
 
+func (s Service) StartGRPCServer() {
+	s.logger.Info("configuring gRPC server ...")
+
+	listener, err := net.Listen("tcp", s.config.GRPC.HostAndPort)
+	if err != nil {
+		s.logger.Errorf("failed to listen: %v", err)
+		s.shutdown()
+	}
+
+	s.logger.Infof("starting gRPC server listening at %s ...", s.config.GRPC.HostAndPort)
+
+	grpcServer := s.diContainter.GetGRPCServer()
 	if err := grpcServer.Serve(listener); err != nil {
-		logger.Errorf("gRPC server failed to serve: %s", err)
-		shutdown()
+		s.logger.Errorf("gRPC server failed to serve: %s", err)
+		s.shutdown()
 	}
 }
 
-func waitForStopSignal(logger *shared.Logger, shutdown func()) {
-	logger.Info("start waiting for stop signal ...")
+func (s Service) WaitForStopSignal() {
+	s.logger.Info("start waiting for stop signal ...")
 
 	stopSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(stopSignalChannel, os.Interrupt, syscall.SIGTERM)
@@ -66,34 +79,30 @@ func waitForStopSignal(logger *shared.Logger, shutdown func()) {
 
 	switch sig.(type) {
 	case os.Signal:
-		logger.Infof("received '%s'", sig)
+		s.logger.Infof("received '%s'", sig)
 		close(stopSignalChannel)
-		shutdown()
+		s.shutdown()
 	}
 }
 
-func shutdown(
-	logger *shared.Logger,
-	grpcServer *grpc.Server,
-	postgresDBConn *sql.DB,
-	exit func(),
-) {
+func (s Service) shutdown() {
+	s.logger.Info("shutdown: stopping services ...")
 
-	logger.Info("shutdown: stopping services ...")
-
+	grpcServer := s.diContainter.GetGRPCServer()
 	if grpcServer != nil {
-		logger.Info("shutdown: stopping gRPC server gracefully ...")
+		s.logger.Info("shutdown: stopping gRPC server gracefully ...")
 		grpcServer.GracefulStop()
 	}
 
+	postgresDBConn := s.diContainter.GetPostgresDBConn()
 	if postgresDBConn != nil {
-		logger.Info("shutdown: closing Postgres DB connection ...")
+		s.logger.Info("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
-			logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
+			s.logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
 		}
 	}
 
-	logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
+	s.logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
 
-	exit()
+	s.exitFn()
 }
