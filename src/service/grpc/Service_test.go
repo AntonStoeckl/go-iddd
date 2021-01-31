@@ -1,4 +1,4 @@
-package main
+package grpc_test
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	service2 "github.com/AntonStoeckl/go-iddd/src/service"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	. "github.com/smartystreets/goconvey/convey"
 	"google.golang.org/grpc"
@@ -21,13 +21,13 @@ import (
 
 func TestStartGRPCServer(t *testing.T) {
 	logger := shared.NewNilLogger()
-	config := service2.MustBuildConfigFromEnv(logger)
-	postgresDBConn := service2.MustInitPostgresDB(config, logger)
-	diContainer := service2.MustBuildDIContainer(
+	config := service.MustBuildConfigFromEnv(logger)
+	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	diContainer := service.MustBuildDIContainer(
 		config,
 		logger,
-		service2.UsePostgresDBConn(postgresDBConn),
-		service2.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
+		service.UsePostgresDBConn(postgresDBConn),
+		service.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
 	)
 
 	exitWasCalled := false
@@ -37,10 +37,10 @@ func TestStartGRPCServer(t *testing.T) {
 
 	terminateDelay := time.Millisecond * 100
 
-	service := InitService(config, logger, exitFn, diContainer)
+	s := grpcService.InitService(config, logger, exitFn, diContainer)
 
 	Convey("Start the gRPC server as a goroutine", t, func() {
-		go service.StartGRPCServer()
+		go s.StartGRPCServer()
 
 		Convey("gPRC server should handle requests", func() {
 			client := customerGRPCClient(config)
@@ -56,7 +56,7 @@ func TestStartGRPCServer(t *testing.T) {
 					_ = syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
 				}()
 
-				service.WaitForStopSignal()
+				s.WaitForStopSignal()
 
 				So(time.Now(), ShouldHappenOnOrAfter, start.Add(terminateDelay))
 
@@ -109,7 +109,7 @@ func grpcCustomerServerStub() customergrpc.CustomerServer {
 	return customerServer
 }
 
-func customerGRPCClient(config *service2.Config) customergrpc.CustomerClient {
+func customerGRPCClient(config *service.Config) customergrpc.CustomerClient {
 	grpcClientConn, _ := grpc.DialContext(context.Background(), config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 

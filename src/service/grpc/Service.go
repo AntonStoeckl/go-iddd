@@ -1,4 +1,4 @@
-package main
+package grpc
 
 import (
 	"net"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Service struct {
@@ -16,22 +15,6 @@ type Service struct {
 	logger       *shared.Logger
 	diContainter *service.DIContainer
 	exitFn       func()
-}
-
-func main() {
-	stdLogger := shared.NewStandardLogger()
-	config := service.MustBuildConfigFromEnv(stdLogger)
-	exitFn := func() { os.Exit(1) }
-	postgresDBConn := service.MustInitPostgresDB(config, stdLogger)
-	diContainer := service.MustBuildDIContainer(
-		config,
-		stdLogger,
-		service.UsePostgresDBConn(postgresDBConn),
-	)
-
-	s := InitService(config, stdLogger, exitFn, diContainer)
-	go s.StartGRPCServer()
-	s.WaitForStopSignal()
 }
 
 func InitService(
