@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/src/service"
-
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"

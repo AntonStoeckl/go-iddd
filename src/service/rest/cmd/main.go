@@ -8,10 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/src/service"
-
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
+	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
