@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
@@ -837,9 +838,9 @@ func givenCustomerEmailAddressWasChanged(
 
 func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
-	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
+	config := service.MustBuildConfigFromEnv(logger)
+	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
 	eventStore := diContainer.GetCustomerEventStore()
 	atStartCustomerEventStream = eventStore.StartEventStream
 	atAppendToCustomerEventStream = eventStore.AppendToEventStream

@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
@@ -23,7 +24,7 @@ func TestStartRestServer(t *testing.T) {
 
 	//logger := shared.NewStandardLogger()
 	logger := shared.NewNilLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
+	config := service.MustBuildConfigFromEnv(logger)
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
 
 	exitWasCalled := false

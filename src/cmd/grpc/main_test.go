@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	service2 "github.com/AntonStoeckl/go-iddd/src/service"
+
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
@@ -20,13 +21,13 @@ import (
 
 func TestStartGRPCServer(t *testing.T) {
 	logger := shared.NewNilLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
-	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(
+	config := service2.MustBuildConfigFromEnv(logger)
+	postgresDBConn := service2.MustInitPostgresDB(config, logger)
+	diContainer := service2.MustBuildDIContainer(
 		config,
 		logger,
-		cmd.UsePostgresDBConn(postgresDBConn),
-		cmd.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
+		service2.UsePostgresDBConn(postgresDBConn),
+		service2.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
 	)
 
 	exitWasCalled := false
@@ -108,7 +109,7 @@ func grpcCustomerServerStub() customergrpc.CustomerServer {
 	return customerServer
 }
 
-func customerGRPCClient(config *cmd.Config) customergrpc.CustomerClient {
+func customerGRPCClient(config *service2.Config) customergrpc.CustomerClient {
 	grpcClientConn, _ := grpc.DialContext(context.Background(), config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 

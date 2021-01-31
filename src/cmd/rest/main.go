@@ -8,7 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
@@ -21,7 +22,7 @@ func main() {
 	var grpcClientConn *grpc.ClientConn
 
 	logger := shared.NewStandardLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
+	config := service.MustBuildConfigFromEnv(logger)
 	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
 
 	shutdown := func() {
@@ -36,7 +37,7 @@ func main() {
 }
 
 func buildRestServer(
-	config *cmd.Config,
+	config *service.Config,
 	logger *shared.Logger,
 	ctx context.Context,
 	shutdown func(),
@@ -81,7 +82,7 @@ func buildRestServer(
 }
 
 func startRestServer(
-	config *cmd.Config,
+	config *service.Config,
 	logger *shared.Logger,
 	restServer *http.Server,
 	shutdown func(),

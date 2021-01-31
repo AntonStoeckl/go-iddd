@@ -3,7 +3,8 @@ package customeraccounts_test
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
@@ -24,9 +25,9 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	var err error
 
 	logger := shared.NewNilLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
-	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
+	config := service.MustBuildConfigFromEnv(logger)
+	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	ba := buildArtifactsForBenchmarkTest()
 	prepareForBenchmark(b, commandHandler, &ba)
@@ -55,9 +56,9 @@ func BenchmarkCustomerCommand(b *testing.B) {
 
 func BenchmarkCustomerQuery(b *testing.B) {
 	logger := shared.NewNilLogger()
-	config := cmd.MustBuildConfigFromEnv(logger)
-	postgresDBConn := cmd.MustInitPostgresDB(config, logger)
-	diContainer := cmd.MustBuildDIContainer(config, logger, cmd.UsePostgresDBConn(postgresDBConn))
+	config := service.MustBuildConfigFromEnv(logger)
+	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
 	ba := buildArtifactsForBenchmarkTest()

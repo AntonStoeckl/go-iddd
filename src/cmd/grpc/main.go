@@ -6,49 +6,47 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AntonStoeckl/go-iddd/src/cmd"
+	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Service struct {
-	config       *cmd.Config
+	config       *service.Config
 	logger       *shared.Logger
-	diContainter *cmd.DIContainer
+	diContainter *service.DIContainer
 	exitFn       func()
 }
 
 func main() {
 	stdLogger := shared.NewStandardLogger()
-	config := cmd.MustBuildConfigFromEnv(stdLogger)
+	config := service.MustBuildConfigFromEnv(stdLogger)
 	exitFn := func() { os.Exit(1) }
-	postgresDBConn := cmd.MustInitPostgresDB(config, stdLogger)
-	diContainer := cmd.MustBuildDIContainer(
+	postgresDBConn := service.MustInitPostgresDB(config, stdLogger)
+	diContainer := service.MustBuildDIContainer(
 		config,
 		stdLogger,
-		cmd.UsePostgresDBConn(postgresDBConn),
+		service.UsePostgresDBConn(postgresDBConn),
 	)
 
-	service := InitService(config, stdLogger, exitFn, diContainer)
-	go service.StartGRPCServer()
-	service.WaitForStopSignal()
+	s := InitService(config, stdLogger, exitFn, diContainer)
+	go s.StartGRPCServer()
+	s.WaitForStopSignal()
 }
 
 func InitService(
-	config *cmd.Config,
+	config *service.Config,
 	logger *shared.Logger,
 	exitFn func(),
-	diContainter *cmd.DIContainer,
+	diContainter *service.DIContainer,
 ) *Service {
 
-	service := Service{
+	return &Service{
 		config:       config,
 		logger:       logger,
 		exitFn:       exitFn,
 		diContainter: diContainter,
 	}
-
-	return &service
 }
 
 func (s Service) StartGRPCServer() {

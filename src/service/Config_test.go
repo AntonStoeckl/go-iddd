@@ -1,4 +1,4 @@
-package cmd
+package service
 
 import (
 	"fmt"
