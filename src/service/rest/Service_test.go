@@ -1,9 +1,8 @@
-package main
+package rest
 
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"syscall"
 	"testing"
 	"time"
@@ -13,33 +12,27 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
 	. "github.com/smartystreets/goconvey/convey"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
 
 func TestStartRestServer(t *testing.T) {
-	var restServer *http.Server
-	var grpcClientConn *grpc.ClientConn
-
-	//logger := shared.NewStandardLogger()
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 3*time.Second)
 
 	exitWasCalled := false
-	exit := func() {
+	exitFn := func() {
 		exitWasCalled = true
 	}
-	myShutdown := func() {
-		shutdown(logger, cancelCtx, grpcClientConn, restServer, exit)
-	}
+	ctx, cancelFn := context.WithTimeout(context.Background(), 1*time.Second)
 
-	restServer, grpcClientConn = buildRestServer(config, logger, ctx, myShutdown)
+	grpcClientConn := MustDialGRPCContext(config, logger, ctx, cancelFn)
 
 	terminateDelay := time.Millisecond * 100
 
+	s := InitService(config, logger, exitFn, ctx, cancelFn, grpcClientConn)
+
 	Convey("Start the REST server as a goroutine", t, func() {
-		go startRestServer(config, logger, restServer, myShutdown)
+		go s.StartRestServer()
 
 		Convey("REST server should handle successful requests", func() {
 			var err error
@@ -88,7 +81,7 @@ func TestStartRestServer(t *testing.T) {
 					}()
 
 					Convey("Start waiting for stop signal", func() {
-						waitForStopSignal(logger, myShutdown)
+						s.WaitForStopSignal()
 
 						Convey("It should wait for stop signal", func() {
 							So(time.Now(), ShouldNotHappenWithin, terminateDelay, start)
