@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -86,7 +87,7 @@ func (s *Service) buildRestServer() {
 	mux.HandleFunc(
 		"/v1/customer/swagger.json",
 		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "src/customeraccounts/infrastructure/adapter/rest/customer.swagger.json")
+			http.ServeFile(w, r, fmt.Sprintf("%s/customer.swagger.json", s.config.REST.SwaggerFilePathCustomer))
 		},
 	)
 

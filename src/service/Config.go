@@ -16,7 +16,8 @@ type Config struct {
 		HostAndPort string
 	}
 	REST struct {
-		HostAndPort string
+		HostAndPort             string
+		SwaggerFilePathCustomer string
 	}
 }
 
@@ -27,6 +28,7 @@ var ConfigExpectedEnvKeys = map[string]string{
 	"pgMPC":  "POSTGRES_MIGRATIONS_PATH_CUSTOMER",
 	"grpcHP": "GRPC_HOST_AND_PORT",
 	"restHP": "REST_HOST_AND_PORT",
+	"sfpC":   "SWAGGER_FILE_PATH_CUSTOMER",
 }
 
 func MustBuildConfigFromEnv(logger *shared.Logger) *Config {
@@ -47,6 +49,10 @@ func MustBuildConfigFromEnv(logger *shared.Logger) *Config {
 	}
 
 	if conf.REST.HostAndPort, err = conf.stringFromEnv(ConfigExpectedEnvKeys["restHP"]); err != nil {
+		logger.Panicf(msg, err)
+	}
+
+	if conf.REST.SwaggerFilePathCustomer, err = conf.stringFromEnv(ConfigExpectedEnvKeys["sfpC"]); err != nil {
 		logger.Panicf(msg, err)
 	}
 
