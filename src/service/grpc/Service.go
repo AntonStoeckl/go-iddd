@@ -32,7 +32,7 @@ func InitService(
 	}
 }
 
-func (s Service) StartGRPCServer() {
+func (s *Service) StartGRPCServer() {
 	s.logger.Info("configuring gRPC server ...")
 
 	listener, err := net.Listen("tcp", s.config.GRPC.HostAndPort)
@@ -50,7 +50,7 @@ func (s Service) StartGRPCServer() {
 	}
 }
 
-func (s Service) WaitForStopSignal() {
+func (s *Service) WaitForStopSignal() {
 	s.logger.Info("start waiting for stop signal ...")
 
 	stopSignalChannel := make(chan os.Signal, 1)
@@ -66,7 +66,7 @@ func (s Service) WaitForStopSignal() {
 	}
 }
 
-func (s Service) shutdown() {
+func (s *Service) shutdown() {
 	s.logger.Info("shutdown: stopping services ...")
 
 	grpcServer := s.diContainter.GetGRPCServer()
