@@ -1,4 +1,4 @@
-package rest
+package rest_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/src/service"
+	"github.com/AntonStoeckl/go-iddd/src/service/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
@@ -25,11 +26,11 @@ func TestStartRestServer(t *testing.T) {
 	}
 	ctx, cancelFn := context.WithTimeout(context.Background(), 1*time.Second)
 
-	grpcClientConn := MustDialGRPCContext(config, logger, ctx, cancelFn)
+	grpcClientConn := rest.MustDialGRPCContext(config, logger, ctx, cancelFn)
 
 	terminateDelay := time.Millisecond * 100
 
-	s := InitService(config, logger, exitFn, ctx, cancelFn, grpcClientConn)
+	s := rest.InitService(config, logger, exitFn, ctx, cancelFn, grpcClientConn)
 
 	Convey("Start the REST server as a goroutine", t, func() {
 		go s.StartRestServer()
