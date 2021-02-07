@@ -17,6 +17,6 @@ var (
 	ErrTechnical          = errors.New("technical")
 )
 
-func MarkAndWrapError(original error, markAs error, wrapWith string) error {
+func MarkAndWrapError(original, markAs error, wrapWith string) error {
 	return errors.Mark(errors.Wrap(original, wrapWith), markAs)
 }

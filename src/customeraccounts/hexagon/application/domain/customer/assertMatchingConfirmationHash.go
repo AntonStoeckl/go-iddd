@@ -6,7 +6,7 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func assertMatchingConfirmationHash(current value.ConfirmationHash, supplied value.ConfirmationHash) error {
+func assertMatchingConfirmationHash(current, supplied value.ConfirmationHash) error {
 	if !current.Equals(supplied) {
 		return errors.Mark(errors.New("wrong confirmation hash supplied"), shared.ErrDomainConstraintsViolation)
 	}

@@ -59,14 +59,14 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	doRegister := func() error {
 		customerRegistered := customer.Register(command)
 
-		if err = h.startCustomerEventStream(customerRegistered); err != nil {
+		if err := h.startCustomerEventStream(customerRegistered); err != nil {
 			return err
 		}
 
 		return nil
 	}
 
-	if err = shared.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
+	if err := shared.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
 		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
 	}
 

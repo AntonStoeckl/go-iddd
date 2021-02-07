@@ -10,7 +10,7 @@ type PersonName struct {
 	familyName string
 }
 
-func BuildPersonName(givenName string, familyName string) (PersonName, error) {
+func BuildPersonName(givenName, familyName string) (PersonName, error) {
 	wrapWithMsg := "BuildPersonName"
 
 	if familyName == "" {
@@ -35,7 +35,7 @@ func BuildPersonName(givenName string, familyName string) (PersonName, error) {
 	return personName, nil
 }
 
-func RebuildPersonName(givenName string, familyName string) PersonName {
+func RebuildPersonName(givenName, familyName string) PersonName {
 	personName := PersonName{
 		givenName:  givenName,
 		familyName: familyName,

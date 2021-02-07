@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	emailAddressRegExp = regexp.MustCompile(`^[^\s]+@[^\s]+\.[\w]{2,}$`)
+	emailAddressRegExp = regexp.MustCompile(`^\S+@\S+\.\w{2,}$`)
 )
 
 type EmailAddress struct {

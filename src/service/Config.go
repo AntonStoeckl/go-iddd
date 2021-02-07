@@ -21,7 +21,7 @@ type Config struct {
 	}
 }
 
-// This is also used by Config_test.go to check that all keys exist in Env,
+// ConfigExpectedEnvKeys - This is also used by Config_test.go to check that all keys exist in Env,
 // so always add new keys here!
 var ConfigExpectedEnvKeys = map[string]string{
 	"pgDSN":  "POSTGRES_DSN",

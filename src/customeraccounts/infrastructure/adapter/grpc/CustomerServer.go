@@ -21,9 +21,9 @@ func NewCustomerServer(
 	confirmEmailAddress hexagon.ForConfirmingCustomerEmailAddresses,
 	changeEmailAddress hexagon.ForChangingCustomerEmailAddresses,
 	changeName hexagon.ForChangingCustomerNames,
-	delete hexagon.ForDeletingCustomers,
+	delete hexagon.ForDeletingCustomers, //nolint:gocritic // false positive (shadowing of predeclared identifier: delete)
 	retrieveView hexagon.ForRetrievingCustomerViews,
-) *customerServer {
+) CustomerServer {
 	server := &customerServer{
 		register:            register,
 		confirmEmailAddress: confirmEmailAddress,

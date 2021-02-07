@@ -10,7 +10,7 @@ import (
 func MapToGRPCErrors(appErr error) error {
 	var code codes.Code
 
-	switch true {
+	switch {
 	case errors.Is(appErr, shared.ErrInputIsInvalid):
 		code = codes.InvalidArgument
 	case errors.Is(appErr, shared.ErrNotFound):

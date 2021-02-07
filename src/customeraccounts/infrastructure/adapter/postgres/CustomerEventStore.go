@@ -177,7 +177,6 @@ func (s *CustomerEventStore) loadEventStream(
 		return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	// nolint:errcheck // no way to handle this properly
 	defer eventRows.Close()
 
 	var eventStream es.EventStream
@@ -219,9 +218,9 @@ func (s *CustomerEventStore) appendEventsToStream(
 	query := strings.Replace(queryTemplate, "%name%", s.eventStoreTableName, 1)
 
 	for _, event := range events {
-		var eventJson []byte
+		var eventJSON []byte
 
-		eventJson, err = s.marshalDomainEvent(event)
+		eventJSON, err = s.marshalDomainEvent(event)
 		if err != nil {
 			return shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, wrapWithMsg)
 		}
@@ -232,7 +231,7 @@ func (s *CustomerEventStore) appendEventsToStream(
 			event.Meta().StreamVersion(),
 			event.Meta().EventName(),
 			event.Meta().OccurredAt(),
-			eventJson,
+			eventJSON,
 		)
 
 		if err != nil {
@@ -256,9 +255,8 @@ func (s *CustomerEventStore) purgeEventStream(streamID es.StreamID) error {
 
 func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
 	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
-	pqErr := &pq.Error{}
-	if errors.As(err, pqErr) {
-		if pqErr.Code == "23505" {
+	if actualErr, ok := err.(*pq.Error); ok {
+		if actualErr.Code == "23505" {
 			return errors.Mark(err, shared.ErrConcurrencyConflict)
 		}
 	}
@@ -373,10 +371,8 @@ func (s *CustomerEventStore) remove(
 
 func (s *CustomerEventStore) mapUniqueEmailAddressPostgresErrors(err error) error {
 	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
-	switch actualErr := err.(type) {
-	case *pq.Error:
-		switch actualErr.Code {
-		case "23505":
+	if actualErr, ok := err.(*pq.Error); ok {
+		if actualErr.Code == "23505" {
 			return errors.Mark(errors.Newf("duplicate email address"), shared.ErrDuplicate)
 		}
 	}

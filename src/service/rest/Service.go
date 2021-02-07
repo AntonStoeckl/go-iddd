@@ -117,8 +117,7 @@ func (s *Service) WaitForStopSignal() {
 
 	sig := <-stopSignalChannel
 
-	switch sig.(type) {
-	case os.Signal:
+	if _, ok := sig.(os.Signal); ok {
 		s.logger.Infof("received '%s'", sig)
 		close(stopSignalChannel)
 		s.shutdown()

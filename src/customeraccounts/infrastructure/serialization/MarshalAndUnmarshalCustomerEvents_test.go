@@ -104,7 +104,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	})
 }
 
-func assertEventMetaResembles(originalEvent es.DomainEvent, unmarshaledEvent es.DomainEvent) {
+func assertEventMetaResembles(originalEvent, unmarshaledEvent es.DomainEvent) {
 	So(unmarshaledEvent.Meta().EventName(), ShouldEqual, originalEvent.Meta().EventName())
 	So(unmarshaledEvent.Meta().OccurredAt(), ShouldEqual, originalEvent.Meta().OccurredAt())
 	So(unmarshaledEvent.Meta().StreamVersion(), ShouldEqual, originalEvent.Meta().StreamVersion())
