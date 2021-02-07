@@ -27,7 +27,7 @@ lint:
 
 # https://github.com/golangci/golangci-lint
 install-golangci-lint:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(shell go env GOPATH)/bin v1.24.0
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(shell go env GOPATH)/bin v1.36.0
 
 
 # https://github.com/psampaz/go-mod-outdated
