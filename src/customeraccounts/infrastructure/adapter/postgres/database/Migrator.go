@@ -26,7 +26,7 @@ func NewMigrator(postgresDBConn *sql.DB, migrationsPath string) (*Migrator, erro
 
 func (migrator *Migrator) Up() error {
 	if err := migrator.postgresMigrator.Up(); err != nil {
-		if err != migrate.ErrNoChange {
+		if !errors.Is(err, migrate.ErrNoChange) {
 			return errors.Wrap(err, "migrator.Up: failed to run migrations for Postgres DB")
 		}
 	}

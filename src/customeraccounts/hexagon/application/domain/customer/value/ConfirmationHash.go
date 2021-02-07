@@ -16,6 +16,7 @@ type ConfirmationHash struct {
 }
 
 func GenerateConfirmationHash(using string) ConfirmationHash {
+	//nolint:gosec // no super secure random number needed here
 	randomInt := rand.New(rand.NewSource(time.Now().UnixNano())).Int()
 	sha256Sum := sha256.Sum256([]byte(using + strconv.Itoa(randomInt)))
 	value := fmt.Sprintf("%x", sha256Sum)

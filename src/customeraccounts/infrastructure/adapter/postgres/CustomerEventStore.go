@@ -177,6 +177,9 @@ func (s *CustomerEventStore) loadEventStream(
 		return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
+	// nolint:errcheck // no way to handle this properly
+	defer eventRows.Close()
+
 	var eventStream es.EventStream
 	var eventName string
 	var payload string
@@ -252,10 +255,10 @@ func (s *CustomerEventStore) purgeEventStream(streamID es.StreamID) error {
 }
 
 func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
-	switch actualErr := err.(type) {
-	case *pq.Error:
-		switch actualErr.Code {
-		case "23505":
+	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
+	pqErr := &pq.Error{}
+	if errors.As(err, pqErr) {
+		if pqErr.Code == "23505" {
 			return errors.Mark(err, shared.ErrConcurrencyConflict)
 		}
 	}
@@ -369,6 +372,7 @@ func (s *CustomerEventStore) remove(
 }
 
 func (s *CustomerEventStore) mapUniqueEmailAddressPostgresErrors(err error) error {
+	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
 	switch actualErr := err.(type) {
 	case *pq.Error:
 		switch actualErr.Code {

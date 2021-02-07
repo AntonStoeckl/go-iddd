@@ -12,6 +12,7 @@ import (
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
 	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
+	"github.com/cockroachdb/errors"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
@@ -102,7 +103,7 @@ func (s *Service) StartRestServer() {
 	s.logger.Infof("starting REST server listening at %s ...", hostAndPort)
 	s.logger.Infof("will serve Swagger file at: http://%s/v1/customer/swagger.json", hostAndPort)
 
-	if err := s.restServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := s.restServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		s.logger.Errorf("REST server failed to listenAndServe: %s", err)
 		s.shutdown()
 	}
