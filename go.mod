@@ -1,31 +1,26 @@
 module github.com/AntonStoeckl/go-iddd
 
-go 1.13
+go 1.15
 
 require (
-	github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894 // indirect
-	github.com/cockroachdb/errors v1.2.4
-	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
-	github.com/getsentry/raven-go v0.2.0 // indirect
+	github.com/cockroachdb/errors v1.8.2
+	github.com/cockroachdb/redact v1.0.9 // indirect
 	github.com/go-resty/resty/v2 v2.4.0
-	github.com/golang-migrate/migrate/v4 v4.10.0
-	github.com/golang/protobuf v1.4.0
-	github.com/google/uuid v1.1.1
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-migrate/migrate/v4 v4.14.1
+	github.com/golang/protobuf v1.4.3
+	github.com/google/uuid v1.2.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3
-	github.com/json-iterator/go v1.1.9
-	github.com/kr/pretty v0.2.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/json-iterator/go v1.1.10
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.3.0
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/sirupsen/logrus v1.5.0
+	github.com/lib/pq v1.9.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
-	google.golang.org/genproto v0.0.0-20200413115906-b5235f65be36
-	google.golang.org/grpc v1.28.1
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.8 // indirect
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	google.golang.org/genproto v0.0.0-20201030142918-24207fddd1c3
+	google.golang.org/grpc v1.33.1
 )
