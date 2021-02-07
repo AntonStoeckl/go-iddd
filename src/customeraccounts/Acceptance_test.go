@@ -84,6 +84,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
+						So(errors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
 					})
 				})
 			})
