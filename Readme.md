@@ -28,6 +28,8 @@ POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_local?sslmod
 POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customeraccounts/infrastructure/postgres/database/migrations
 GRPC_HOST_AND_PORT=localhost:5566
 REST_HOST_AND_PORT=localhost:8085
+REST_GRPC_DIAL_TIMEOUT=3
+SWAGGER_FILE_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/rest
 ```
 
 ##### To be able to run the tests
@@ -40,6 +42,8 @@ POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_test?sslmode
 POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customeraccounts/infrastructure/postgres/database/migrations
 GRPC_HOST_AND_PORT=localhost:5566
 REST_HOST_AND_PORT=localhost:8085
+REST_GRPC_DIAL_TIMEOUT=3
+SWAGGER_FILE_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/rest
 ```
 
 ##### To run HTTP requests with GoLand's (IntelliJ) new built-in HTTP client
