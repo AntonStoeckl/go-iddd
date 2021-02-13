@@ -11,31 +11,29 @@ var (
 	emailAddressRegExp = regexp.MustCompile(`^\S+@\S+\.\w{2,}$`)
 )
 
-type EmailAddress struct {
-	value string
-}
+type EmailAddress string
 
 func BuildEmailAddress(input string) (EmailAddress, error) {
 	if matched := emailAddressRegExp.MatchString(input); !matched {
 		err := errors.New("input has invalid format")
 		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, "BuildEmailAddress")
 
-		return EmailAddress{}, err
+		return "", err
 	}
 
-	emailAddress := EmailAddress{value: input}
+	emailAddress := EmailAddress(input)
 
 	return emailAddress, nil
 }
 
 func RebuildEmailAddress(input string) EmailAddress {
-	return EmailAddress{value: input}
+	return EmailAddress(input)
 }
 
 func (emailAddress EmailAddress) String() string {
-	return emailAddress.value
+	return string(emailAddress)
 }
 
 func (emailAddress EmailAddress) Equals(other EmailAddress) bool {
-	return emailAddress.value == other.value
+	return emailAddress.String() == other.String()
 }
