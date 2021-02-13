@@ -13,12 +13,13 @@ type ChangeCustomerEmailAddress struct {
 func BuildChangeCustomerEmailAddress(
 	customerID value.CustomerID,
 	emailAddress value.EmailAddress,
+	confirmationHash value.ConfirmationHash,
 ) ChangeCustomerEmailAddress {
 
 	changeEmailAddress := ChangeCustomerEmailAddress{
 		customerID:       customerID,
 		emailAddress:     emailAddress,
-		confirmationHash: value.GenerateConfirmationHash(emailAddress.String()),
+		confirmationHash: confirmationHash,
 	}
 
 	return changeEmailAddress

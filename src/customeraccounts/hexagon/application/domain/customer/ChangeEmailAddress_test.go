@@ -37,12 +37,13 @@ func TestChangeEmailAddress(t *testing.T) {
 			2,
 		)
 
+		changedConfirmationHash := value.GenerateConfirmationHash(changedEmailAddress.String())
+
 		changeEmailAddress := domain.BuildChangeCustomerEmailAddress(
 			customerID,
 			changedEmailAddress,
+			changedConfirmationHash,
 		)
-
-		changedConfirmationHash := changeEmailAddress.ConfirmationHash()
 
 		confirmEmailAddress := domain.BuildConfirmCustomerEmailAddress(
 			customerID,
@@ -82,6 +83,7 @@ func TestChangeEmailAddress(t *testing.T) {
 					changeEmailAddress = domain.BuildChangeCustomerEmailAddress(
 						customerID,
 						emailAddress,
+						value.GenerateConfirmationHash(emailAddress.String()),
 					)
 
 					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)

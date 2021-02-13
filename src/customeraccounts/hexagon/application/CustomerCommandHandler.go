@@ -144,7 +144,13 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	command = domain.BuildChangeCustomerEmailAddress(customerIDValue, emailAddressValue)
+	confirmationHash := value.GenerateConfirmationHash(emailAddressValue.String())
+
+	command = domain.BuildChangeCustomerEmailAddress(
+		customerIDValue,
+		emailAddressValue,
+		confirmationHash,
+	)
 
 	doChangeEmailAddress := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
