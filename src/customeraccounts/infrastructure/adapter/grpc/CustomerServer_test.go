@@ -15,9 +15,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var mockedID = value.GenerateCustomerID()
+var generatedID value.CustomerID
 var mockedView = customer.View{
-	ID:                      mockedID.String(),
+	ID:                      generatedID.String(),
 	EmailAddress:            "fiona@gallagher.net",
 	IsEmailAddressConfirmed: true,
 	GivenName:               "Fiona",
@@ -44,7 +44,7 @@ func TestGRPCServer(t *testing.T) {
 					Convey("Then it should succeed", func() {
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
-						So(res.Id, ShouldResemble, mockedID.String())
+						So(res.Id, ShouldResemble, generatedID.String())
 					})
 				})
 			})
@@ -221,8 +221,9 @@ func thenItShouldFailWithTheExpectedError(res *empty.Empty, err error) {
 
 func buildSuccessCustomerServer() customergrpc.CustomerServer {
 	customerGRPCServer := customergrpc.NewCustomerServer(
-		func(emailAddress, givenName, familyName string) (value.CustomerID, error) {
-			return mockedID, nil
+		func(customerID, emailAddress, givenName, familyName string) error {
+			generatedID = value.CustomerID(customerID)
+			return nil
 		},
 		func(customerID, confirmationHash string) error {
 			return nil
@@ -249,8 +250,8 @@ func buildFailureCustomerServer() customergrpc.CustomerServer {
 	mockedErr := errors.Mark(errors.New(expectedErrMsg), shared.ErrInputIsInvalid)
 
 	customerGRPCServer := customergrpc.NewCustomerServer(
-		func(emailAddress, givenName, familyName string) (value.CustomerID, error) {
-			return mockedID, mockedErr
+		func(customerID, emailAddress, givenName, familyName string) error {
+			return mockedErr
 		},
 		func(customerID, confirmationHash string) error {
 			return mockedErr

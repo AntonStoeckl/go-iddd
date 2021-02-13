@@ -30,27 +30,33 @@ func NewCustomerCommandHandler(
 }
 
 func (h *CustomerCommandHandler) RegisterCustomer(
+	customerID string,
 	emailAddress string,
 	givenName string,
 	familyName string,
-) (value.CustomerID, error) {
+) error {
 
 	var err error
 	var command domain.RegisterCustomer
 	wrapWithMsg := "customerCommandHandler.RegisterCustomer"
 
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
 	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
 	if err != nil {
-		return "", errors.Wrap(err, wrapWithMsg)
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	personNameValue, err := value.BuildPersonName(givenName, familyName)
 	if err != nil {
-		return "", errors.Wrap(err, wrapWithMsg)
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
 	command = domain.BuildRegisterCustomer(
-		value.GenerateCustomerID(),
+		customerIDValue,
 		emailAddressValue,
 		value.GenerateConfirmationHash(emailAddressValue.String()),
 		personNameValue,
@@ -67,10 +73,10 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	}
 
 	if err := shared.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
-		return "", errors.Wrap(err, wrapWithMsg)
+		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	return command.CustomerID(), nil
+	return nil
 }
 
 func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(

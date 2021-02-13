@@ -101,7 +101,9 @@ func prepareForBenchmark(
 
 	var err error
 
-	if ba.customerID, err = commandHandler.RegisterCustomer(ba.emailAddress, ba.givenName, ba.familyName); err != nil {
+	ba.customerID = value.GenerateCustomerID()
+
+	if err = commandHandler.RegisterCustomer(ba.customerID.String(), ba.emailAddress, ba.givenName, ba.familyName); err != nil {
 		b.FailNow()
 	}
 

@@ -56,9 +56,12 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			newEmailAddress: "fiona@lishman.net",
 		}
 
+		customerID = value.GenerateCustomerID()
+		otherCustomerID = value.GenerateCustomerID()
+
 		Convey("\nSCENARIO: A prospective Customer registers her account", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+				err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
 				So(err, ShouldBeNil)
 
 				expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
@@ -77,10 +80,10 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer can't register because her email address is already used", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-					_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+					err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
@@ -92,14 +95,14 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer can register with an email address that is not used any more", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("And given the first Customer deleted her account", func() {
 					err = ac.deleteCustomer(customerID.String())
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+						err = ac.registerCustomer(otherCustomerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
@@ -112,7 +115,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						otherCustomerID, err = ac.registerCustomer(aa.emailAddress, aa.givenName, aa.familyName)
+						err = ac.registerCustomer(otherCustomerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
@@ -126,7 +129,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			invalidEmailAddress := "fiona@galagher.c"
 
 			Convey(fmt.Sprintf("When she supplies an invalid email address [%s]", invalidEmailAddress), func() {
-				_, err = ac.registerCustomer(invalidEmailAddress, aa.givenName, aa.familyName)
+				err = ac.registerCustomer(customerID.String(), invalidEmailAddress, aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -135,7 +138,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			})
 
 			Convey("When she supplies an empty givenName", func() {
-				_, err = ac.registerCustomer(aa.emailAddress, "", aa.familyName)
+				err = ac.registerCustomer(customerID.String(), aa.emailAddress, "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -144,7 +147,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			})
 
 			Convey("When she supplies an empty familyName", func() {
-				_, err = ac.registerCustomer(aa.emailAddress, aa.givenName, "")
+				err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -180,9 +183,11 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 			newEmailAddress: "levinia@ball.net",
 		}
 
+		customerID = value.GenerateCustomerID()
+
 		Convey("\nSCENARIO: A Customer confirms his email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa)
+				confirmationHash = givenCustomerRegistered(customerID, aa)
 
 				Convey("When he confirms his email address", func() {
 					err = ac.confirmCustomerEmailAddress(customerID.String(), confirmationHash.String())
@@ -213,7 +218,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer can't confirm his email address, because the confirmation hash is not matching", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("When he tries to confirm his email address with a wrong confirmation hash", func() {
 					err = ac.confirmCustomerEmailAddress(customerID.String(), "invalid_confirmation_hash")
@@ -235,7 +240,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer fails to confirm his already confirmed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("And given he confirmed his email address", func() {
 					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
@@ -262,7 +267,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer confirms his changed email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("And given he confirmed his email address", func() {
 					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
@@ -291,7 +296,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 
 		Convey("\nSCENARIO: A Customer tries to confirm his email address with invalid input", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("When he supplies an empty confirmation hash", func() {
 					err = ac.confirmCustomerEmailAddress(customerID.String(), "")
@@ -328,9 +333,12 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 			newEmailAddress: "veronica@pratt.net",
 		}
 
+		customerID = value.GenerateCustomerID()
+		otherCustomerID = value.GenerateCustomerID()
+
 		Convey("\nSCENARIO: A Customer changes her (confirmed) email address", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("And given she confirmed her email address", func() {
 					givenCustomerEmailAddressWasConfirmed(customerID, aa, 2)
@@ -365,13 +373,13 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 
 		Convey("\nSCENARIO: A Customer can't change her email address because it is already used", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey(fmt.Sprintf("And given she changed her email address to [%s]", aa.newEmailAddress), func() {
 					_ = givenCustomerEmailAddressWasChanged(customerID, aa, 2)
 
 					Convey(fmt.Sprintf("And given another Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-						otherCustomerID, _ = givenCustomerRegistered(aa)
+						givenCustomerRegistered(otherCustomerID, aa)
 
 						Convey(fmt.Sprintf("When she also tries to change her email address to [%s]", aa.newEmailAddress), func() {
 							err = ac.changeCustomerEmailAddress(otherCustomerID.String(), aa.newEmailAddress)
@@ -390,7 +398,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerEmailAddresses(t *testin
 			invalidEmailAddress := "fiona@galagher.c"
 
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey(fmt.Sprintf("When she supplies an invalid email address [%s]", invalidEmailAddress), func() {
 					err = ac.changeCustomerEmailAddress(customerID.String(), invalidEmailAddress)
@@ -430,9 +438,11 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 			newFamilyName: "Milkovich",
 		}
 
+		customerID = value.GenerateCustomerID()
+
 		Convey("\nSCENARIO: A Customer changes his name", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey(fmt.Sprintf("When he changes his name to [%s %s]", aa.newGivenName, aa.newFamilyName), func() {
 					err = ac.changeCustomerName(customerID.String(), aa.newGivenName, aa.newFamilyName)
@@ -464,7 +474,7 @@ func TestCustomerAcceptanceScenarios_ForChangingCustomerNames(t *testing.T) {
 
 		Convey("\nSCENARIO: A Customer tries to change his name with invalid input", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, _ = givenCustomerRegistered(aa)
+				givenCustomerRegistered(customerID, aa)
 
 				Convey("When he supplies an empty given name", func() {
 					err = ac.changeCustomerName(customerID.String(), "", aa.familyName)
@@ -567,9 +577,11 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 			newFamilyName:   "Silverman",
 		}
 
+		customerID = value.GenerateCustomerID()
+
 		Convey("\nSCENARIO: A Customer deletes her account", func() {
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa)
+				confirmationHash = givenCustomerRegistered(customerID, aa)
 
 				Convey("When she deletes her account", func() {
 					err = ac.deleteCustomer(customerID.String())
@@ -708,6 +720,8 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		var customerID value.CustomerID
 		var confirmationHash value.ConfirmationHash
 
+		customerID = value.GenerateCustomerID()
+
 		aa := acceptanceTestArtifacts{
 			emailAddress: "fiona@gallagher.net",
 			givenName:    "Fiona",
@@ -715,8 +729,18 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		}
 
 		Convey("\nSCENARIO: A client (web, app, ...) of the application sends an empty id", func() {
+
+			Convey("When she tries to register with an empty id", func() {
+				err = ac.registerCustomer("", aa.emailAddress, aa.givenName, aa.familyName)
+
+				Convey("Then she should receive an error", func() {
+					So(err, ShouldBeError)
+					So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
+				})
+			})
+
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				customerID, confirmationHash = givenCustomerRegistered(aa)
+				confirmationHash = givenCustomerRegistered(customerID, aa)
 
 				Convey("When she tries to confirm her email address with an empty id", func() {
 					err = ac.confirmCustomerEmailAddress("", confirmationHash.String())
@@ -773,10 +797,10 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 }
 
 func givenCustomerRegistered(
+	customerID value.CustomerID,
 	aa acceptanceTestArtifacts,
-) (value.CustomerID, value.ConfirmationHash) {
+) value.ConfirmationHash {
 
-	customerID := value.GenerateCustomerID()
 	emailAddress := value.RebuildEmailAddress(aa.emailAddress)
 	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 	personName := value.RebuildPersonName(aa.givenName, aa.familyName)
@@ -792,7 +816,7 @@ func givenCustomerRegistered(
 	err := atStartCustomerEventStream(registered)
 	So(err, ShouldBeNil)
 
-	return customerID, confirmationHash
+	return confirmationHash
 }
 
 func givenCustomerEmailAddressWasConfirmed(

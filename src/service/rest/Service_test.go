@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/service"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
@@ -131,8 +130,8 @@ func runGRPCServer(config *service.Config, logger *shared.Logger, mockedExisting
 
 func grpcCustomerServerStub(mockedExistingCustomerID string) customergrpc.CustomerServer {
 	customerServer := customergrpc.NewCustomerServer(
-		func(emailAddress, givenName, familyName string) (value.CustomerID, error) {
-			return value.GenerateCustomerID(), nil
+		func(customerID, emailAddress, givenName, familyName string) error {
+			return nil
 		},
 		func(customerID, confirmationHash string) error {
 			return nil

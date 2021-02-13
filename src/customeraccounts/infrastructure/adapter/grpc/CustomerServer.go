@@ -3,6 +3,8 @@ package customergrpc
 import (
 	"context"
 
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
+
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon"
 	"github.com/golang/protobuf/ptypes/empty"
 )
@@ -41,8 +43,9 @@ func (server *customerServer) Register(
 	req *RegisterRequest,
 ) (*RegisterResponse, error) {
 
-	customerID, err := server.register(req.EmailAddress, req.GivenName, req.FamilyName)
-	if err != nil {
+	customerID := value.GenerateCustomerID()
+
+	if err := server.register(customerID.String(), req.EmailAddress, req.GivenName, req.FamilyName); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
