@@ -41,12 +41,12 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 
 	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
 	if err != nil {
-		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+		return "", errors.Wrap(err, wrapWithMsg)
 	}
 
 	personNameValue, err := value.BuildPersonName(givenName, familyName)
 	if err != nil {
-		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+		return "", errors.Wrap(err, wrapWithMsg)
 	}
 
 	command = domain.BuildRegisterCustomer(
@@ -67,7 +67,7 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	}
 
 	if err := shared.RetryOnConcurrencyConflict(doRegister, maxCustomerCommandHandlerRetries); err != nil {
-		return value.CustomerID{}, errors.Wrap(err, wrapWithMsg)
+		return "", errors.Wrap(err, wrapWithMsg)
 	}
 
 	return command.CustomerID(), nil

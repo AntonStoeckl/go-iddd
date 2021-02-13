@@ -6,12 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type CustomerID struct {
-	value string
-}
+type CustomerID string
 
 func GenerateCustomerID() CustomerID {
-	return CustomerID{value: uuid.New().String()}
+	return CustomerID(uuid.New().String())
 }
 
 func BuildCustomerID(value string) (CustomerID, error) {
@@ -19,20 +17,20 @@ func BuildCustomerID(value string) (CustomerID, error) {
 		err := errors.New("empty input for CustomerID")
 		err = shared.MarkAndWrapError(err, shared.ErrInputIsInvalid, "BuildCustomerID")
 
-		return CustomerID{}, err
+		return "", err
 	}
 
-	id := CustomerID{value: value}
+	id := CustomerID(value)
 
 	return id, nil
 }
 
 func RebuildCustomerID(value string) CustomerID {
-	return CustomerID{value: value}
+	return CustomerID(value)
 }
 
 func (id CustomerID) String() string {
-	return id.value
+	return string(id)
 }
 
 func (id CustomerID) Equals(other CustomerID) bool {
