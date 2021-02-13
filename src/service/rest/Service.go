@@ -28,27 +28,27 @@ type Service struct {
 }
 
 func MustDialGRPCContext(
+	ctx context.Context,
 	config *service.Config,
 	logger *shared.Logger,
-	ctx context.Context,
 	cancelFn context.CancelFunc,
 ) *grpc.ClientConn {
 
 	grpcClientConn, err := grpc.DialContext(ctx, config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		cancelFn()
-		logger.Panicf("fail to dial gRPC service: %s", err)
+		logger.Panic().Msgf("fail to dial gRPC service: %s", err)
 	}
 
 	return grpcClientConn
 }
 
 func InitService(
+	ctx context.Context,
+	cancelFn context.CancelFunc,
 	config *service.Config,
 	logger *shared.Logger,
 	exitFn func(),
-	ctx context.Context,
-	cancelFn context.CancelFunc,
 	grpcClientConn *grpc.ClientConn,
 
 ) *Service {
@@ -68,7 +68,7 @@ func InitService(
 }
 
 func (s *Service) buildRestServer() {
-	s.logger.Info("configuring REST server ...")
+	s.logger.Info().Msg("configuring REST server ...")
 
 	client := customergrpc.NewCustomerClient(s.grpcClientConn)
 
@@ -77,7 +77,7 @@ func (s *Service) buildRestServer() {
 	)
 
 	if err := customerrest.RegisterCustomerHandlerClient(s.ctx, rmux, client); err != nil {
-		s.logger.Errorf("failed to register customerHandlerClient: %s", err)
+		s.logger.Error().Msgf("failed to register customerHandlerClient: %s", err)
 		s.shutdown()
 	}
 
@@ -100,17 +100,17 @@ func (s *Service) buildRestServer() {
 
 func (s *Service) StartRestServer() {
 	hostAndPort := s.config.REST.HostAndPort
-	s.logger.Infof("starting REST server listening at %s ...", hostAndPort)
-	s.logger.Infof("will serve Swagger file at: http://%s/v1/customer/swagger.json", hostAndPort)
+	s.logger.Info().Msgf("starting REST server listening at %s ...", hostAndPort)
+	s.logger.Info().Msgf("will serve Swagger file at: http://%s/v1/customer/swagger.json", hostAndPort)
 
 	if err := s.restServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		s.logger.Errorf("REST server failed to listenAndServe: %s", err)
+		s.logger.Error().Msgf("REST server failed to listenAndServe: %s", err)
 		s.shutdown()
 	}
 }
 
 func (s *Service) WaitForStopSignal() {
-	s.logger.Info("start waiting for stop signal ...")
+	s.logger.Info().Msg("start waiting for stop signal ...")
 
 	stopSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(stopSignalChannel, os.Interrupt, syscall.SIGTERM)
@@ -118,35 +118,35 @@ func (s *Service) WaitForStopSignal() {
 	sig := <-stopSignalChannel
 
 	if _, ok := sig.(os.Signal); ok {
-		s.logger.Infof("received '%s'", sig)
+		s.logger.Info().Msgf("received '%s'", sig)
 		close(stopSignalChannel)
 		s.shutdown()
 	}
 }
 
 func (s *Service) shutdown() {
-	s.logger.Info("shutdown: stopping services ...")
+	s.logger.Info().Msg("shutdown: stopping services ...")
 
 	if s.cancelFn != nil {
-		s.logger.Info("shutdown: canceling context ...")
+		s.logger.Info().Msg("shutdown: canceling context ...")
 		s.cancelFn()
 	}
 
 	if s.restServer != nil {
-		s.logger.Info("shutdown: stopping REST server gracefully ...")
+		s.logger.Info().Msg("shutdown: stopping REST server gracefully ...")
 		if err := s.restServer.Shutdown(context.Background()); err != nil {
-			s.logger.Warnf("shutdown: failed to stop the REST server: %s", err)
+			s.logger.Warn().Msgf("shutdown: failed to stop the REST server: %s", err)
 		}
 	}
 
 	if s.grpcClientConn != nil {
-		s.logger.Info("shutdown: closing gRPC client connection ...")
+		s.logger.Info().Msg("shutdown: closing gRPC client connection ...")
 		if err := s.grpcClientConn.Close(); err != nil {
-			s.logger.Warnf("shutdown: failed to close the gRPC client connection: %s", err)
+			s.logger.Warn().Msgf("shutdown: failed to close the gRPC client connection: %s", err)
 		}
 	}
 
-	s.logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
+	s.logger.Info().Msg("shutdown: all services stopped - Hasta la vista, baby!")
 
 	s.exitFn()
 }

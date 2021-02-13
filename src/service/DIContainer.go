@@ -101,7 +101,7 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 	/*** Apply options for infra, dependencies, services ***/
 	for _, opt := range opts {
 		if err := opt(container); err != nil {
-			logger.Panicf("mustBuildDIContainer: %s", err)
+			logger.Panic().Msgf("mustBuildDIContainer: %s", err)
 		}
 	}
 

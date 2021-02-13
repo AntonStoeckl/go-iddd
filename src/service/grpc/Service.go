@@ -33,25 +33,25 @@ func InitService(
 }
 
 func (s *Service) StartGRPCServer() {
-	s.logger.Info("configuring gRPC server ...")
+	s.logger.Info().Msg("configuring gRPC server ...")
 
 	listener, err := net.Listen("tcp", s.config.GRPC.HostAndPort)
 	if err != nil {
-		s.logger.Errorf("failed to listen: %v", err)
+		s.logger.Error().Msgf("failed to listen: %v", err)
 		s.shutdown()
 	}
 
-	s.logger.Infof("starting gRPC server listening at %s ...", s.config.GRPC.HostAndPort)
+	s.logger.Info().Msgf("starting gRPC server listening at %s ...", s.config.GRPC.HostAndPort)
 
 	grpcServer := s.diContainter.GetGRPCServer()
 	if err := grpcServer.Serve(listener); err != nil {
-		s.logger.Errorf("gRPC server failed to serve: %s", err)
+		s.logger.Error().Msgf("gRPC server failed to serve: %s", err)
 		s.shutdown()
 	}
 }
 
 func (s *Service) WaitForStopSignal() {
-	s.logger.Info("start waiting for stop signal ...")
+	s.logger.Info().Msg("start waiting for stop signal ...")
 
 	stopSignalChannel := make(chan os.Signal, 1)
 	signal.Notify(stopSignalChannel, os.Interrupt, syscall.SIGTERM)
@@ -59,30 +59,30 @@ func (s *Service) WaitForStopSignal() {
 	sig := <-stopSignalChannel
 
 	if _, ok := sig.(os.Signal); ok {
-		s.logger.Infof("received '%s'", sig)
+		s.logger.Info().Msgf("received '%s'", sig)
 		close(stopSignalChannel)
 		s.shutdown()
 	}
 }
 
 func (s *Service) shutdown() {
-	s.logger.Info("shutdown: stopping services ...")
+	s.logger.Info().Msg("shutdown: stopping services ...")
 
 	grpcServer := s.diContainter.GetGRPCServer()
 	if grpcServer != nil {
-		s.logger.Info("shutdown: stopping gRPC server gracefully ...")
+		s.logger.Info().Msg("shutdown: stopping gRPC server gracefully ...")
 		grpcServer.GracefulStop()
 	}
 
 	postgresDBConn := s.diContainter.GetPostgresDBConn()
 	if postgresDBConn != nil {
-		s.logger.Info("shutdown: closing Postgres DB connection ...")
+		s.logger.Info().Msg("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
-			s.logger.Warnf("shutdown: failed to close the Postgres DB connection: %s", err)
+			s.logger.Warn().Msgf("shutdown: failed to close the Postgres DB connection: %s", err)
 		}
 	}
 
-	s.logger.Info("shutdown: all services stopped - Hasta la vista, baby!")
+	s.logger.Info().Msg("shutdown: all services stopped - Hasta la vista, baby!")
 
 	s.exitFn()
 }

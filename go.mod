@@ -17,7 +17,7 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.9.0
-	github.com/sirupsen/logrus v1.7.0
+	github.com/rs/zerolog v1.15.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect

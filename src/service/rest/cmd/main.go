@@ -14,10 +14,10 @@ func main() {
 	logger := shared.NewStandardLogger()
 	config := service.MustBuildConfigFromEnv(logger)
 	exitFn := func() { os.Exit(1) }
-	ctx, cancelFn := context.WithTimeout(context.Background(), 3*time.Second)
-	grpcClientConn := rest.MustDialGRPCContext(config, logger, ctx, cancelFn)
+	ctx, cancelFn := context.WithTimeout(context.Background(), time.Duration(config.REST.GRPCDialTimeout)*time.Second)
+	grpcClientConn := rest.MustDialGRPCContext(ctx, config, logger, cancelFn)
 
-	s := rest.InitService(config, logger, exitFn, ctx, cancelFn, grpcClientConn)
+	s := rest.InitService(ctx, cancelFn, config, logger, exitFn, grpcClientConn)
 	go s.StartRestServer()
 	s.WaitForStopSignal()
 }

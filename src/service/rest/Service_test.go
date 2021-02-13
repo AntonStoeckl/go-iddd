@@ -34,11 +34,11 @@ func TestStartRestServer(t *testing.T) {
 
 	runGRPCServer(config, logger, mockedExistingCustomerID)
 
-	grpcClientConn := rest.MustDialGRPCContext(config, logger, ctx, cancelFn)
+	grpcClientConn := rest.MustDialGRPCContext(ctx, config, logger, cancelFn)
 
 	terminateDelay := time.Millisecond * 100
 
-	s := rest.InitService(config, logger, exitFn, ctx, cancelFn, grpcClientConn)
+	s := rest.InitService(ctx, cancelFn, config, logger, exitFn, grpcClientConn)
 
 	Convey("Start the REST server as a goroutine", t, func() {
 		go s.StartRestServer()

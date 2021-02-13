@@ -1,30 +1,25 @@
 package shared
 
 import (
-	"io/ioutil"
+	"os"
+	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 )
 
 type Logger struct {
-	*logrus.Logger
+	zerolog.Logger
 }
 
 func NewStandardLogger() *Logger {
-	logger := &Logger{logrus.New()}
-
-	logger.SetFormatter(
-		&logrus.TextFormatter{
-			FullTimestamp: true,
-		},
-	)
+	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	logger := &Logger{zerolog.New(output).With().Caller().Timestamp().Logger()}
 
 	return logger
 }
 
 func NewNilLogger() *Logger {
-	logger := &Logger{logrus.New()}
-	logger.SetOutput(ioutil.Discard)
+	logger := &Logger{zerolog.New(nil)}
 
 	return logger
 }
