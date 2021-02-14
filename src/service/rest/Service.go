@@ -10,7 +10,6 @@ import (
 
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -18,7 +17,7 @@ import (
 )
 
 type Service struct {
-	config         *service.Config
+	config         *Config
 	logger         *shared.Logger
 	exitFn         func()
 	ctx            context.Context
@@ -29,12 +28,12 @@ type Service struct {
 
 func MustDialGRPCContext(
 	ctx context.Context,
-	config *service.Config,
+	config *Config,
 	logger *shared.Logger,
 	cancelFn context.CancelFunc,
 ) *grpc.ClientConn {
 
-	grpcClientConn, err := grpc.DialContext(ctx, config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
+	grpcClientConn, err := grpc.DialContext(ctx, config.REST.GRPCDialHostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		cancelFn()
 		logger.Panic().Msgf("fail to dial gRPC service: %s", err)
@@ -46,7 +45,7 @@ func MustDialGRPCContext(
 func InitService(
 	ctx context.Context,
 	cancelFn context.CancelFunc,
-	config *service.Config,
+	config *Config,
 	logger *shared.Logger,
 	exitFn func(),
 	grpcClientConn *grpc.ClientConn,

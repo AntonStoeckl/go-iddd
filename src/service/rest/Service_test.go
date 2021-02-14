@@ -12,7 +12,7 @@ import (
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/service"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
-	"github.com/AntonStoeckl/go-iddd/src/service/rest"
+	restService "github.com/AntonStoeckl/go-iddd/src/service/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/go-resty/resty/v2"
@@ -24,7 +24,8 @@ func TestStartRestServer(t *testing.T) {
 	mockedExistingCustomerID := "11111111"
 
 	logger := shared.NewNilLogger()
-	config := service.MustBuildConfigFromEnv(logger)
+	grpcConfig := service.MustBuildConfigFromEnv(logger)
+	restConfig := restService.MustBuildConfigFromEnv(logger)
 
 	exitWasCalled := false
 	exitFn := func() {
@@ -32,13 +33,13 @@ func TestStartRestServer(t *testing.T) {
 	}
 	ctx, cancelFn := context.WithTimeout(context.Background(), 1*time.Second)
 
-	runGRPCServer(config, logger, mockedExistingCustomerID)
+	runGRPCServer(grpcConfig, logger, mockedExistingCustomerID)
 
-	grpcClientConn := rest.MustDialGRPCContext(ctx, config, logger, cancelFn)
+	grpcClientConn := restService.MustDialGRPCContext(ctx, restConfig, logger, cancelFn)
 
 	terminateDelay := time.Millisecond * 100
 
-	s := rest.InitService(ctx, cancelFn, config, logger, exitFn, grpcClientConn)
+	s := restService.InitService(ctx, cancelFn, restConfig, logger, exitFn, grpcClientConn)
 
 	Convey("Start the REST server as a goroutine", t, func() {
 		go s.StartRestServer()
@@ -47,12 +48,12 @@ func TestStartRestServer(t *testing.T) {
 			var err error
 			var resp *resty.Response
 
-			hostAndPort := config.REST.HostAndPort
+			hostAndPort := restConfig.REST.HostAndPort
 
 			client := resty.New()
 
 			resp, err = client.R().
-				Get(fmt.Sprintf("http://%s/v1/customer/swagger.json", config.REST.HostAndPort))
+				Get(fmt.Sprintf("http://%s/v1/customer/swagger.json", restConfig.REST.HostAndPort))
 			So(err, ShouldBeNil)
 			So(resp.StatusCode(), ShouldEqual, 200)
 
