@@ -151,7 +151,7 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 }
 
 func (s *CustomerEventStore) streamID(id value.CustomerID) es.StreamID {
-	return es.NewStreamID(streamPrefix + "-" + id.String())
+	return es.BuildStreamID(streamPrefix + "-" + id.String())
 }
 
 /***** local methods for reading from and writing to the event store *****/
