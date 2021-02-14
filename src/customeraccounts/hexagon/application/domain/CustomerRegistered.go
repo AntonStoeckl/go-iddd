@@ -18,6 +18,7 @@ func BuildCustomerRegistered(
 	emailAddress value.EmailAddress,
 	confirmationHash value.ConfirmationHash,
 	personName value.PersonName,
+	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerRegistered {
 
@@ -28,7 +29,7 @@ func BuildCustomerRegistered(
 		personName:       personName,
 	}
 
-	event.meta = es.BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
 
 	return event
 }

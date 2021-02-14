@@ -14,6 +14,7 @@ type CustomerNameChanged struct {
 func BuildCustomerNameChanged(
 	customerID value.CustomerID,
 	personName value.PersonName,
+	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerNameChanged {
 
@@ -22,7 +23,7 @@ func BuildCustomerNameChanged(
 		personName: personName,
 	}
 
-	event.meta = es.BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
 
 	return event
 }

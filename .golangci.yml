@@ -32,7 +32,7 @@ linters-settings:
       - wrapperFunc
     settings:
       hugeParam:
-        sizeThreshold: 150
+        sizeThreshold: 200
 
   gocyclo:
     min-complexity: 15

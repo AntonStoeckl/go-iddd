@@ -119,7 +119,9 @@ func marshalCustomerDeleted(event domain.CustomerDeleted) []byte {
 
 func marshalEventMeta(event es.DomainEvent) es.EventMetaForJSON {
 	return es.EventMetaForJSON{
-		EventName:  event.Meta().EventName(),
-		OccurredAt: event.Meta().OccurredAt(),
+		EventName:   event.Meta().EventName(),
+		OccurredAt:  event.Meta().OccurredAt(),
+		MessageID:   event.Meta().MessageID(),
+		CausationID: event.Meta().CausationID(),
 	}
 }

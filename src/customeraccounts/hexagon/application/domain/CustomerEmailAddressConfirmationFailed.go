@@ -20,6 +20,7 @@ func BuildCustomerEmailAddressConfirmationFailed(
 	emailAddress value.EmailAddress,
 	confirmationHash value.ConfirmationHash,
 	reason error,
+	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmationFailed {
 
@@ -30,7 +31,7 @@ func BuildCustomerEmailAddressConfirmationFailed(
 		reason:           reason,
 	}
 
-	event.meta = es.BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
 
 	return event
 }

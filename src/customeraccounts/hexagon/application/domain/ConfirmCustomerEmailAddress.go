@@ -2,11 +2,13 @@ package domain
 
 import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 )
 
 type ConfirmCustomerEmailAddress struct {
 	customerID       value.CustomerID
 	confirmationHash value.ConfirmationHash
+	messageID        es.MessageID
 }
 
 func BuildConfirmCustomerEmailAddress(
@@ -17,6 +19,7 @@ func BuildConfirmCustomerEmailAddress(
 	confirmEmailAddress := ConfirmCustomerEmailAddress{
 		customerID:       customerID,
 		confirmationHash: confirmationHash,
+		messageID:        es.GenerateMessageID(),
 	}
 
 	return confirmEmailAddress
@@ -28,4 +31,8 @@ func (command ConfirmCustomerEmailAddress) CustomerID() value.CustomerID {
 
 func (command ConfirmCustomerEmailAddress) ConfirmationHash() value.ConfirmationHash {
 	return command.confirmationHash
+}
+
+func (command ConfirmCustomerEmailAddress) MessageID() es.MessageID {
+	return command.messageID
 }

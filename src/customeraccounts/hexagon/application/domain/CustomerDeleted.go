@@ -14,6 +14,7 @@ type CustomerDeleted struct {
 func BuildCustomerDeleted(
 	customerID value.CustomerID,
 	emailAddress value.EmailAddress,
+	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerDeleted {
 
@@ -22,7 +23,7 @@ func BuildCustomerDeleted(
 		emailAddress: emailAddress,
 	}
 
-	event.meta = es.BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
 
 	return event
 }

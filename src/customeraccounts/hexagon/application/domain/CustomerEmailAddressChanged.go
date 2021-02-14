@@ -18,6 +18,7 @@ func BuildCustomerEmailAddressChanged(
 	emailAddress value.EmailAddress,
 	confirmationHash value.ConfirmationHash,
 	previousEmailAddress value.EmailAddress,
+	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
@@ -28,7 +29,7 @@ func BuildCustomerEmailAddressChanged(
 		previousEmailAddress: previousEmailAddress,
 	}
 
-	event.meta = es.BuildEventMeta(event, streamVersion)
+	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
 
 	return event
 }

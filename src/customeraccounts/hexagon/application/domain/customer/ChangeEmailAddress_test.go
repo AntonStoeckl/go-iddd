@@ -23,53 +23,62 @@ func TestChangeEmailAddress(t *testing.T) {
 		personName := value.RebuildPersonName("Kevin", "Ball")
 		changedEmailAddress := value.RebuildEmailAddress("latoya@ball.net")
 
-		customerWasRegistered := domain.BuildCustomerRegistered(
+		command := domain.BuildChangeCustomerEmailAddress(
+			customerID,
+			changedEmailAddress,
+		)
+
+		commandWithOriginalEmailAddress := domain.BuildChangeCustomerEmailAddress(
+			customerID,
+			emailAddress,
+		)
+
+		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
 			personName,
+			es.GenerateMessageID(),
 			1,
 		)
 
-		customerEmailAddressWasConfirmed := domain.BuildCustomerEmailAddressConfirmed(
+		customerEmailAddressChanged := domain.BuildCustomerEmailAddressChanged(
 			customerID,
+			changedEmailAddress,
+			command.ConfirmationHash(),
 			emailAddress,
+			es.GenerateMessageID(),
 			2,
 		)
 
-		changedConfirmationHash := value.GenerateConfirmationHash(changedEmailAddress.String())
-
-		changeEmailAddress := domain.BuildChangeCustomerEmailAddress(
+		customerDeleted := domain.BuildCustomerDeleted(
 			customerID,
-			changedEmailAddress,
-			changedConfirmationHash,
-		)
-
-		confirmEmailAddress := domain.BuildConfirmCustomerEmailAddress(
-			customerID,
-			changedConfirmationHash,
+			emailAddress,
+			es.GenerateMessageID(),
+			2,
 		)
 
 		Convey("\nSCENARIO 1: Change a Customer's emailAddress", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					recordedEvents, err = customer.ChangeEmailAddress(eventStream, command)
 					So(err, ShouldBeNil)
 
 					Convey("Then CustomerEmailAddressChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						emailAddressChanged, ok := recordedEvents[0].(domain.CustomerEmailAddressChanged)
+						event, ok := recordedEvents[0].(domain.CustomerEmailAddressChanged)
 						So(ok, ShouldBeTrue)
-						So(emailAddressChanged, ShouldNotBeNil)
-						So(emailAddressChanged.CustomerID().Equals(customerID), ShouldBeTrue)
-						So(emailAddressChanged.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
-						So(emailAddressChanged.ConfirmationHash().Equals(changedConfirmationHash), ShouldBeTrue)
-						So(emailAddressChanged.PreviousEmailAddress().Equals(emailAddress), ShouldBeTrue)
-						So(emailAddressChanged.IsFailureEvent(), ShouldBeFalse)
-						So(emailAddressChanged.FailureReason(), ShouldBeNil)
-						So(emailAddressChanged.Meta().StreamVersion(), ShouldEqual, 2)
+						So(event, ShouldNotBeNil)
+						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(event.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
+						So(event.ConfirmationHash().Equals(command.ConfirmationHash()), ShouldBeTrue)
+						So(event.PreviousEmailAddress().Equals(emailAddress), ShouldBeTrue)
+						So(event.IsFailureEvent(), ShouldBeFalse)
+						So(event.FailureReason(), ShouldBeNil)
+						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})
 			})
@@ -77,16 +86,10 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Try to change a Customer's emailAddress to the value he registered with", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When ChangeCustomerEmailAddress", func() {
-					changeEmailAddress = domain.BuildChangeCustomerEmailAddress(
-						customerID,
-						emailAddress,
-						value.GenerateConfirmationHash(emailAddress.String()),
-					)
-
-					recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+					recordedEvents, err = customer.ChangeEmailAddress(eventStream, commandWithOriginalEmailAddress)
 					So(err, ShouldBeNil)
 
 					Convey("Then no event", func() {
@@ -98,21 +101,13 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Try to change a Customer's emailAddress to the value it was already changed to", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("and CustomerEmailAddressChanged", func() {
-					emailAddressChanged := domain.BuildCustomerEmailAddressChanged(
-						customerID,
-						changedEmailAddress,
-						changedConfirmationHash,
-						emailAddress,
-						2,
-					)
-
-					eventStream = append(eventStream, emailAddressChanged)
+					eventStream = append(eventStream, customerEmailAddressChanged)
 
 					Convey("When ChangeCustomerEmailAddress", func() {
-						recordedEvents, err = customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+						recordedEvents, err = customer.ChangeEmailAddress(eventStream, command)
 						So(err, ShouldBeNil)
 
 						Convey("Then no event", func() {
@@ -123,56 +118,15 @@ func TestChangeEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 4: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
+		Convey("\nSCENARIO 4: Try to change a Customer's emailAddress when the account was deleted", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
-
-				Convey("and CustomerEmailAddressConfirmed", func() {
-					eventStream = append(eventStream, customerEmailAddressWasConfirmed)
-
-					Convey("and CustomerEmailAddressChanged", func() {
-						emailAddressChanged := domain.BuildCustomerEmailAddressChanged(
-							customerID,
-							changedEmailAddress,
-							changedConfirmationHash,
-							emailAddress,
-							3,
-						)
-
-						eventStream = append(eventStream, emailAddressChanged)
-
-						Convey("When ConfirmCustomerEmailAddress", func() {
-							recordedEvents, err = customer.ConfirmEmailAddress(eventStream, confirmEmailAddress)
-							So(err, ShouldBeNil)
-
-							Convey("Then CustomerEmailAddressConfirmed", func() {
-								So(recordedEvents, ShouldHaveLength, 1)
-								emailAddressConfirmed, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmed)
-								So(ok, ShouldBeTrue)
-								So(emailAddressConfirmed.CustomerID().Equals(customerID), ShouldBeTrue)
-								So(emailAddressConfirmed.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
-								So(emailAddressConfirmed.IsFailureEvent(), ShouldBeFalse)
-								So(emailAddressConfirmed.FailureReason(), ShouldBeNil)
-								So(emailAddressConfirmed.Meta().StreamVersion(), ShouldEqual, 4)
-							})
-						})
-					})
-				})
-			})
-		})
-
-		Convey("\nSCENARIO 5: Try to change a Customer's emailAddress when the account was deleted", func() {
-			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("Given CustomerDeleted", func() {
-					eventStream = append(
-						eventStream,
-						domain.BuildCustomerDeleted(customerID, emailAddress, 2),
-					)
+					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When ChangeCustomerEmailAddress", func() {
-						_, err := customer.ChangeEmailAddress(eventStream, changeEmailAddress)
+						_, err := customer.ChangeEmailAddress(eventStream, command)
 
 						Convey("Then it should report an error", func() {
 							So(err, ShouldBeError)

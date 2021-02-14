@@ -20,41 +20,42 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	personName := value.RebuildPersonName("John", "Doe")
 	newPersonName := value.RebuildPersonName("John Frank", "Doe")
 	failureReason := "wrong confirmation hash supplied"
+	causationID := es.GenerateMessageID()
 
 	var myEvents []es.DomainEvent
 	streamVersion := uint(1)
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerRegistered(customerID, emailAddress, confirmationHash, personName, streamVersion),
+		domain.BuildCustomerRegistered(customerID, emailAddress, confirmationHash, personName, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerEmailAddressConfirmed(customerID, emailAddress, streamVersion),
+		domain.BuildCustomerEmailAddressConfirmed(customerID, emailAddress, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerEmailAddressChanged(customerID, newEmailAddress, confirmationHash, emailAddress, streamVersion),
+		domain.BuildCustomerEmailAddressChanged(customerID, newEmailAddress, confirmationHash, emailAddress, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerNameChanged(customerID, newPersonName, streamVersion),
+		domain.BuildCustomerNameChanged(customerID, newPersonName, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerDeleted(customerID, emailAddress, streamVersion),
+		domain.BuildCustomerDeleted(customerID, emailAddress, causationID, streamVersion),
 	)
 
 	for idx, event := range myEvents {
@@ -80,7 +81,12 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	Convey("When CustomerEmailAddressConfirmationFailed is marshaled and unmarshaled", t, func() {
 		originalEvent := domain.BuildCustomerEmailAddressConfirmationFailed(
-			customerID, emailAddress, confirmationHash, errors.Mark(errors.New(failureReason), shared.ErrDomainConstraintsViolation), streamVersion,
+			customerID,
+			emailAddress,
+			confirmationHash,
+			errors.Mark(errors.New(failureReason), shared.ErrDomainConstraintsViolation),
+			causationID,
+			streamVersion,
 		)
 
 		oEventName := originalEvent.Meta().EventName()
@@ -107,6 +113,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 func assertEventMetaResembles(originalEvent, unmarshaledEvent es.DomainEvent) {
 	So(unmarshaledEvent.Meta().EventName(), ShouldEqual, originalEvent.Meta().EventName())
 	So(unmarshaledEvent.Meta().OccurredAt(), ShouldEqual, originalEvent.Meta().OccurredAt())
+	So(unmarshaledEvent.Meta().CausationID(), ShouldEqual, originalEvent.Meta().CausationID())
 	So(unmarshaledEvent.Meta().StreamVersion(), ShouldEqual, originalEvent.Meta().StreamVersion())
 	So(unmarshaledEvent.IsFailureEvent(), ShouldEqual, originalEvent.IsFailureEvent())
 	So(unmarshaledEvent.FailureReason(), ShouldBeError)
@@ -140,7 +147,7 @@ func TestUnmarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 type SomeEvent struct{}
 
 func (event SomeEvent) Meta() es.EventMeta {
-	return es.RebuildEventMeta("SomeEvent", "never", 1)
+	return es.RebuildEventMeta("SomeEvent", "never", "someID", "someID", 1)
 }
 
 func (event SomeEvent) IsFailureEvent() bool {

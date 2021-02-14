@@ -19,6 +19,7 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 			customer.emailAddress,
 			command.ConfirmationHash(),
 			err,
+			command.MessageID(),
 			customer.currentStreamVersion+1,
 		)
 
@@ -32,6 +33,7 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 	event := domain.BuildCustomerEmailAddressConfirmed(
 		customer.id,
 		customer.emailAddress,
+		command.MessageID(),
 		customer.currentStreamVersion+1,
 	)
 

@@ -22,6 +22,7 @@ func ChangeEmailAddress(eventStream es.EventStream, command domain.ChangeCustome
 		command.EmailAddress(),
 		command.ConfirmationHash(),
 		customer.emailAddress,
+		command.MessageID(),
 		customer.currentStreamVersion+1,
 	)
 

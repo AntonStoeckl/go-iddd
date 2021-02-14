@@ -799,6 +799,7 @@ func givenCustomerRegistered(
 		emailAddress,
 		confirmationHash,
 		personName,
+		es.GenerateMessageID(),
 		1,
 	)
 
@@ -819,6 +820,7 @@ func givenCustomerEmailAddressWasConfirmed(
 	event := domain.BuildCustomerEmailAddressConfirmed(
 		customerID,
 		emailAddress,
+		es.GenerateMessageID(),
 		streamVersion,
 	)
 
@@ -841,6 +843,7 @@ func givenCustomerEmailAddressWasChanged(
 		emailAddress,
 		confirmationHash,
 		previousEmailAddress,
+		es.GenerateMessageID(),
 		streamVersion,
 	)
 

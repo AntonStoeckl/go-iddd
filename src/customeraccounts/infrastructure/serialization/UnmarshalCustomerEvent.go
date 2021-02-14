@@ -160,6 +160,8 @@ func unmarshalEventMeta(meta es.EventMetaForJSON, streamVersion uint) es.EventMe
 	return es.RebuildEventMeta(
 		meta.EventName,
 		meta.OccurredAt,
+		meta.MessageID,
+		meta.CausationID,
 		streamVersion,
 	)
 }

@@ -20,6 +20,7 @@ func ChangeName(eventStream es.EventStream, command domain.ChangeCustomerName) (
 	event := domain.BuildCustomerNameChanged(
 		customer.id,
 		command.PersonName(),
+		command.MessageID(),
 		customer.currentStreamVersion+1,
 	)
 

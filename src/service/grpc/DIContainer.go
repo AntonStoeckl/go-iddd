@@ -150,7 +150,7 @@ func (container *DIContainer) GetCustomerCommandHandler() *application.CustomerC
 	return container.service.customerCommandHandler
 }
 
-func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
+func (container *DIContainer) GetCustomerQueryHandler() *application.CustomerQueryHandler {
 	if container.service.customerQueryHandler == nil {
 		container.service.customerQueryHandler = application.NewCustomerQueryHandler(
 			container.GetCustomerEventStore().RetrieveEventStream,

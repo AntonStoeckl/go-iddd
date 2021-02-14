@@ -23,37 +23,51 @@ func TestChangeName(t *testing.T) {
 		personName := value.RebuildPersonName("Kevin", "Ball")
 		changedPersonName := value.RebuildPersonName("Latoya", "Ball")
 
-		customerWasRegistered := domain.BuildCustomerRegistered(
-			customerID,
-			emailAddress,
-			confirmationHash,
-			personName,
-			1,
-		)
-
-		changeName := domain.BuildChangeCustomerName(
+		command := domain.BuildChangeCustomerName(
 			customerID,
 			changedPersonName,
 		)
 
+		commandWithOriginalName := domain.BuildChangeCustomerName(
+			customerID,
+			personName,
+		)
+
+		customerRegistered := domain.BuildCustomerRegistered(
+			customerID,
+			emailAddress,
+			confirmationHash,
+			personName,
+			es.GenerateMessageID(),
+			1,
+		)
+
+		customerDeleted := domain.BuildCustomerDeleted(
+			customerID,
+			emailAddress,
+			es.GenerateMessageID(),
+			2,
+		)
+
 		Convey("\nSCENARIO 1: Change a Customer's name", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When ChangeCustomerName", func() {
-					recordedEvents, err = customer.ChangeName(eventStream, changeName)
+					recordedEvents, err = customer.ChangeName(eventStream, command)
 					So(err, ShouldBeNil)
 
 					Convey("Then CustomerNameChanged", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						nameChanged, ok := recordedEvents[0].(domain.CustomerNameChanged)
+						event, ok := recordedEvents[0].(domain.CustomerNameChanged)
 						So(ok, ShouldBeTrue)
-						So(nameChanged, ShouldNotBeNil)
-						So(nameChanged.CustomerID().Equals(customerID), ShouldBeTrue)
-						So(nameChanged.PersonName().Equals(changedPersonName), ShouldBeTrue)
-						So(nameChanged.IsFailureEvent(), ShouldBeFalse)
-						So(nameChanged.FailureReason(), ShouldBeNil)
-						So(nameChanged.Meta().StreamVersion(), ShouldEqual, 2)
+						So(event, ShouldNotBeNil)
+						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(event.PersonName().Equals(changedPersonName), ShouldBeTrue)
+						So(event.IsFailureEvent(), ShouldBeFalse)
+						So(event.FailureReason(), ShouldBeNil)
+						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})
 			})
@@ -61,15 +75,10 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Try to change a Customer's name to the value he registered with", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When ChangeCustomerName", func() {
-					changeName = domain.BuildChangeCustomerName(
-						customerID,
-						personName,
-					)
-
-					recordedEvents, err = customer.ChangeName(eventStream, changeName)
+					recordedEvents, err = customer.ChangeName(eventStream, commandWithOriginalName)
 					So(err, ShouldBeNil)
 
 					Convey("Then no event", func() {
@@ -81,19 +90,20 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 3: Try to change a Customer's name to the value it was already changed to", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("and CustomerNameChanged", func() {
 					nameChanged := domain.BuildCustomerNameChanged(
 						customerID,
 						changedPersonName,
+						es.GenerateMessageID(),
 						2,
 					)
 
 					eventStream = append(eventStream, nameChanged)
 
 					Convey("When ChangeCustomerName", func() {
-						recordedEvents, err = customer.ChangeName(eventStream, changeName)
+						recordedEvents, err = customer.ChangeName(eventStream, command)
 						So(err, ShouldBeNil)
 
 						Convey("Then no event", func() {
@@ -106,16 +116,16 @@ func TestChangeName(t *testing.T) {
 
 		Convey("\nSCENARIO 4: Try to change a Customer's name when the account was deleted", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("Given CustomerDeleted", func() {
 					eventStream = append(
 						eventStream,
-						domain.BuildCustomerDeleted(customerID, emailAddress, 2),
+						customerDeleted,
 					)
 
 					Convey("When ChangeCustomerName", func() {
-						_, err := customer.ChangeName(eventStream, changeName)
+						_, err := customer.ChangeName(eventStream, command)
 
 						Convey("Then it should report an error", func() {
 							So(err, ShouldBeError)

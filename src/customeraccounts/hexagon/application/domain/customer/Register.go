@@ -4,12 +4,13 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 )
 
-func Register(with domain.RegisterCustomer) domain.CustomerRegistered {
+func Register(command domain.RegisterCustomer) domain.CustomerRegistered {
 	event := domain.BuildCustomerRegistered(
-		with.CustomerID(),
-		with.EmailAddress(),
-		with.ConfirmationHash(),
-		with.PersonName(),
+		command.CustomerID(),
+		command.EmailAddress(),
+		command.ConfirmationHash(),
+		command.PersonName(),
+		command.MessageID(),
 		1,
 	)
 

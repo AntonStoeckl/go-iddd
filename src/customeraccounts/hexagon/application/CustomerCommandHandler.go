@@ -53,7 +53,6 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	command = domain.BuildRegisterCustomer(
 		customerIDValue,
 		emailAddressValue,
-		value.GenerateConfirmationHash(emailAddressValue.String()),
 		personNameValue,
 	)
 
@@ -93,7 +92,10 @@ func (h *CustomerCommandHandler) ConfirmCustomerEmailAddress(
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	command = domain.BuildConfirmCustomerEmailAddress(customerIDValue, confirmationHashValue)
+	command = domain.BuildConfirmCustomerEmailAddress(
+		customerIDValue,
+		confirmationHashValue,
+	)
 
 	doConfirmEmailAddress := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())
@@ -145,12 +147,9 @@ func (h *CustomerCommandHandler) ChangeCustomerEmailAddress(
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	confirmationHash := value.GenerateConfirmationHash(emailAddressValue.String())
-
 	command = domain.BuildChangeCustomerEmailAddress(
 		customerIDValue,
 		emailAddressValue,
-		confirmationHash,
 	)
 
 	doChangeEmailAddress := func() error {
@@ -198,7 +197,10 @@ func (h *CustomerCommandHandler) ChangeCustomerName(
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	command = domain.BuildChangeCustomerName(customerIDValue, personNameValue)
+	command = domain.BuildChangeCustomerName(
+		customerIDValue,
+		personNameValue,
+	)
 
 	doChangeName := func() error {
 		eventStream, err := h.retrieveCustomerEventStream(command.CustomerID())

@@ -17,33 +17,42 @@ func TestDelete(t *testing.T) {
 		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		customerWasRegistered := domain.BuildCustomerRegistered(
+		command := domain.BuildDeleteCustomer(customerID)
+
+		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
 			confirmationHash,
 			personName,
+			es.GenerateMessageID(),
 			1,
 		)
 
-		deleteCmd := domain.BuildDeleteCustomer(customerID)
+		customerDeleted := domain.BuildCustomerDeleted(
+			customerID,
+			emailAddress,
+			es.GenerateMessageID(),
+			2,
+		)
 
 		Convey("\nSCENARIO 1: Delete a Customer's account", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When DeleteCustomer", func() {
-					recordedEvents := customer.Delete(eventStream, deleteCmd)
+					recordedEvents := customer.Delete(eventStream, command)
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
-						customerDeleted, ok := recordedEvents[0].(domain.CustomerDeleted)
+						event, ok := recordedEvents[0].(domain.CustomerDeleted)
 						So(ok, ShouldBeTrue)
-						So(customerDeleted, ShouldNotBeNil)
-						So(customerDeleted.CustomerID().Equals(customerID), ShouldBeTrue)
-						So(customerDeleted.EmailAddress().Equals(emailAddress), ShouldBeTrue)
-						So(customerDeleted.IsFailureEvent(), ShouldBeFalse)
-						So(customerDeleted.FailureReason(), ShouldBeNil)
-						So(customerDeleted.Meta().StreamVersion(), ShouldEqual, uint(2))
+						So(event, ShouldNotBeNil)
+						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
+						So(event.EmailAddress().Equals(emailAddress), ShouldBeTrue)
+						So(event.IsFailureEvent(), ShouldBeFalse)
+						So(event.FailureReason(), ShouldBeNil)
+						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().StreamVersion(), ShouldEqual, uint(2))
 					})
 				})
 			})
@@ -51,14 +60,13 @@ func TestDelete(t *testing.T) {
 
 		Convey("\nSCENARIO 2: Try to delete a Customer's account again", func() {
 			Convey("Given CustomerRegistered", func() {
-				eventStream := es.EventStream{customerWasRegistered}
+				eventStream := es.EventStream{customerRegistered}
 
 				Convey("and CustomerDeleted", func() {
-					customerDeleted := domain.BuildCustomerDeleted(customerID, emailAddress, 2)
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {
-						recordedEvents := customer.Delete(eventStream, deleteCmd)
+						recordedEvents := customer.Delete(eventStream, command)
 
 						Convey("Then no Event", func() {
 							So(recordedEvents, ShouldBeEmpty)

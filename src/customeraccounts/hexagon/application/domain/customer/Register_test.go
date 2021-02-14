@@ -11,33 +11,29 @@ import (
 
 func TestRegister(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		var err error
+		customerID := value.GenerateCustomerID()
+		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		emailAddress, err := value.BuildEmailAddress("kevin@ball.com")
-		So(err, ShouldBeNil)
-
-		personName, err := value.BuildPersonName("Kevin", "Ball")
-		So(err, ShouldBeNil)
-
-		register := domain.BuildRegisterCustomer(
-			value.GenerateCustomerID(),
+		command := domain.BuildRegisterCustomer(
+			customerID,
 			emailAddress,
-			value.GenerateConfirmationHash("kevin@ball.com"),
 			personName,
 		)
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {
-				registered := customer.Register(register)
+				event := customer.Register(command)
 
 				Convey("Then CustomerRegistered", func() {
-					So(registered.CustomerID().Equals(register.CustomerID()), ShouldBeTrue)
-					So(registered.EmailAddress().Equals(register.EmailAddress()), ShouldBeTrue)
-					So(registered.ConfirmationHash().Equals(register.ConfirmationHash()), ShouldBeTrue)
-					So(registered.PersonName().Equals(register.PersonName()), ShouldBeTrue)
-					So(registered.IsFailureEvent(), ShouldBeFalse)
-					So(registered.FailureReason(), ShouldBeNil)
-					So(registered.Meta().StreamVersion(), ShouldEqual, uint(1))
+					So(event.CustomerID().Equals(command.CustomerID()), ShouldBeTrue)
+					So(event.EmailAddress().Equals(command.EmailAddress()), ShouldBeTrue)
+					So(event.ConfirmationHash().Equals(command.ConfirmationHash()), ShouldBeTrue)
+					So(event.PersonName().Equals(command.PersonName()), ShouldBeTrue)
+					So(event.IsFailureEvent(), ShouldBeFalse)
+					So(event.FailureReason(), ShouldBeNil)
+					So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+					So(event.Meta().StreamVersion(), ShouldEqual, uint(1))
 				})
 			})
 		})
