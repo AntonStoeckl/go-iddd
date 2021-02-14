@@ -2,8 +2,9 @@ GRPC_GATEWAY_DIR := $(shell go list -f '{{ .Dir }}' -m github.com/grpc-ecosystem
 GO_MODULE := $(shell go mod edit -json | grep Path | head -n 1 | cut -d ":" -f 2 | cut -d '"' -f 2)
 PROTO_DIR := src/customeraccounts/infrastructure/adapter/grpc/proto
 GRPC_TARGET_DIR := src/customeraccounts/infrastructure/adapter/grpc/proto
-REST_GW_TARGET_DIR := src/customeraccounts/infrastructure/adapter/rest
+REST_GW_TARGET_DIR := src/customeraccounts/infrastructure/adapter/rest/proto
 REST_GW_OUT_FILE := customer.pb.gw.go
+REST_SWAGGER_TARGET_DIR := src/customeraccounts/infrastructure/adapter/rest
 
 generate_proto:
 	@protoc \
@@ -12,7 +13,7 @@ generate_proto:
 		-I $(GRPC_GATEWAY_DIR)/third_party/googleapis \
 		--go_out=plugins=grpc:$(GRPC_TARGET_DIR) \
 		--grpc-gateway_out=logtostderr=true,import_path=customerrest:$(REST_GW_TARGET_DIR) \
-		--swagger_out=logtostderr=true:$(REST_GW_TARGET_DIR) \
+		--swagger_out=logtostderr=true:$(REST_SWAGGER_TARGET_DIR) \
 		$(PROTO_DIR)/customer.proto
 
 	@# Not possible to split grpc and rest otherwise: https://github.com/grpc-ecosystem/grpc-gateway/issues/353

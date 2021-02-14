@@ -10,6 +10,7 @@ import (
 
 	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
+	customerrestproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest/proto"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -75,7 +76,7 @@ func (s *Service) buildRestServer() {
 		runtime.WithProtoErrorHandler(customerrest.CustomHTTPError),
 	)
 
-	if err := customerrest.RegisterCustomerHandlerClient(s.ctx, rmux, client); err != nil {
+	if err := customerrestproto.RegisterCustomerHandlerClient(s.ctx, rmux, client); err != nil {
 		s.logger.Error().Msgf("failed to register customerHandlerClient: %s", err)
 		s.shutdown()
 	}
