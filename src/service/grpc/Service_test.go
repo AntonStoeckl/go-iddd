@@ -7,9 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/service"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
@@ -24,11 +23,11 @@ func TestStartGRPCServer(t *testing.T) {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
 	postgresDBConn := service.MustInitPostgresDB(config, logger)
-	diContainer := service.MustBuildDIContainer(
+	diContainer := grpcService.MustBuildDIContainer(
 		config,
 		logger,
-		service.UsePostgresDBConn(postgresDBConn),
-		service.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
+		grpcService.UsePostgresDBConn(postgresDBConn),
+		grpcService.ReplaceGRPCCustomerServer(grpcCustomerServerStub()),
 	)
 
 	exitWasCalled := false

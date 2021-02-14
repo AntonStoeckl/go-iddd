@@ -14,10 +14,10 @@ func main() {
 	config := service.MustBuildConfigFromEnv(stdLogger)
 	exitFn := func() { os.Exit(1) }
 	postgresDBConn := service.MustInitPostgresDB(config, stdLogger)
-	diContainer := service.MustBuildDIContainer(
+	diContainer := grpc.MustBuildDIContainer(
 		config,
 		stdLogger,
-		service.UsePostgresDBConn(postgresDBConn),
+		grpc.UsePostgresDBConn(postgresDBConn),
 	)
 
 	s := grpc.InitService(config, stdLogger, exitFn, diContainer)

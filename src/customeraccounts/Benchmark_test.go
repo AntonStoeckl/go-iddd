@@ -3,11 +3,11 @@ package customeraccounts_test
 import (
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/src/service"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 )
 
@@ -27,7 +27,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
 	postgresDBConn := service.MustInitPostgresDB(config, logger)
-	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
+	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	ba := buildArtifactsForBenchmarkTest()
 	prepareForBenchmark(b, commandHandler, &ba)
@@ -58,7 +58,7 @@ func BenchmarkCustomerQuery(b *testing.B) {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
 	postgresDBConn := service.MustInitPostgresDB(config, logger)
-	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
+	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
 	ba := buildArtifactsForBenchmarkTest()

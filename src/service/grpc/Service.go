@@ -13,7 +13,7 @@ import (
 type Service struct {
 	config       *service.Config
 	logger       *shared.Logger
-	diContainter *service.DIContainer
+	diContainter *DIContainer
 	exitFn       func()
 }
 
@@ -21,7 +21,7 @@ func InitService(
 	config *service.Config,
 	logger *shared.Logger,
 	exitFn func(),
-	diContainter *service.DIContainer,
+	diContainter *DIContainer,
 ) *Service {
 
 	return &Service{

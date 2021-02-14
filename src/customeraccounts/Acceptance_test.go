@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/src/service"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/src/service"
+	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
@@ -855,7 +855,7 @@ func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
 	postgresDBConn := service.MustInitPostgresDB(config, logger)
-	diContainer := service.MustBuildDIContainer(config, logger, service.UsePostgresDBConn(postgresDBConn))
+	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	eventStore := diContainer.GetCustomerEventStore()
 	atStartCustomerEventStream = eventStore.StartEventStream
 	atAppendToCustomerEventStream = eventStore.AppendToEventStream

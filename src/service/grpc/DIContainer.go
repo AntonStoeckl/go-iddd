@@ -1,4 +1,4 @@
-package service
+package grpc
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/serialization"
+	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
@@ -68,7 +69,7 @@ func ReplaceGRPCCustomerServer(server customergrpc.CustomerServer) DIOption {
 }
 
 type DIContainer struct {
-	config *Config
+	config *service.Config
 
 	infra struct {
 		pgDBConn *sql.DB
@@ -89,7 +90,7 @@ type DIContainer struct {
 	}
 }
 
-func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOption) *DIContainer {
+func MustBuildDIContainer(config *service.Config, logger *shared.Logger, opts ...DIOption) *DIContainer {
 	container := &DIContainer{}
 	container.config = config
 
