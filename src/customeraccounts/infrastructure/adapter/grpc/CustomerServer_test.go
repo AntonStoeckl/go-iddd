@@ -7,6 +7,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -38,7 +39,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.Register(
 						context.Background(),
-						&customergrpc.RegisterRequest{},
+						&customergrpcproto.RegisterRequest{},
 					)
 
 					Convey("Then it should succeed", func() {
@@ -53,7 +54,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.Register(
 						context.Background(),
-						&customergrpc.RegisterRequest{},
+						&customergrpcproto.RegisterRequest{},
 					)
 
 					Convey("Then it should fail with the exptected error", func() {
@@ -70,7 +71,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.ConfirmEmailAddress(
 						context.Background(),
-						&customergrpc.ConfirmEmailAddressRequest{},
+						&customergrpcproto.ConfirmEmailAddressRequest{},
 					)
 
 					thenItShouldSuccees(res, err)
@@ -81,7 +82,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.ConfirmEmailAddress(
 						context.Background(),
-						&customergrpc.ConfirmEmailAddressRequest{},
+						&customergrpcproto.ConfirmEmailAddressRequest{},
 					)
 
 					thenItShouldFailWithTheExpectedError(res, err)
@@ -94,7 +95,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.ChangeEmailAddress(
 						context.Background(),
-						&customergrpc.ChangeEmailAddressRequest{},
+						&customergrpcproto.ChangeEmailAddressRequest{},
 					)
 
 					thenItShouldSuccees(res, err)
@@ -105,7 +106,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.ChangeEmailAddress(
 						context.Background(),
-						&customergrpc.ChangeEmailAddressRequest{},
+						&customergrpcproto.ChangeEmailAddressRequest{},
 					)
 
 					thenItShouldFailWithTheExpectedError(res, err)
@@ -118,7 +119,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.ChangeName(
 						context.Background(),
-						&customergrpc.ChangeNameRequest{},
+						&customergrpcproto.ChangeNameRequest{},
 					)
 
 					thenItShouldSuccees(res, err)
@@ -129,7 +130,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.ChangeName(
 						context.Background(),
-						&customergrpc.ChangeNameRequest{},
+						&customergrpcproto.ChangeNameRequest{},
 					)
 
 					thenItShouldFailWithTheExpectedError(res, err)
@@ -142,7 +143,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.Delete(
 						context.Background(),
-						&customergrpc.DeleteRequest{},
+						&customergrpcproto.DeleteRequest{},
 					)
 
 					thenItShouldSuccees(res, err)
@@ -153,7 +154,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.Delete(
 						context.Background(),
-						&customergrpc.DeleteRequest{},
+						&customergrpcproto.DeleteRequest{},
 					)
 
 					thenItShouldFailWithTheExpectedError(res, err)
@@ -166,14 +167,14 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := successCustomerServer.RetrieveView(
 						context.Background(),
-						&customergrpc.RetrieveViewRequest{},
+						&customergrpcproto.RetrieveViewRequest{},
 					)
 
 					Convey("Then it should succeed", func() {
 						So(err, ShouldBeNil)
 						So(res, ShouldNotBeNil)
 
-						expectedRes := &customergrpc.RetrieveViewResponse{
+						expectedRes := &customergrpcproto.RetrieveViewResponse{
 							EmailAddress:            mockedView.EmailAddress,
 							IsEmailAddressConfirmed: mockedView.IsEmailAddressConfirmed,
 							GivenName:               mockedView.GivenName,
@@ -190,7 +191,7 @@ func TestGRPCServer(t *testing.T) {
 				Convey("When the request is handled", func() {
 					res, err := failureCustomerServer.RetrieveView(
 						context.Background(),
-						&customergrpc.RetrieveViewRequest{},
+						&customergrpcproto.RetrieveViewRequest{},
 					)
 
 					Convey("Then it should fail with the exptected error", func() {
@@ -219,7 +220,7 @@ func thenItShouldFailWithTheExpectedError(res *empty.Empty, err error) {
 	})
 }
 
-func buildSuccessCustomerServer() customergrpc.CustomerServer {
+func buildSuccessCustomerServer() customergrpcproto.CustomerServer {
 	customerGRPCServer := customergrpc.NewCustomerServer(
 		func(customerIDValue value.CustomerID, emailAddress, givenName, familyName string) error {
 			generatedID = customerIDValue
@@ -245,7 +246,7 @@ func buildSuccessCustomerServer() customergrpc.CustomerServer {
 	return customerGRPCServer
 }
 
-func buildFailureCustomerServer() customergrpc.CustomerServer {
+func buildFailureCustomerServer() customergrpcproto.CustomerServer {
 	mockedView := customer.View{}
 	mockedErr := errors.Mark(errors.New(expectedErrMsg), shared.ErrInputIsInvalid)
 

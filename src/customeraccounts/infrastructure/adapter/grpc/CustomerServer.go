@@ -3,9 +3,9 @@ package customergrpc
 import (
 	"context"
 
-	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon"
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -25,7 +25,7 @@ func NewCustomerServer(
 	changeName hexagon.ForChangingCustomerNames,
 	delete hexagon.ForDeletingCustomers, //nolint:gocritic // false positive (shadowing of predeclared identifier: delete)
 	retrieveView hexagon.ForRetrievingCustomerViews,
-) CustomerServer {
+) customergrpcproto.CustomerServer {
 	server := &customerServer{
 		register:            register,
 		confirmEmailAddress: confirmEmailAddress,
@@ -40,8 +40,8 @@ func NewCustomerServer(
 
 func (server *customerServer) Register(
 	_ context.Context,
-	req *RegisterRequest,
-) (*RegisterResponse, error) {
+	req *customergrpcproto.RegisterRequest,
+) (*customergrpcproto.RegisterResponse, error) {
 
 	customerIDValue := value.GenerateCustomerID()
 
@@ -49,12 +49,12 @@ func (server *customerServer) Register(
 		return nil, MapToGRPCErrors(err)
 	}
 
-	return &RegisterResponse{Id: customerIDValue.String()}, nil
+	return &customergrpcproto.RegisterResponse{Id: customerIDValue.String()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(
 	_ context.Context,
-	req *ConfirmEmailAddressRequest,
+	req *customergrpcproto.ConfirmEmailAddressRequest,
 ) (*empty.Empty, error) {
 
 	if err := server.confirmEmailAddress(req.Id, req.ConfirmationHash); err != nil {
@@ -66,7 +66,7 @@ func (server *customerServer) ConfirmEmailAddress(
 
 func (server *customerServer) ChangeEmailAddress(
 	_ context.Context,
-	req *ChangeEmailAddressRequest,
+	req *customergrpcproto.ChangeEmailAddressRequest,
 ) (*empty.Empty, error) {
 
 	if err := server.changeEmailAddress(req.Id, req.EmailAddress); err != nil {
@@ -78,7 +78,7 @@ func (server *customerServer) ChangeEmailAddress(
 
 func (server *customerServer) ChangeName(
 	_ context.Context,
-	req *ChangeNameRequest,
+	req *customergrpcproto.ChangeNameRequest,
 ) (*empty.Empty, error) {
 
 	if err := server.changeName(req.Id, req.GivenName, req.FamilyName); err != nil {
@@ -90,7 +90,7 @@ func (server *customerServer) ChangeName(
 
 func (server *customerServer) Delete(
 	_ context.Context,
-	req *DeleteRequest,
+	req *customergrpcproto.DeleteRequest,
 ) (*empty.Empty, error) {
 
 	if err := server.delete(req.Id); err != nil {
@@ -102,15 +102,15 @@ func (server *customerServer) Delete(
 
 func (server *customerServer) RetrieveView(
 	_ context.Context,
-	req *RetrieveViewRequest,
-) (*RetrieveViewResponse, error) {
+	req *customergrpcproto.RetrieveViewRequest,
+) (*customergrpcproto.RetrieveViewResponse, error) {
 
 	view, err := server.retrieveView(req.Id)
 	if err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
-	response := &RetrieveViewResponse{
+	response := &customergrpcproto.RetrieveViewResponse{
 		EmailAddress:            view.EmailAddress,
 		IsEmailAddressConfirmed: view.IsEmailAddressConfirmed,
 		GivenName:               view.GivenName,

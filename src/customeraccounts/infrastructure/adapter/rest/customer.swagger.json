@@ -18,7 +18,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/customergrpcRegisterResponse"
+              "$ref": "#/definitions/customergrpcprotoRegisterResponse"
             }
           },
           "default": {
@@ -34,7 +34,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customergrpcRegisterRequest"
+              "$ref": "#/definitions/customergrpcprotoRegisterRequest"
             }
           }
         ],
@@ -50,7 +50,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/customergrpcRetrieveViewResponse"
+              "$ref": "#/definitions/customergrpcprotoRetrieveViewResponse"
             }
           },
           "default": {
@@ -130,7 +130,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customergrpcChangeEmailAddressRequest"
+              "$ref": "#/definitions/customergrpcprotoChangeEmailAddressRequest"
             }
           }
         ],
@@ -168,7 +168,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customergrpcConfirmEmailAddressRequest"
+              "$ref": "#/definitions/customergrpcprotoConfirmEmailAddressRequest"
             }
           }
         ],
@@ -206,7 +206,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/customergrpcChangeNameRequest"
+              "$ref": "#/definitions/customergrpcprotoChangeNameRequest"
             }
           }
         ],
@@ -217,7 +217,7 @@
     }
   },
   "definitions": {
-    "customergrpcChangeEmailAddressRequest": {
+    "customergrpcprotoChangeEmailAddressRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -228,7 +228,7 @@
         }
       }
     },
-    "customergrpcChangeNameRequest": {
+    "customergrpcprotoChangeNameRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -242,7 +242,7 @@
         }
       }
     },
-    "customergrpcConfirmEmailAddressRequest": {
+    "customergrpcprotoConfirmEmailAddressRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -253,7 +253,7 @@
         }
       }
     },
-    "customergrpcRegisterRequest": {
+    "customergrpcprotoRegisterRequest": {
       "type": "object",
       "properties": {
         "emailAddress": {
@@ -267,7 +267,7 @@
         }
       }
     },
-    "customergrpcRegisterResponse": {
+    "customergrpcprotoRegisterResponse": {
       "type": "object",
       "properties": {
         "id": {
@@ -275,7 +275,7 @@
         }
       }
     },
-    "customergrpcRetrieveViewResponse": {
+    "customergrpcprotoRetrieveViewResponse": {
       "type": "object",
       "properties": {
         "emailAddress": {

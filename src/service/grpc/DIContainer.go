@@ -6,6 +6,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
@@ -55,7 +56,7 @@ func WithBuildUniqueEmailAddressAssertions(fn customer.ForBuildingUniqueEmailAdd
 	}
 }
 
-func ReplaceGRPCCustomerServer(server customergrpc.CustomerServer) DIOption {
+func ReplaceGRPCCustomerServer(server customergrpcproto.CustomerServer) DIOption {
 	return func(container *DIContainer) error {
 		if server == nil {
 			return errors.New("grpcCustomerServer must not be nil")
@@ -84,7 +85,7 @@ type DIContainer struct {
 		customerEventStore     *postgres.CustomerEventStore
 		customerCommandHandler *application.CustomerCommandHandler
 		customerQueryHandler   *application.CustomerQueryHandler
-		grpcCustomerServer     customergrpc.CustomerServer
+		grpcCustomerServer     customergrpcproto.CustomerServer
 		grpcServer             *grpc.Server
 	}
 }
@@ -159,7 +160,7 @@ func (container DIContainer) GetCustomerQueryHandler() *application.CustomerQuer
 	return container.service.customerQueryHandler
 }
 
-func (container *DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServer {
+func (container *DIContainer) GetGRPCCustomerServer() customergrpcproto.CustomerServer {
 	if container.service.grpcCustomerServer == nil {
 		container.service.grpcCustomerServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
@@ -177,7 +178,7 @@ func (container *DIContainer) GetGRPCCustomerServer() customergrpc.CustomerServe
 func (container *DIContainer) GetGRPCServer() *grpc.Server {
 	if container.service.grpcServer == nil {
 		container.service.grpcServer = grpc.NewServer()
-		customergrpc.RegisterCustomerServer(container.service.grpcServer, container.GetGRPCCustomerServer())
+		customergrpcproto.RegisterCustomerServer(container.service.grpcServer, container.GetGRPCCustomerServer())
 		reflection.Register(container.service.grpcServer)
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	. "github.com/smartystreets/goconvey/convey"
@@ -43,7 +44,7 @@ func TestStartGRPCServer(t *testing.T) {
 
 		Convey("gPRC server should handle requests", func() {
 			client := customerGRPCClient(config)
-			res, err := client.Register(context.Background(), &customergrpc.RegisterRequest{})
+			res, err := client.Register(context.Background(), &customergrpcproto.RegisterRequest{})
 			So(err, ShouldBeNil)
 			So(res, ShouldNotBeNil)
 			So(res.Id, ShouldNotBeEmpty)
@@ -61,7 +62,7 @@ func TestStartGRPCServer(t *testing.T) {
 
 				Convey("Stop signal should issue Shutdown", func() {
 					Convey("Shutdown should stop gRPC server", func() {
-						_, err = client.Register(context.Background(), &customergrpc.RegisterRequest{})
+						_, err = client.Register(context.Background(), &customergrpcproto.RegisterRequest{})
 						So(err, ShouldBeError)
 						So(status.Code(err), ShouldResemble, codes.Unavailable)
 
@@ -83,7 +84,7 @@ func TestStartGRPCServer(t *testing.T) {
 
 /*** Helper functions ***/
 
-func grpcCustomerServerStub() customergrpc.CustomerServer {
+func grpcCustomerServerStub() customergrpcproto.CustomerServer {
 	customerServer := customergrpc.NewCustomerServer(
 		func(customerIDValue value.CustomerID, emailAddress, givenName, familyName string) error {
 			return nil
@@ -108,9 +109,9 @@ func grpcCustomerServerStub() customergrpc.CustomerServer {
 	return customerServer
 }
 
-func customerGRPCClient(config *grpcService.Config) customergrpc.CustomerClient {
+func customerGRPCClient(config *grpcService.Config) customergrpcproto.CustomerClient {
 	grpcClientConn, _ := grpc.DialContext(context.Background(), config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
-	client := customergrpc.NewCustomerClient(grpcClientConn)
+	client := customergrpcproto.NewCustomerClient(grpcClientConn)
 
 	return client
 }

@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	customerrest "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/cockroachdb/errors"
@@ -69,7 +69,7 @@ func InitService(
 func (s *Service) buildRestServer() {
 	s.logger.Info().Msg("configuring REST server ...")
 
-	client := customergrpc.NewCustomerClient(s.grpcClientConn)
+	client := customergrpcproto.NewCustomerClient(s.grpcClientConn)
 
 	rmux := runtime.NewServeMux(
 		runtime.WithProtoErrorHandler(customerrest.CustomHTTPError),

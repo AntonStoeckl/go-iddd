@@ -10,6 +10,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
+	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	restService "github.com/AntonStoeckl/go-iddd/src/service/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
@@ -129,7 +130,7 @@ func runGRPCServer(config *grpcService.Config, logger *shared.Logger, mockedExis
 	go grpcSvc.StartGRPCServer()
 }
 
-func grpcCustomerServerStub(mockedExistingCustomerID string) customergrpc.CustomerServer {
+func grpcCustomerServerStub(mockedExistingCustomerID string) customergrpcproto.CustomerServer {
 	customerServer := customergrpc.NewCustomerServer(
 		func(customerIDValue value.CustomerID, emailAddress, givenName, familyName string) error {
 			return nil
