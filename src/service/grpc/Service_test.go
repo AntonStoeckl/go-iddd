@@ -22,7 +22,7 @@ import (
 func TestStartGRPCServer(t *testing.T) {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
-	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	postgresDBConn := grpcService.MustInitPostgresDB(config, logger)
 	diContainer := grpcService.MustBuildDIContainer(
 		config,
 		logger,

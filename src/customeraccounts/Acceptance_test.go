@@ -854,7 +854,7 @@ func givenCustomerEmailAddressWasChanged(
 func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
 	config := service.MustBuildConfigFromEnv(logger)
-	postgresDBConn := service.MustInitPostgresDB(config, logger)
+	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
 	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	eventStore := diContainer.GetCustomerEventStore()
 	atStartCustomerEventStream = eventStore.StartEventStream

@@ -1,13 +1,14 @@
-package service
+package grpc
 
 import (
 	"database/sql"
 
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres/database"
+	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 )
 
-func MustInitPostgresDB(config *Config, logger *shared.Logger) *sql.DB {
+func MustInitPostgresDB(config *service.Config, logger *shared.Logger) *sql.DB {
 	var err error
 
 	logger.Info().Msg("bootstrapPostgresDB: opening Postgres DB connection ...")

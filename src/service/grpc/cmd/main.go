@@ -13,7 +13,7 @@ func main() {
 	stdLogger := shared.NewStandardLogger()
 	config := service.MustBuildConfigFromEnv(stdLogger)
 	exitFn := func() { os.Exit(1) }
-	postgresDBConn := service.MustInitPostgresDB(config, stdLogger)
+	postgresDBConn := grpc.MustInitPostgresDB(config, stdLogger)
 	diContainer := grpc.MustBuildDIContainer(
 		config,
 		stdLogger,
