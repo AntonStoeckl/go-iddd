@@ -1,17 +1,15 @@
 package es
 
-type StreamID struct {
-	value string
-}
+type StreamID string
 
-func NewStreamID(from string) StreamID {
+func BuildStreamID(from string) StreamID {
 	if from == "" {
-		panic("newStreamID: empty input given")
+		panic("buildStreamID: empty input given")
 	}
 
-	return StreamID{value: from}
+	return StreamID(from)
 }
 
 func (streamID StreamID) String() string {
-	return streamID.value
+	return string(streamID)
 }

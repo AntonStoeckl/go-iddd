@@ -7,12 +7,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewStreamID(t *testing.T) {
+func TestStreamID_BuildStreamID(t *testing.T) {
 	Convey("Given valid input", t, func() {
 		streamIDInput := "customer-123"
 
 		Convey("When a new StreamID is created", func() {
-			streamID := es.NewStreamID(streamIDInput)
+			streamID := es.BuildStreamID(streamIDInput)
 
 			Convey("It should succeed", func() {
 				So(streamID, ShouldNotBeNil)
@@ -25,7 +25,7 @@ func TestNewStreamID(t *testing.T) {
 
 		Convey("When a new StreamID is created", func() {
 			newStreamIDWithEmptyInput := func() {
-				es.NewStreamID(streamIDInput)
+				es.BuildStreamID(streamIDInput)
 			}
 
 			Convey("It should fail with a panic", func() {
@@ -38,7 +38,7 @@ func TestNewStreamID(t *testing.T) {
 func TestStreamID_String(t *testing.T) {
 	Convey("Given a StreamID", t, func() {
 		streamIDInput := "customer-123"
-		streamID := es.NewStreamID(streamIDInput)
+		streamID := es.BuildStreamID(streamIDInput)
 
 		Convey("It should expose the expected value", func() {
 			So(streamID.String(), ShouldEqual, streamIDInput)
