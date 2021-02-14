@@ -9,7 +9,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
@@ -853,7 +852,7 @@ func givenCustomerEmailAddressWasChanged(
 
 func bootstrapAcceptanceTestCollaborators() acceptanceTestCollaborators {
 	logger := shared.NewNilLogger()
-	config := service.MustBuildConfigFromEnv(logger)
+	config := grpc.MustBuildConfigFromEnv(logger)
 	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
 	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	eventStore := diContainer.GetCustomerEventStore()

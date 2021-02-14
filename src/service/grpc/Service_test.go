@@ -10,7 +10,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	. "github.com/smartystreets/goconvey/convey"
@@ -21,7 +20,7 @@ import (
 
 func TestStartGRPCServer(t *testing.T) {
 	logger := shared.NewNilLogger()
-	config := service.MustBuildConfigFromEnv(logger)
+	config := grpcService.MustBuildConfigFromEnv(logger)
 	postgresDBConn := grpcService.MustInitPostgresDB(config, logger)
 	diContainer := grpcService.MustBuildDIContainer(
 		config,
@@ -109,7 +108,7 @@ func grpcCustomerServerStub() customergrpc.CustomerServer {
 	return customerServer
 }
 
-func customerGRPCClient(config *service.Config) customergrpc.CustomerClient {
+func customerGRPCClient(config *grpcService.Config) customergrpc.CustomerClient {
 	grpcClientConn, _ := grpc.DialContext(context.Background(), config.GRPC.HostAndPort, grpc.WithInsecure(), grpc.WithBlock())
 	client := customergrpc.NewCustomerClient(grpcClientConn)
 

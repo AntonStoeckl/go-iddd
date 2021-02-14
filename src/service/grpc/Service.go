@@ -6,19 +6,18 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 )
 
 type Service struct {
-	config       *service.Config
+	config       *Config
 	logger       *shared.Logger
 	diContainter *DIContainer
 	exitFn       func()
 }
 
 func InitService(
-	config *service.Config,
+	config *Config,
 	logger *shared.Logger,
 	exitFn func(),
 	diContainter *DIContainer,

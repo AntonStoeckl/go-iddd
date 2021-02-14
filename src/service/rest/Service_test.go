@@ -10,7 +10,6 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	grpcService "github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	restService "github.com/AntonStoeckl/go-iddd/src/service/rest"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
@@ -24,7 +23,7 @@ func TestStartRestServer(t *testing.T) {
 	mockedExistingCustomerID := "11111111"
 
 	logger := shared.NewNilLogger()
-	grpcConfig := service.MustBuildConfigFromEnv(logger)
+	grpcConfig := grpcService.MustBuildConfigFromEnv(logger)
 	restConfig := restService.MustBuildConfigFromEnv(logger)
 
 	exitWasCalled := false
@@ -120,7 +119,7 @@ func TestStartRestServer(t *testing.T) {
 
 /*** Helper functions ***/
 
-func runGRPCServer(config *service.Config, logger *shared.Logger, mockedExistingCustomerID string) {
+func runGRPCServer(config *grpcService.Config, logger *shared.Logger, mockedExistingCustomerID string) {
 	diContainer := grpcService.MustBuildDIContainer(
 		config,
 		logger,

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
-	"github.com/AntonStoeckl/go-iddd/src/service"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	. "github.com/smartystreets/goconvey/convey"
@@ -29,7 +28,7 @@ func TestNewDIContainer(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		logger := shared.NewNilLogger()
-		config := service.MustBuildConfigFromEnv(logger)
+		config := MustBuildConfigFromEnv(logger)
 
 		callback := func() {
 			_ = MustBuildDIContainer(
@@ -51,7 +50,7 @@ func TestNewDIContainer(t *testing.T) {
 		var db *sql.DB
 
 		logger := shared.NewNilLogger()
-		config := service.MustBuildConfigFromEnv(logger)
+		config := MustBuildConfigFromEnv(logger)
 
 		callback := func() {
 			_ = MustBuildDIContainer(
