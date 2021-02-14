@@ -43,13 +43,13 @@ func (server *customerServer) Register(
 	req *RegisterRequest,
 ) (*RegisterResponse, error) {
 
-	customerID := value.GenerateCustomerID()
+	customerIDValue := value.GenerateCustomerID()
 
-	if err := server.register(customerID.String(), req.EmailAddress, req.GivenName, req.FamilyName); err != nil {
+	if err := server.register(customerIDValue, req.EmailAddress, req.GivenName, req.FamilyName); err != nil {
 		return nil, MapToGRPCErrors(err)
 	}
 
-	return &RegisterResponse{Id: customerID.String()}, nil
+	return &RegisterResponse{Id: customerIDValue.String()}, nil
 }
 
 func (server *customerServer) ConfirmEmailAddress(

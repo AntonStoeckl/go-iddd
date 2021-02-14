@@ -61,7 +61,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 
 		Convey("\nSCENARIO: A prospective Customer registers her account", func() {
 			Convey(fmt.Sprintf("When a Customer registers as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
-				err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
+				err = ac.registerCustomer(customerID, aa.emailAddress, aa.givenName, aa.familyName)
 				So(err, ShouldBeNil)
 
 				expectedCustomerView = buildDefaultCustomerViewForAcceptanceTest(customerID, aa)
@@ -83,7 +83,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 				givenCustomerRegistered(customerID, aa)
 
 				Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-					err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
+					err = ac.registerCustomer(customerID, aa.emailAddress, aa.givenName, aa.familyName)
 
 					Convey("Then she should receive an error", func() {
 						So(err, ShouldBeError)
@@ -102,7 +102,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						err = ac.registerCustomer(otherCustomerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
+						err = ac.registerCustomer(otherCustomerID, aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
@@ -115,7 +115,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", aa.emailAddress), func() {
-						err = ac.registerCustomer(otherCustomerID.String(), aa.emailAddress, aa.givenName, aa.familyName)
+						err = ac.registerCustomer(otherCustomerID, aa.emailAddress, aa.givenName, aa.familyName)
 
 						Convey("Then she should be able to register", func() {
 							So(err, ShouldBeNil)
@@ -129,7 +129,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			invalidEmailAddress := "fiona@galagher.c"
 
 			Convey(fmt.Sprintf("When she supplies an invalid email address [%s]", invalidEmailAddress), func() {
-				err = ac.registerCustomer(customerID.String(), invalidEmailAddress, aa.givenName, aa.familyName)
+				err = ac.registerCustomer(customerID, invalidEmailAddress, aa.givenName, aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -138,7 +138,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			})
 
 			Convey("When she supplies an empty givenName", func() {
-				err = ac.registerCustomer(customerID.String(), aa.emailAddress, "", aa.familyName)
+				err = ac.registerCustomer(customerID, aa.emailAddress, "", aa.familyName)
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -147,7 +147,7 @@ func TestCustomerAcceptanceScenarios_ForRegisteringCustomers(t *testing.T) {
 			})
 
 			Convey("When she supplies an empty familyName", func() {
-				err = ac.registerCustomer(customerID.String(), aa.emailAddress, aa.givenName, "")
+				err = ac.registerCustomer(customerID, aa.emailAddress, aa.givenName, "")
 
 				Convey("Then she should receive an error", func() {
 					So(err, ShouldBeError)
@@ -729,16 +729,6 @@ func TestCustomerAcceptanceScenarios_InvalidClientInput(t *testing.T) {
 		}
 
 		Convey("\nSCENARIO: A client (web, app, ...) of the application sends an empty id", func() {
-
-			Convey("When she tries to register with an empty id", func() {
-				err = ac.registerCustomer("", aa.emailAddress, aa.givenName, aa.familyName)
-
-				Convey("Then she should receive an error", func() {
-					So(err, ShouldBeError)
-					So(errors.Is(err, shared.ErrInputIsInvalid), ShouldBeTrue)
-				})
-			})
-
 			Convey(fmt.Sprintf("Given a Customer registered as [%s %s] with [%s]", aa.givenName, aa.familyName, aa.emailAddress), func() {
 				confirmationHash = givenCustomerRegistered(customerID, aa)
 

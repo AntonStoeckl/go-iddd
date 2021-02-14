@@ -103,7 +103,7 @@ func prepareForBenchmark(
 
 	ba.customerID = value.GenerateCustomerID()
 
-	if err = commandHandler.RegisterCustomer(ba.customerID.String(), ba.emailAddress, ba.givenName, ba.familyName); err != nil {
+	if err = commandHandler.RegisterCustomer(ba.customerID, ba.emailAddress, ba.givenName, ba.familyName); err != nil {
 		b.FailNow()
 	}
 

@@ -221,8 +221,8 @@ func thenItShouldFailWithTheExpectedError(res *empty.Empty, err error) {
 
 func buildSuccessCustomerServer() customergrpc.CustomerServer {
 	customerGRPCServer := customergrpc.NewCustomerServer(
-		func(customerID, emailAddress, givenName, familyName string) error {
-			generatedID = value.CustomerID(customerID)
+		func(customerIDValue value.CustomerID, emailAddress, givenName, familyName string) error {
+			generatedID = customerIDValue
 			return nil
 		},
 		func(customerID, confirmationHash string) error {
@@ -250,7 +250,7 @@ func buildFailureCustomerServer() customergrpc.CustomerServer {
 	mockedErr := errors.Mark(errors.New(expectedErrMsg), shared.ErrInputIsInvalid)
 
 	customerGRPCServer := customergrpc.NewCustomerServer(
-		func(customerID, emailAddress, givenName, familyName string) error {
+		func(customerIDValue value.CustomerID, emailAddress, givenName, familyName string) error {
 			return mockedErr
 		},
 		func(customerID, confirmationHash string) error {

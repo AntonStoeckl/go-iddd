@@ -30,7 +30,7 @@ func NewCustomerCommandHandler(
 }
 
 func (h *CustomerCommandHandler) RegisterCustomer(
-	customerID string,
+	customerIDValue value.CustomerID,
 	emailAddress string,
 	givenName string,
 	familyName string,
@@ -39,11 +39,6 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 	var err error
 	var command domain.RegisterCustomer
 	wrapWithMsg := "customerCommandHandler.RegisterCustomer"
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return errors.Wrap(err, wrapWithMsg)
-	}
 
 	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
 	if err != nil {
