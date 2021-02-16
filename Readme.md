@@ -39,7 +39,7 @@ $PathToProjectRoot$ with the path to the root of the go-iddd project sources.
 
 ```
 POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_test?sslmode=disable
-POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customeraccounts/infrastructure/postgres/database/migrations
+POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/postgres/database/migrations
 GRPC_HOST_AND_PORT=localhost:5566
 REST_HOST_AND_PORT=localhost:8085
 REST_GRPC_DIAL_TIMEOUT=3
