@@ -23,15 +23,17 @@ func TestChangeEmailAddress(t *testing.T) {
 		personName := value.RebuildPersonName("Kevin", "Ball")
 		changedEmailAddress := value.RebuildEmailAddress("latoya@ball.net")
 
-		command := domain.BuildChangeCustomerEmailAddress(
-			customerID,
-			changedEmailAddress,
+		command, err := domain.BuildChangeCustomerEmailAddress(
+			customerID.String(),
+			changedEmailAddress.String(),
 		)
+		So(err, ShouldBeNil)
 
-		commandWithOriginalEmailAddress := domain.BuildChangeCustomerEmailAddress(
-			customerID,
-			emailAddress,
+		commandWithOriginalEmailAddress, err := domain.BuildChangeCustomerEmailAddress(
+			customerID.String(),
+			emailAddress.String(),
 		)
+		So(err, ShouldBeNil)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,

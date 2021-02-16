@@ -3,6 +3,7 @@ package domain
 import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
+	"github.com/cockroachdb/errors"
 )
 
 type ChangeCustomerName struct {
@@ -12,17 +13,30 @@ type ChangeCustomerName struct {
 }
 
 func BuildChangeCustomerName(
-	customerID value.CustomerID,
-	personName value.PersonName,
-) ChangeCustomerName {
+	customerID string,
+	givenName string,
+	familyName string,
+) (ChangeCustomerName, error) {
 
-	changeEmailAddress := ChangeCustomerName{
-		customerID: customerID,
-		personName: personName,
+	wrapWithMsg := "BuildChangeCustomerName"
+
+	customerIDValue, err := value.BuildCustomerID(customerID)
+	if err != nil {
+		return ChangeCustomerName{}, errors.Wrap(err, wrapWithMsg)
+	}
+
+	personNameValue, err := value.BuildPersonName(givenName, familyName)
+	if err != nil {
+		return ChangeCustomerName{}, errors.Wrap(err, wrapWithMsg)
+	}
+
+	command := ChangeCustomerName{
+		customerID: customerIDValue,
+		personName: personNameValue,
 		messageID:  es.GenerateMessageID(),
 	}
 
-	return changeEmailAddress
+	return command, nil
 }
 
 func (command ChangeCustomerName) CustomerID() value.CustomerID {

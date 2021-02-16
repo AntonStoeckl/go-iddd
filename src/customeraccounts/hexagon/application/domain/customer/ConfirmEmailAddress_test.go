@@ -23,15 +23,17 @@ func TestConfirmEmailAddress(t *testing.T) {
 		invalidConfirmationHash := value.RebuildConfirmationHash("invalid_hash")
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		command := domain.BuildConfirmCustomerEmailAddress(
-			customerID,
-			confirmationHash,
+		command, err := domain.BuildConfirmCustomerEmailAddress(
+			customerID.String(),
+			confirmationHash.String(),
 		)
+		So(err, ShouldBeNil)
 
-		commandWithInvalidHash := domain.BuildConfirmCustomerEmailAddress(
-			customerID,
-			invalidConfirmationHash,
+		commandWithInvalidHash, err := domain.BuildConfirmCustomerEmailAddress(
+			customerID.String(),
+			invalidConfirmationHash.String(),
 		)
+		So(err, ShouldBeNil)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
@@ -181,10 +183,11 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 		changedConfirmationHash := value.GenerateConfirmationHash(changedEmailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		command := domain.BuildConfirmCustomerEmailAddress(
-			customerID,
-			changedConfirmationHash,
+		command, err := domain.BuildConfirmCustomerEmailAddress(
+			customerID.String(),
+			changedConfirmationHash.String(),
 		)
+		So(err, ShouldBeNil)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
