@@ -18,7 +18,7 @@ func TestChangeName(t *testing.T) {
 		var recordedEvents es.RecordedEvents
 
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
 		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
 		changedPersonName := value.RebuildPersonName("Latoya", "Ball")

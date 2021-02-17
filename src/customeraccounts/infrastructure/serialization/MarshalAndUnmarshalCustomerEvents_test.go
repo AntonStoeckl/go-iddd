@@ -14,9 +14,10 @@ import (
 
 func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	customerID := value.GenerateCustomerID()
-	emailAddress := value.RebuildEmailAddress("john@doe.com")
-	newEmailAddress := value.RebuildEmailAddress("john.frank@doe.com")
-	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+	unconfirmedEmailAddress := value.RebuildUnconfirmedEmailAddress("john@doe.com")
+	confirmedEmailAddress := value.RebuildConfirmedEmailAddress("john@doe.com")
+	changedEmailAddress := value.RebuildUnconfirmedEmailAddress("john.frank@doe.com")
+	confirmationHash := value.GenerateConfirmationHash(unconfirmedEmailAddress.String())
 	personName := value.RebuildPersonName("John", "Doe")
 	newPersonName := value.RebuildPersonName("John Frank", "Doe")
 	failureReason := "wrong confirmation hash supplied"
@@ -27,21 +28,21 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerRegistered(customerID, emailAddress, confirmationHash, personName, causationID, streamVersion),
+		domain.BuildCustomerRegistered(customerID, unconfirmedEmailAddress, confirmationHash, personName, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerEmailAddressConfirmed(customerID, emailAddress, causationID, streamVersion),
+		domain.BuildCustomerEmailAddressConfirmed(customerID, confirmedEmailAddress, causationID, streamVersion),
 	)
 
 	streamVersion++
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerEmailAddressChanged(customerID, newEmailAddress, confirmationHash, emailAddress, causationID, streamVersion),
+		domain.BuildCustomerEmailAddressChanged(customerID, changedEmailAddress, confirmationHash, causationID, streamVersion),
 	)
 
 	streamVersion++
@@ -82,7 +83,6 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	Convey("When CustomerEmailAddressConfirmationFailed is marshaled and unmarshaled", t, func() {
 		originalEvent := domain.BuildCustomerEmailAddressConfirmationFailed(
 			customerID,
-			emailAddress,
 			confirmationHash,
 			errors.Mark(errors.New(failureReason), shared.ErrDomainConstraintsViolation),
 			causationID,
@@ -103,7 +103,6 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 			unmarshaledEvent, ok := unmarshaledEvent.(domain.CustomerEmailAddressConfirmationFailed)
 			So(ok, ShouldBeTrue)
 			So(unmarshaledEvent.CustomerID().Equals(originalEvent.CustomerID()), ShouldBeTrue)
-			So(unmarshaledEvent.EmailAddress().Equals(originalEvent.EmailAddress()), ShouldBeTrue)
 			So(unmarshaledEvent.ConfirmationHash().Equals(originalEvent.ConfirmationHash()), ShouldBeTrue)
 			assertEventMetaResembles(originalEvent, unmarshaledEvent)
 		})

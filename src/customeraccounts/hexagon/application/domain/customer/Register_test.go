@@ -12,7 +12,7 @@ import (
 func TestRegister(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
 		command, err := domain.BuildRegisterCustomer(

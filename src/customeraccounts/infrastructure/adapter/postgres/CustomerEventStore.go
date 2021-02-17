@@ -276,7 +276,7 @@ func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.Unique
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		case customer.ShouldReplaceUniqueEmailAddress:
-			if err := s.tryToReplace(assertion.EmailAddressToRemove(), assertion.EmailAddressToAdd(), tx); err != nil {
+			if err := s.tryToReplace(assertion.EmailAddressToAdd(), assertion.CustomerID(), tx); err != nil {
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		case customer.ShouldRemoveUniqueEmailAddress:
@@ -306,7 +306,7 @@ func (s *CustomerEventStore) clearUniqueEmailAddress(customerID value.CustomerID
 }
 
 func (s *CustomerEventStore) tryToAdd(
-	emailAddress value.EmailAddress,
+	emailAddress value.UnconfirmedEmailAddress,
 	customerID value.CustomerID,
 	tx *sql.Tx,
 ) error {
@@ -328,18 +328,18 @@ func (s *CustomerEventStore) tryToAdd(
 }
 
 func (s *CustomerEventStore) tryToReplace(
-	previousEmailAddress value.EmailAddress,
-	newEmailAddress value.EmailAddress,
+	emailAddress value.UnconfirmedEmailAddress,
+	customerID value.CustomerID,
 	tx *sql.Tx,
 ) error {
 
-	queryTemplate := `UPDATE %tablename% set email_address = $1 where email_address = $2`
+	queryTemplate := `UPDATE %tablename% set email_address = $1 where customer_id = $2`
 	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
 
 	_, err := tx.Exec(
 		query,
-		newEmailAddress.String(),
-		previousEmailAddress.String(),
+		emailAddress.String(),
+		customerID.String(),
 	)
 
 	if err != nil {

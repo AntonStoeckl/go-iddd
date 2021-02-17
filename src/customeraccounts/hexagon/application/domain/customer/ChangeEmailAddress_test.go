@@ -18,10 +18,10 @@ func TestChangeEmailAddress(t *testing.T) {
 		var recordedEvents es.RecordedEvents
 
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
 		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
-		changedEmailAddress := value.RebuildEmailAddress("latoya@ball.net")
+		changedEmailAddress := value.RebuildUnconfirmedEmailAddress("latoya@ball.net")
 
 		command, err := domain.BuildChangeCustomerEmailAddress(
 			customerID.String(),
@@ -48,7 +48,6 @@ func TestChangeEmailAddress(t *testing.T) {
 			customerID,
 			changedEmailAddress,
 			command.ConfirmationHash(),
-			emailAddress,
 			es.GenerateMessageID(),
 			2,
 		)
@@ -75,7 +74,6 @@ func TestChangeEmailAddress(t *testing.T) {
 						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
 						So(event.EmailAddress().Equals(changedEmailAddress), ShouldBeTrue)
 						So(event.ConfirmationHash().Equals(command.ConfirmationHash()), ShouldBeTrue)
-						So(event.PreviousEmailAddress().Equals(emailAddress), ShouldBeTrue)
 						So(event.IsFailureEvent(), ShouldBeFalse)
 						So(event.FailureReason(), ShouldBeNil)
 						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())

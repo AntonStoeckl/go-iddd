@@ -19,18 +19,16 @@ type CustomerEmailAddressConfirmedForJSON struct {
 
 type CustomerEmailAddressConfirmationFailedForJSON struct {
 	CustomerID       string              `json:"customerID"`
-	EmailAddress     string              `json:"emailAddress"`
 	ConfirmationHash string              `json:"confirmationHash"`
 	Reason           string              `json:"reason"`
 	Meta             es.EventMetaForJSON `json:"meta"`
 }
 
 type CustomerEmailAddressChangedForJSON struct {
-	CustomerID           string              `json:"customerID"`
-	EmailAddress         string              `json:"emailAddress"`
-	ConfirmationHash     string              `json:"confirmationHash"`
-	PreviousEmailAddress string              `json:"previousEmailAddress"`
-	Meta                 es.EventMetaForJSON `json:"meta"`
+	CustomerID       string              `json:"customerID"`
+	EmailAddress     string              `json:"emailAddress"`
+	ConfirmationHash string              `json:"confirmationHash"`
+	Meta             es.EventMetaForJSON `json:"meta"`
 }
 
 type CustomerNameChangedForJSON struct {

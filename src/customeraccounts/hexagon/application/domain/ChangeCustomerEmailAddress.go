@@ -8,7 +8,7 @@ import (
 
 type ChangeCustomerEmailAddress struct {
 	customerID       value.CustomerID
-	emailAddress     value.EmailAddress
+	emailAddress     value.UnconfirmedEmailAddress
 	confirmationHash value.ConfirmationHash
 	messageID        es.MessageID
 }
@@ -25,7 +25,7 @@ func BuildChangeCustomerEmailAddress(
 		return ChangeCustomerEmailAddress{}, errors.Wrap(err, wrapWithMsg)
 	}
 
-	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
+	emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
 	if err != nil {
 		return ChangeCustomerEmailAddress{}, errors.Wrap(err, wrapWithMsg)
 	}
@@ -44,7 +44,7 @@ func (command ChangeCustomerEmailAddress) CustomerID() value.CustomerID {
 	return command.customerID
 }
 
-func (command ChangeCustomerEmailAddress) EmailAddress() value.EmailAddress {
+func (command ChangeCustomerEmailAddress) EmailAddress() value.UnconfirmedEmailAddress {
 	return command.emailAddress
 }
 

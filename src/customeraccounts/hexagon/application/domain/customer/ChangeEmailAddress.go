@@ -18,10 +18,9 @@ func ChangeEmailAddress(eventStream es.EventStream, command domain.ChangeCustome
 	}
 
 	event := domain.BuildCustomerEmailAddressChanged(
-		customer.id,
+		command.CustomerID(),
 		command.EmailAddress(),
 		command.ConfirmationHash(),
-		customer.emailAddress,
 		command.MessageID(),
 		customer.currentStreamVersion+1,
 	)

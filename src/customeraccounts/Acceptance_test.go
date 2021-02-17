@@ -790,7 +790,7 @@ func givenCustomerRegistered(
 	aa acceptanceTestArtifacts,
 ) value.ConfirmationHash {
 
-	emailAddress := value.RebuildEmailAddress(aa.emailAddress)
+	emailAddress := value.RebuildUnconfirmedEmailAddress(aa.emailAddress)
 	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 	personName := value.RebuildPersonName(aa.givenName, aa.familyName)
 
@@ -815,7 +815,7 @@ func givenCustomerEmailAddressWasConfirmed(
 	streamVersion uint,
 ) {
 
-	emailAddress := value.RebuildEmailAddress(aa.emailAddress)
+	emailAddress := value.RebuildConfirmedEmailAddress(aa.emailAddress)
 
 	event := domain.BuildCustomerEmailAddressConfirmed(
 		customerID,
@@ -834,15 +834,13 @@ func givenCustomerEmailAddressWasChanged(
 	streamVersion uint,
 ) value.ConfirmationHash {
 
-	emailAddress := value.RebuildEmailAddress(aa.newEmailAddress)
-	previousEmailAddress := value.RebuildEmailAddress(aa.emailAddress)
+	emailAddress := value.RebuildUnconfirmedEmailAddress(aa.newEmailAddress)
 	confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 
 	event := domain.BuildCustomerEmailAddressChanged(
 		customerID,
 		emailAddress,
 		confirmationHash,
-		previousEmailAddress,
 		es.GenerateMessageID(),
 		streamVersion,
 	)

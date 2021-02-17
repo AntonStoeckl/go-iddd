@@ -13,7 +13,7 @@ import (
 func TestDelete(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildEmailAddress("kevin@ball.com")
+		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
 		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
 

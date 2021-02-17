@@ -67,7 +67,6 @@ func marshalCustomerEmailAddressConfirmed(event domain.CustomerEmailAddressConfi
 func marshalCustomerEmailAddressConfirmationFailed(event domain.CustomerEmailAddressConfirmationFailed) []byte {
 	data := CustomerEmailAddressConfirmationFailedForJSON{
 		CustomerID:       event.CustomerID().String(),
-		EmailAddress:     event.EmailAddress().String(),
 		ConfirmationHash: event.ConfirmationHash().String(),
 		Reason:           event.FailureReason().Error(),
 		Meta:             marshalEventMeta(event),
@@ -80,11 +79,10 @@ func marshalCustomerEmailAddressConfirmationFailed(event domain.CustomerEmailAdd
 
 func marshalCustomerEmailAddressChanged(event domain.CustomerEmailAddressChanged) []byte {
 	data := CustomerEmailAddressChangedForJSON{
-		CustomerID:           event.CustomerID().String(),
-		EmailAddress:         event.EmailAddress().String(),
-		ConfirmationHash:     event.ConfirmationHash().String(),
-		PreviousEmailAddress: event.PreviousEmailAddress().String(),
-		Meta:                 marshalEventMeta(event),
+		CustomerID:       event.CustomerID().String(),
+		EmailAddress:     event.EmailAddress().String(),
+		ConfirmationHash: event.ConfirmationHash().String(),
+		Meta:             marshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment

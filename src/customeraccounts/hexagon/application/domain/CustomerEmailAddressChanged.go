@@ -6,27 +6,24 @@ import (
 )
 
 type CustomerEmailAddressChanged struct {
-	customerID           value.CustomerID
-	emailAddress         value.EmailAddress
-	confirmationHash     value.ConfirmationHash
-	previousEmailAddress value.EmailAddress
-	meta                 es.EventMeta
+	customerID       value.CustomerID
+	emailAddress     value.UnconfirmedEmailAddress
+	confirmationHash value.ConfirmationHash
+	meta             es.EventMeta
 }
 
 func BuildCustomerEmailAddressChanged(
 	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
+	emailAddress value.UnconfirmedEmailAddress,
 	confirmationHash value.ConfirmationHash,
-	previousEmailAddress value.EmailAddress,
 	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
 	event := CustomerEmailAddressChanged{
-		customerID:           customerID,
-		emailAddress:         emailAddress,
-		confirmationHash:     confirmationHash,
-		previousEmailAddress: previousEmailAddress,
+		customerID:       customerID,
+		emailAddress:     emailAddress,
+		confirmationHash: confirmationHash,
 	}
 
 	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
@@ -38,16 +35,14 @@ func RebuildCustomerEmailAddressChanged(
 	customerID string,
 	emailAddress string,
 	confirmationHash string,
-	previousEmailAddress string,
 	meta es.EventMeta,
 ) CustomerEmailAddressChanged {
 
 	event := CustomerEmailAddressChanged{
-		customerID:           value.RebuildCustomerID(customerID),
-		emailAddress:         value.RebuildEmailAddress(emailAddress),
-		confirmationHash:     value.RebuildConfirmationHash(confirmationHash),
-		previousEmailAddress: value.RebuildEmailAddress(previousEmailAddress),
-		meta:                 meta,
+		customerID:       value.RebuildCustomerID(customerID),
+		emailAddress:     value.RebuildUnconfirmedEmailAddress(emailAddress),
+		confirmationHash: value.RebuildConfirmationHash(confirmationHash),
+		meta:             meta,
 	}
 
 	return event
@@ -57,16 +52,12 @@ func (event CustomerEmailAddressChanged) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressChanged) EmailAddress() value.EmailAddress {
+func (event CustomerEmailAddressChanged) EmailAddress() value.UnconfirmedEmailAddress {
 	return event.emailAddress
 }
 
 func (event CustomerEmailAddressChanged) ConfirmationHash() value.ConfirmationHash {
 	return event.confirmationHash
-}
-
-func (event CustomerEmailAddressChanged) PreviousEmailAddress() value.EmailAddress {
-	return event.previousEmailAddress
 }
 
 func (event CustomerEmailAddressChanged) Meta() es.EventMeta {

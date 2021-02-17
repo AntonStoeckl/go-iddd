@@ -90,7 +90,6 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 
 	event := domain.RebuildCustomerEmailAddressConfirmationFailed(
 		unmarshaledData.CustomerID,
-		unmarshaledData.EmailAddress,
 		unmarshaledData.ConfirmationHash,
 		unmarshaledData.Reason,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
@@ -112,7 +111,6 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 		unmarshaledData.CustomerID,
 		unmarshaledData.EmailAddress,
 		unmarshaledData.ConfirmationHash,
-		unmarshaledData.PreviousEmailAddress,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 

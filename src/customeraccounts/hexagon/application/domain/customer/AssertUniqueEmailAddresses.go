@@ -15,10 +15,9 @@ const (
 type ForBuildingUniqueEmailAddressAssertions func(recordedEvents ...es.DomainEvent) UniqueEmailAddressAssertions
 
 type UniqueEmailAddressAssertion struct {
-	desiredAction        int
-	customerID           value.CustomerID
-	emailAddressToAdd    value.EmailAddress
-	emailAddressToRemove value.EmailAddress
+	desiredAction     int
+	customerID        value.CustomerID
+	emailAddressToAdd value.UnconfirmedEmailAddress
 }
 
 type UniqueEmailAddressAssertions []UniqueEmailAddressAssertion
@@ -31,12 +30,8 @@ func (spec UniqueEmailAddressAssertion) CustomerID() value.CustomerID {
 	return spec.customerID
 }
 
-func (spec UniqueEmailAddressAssertion) EmailAddressToAdd() value.EmailAddress {
+func (spec UniqueEmailAddressAssertion) EmailAddressToAdd() value.UnconfirmedEmailAddress {
 	return spec.emailAddressToAdd
-}
-
-func (spec UniqueEmailAddressAssertion) EmailAddressToRemove() value.EmailAddress {
-	return spec.emailAddressToRemove
 }
 
 func BuildUniqueEmailAddressAssertions(recordedEvents ...es.DomainEvent) UniqueEmailAddressAssertions {
@@ -57,9 +52,9 @@ func BuildUniqueEmailAddressAssertions(recordedEvents ...es.DomainEvent) UniqueE
 			specifications = append(
 				specifications,
 				UniqueEmailAddressAssertion{
-					desiredAction:        ShouldReplaceUniqueEmailAddress,
-					emailAddressToAdd:    actualEvent.EmailAddress(),
-					emailAddressToRemove: actualEvent.PreviousEmailAddress(),
+					desiredAction:     ShouldReplaceUniqueEmailAddress,
+					customerID:        actualEvent.CustomerID(),
+					emailAddressToAdd: actualEvent.EmailAddress(),
 				},
 			)
 		case domain.CustomerDeleted:

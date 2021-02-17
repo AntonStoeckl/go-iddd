@@ -9,7 +9,6 @@ import (
 
 type CustomerEmailAddressConfirmationFailed struct {
 	customerID       value.CustomerID
-	emailAddress     value.EmailAddress
 	confirmationHash value.ConfirmationHash
 	reason           error
 	meta             es.EventMeta
@@ -17,7 +16,6 @@ type CustomerEmailAddressConfirmationFailed struct {
 
 func BuildCustomerEmailAddressConfirmationFailed(
 	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
 	confirmationHash value.ConfirmationHash,
 	reason error,
 	causationID es.MessageID,
@@ -26,7 +24,6 @@ func BuildCustomerEmailAddressConfirmationFailed(
 
 	event := CustomerEmailAddressConfirmationFailed{
 		customerID:       customerID,
-		emailAddress:     emailAddress,
 		confirmationHash: confirmationHash,
 		reason:           reason,
 	}
@@ -38,7 +35,6 @@ func BuildCustomerEmailAddressConfirmationFailed(
 
 func RebuildCustomerEmailAddressConfirmationFailed(
 	customerID string,
-	emailAddress string,
 	confirmationHash string,
 	reason string,
 	meta es.EventMeta,
@@ -46,7 +42,6 @@ func RebuildCustomerEmailAddressConfirmationFailed(
 
 	event := CustomerEmailAddressConfirmationFailed{
 		customerID:       value.RebuildCustomerID(customerID),
-		emailAddress:     value.RebuildEmailAddress(emailAddress),
 		confirmationHash: value.RebuildConfirmationHash(confirmationHash),
 		reason:           errors.Mark(errors.New(reason), shared.ErrDomainConstraintsViolation),
 		meta:             meta,
@@ -57,10 +52,6 @@ func RebuildCustomerEmailAddressConfirmationFailed(
 
 func (event CustomerEmailAddressConfirmationFailed) CustomerID() value.CustomerID {
 	return event.customerID
-}
-
-func (event CustomerEmailAddressConfirmationFailed) EmailAddress() value.EmailAddress {
-	return event.emailAddress
 }
 
 func (event CustomerEmailAddressConfirmationFailed) ConfirmationHash() value.ConfirmationHash {

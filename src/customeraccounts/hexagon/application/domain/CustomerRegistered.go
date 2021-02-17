@@ -7,7 +7,7 @@ import (
 
 type CustomerRegistered struct {
 	customerID       value.CustomerID
-	emailAddress     value.EmailAddress
+	emailAddress     value.UnconfirmedEmailAddress
 	confirmationHash value.ConfirmationHash
 	personName       value.PersonName
 	meta             es.EventMeta
@@ -15,7 +15,7 @@ type CustomerRegistered struct {
 
 func BuildCustomerRegistered(
 	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
+	emailAddress value.UnconfirmedEmailAddress,
 	confirmationHash value.ConfirmationHash,
 	personName value.PersonName,
 	causationID es.MessageID,
@@ -45,7 +45,7 @@ func RebuildCustomerRegistered(
 
 	event := CustomerRegistered{
 		customerID:       value.RebuildCustomerID(customerID),
-		emailAddress:     value.RebuildEmailAddress(emailAddress),
+		emailAddress:     value.RebuildUnconfirmedEmailAddress(emailAddress),
 		confirmationHash: value.RebuildConfirmationHash(confirmationHash),
 		personName:       value.RebuildPersonName(givenName, familyName),
 		meta:             meta,
@@ -58,7 +58,7 @@ func (event CustomerRegistered) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerRegistered) EmailAddress() value.EmailAddress {
+func (event CustomerRegistered) EmailAddress() value.UnconfirmedEmailAddress {
 	return event.emailAddress
 }
 

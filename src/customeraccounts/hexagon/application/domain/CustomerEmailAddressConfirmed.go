@@ -7,13 +7,13 @@ import (
 
 type CustomerEmailAddressConfirmed struct {
 	customerID   value.CustomerID
-	emailAddress value.EmailAddress
+	emailAddress value.ConfirmedEmailAddress
 	meta         es.EventMeta
 }
 
 func BuildCustomerEmailAddressConfirmed(
 	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
+	emailAddress value.ConfirmedEmailAddress,
 	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerEmailAddressConfirmed {
@@ -36,7 +36,7 @@ func RebuildCustomerEmailAddressConfirmed(
 
 	event := CustomerEmailAddressConfirmed{
 		customerID:   value.RebuildCustomerID(customerID),
-		emailAddress: value.RebuildEmailAddress(emailAddress),
+		emailAddress: value.ConfirmedEmailAddress(emailAddress),
 		meta:         meta,
 	}
 
@@ -47,7 +47,7 @@ func (event CustomerEmailAddressConfirmed) CustomerID() value.CustomerID {
 	return event.customerID
 }
 
-func (event CustomerEmailAddressConfirmed) EmailAddress() value.EmailAddress {
+func (event CustomerEmailAddressConfirmed) EmailAddress() value.ConfirmedEmailAddress {
 	return event.emailAddress
 }
 

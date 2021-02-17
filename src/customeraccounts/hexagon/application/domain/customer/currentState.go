@@ -11,7 +11,6 @@ type currentState struct {
 	personName                   value.PersonName
 	emailAddress                 value.EmailAddress
 	emailAddressConfirmationHash value.ConfirmationHash
-	isEmailAddressConfirmed      bool
 	isDeleted                    bool
 	currentStreamVersion         uint
 }
@@ -27,15 +26,19 @@ func buildCurrentStateFrom(eventStream es.EventStream) currentState {
 			customer.emailAddress = actualEvent.EmailAddress()
 			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
 		case domain.CustomerEmailAddressConfirmed:
-			customer.isEmailAddressConfirmed = true
+			customer.emailAddress = actualEvent.EmailAddress()
 		case domain.CustomerEmailAddressChanged:
 			customer.emailAddress = actualEvent.EmailAddress()
 			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
-			customer.isEmailAddressConfirmed = false
 		case domain.CustomerNameChanged:
 			customer.personName = actualEvent.PersonName()
 		case domain.CustomerDeleted:
 			customer.isDeleted = true
+		case domain.CustomerEmailAddressConfirmationFailed:
+			// nothing to project here
+		default:
+			// until Go has "sum types" we need to use an interface (Event) and this case could exist - we don't want to hide it
+			panic("buildCurrentStateFrom(eventStream): unknown event " + event.Meta().EventName())
 		}
 
 		customer.currentStreamVersion = event.Meta().StreamVersion()

@@ -8,7 +8,7 @@ import (
 
 type RegisterCustomer struct {
 	customerID       value.CustomerID
-	emailAddress     value.EmailAddress
+	emailAddress     value.UnconfirmedEmailAddress
 	confirmationHash value.ConfirmationHash
 	personName       value.PersonName
 	messageID        es.MessageID
@@ -23,7 +23,7 @@ func BuildRegisterCustomer(
 
 	wrapWithMsg := "BuildRegisterCustomer"
 
-	emailAddressValue, err := value.BuildEmailAddress(emailAddress)
+	emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
 	if err != nil {
 		return RegisterCustomer{}, errors.Wrap(err, wrapWithMsg)
 	}
@@ -48,7 +48,7 @@ func (command RegisterCustomer) CustomerID() value.CustomerID {
 	return command.customerID
 }
 
-func (command RegisterCustomer) EmailAddress() value.EmailAddress {
+func (command RegisterCustomer) EmailAddress() value.UnconfirmedEmailAddress {
 	return command.emailAddress
 }
 
