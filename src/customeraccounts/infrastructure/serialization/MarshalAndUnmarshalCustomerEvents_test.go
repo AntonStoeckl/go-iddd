@@ -55,7 +55,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerDeleted(customerID, emailAddress, causationID, streamVersion),
+		domain.BuildCustomerDeleted(customerID, causationID, streamVersion),
 	)
 
 	for idx, event := range myEvents {

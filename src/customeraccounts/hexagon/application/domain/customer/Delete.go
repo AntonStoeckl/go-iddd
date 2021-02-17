@@ -14,7 +14,6 @@ func Delete(eventStream es.EventStream, command domain.DeleteCustomer) es.Record
 
 	event := domain.BuildCustomerDeleted(
 		command.CustomerID(),
-		customer.emailAddress,
 		command.MessageID(),
 		customer.currentStreamVersion+1,
 	)

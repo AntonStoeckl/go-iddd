@@ -66,8 +66,8 @@ func BuildUniqueEmailAddressAssertions(recordedEvents ...es.DomainEvent) UniqueE
 			specifications = append(
 				specifications,
 				UniqueEmailAddressAssertion{
-					desiredAction:        ShouldRemoveUniqueEmailAddress,
-					emailAddressToRemove: actualEvent.EmailAddress(),
+					desiredAction: ShouldRemoveUniqueEmailAddress,
+					customerID:    actualEvent.CustomerID(),
 				},
 			)
 		}

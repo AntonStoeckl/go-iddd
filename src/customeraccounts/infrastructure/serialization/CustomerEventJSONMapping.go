@@ -41,7 +41,6 @@ type CustomerNameChangedForJSON struct {
 }
 
 type CustomerDeletedForJSON struct {
-	CustomerID   string              `json:"customerID"`
-	EmailAddress string              `json:"emailAddress"`
-	Meta         es.EventMetaForJSON `json:"meta"`
+	CustomerID string              `json:"customerID"`
+	Meta       es.EventMetaForJSON `json:"meta"`
 }

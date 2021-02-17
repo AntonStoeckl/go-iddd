@@ -107,9 +107,8 @@ func marshalCustomerNameChanged(event domain.CustomerNameChanged) []byte {
 
 func marshalCustomerDeleted(event domain.CustomerDeleted) []byte {
 	data := CustomerDeletedForJSON{
-		CustomerID:   event.CustomerID().String(),
-		EmailAddress: event.EmailAddress().String(),
-		Meta:         marshalEventMeta(event),
+		CustomerID: event.CustomerID().String(),
+		Meta:       marshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment

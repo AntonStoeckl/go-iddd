@@ -31,7 +31,6 @@ func TestDelete(t *testing.T) {
 
 		customerDeleted := domain.BuildCustomerDeleted(
 			customerID,
-			emailAddress,
 			es.GenerateMessageID(),
 			2,
 		)
@@ -49,7 +48,6 @@ func TestDelete(t *testing.T) {
 						So(ok, ShouldBeTrue)
 						So(event, ShouldNotBeNil)
 						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
-						So(event.EmailAddress().Equals(emailAddress), ShouldBeTrue)
 						So(event.IsFailureEvent(), ShouldBeFalse)
 						So(event.FailureReason(), ShouldBeNil)
 						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())

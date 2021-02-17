@@ -6,21 +6,18 @@ import (
 )
 
 type CustomerDeleted struct {
-	customerID   value.CustomerID
-	emailAddress value.EmailAddress
-	meta         es.EventMeta
+	customerID value.CustomerID
+	meta       es.EventMeta
 }
 
 func BuildCustomerDeleted(
 	customerID value.CustomerID,
-	emailAddress value.EmailAddress,
 	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerDeleted {
 
 	event := CustomerDeleted{
-		customerID:   customerID,
-		emailAddress: emailAddress,
+		customerID: customerID,
 	}
 
 	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
@@ -30,14 +27,12 @@ func BuildCustomerDeleted(
 
 func RebuildCustomerDeleted(
 	customerID string,
-	emailAddress string,
 	meta es.EventMeta,
 ) CustomerDeleted {
 
 	event := CustomerDeleted{
-		customerID:   value.RebuildCustomerID(customerID),
-		emailAddress: value.RebuildEmailAddress(emailAddress),
-		meta:         meta,
+		customerID: value.RebuildCustomerID(customerID),
+		meta:       meta,
 	}
 
 	return event
@@ -45,10 +40,6 @@ func RebuildCustomerDeleted(
 
 func (event CustomerDeleted) CustomerID() value.CustomerID {
 	return event.customerID
-}
-
-func (event CustomerDeleted) EmailAddress() value.EmailAddress {
-	return event.emailAddress
 }
 
 func (event CustomerDeleted) Meta() es.EventMeta {

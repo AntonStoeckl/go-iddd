@@ -55,7 +55,6 @@ func TestChangeEmailAddress(t *testing.T) {
 
 		customerDeleted := domain.BuildCustomerDeleted(
 			customerID,
-			emailAddress,
 			es.GenerateMessageID(),
 			2,
 		)

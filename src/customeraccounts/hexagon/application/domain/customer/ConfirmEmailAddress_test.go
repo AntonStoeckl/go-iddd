@@ -53,12 +53,11 @@ func TestConfirmEmailAddress(t *testing.T) {
 
 		customerDeleted := domain.BuildCustomerDeleted(
 			customerID,
-			emailAddress,
 			es.GenerateMessageID(),
 			2,
 		)
 
-		Convey("\nSCENARIO 1: Confirm a Customer's emailAddress with the right confirmationHash", func() {
+		Convey("\nSCENARIO 1: ConfirmEmailAddress a Customer's emailAddress with the right confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerRegistered}
 
@@ -79,7 +78,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 			})
 		})
 
-		Convey("\nSCENARIO 2: Confirm a Customer's emailAddress with a wrong confirmationHash", func() {
+		Convey("\nSCENARIO 2: ConfirmEmailAddress a Customer's emailAddress with a wrong confirmationHash", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerRegistered}
 
@@ -214,7 +213,7 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 			3,
 		)
 
-		Convey("\nSCENARIO 1: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
+		Convey("\nSCENARIO 1: ConfirmEmailAddress a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerRegistered}
 

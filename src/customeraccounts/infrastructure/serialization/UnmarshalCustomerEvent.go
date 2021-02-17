@@ -149,7 +149,6 @@ func unmarshalCustomerDeletedFromJSON(
 
 	event := domain.RebuildCustomerDeleted(
 		unmarshaledData.CustomerID,
-		unmarshaledData.EmailAddress,
 		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
