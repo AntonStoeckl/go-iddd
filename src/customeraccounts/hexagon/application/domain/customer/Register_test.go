@@ -15,13 +15,11 @@ func TestRegister(t *testing.T) {
 		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		command, err := domain.BuildRegisterCustomer(
+		command := domain.BuildRegisterCustomer(
 			customerID,
-			emailAddress.String(),
-			personName.GivenName(),
-			personName.FamilyName(),
+			emailAddress,
+			personName,
 		)
-		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO: Register a Customer", func() {
 			Convey("When RegisterCustomer", func() {

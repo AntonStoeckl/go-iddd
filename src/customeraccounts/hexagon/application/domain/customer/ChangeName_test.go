@@ -23,19 +23,8 @@ func TestChangeName(t *testing.T) {
 		personName := value.RebuildPersonName("Kevin", "Ball")
 		changedPersonName := value.RebuildPersonName("Latoya", "Ball")
 
-		command, err := domain.BuildChangeCustomerName(
-			customerID.String(),
-			changedPersonName.GivenName(),
-			changedPersonName.FamilyName(),
-		)
-		So(err, ShouldBeNil)
-
-		commandWithOriginalName, err := domain.BuildChangeCustomerName(
-			customerID.String(),
-			personName.GivenName(),
-			personName.FamilyName(),
-		)
-		So(err, ShouldBeNil)
+		command := domain.BuildChangeCustomerName(customerID, changedPersonName)
+		commandWithOriginalName := domain.BuildChangeCustomerName(customerID, personName)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,

@@ -3,7 +3,6 @@ package domain
 import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
-	"github.com/cockroachdb/errors"
 )
 
 type DeleteCustomer struct {
@@ -11,20 +10,13 @@ type DeleteCustomer struct {
 	messageID  es.MessageID
 }
 
-func BuildDeleteCustomer(customerID string) (DeleteCustomer, error) {
-	wrapWithMsg := "customerCommandHandler.DeleteCustomer"
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return DeleteCustomer{}, errors.Wrap(err, wrapWithMsg)
-	}
-
+func BuildDeleteCustomer(customerID value.CustomerID) DeleteCustomer {
 	command := DeleteCustomer{
-		customerID: customerIDValue,
+		customerID: customerID,
 		messageID:  es.GenerateMessageID(),
 	}
 
-	return command, nil
+	return command
 }
 
 func (command DeleteCustomer) CustomerID() value.CustomerID {

@@ -3,7 +3,6 @@ package domain
 import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
-	"github.com/cockroachdb/errors"
 )
 
 type ConfirmCustomerEmailAddress struct {
@@ -13,29 +12,17 @@ type ConfirmCustomerEmailAddress struct {
 }
 
 func BuildConfirmCustomerEmailAddress(
-	customerID string,
-	confirmationHash string,
-) (ConfirmCustomerEmailAddress, error) {
-
-	wrapWithMsg := "BuildConfirmCustomerEmailAddress"
-
-	customerIDValue, err := value.BuildCustomerID(customerID)
-	if err != nil {
-		return ConfirmCustomerEmailAddress{}, errors.Wrap(err, wrapWithMsg)
-	}
-
-	confirmationHashValue, err := value.BuildConfirmationHash(confirmationHash)
-	if err != nil {
-		return ConfirmCustomerEmailAddress{}, errors.Wrap(err, wrapWithMsg)
-	}
+	customerID value.CustomerID,
+	confirmationHash value.ConfirmationHash,
+) ConfirmCustomerEmailAddress {
 
 	command := ConfirmCustomerEmailAddress{
-		customerID:       customerIDValue,
-		confirmationHash: confirmationHashValue,
+		customerID:       customerID,
+		confirmationHash: confirmationHash,
 		messageID:        es.GenerateMessageID(),
 	}
 
-	return command, nil
+	return command
 }
 
 func (command ConfirmCustomerEmailAddress) CustomerID() value.CustomerID {

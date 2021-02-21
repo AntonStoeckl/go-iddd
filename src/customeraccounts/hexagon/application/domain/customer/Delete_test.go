@@ -17,8 +17,7 @@ func TestDelete(t *testing.T) {
 		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
 		personName := value.RebuildPersonName("Kevin", "Ball")
 
-		command, err := domain.BuildDeleteCustomer(customerID.String())
-		So(err, ShouldBeNil)
+		command := domain.BuildDeleteCustomer(customerID)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
