@@ -14,30 +14,48 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 		return nil, errors.Wrap(err, "confirmEmailAddress")
 	}
 
-	if err := assertMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash()); err != nil {
-		event := domain.BuildCustomerEmailAddressConfirmationFailed(
+	err := assertMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash())
+	if err != nil {
+		return customerEmailAddressConfirmationFailed(customer, command, err)
+	}
+
+	return customerEmailAddressConfirmedOrNoEvent(customer, command)
+}
+
+func customerEmailAddressConfirmationFailed(
+	customer currentState,
+	command domain.ConfirmCustomerEmailAddress,
+	err error,
+) (es.RecordedEvents, error) {
+
+	return es.RecordedEvents{
+		domain.BuildCustomerEmailAddressConfirmationFailed(
 			command.CustomerID(),
 			command.ConfirmationHash(),
 			err,
 			command.MessageID(),
 			customer.currentStreamVersion+1,
-		)
+		),
+	}, nil
+}
 
-		return es.RecordedEvents{event}, nil
-	}
+func customerEmailAddressConfirmedOrNoEvent(
+	customer currentState,
+	command domain.ConfirmCustomerEmailAddress,
+) (es.RecordedEvents, error) {
 
 	switch customer.emailAddress.(type) {
-	case value.UnconfirmedEmailAddress:
-		event := domain.BuildCustomerEmailAddressConfirmed(
-			command.CustomerID(),
-			value.ToConfirmedEmailAddress(customer.emailAddress),
-			command.MessageID(),
-			customer.currentStreamVersion+1,
-		)
-
-		return es.RecordedEvents{event}, nil
 	case value.ConfirmedEmailAddress:
 		return nil, nil
+	case value.UnconfirmedEmailAddress:
+		return es.RecordedEvents{
+			domain.BuildCustomerEmailAddressConfirmed(
+				command.CustomerID(),
+				value.ToConfirmedEmailAddress(customer.emailAddress),
+				command.MessageID(),
+				customer.currentStreamVersion+1,
+			),
+		}, nil
 	default:
 		// until Go has "union types" we need to use an interface and this case could exist - we don't want to hide it
 		panic("ConfirmEmailAddress(): emailAddress is neither UnconfirmedEmailAddress nor ConfirmedEmailAddress")
