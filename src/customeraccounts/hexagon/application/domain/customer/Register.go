@@ -8,7 +8,6 @@ func Register(command domain.RegisterCustomer) domain.CustomerRegistered {
 	event := domain.BuildCustomerRegistered(
 		command.CustomerID(),
 		command.EmailAddress(),
-		command.ConfirmationHash(),
 		command.PersonName(),
 		command.MessageID(),
 		1,

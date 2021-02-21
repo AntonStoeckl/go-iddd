@@ -14,10 +14,13 @@ import (
 
 func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 	customerID := value.GenerateCustomerID()
-	unconfirmedEmailAddress := value.RebuildUnconfirmedEmailAddress("john@doe.com")
-	confirmedEmailAddress := value.RebuildConfirmedEmailAddress("john@doe.com")
-	changedEmailAddress := value.RebuildUnconfirmedEmailAddress("john.frank@doe.com")
-	confirmationHash := value.GenerateConfirmationHash(unconfirmedEmailAddress.String())
+	emailAddressInput := "john@doe.com"
+	confirmationHash := value.GenerateConfirmationHash(emailAddressInput)
+	unconfirmedEmailAddress := value.RebuildUnconfirmedEmailAddress(emailAddressInput, confirmationHash.String())
+	confirmedEmailAddress := value.RebuildConfirmedEmailAddress(emailAddressInput)
+	changedEmailAddressInput := "john.frank@doe.com"
+	changedConfirmationHash := value.GenerateConfirmationHash(changedEmailAddressInput)
+	changedEmailAddress := value.RebuildUnconfirmedEmailAddress(changedEmailAddressInput, changedConfirmationHash.String())
 	personName := value.RebuildPersonName("John", "Doe")
 	newPersonName := value.RebuildPersonName("John Frank", "Doe")
 	failureReason := "wrong confirmation hash supplied"
@@ -28,7 +31,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerRegistered(customerID, unconfirmedEmailAddress, confirmationHash, personName, causationID, streamVersion),
+		domain.BuildCustomerRegistered(customerID, unconfirmedEmailAddress, personName, causationID, streamVersion),
 	)
 
 	streamVersion++
@@ -42,7 +45,7 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 	myEvents = append(
 		myEvents,
-		domain.BuildCustomerEmailAddressChanged(customerID, changedEmailAddress, confirmationHash, causationID, streamVersion),
+		domain.BuildCustomerEmailAddressChanged(customerID, changedEmailAddress, causationID, streamVersion),
 	)
 
 	streamVersion++

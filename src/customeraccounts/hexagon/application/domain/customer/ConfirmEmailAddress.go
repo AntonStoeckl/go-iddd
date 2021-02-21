@@ -14,40 +14,23 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 		return nil, errors.Wrap(err, "confirmEmailAddress")
 	}
 
-	err := assertMatchingConfirmationHash(customer.emailAddressConfirmationHash, command.ConfirmationHash())
-	if err != nil {
-		return customerEmailAddressConfirmationFailed(customer, command, err)
-	}
-
-	return customerEmailAddressConfirmedOrNoEvent(customer, command)
-}
-
-func customerEmailAddressConfirmationFailed(
-	customer currentState,
-	command domain.ConfirmCustomerEmailAddress,
-	err error,
-) (es.RecordedEvents, error) {
-
-	return es.RecordedEvents{
-		domain.BuildCustomerEmailAddressConfirmationFailed(
-			command.CustomerID(),
-			command.ConfirmationHash(),
-			err,
-			command.MessageID(),
-			customer.currentStreamVersion+1,
-		),
-	}, nil
-}
-
-func customerEmailAddressConfirmedOrNoEvent(
-	customer currentState,
-	command domain.ConfirmCustomerEmailAddress,
-) (es.RecordedEvents, error) {
-
-	switch customer.emailAddress.(type) {
+	switch actualEmailAddress := customer.emailAddress.(type) {
 	case value.ConfirmedEmailAddress:
 		return nil, nil
 	case value.UnconfirmedEmailAddress:
+		err := assertMatchingConfirmationHash(actualEmailAddress.ConfirmationHash(), command.ConfirmationHash())
+		if err != nil {
+			return es.RecordedEvents{
+				domain.BuildCustomerEmailAddressConfirmationFailed(
+					command.CustomerID(),
+					command.ConfirmationHash(),
+					err,
+					command.MessageID(),
+					customer.currentStreamVersion+1,
+				),
+			}, nil
+		}
+
 		return es.RecordedEvents{
 			domain.BuildCustomerEmailAddressConfirmed(
 				command.CustomerID(),

@@ -12,17 +12,20 @@ import (
 
 func TestDelete(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
+		var err error
+		var recordedEvents es.RecordedEvents
+
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
-		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
-		personName := value.RebuildPersonName("Kevin", "Ball")
+		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
+		So(err, ShouldBeNil)
+		personName, err := value.BuildPersonName("Kevin", "Ball")
+		So(err, ShouldBeNil)
 
 		command := domain.BuildDeleteCustomer(customerID)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
-			confirmationHash,
 			personName,
 			es.GenerateMessageID(),
 			1,
@@ -39,7 +42,7 @@ func TestDelete(t *testing.T) {
 				eventStream := es.EventStream{customerRegistered}
 
 				Convey("When DeleteCustomer", func() {
-					recordedEvents := customer.Delete(eventStream, command)
+					recordedEvents = customer.Delete(eventStream, command)
 
 					Convey("Then CustomerDeleted", func() {
 						So(recordedEvents, ShouldHaveLength, 1)
@@ -50,6 +53,7 @@ func TestDelete(t *testing.T) {
 						So(event.IsFailureEvent(), ShouldBeFalse)
 						So(event.FailureReason(), ShouldBeNil)
 						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().MessageID(), ShouldNotBeEmpty)
 						So(event.Meta().StreamVersion(), ShouldEqual, uint(2))
 					})
 				})
@@ -64,7 +68,7 @@ func TestDelete(t *testing.T) {
 					eventStream = append(eventStream, customerDeleted)
 
 					Convey("When DeleteCustomer", func() {
-						recordedEvents := customer.Delete(eventStream, command)
+						recordedEvents = customer.Delete(eventStream, command)
 
 						Convey("Then no Event", func() {
 							So(recordedEvents, ShouldBeEmpty)

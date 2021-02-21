@@ -10,7 +10,7 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 )
 
-type benchmarkTestArtifacts struct {
+type benchmarkTestValues struct {
 	customerID      value.CustomerID
 	emailAddress    string
 	givenName       string
@@ -28,17 +28,17 @@ func BenchmarkCustomerCommand(b *testing.B) {
 	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
 	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
-	ba := buildArtifactsForBenchmarkTest()
-	prepareForBenchmark(b, commandHandler, &ba)
+	v := initBenchmarkTestValues()
+	prepareForBenchmark(b, commandHandler, &v)
 
 	b.Run("ChangeName", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			if n%2 == 0 {
-				if err = commandHandler.ChangeCustomerName(ba.customerID.String(), ba.newGivenName, ba.newFamilyName); err != nil {
+				if err = commandHandler.ChangeCustomerName(v.customerID.String(), v.newGivenName, v.newFamilyName); err != nil {
 					b.FailNow()
 				}
 			} else {
-				if err = commandHandler.ChangeCustomerName(ba.customerID.String(), ba.givenName, ba.familyName); err != nil {
+				if err = commandHandler.ChangeCustomerName(v.customerID.String(), v.givenName, v.familyName); err != nil {
 					b.FailNow()
 				}
 			}
@@ -49,7 +49,7 @@ func BenchmarkCustomerCommand(b *testing.B) {
 		b,
 		diContainer.GetCustomerEventStore(),
 		commandHandler,
-		ba.customerID,
+		v.customerID,
 	)
 }
 
@@ -60,12 +60,12 @@ func BenchmarkCustomerQuery(b *testing.B) {
 	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
 	commandHandler := diContainer.GetCustomerCommandHandler()
 	queryHandler := diContainer.GetCustomerQueryHandler()
-	ba := buildArtifactsForBenchmarkTest()
-	prepareForBenchmark(b, commandHandler, &ba)
+	v := initBenchmarkTestValues()
+	prepareForBenchmark(b, commandHandler, &v)
 
 	b.Run("CustomerViewByID", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
-			if _, err := queryHandler.CustomerViewByID(ba.customerID.String()); err != nil {
+			if _, err := queryHandler.CustomerViewByID(v.customerID.String()); err != nil {
 				b.FailNow()
 			}
 		}
@@ -75,44 +75,44 @@ func BenchmarkCustomerQuery(b *testing.B) {
 		b,
 		diContainer.GetCustomerEventStore(),
 		commandHandler,
-		ba.customerID,
+		v.customerID,
 	)
 }
 
-func buildArtifactsForBenchmarkTest() benchmarkTestArtifacts {
-	var ba benchmarkTestArtifacts
+func initBenchmarkTestValues() benchmarkTestValues {
+	var v benchmarkTestValues
 
-	ba.emailAddress = "fiona@gallagher.net"
-	ba.givenName = "Fiona"
-	ba.familyName = "Galagher"
-	ba.newEmailAddress = "fiona@pratt.net"
-	ba.newGivenName = "Fiona"
-	ba.newFamilyName = "Pratt"
+	v.emailAddress = "fiona@gallagher.net"
+	v.givenName = "Fiona"
+	v.familyName = "Galagher"
+	v.newEmailAddress = "fiona@pratt.net"
+	v.newGivenName = "Fiona"
+	v.newFamilyName = "Pratt"
 
-	return ba
+	return v
 }
 
 func prepareForBenchmark(
 	b *testing.B,
 	commandHandler *application.CustomerCommandHandler,
-	ba *benchmarkTestArtifacts,
+	v *benchmarkTestValues,
 ) {
 
 	var err error
 
-	ba.customerID = value.GenerateCustomerID()
+	v.customerID = value.GenerateCustomerID()
 
-	if err = commandHandler.RegisterCustomer(ba.customerID, ba.emailAddress, ba.givenName, ba.familyName); err != nil {
+	if err = commandHandler.RegisterCustomer(v.customerID, v.emailAddress, v.givenName, v.familyName); err != nil {
 		b.FailNow()
 	}
 
 	for n := 0; n < 100; n++ {
 		if n%2 == 0 {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.String(), ba.newEmailAddress); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(v.customerID.String(), v.newEmailAddress); err != nil {
 				b.FailNow()
 			}
 		} else {
-			if err = commandHandler.ChangeCustomerEmailAddress(ba.customerID.String(), ba.emailAddress); err != nil {
+			if err = commandHandler.ChangeCustomerEmailAddress(v.customerID.String(), v.emailAddress); err != nil {
 				b.FailNow()
 			}
 		}

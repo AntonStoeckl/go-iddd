@@ -7,12 +7,11 @@ import (
 )
 
 type currentState struct {
-	id                           value.CustomerID
-	personName                   value.PersonName
-	emailAddress                 value.EmailAddress
-	emailAddressConfirmationHash value.ConfirmationHash
-	isDeleted                    bool
-	currentStreamVersion         uint
+	id                   value.CustomerID
+	personName           value.PersonName
+	emailAddress         value.EmailAddress
+	isDeleted            bool
+	currentStreamVersion uint
 }
 
 func buildCurrentStateFrom(eventStream es.EventStream) currentState {
@@ -24,12 +23,10 @@ func buildCurrentStateFrom(eventStream es.EventStream) currentState {
 			customer.id = actualEvent.CustomerID()
 			customer.personName = actualEvent.PersonName()
 			customer.emailAddress = actualEvent.EmailAddress()
-			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
 		case domain.CustomerEmailAddressConfirmed:
 			customer.emailAddress = actualEvent.EmailAddress()
 		case domain.CustomerEmailAddressChanged:
 			customer.emailAddress = actualEvent.EmailAddress()
-			customer.emailAddressConfirmationHash = actualEvent.ConfirmationHash()
 		case domain.CustomerNameChanged:
 			customer.personName = actualEvent.PersonName()
 		case domain.CustomerDeleted:

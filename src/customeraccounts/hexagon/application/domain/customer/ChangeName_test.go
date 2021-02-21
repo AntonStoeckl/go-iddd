@@ -18,10 +18,12 @@ func TestChangeName(t *testing.T) {
 		var recordedEvents es.RecordedEvents
 
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
-		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
-		personName := value.RebuildPersonName("Kevin", "Ball")
-		changedPersonName := value.RebuildPersonName("Latoya", "Ball")
+		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
+		So(err, ShouldBeNil)
+		personName, err := value.BuildPersonName("Kevin", "Ball")
+		So(err, ShouldBeNil)
+		changedPersonName, err := value.BuildPersonName("Latoya", "Ball")
+		So(err, ShouldBeNil)
 
 		command := domain.BuildChangeCustomerName(customerID, changedPersonName)
 		commandWithOriginalName := domain.BuildChangeCustomerName(customerID, personName)
@@ -29,7 +31,6 @@ func TestChangeName(t *testing.T) {
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
-			confirmationHash,
 			personName,
 			es.GenerateMessageID(),
 			1,
@@ -59,6 +60,7 @@ func TestChangeName(t *testing.T) {
 						So(event.IsFailureEvent(), ShouldBeFalse)
 						So(event.FailureReason(), ShouldBeNil)
 						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().MessageID(), ShouldNotBeEmpty)
 						So(event.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})

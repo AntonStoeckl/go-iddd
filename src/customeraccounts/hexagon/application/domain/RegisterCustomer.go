@@ -6,11 +6,10 @@ import (
 )
 
 type RegisterCustomer struct {
-	customerID       value.CustomerID
-	emailAddress     value.UnconfirmedEmailAddress
-	confirmationHash value.ConfirmationHash
-	personName       value.PersonName
-	messageID        es.MessageID
+	customerID   value.CustomerID
+	emailAddress value.UnconfirmedEmailAddress
+	personName   value.PersonName
+	messageID    es.MessageID
 }
 
 func BuildRegisterCustomer(
@@ -20,11 +19,10 @@ func BuildRegisterCustomer(
 ) RegisterCustomer {
 
 	command := RegisterCustomer{
-		customerID:       customerID,
-		emailAddress:     emailAddress,
-		confirmationHash: value.GenerateConfirmationHash(emailAddress.String()),
-		personName:       personName,
-		messageID:        es.GenerateMessageID(),
+		customerID:   customerID,
+		emailAddress: emailAddress,
+		personName:   personName,
+		messageID:    es.GenerateMessageID(),
 	}
 
 	return command
@@ -36,10 +34,6 @@ func (command RegisterCustomer) CustomerID() value.CustomerID {
 
 func (command RegisterCustomer) EmailAddress() value.UnconfirmedEmailAddress {
 	return command.emailAddress
-}
-
-func (command RegisterCustomer) ConfirmationHash() value.ConfirmationHash {
-	return command.confirmationHash
 }
 
 func (command RegisterCustomer) PersonName() value.PersonName {

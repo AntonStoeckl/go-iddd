@@ -18,18 +18,18 @@ func TestConfirmEmailAddress(t *testing.T) {
 		var recordedEvents es.RecordedEvents
 
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
-		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
+		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
+		So(err, ShouldBeNil)
 		invalidConfirmationHash := value.RebuildConfirmationHash("invalid_hash")
-		personName := value.RebuildPersonName("Kevin", "Ball")
+		personName, err := value.BuildPersonName("Kevin", "Ball")
+		So(err, ShouldBeNil)
 
-		command := domain.BuildConfirmCustomerEmailAddress(customerID, confirmationHash)
+		command := domain.BuildConfirmCustomerEmailAddress(customerID, emailAddress.ConfirmationHash())
 		commandWithInvalidHash := domain.BuildConfirmCustomerEmailAddress(customerID, invalidConfirmationHash)
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
-			confirmationHash,
 			personName,
 			es.GenerateMessageID(),
 			1,
@@ -63,6 +63,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 						So(event.CustomerID().Equals(customerID), ShouldBeTrue)
 						So(event.EmailAddress().Equals(emailAddress), ShouldBeTrue)
 						So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+						So(event.Meta().MessageID(), ShouldNotBeEmpty)
 						So(event.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})
@@ -86,6 +87,7 @@ func TestConfirmEmailAddress(t *testing.T) {
 						So(event.IsFailureEvent(), ShouldBeTrue)
 						So(event.FailureReason(), ShouldBeError)
 						So(event.Meta().CausationID(), ShouldEqual, commandWithInvalidHash.MessageID().String())
+						So(event.Meta().MessageID(), ShouldNotBeEmpty)
 						So(event.Meta().StreamVersion(), ShouldEqual, 2)
 					})
 				})
@@ -122,16 +124,8 @@ func TestConfirmEmailAddress(t *testing.T) {
 						recordedEvents, err = customer.ConfirmEmailAddress(eventStream, commandWithInvalidHash)
 						So(err, ShouldBeNil)
 
-						Convey("Then CustomerEmailAddressConfirmationFailed", func() {
-							So(recordedEvents, ShouldHaveLength, 1)
-							event, ok := recordedEvents[0].(domain.CustomerEmailAddressConfirmationFailed)
-							So(ok, ShouldBeTrue)
-							So(event.CustomerID().Equals(customerID), ShouldBeTrue)
-							So(event.ConfirmationHash().Equals(invalidConfirmationHash), ShouldBeTrue)
-							So(event.IsFailureEvent(), ShouldBeTrue)
-							So(event.FailureReason(), ShouldBeError)
-							So(event.Meta().CausationID(), ShouldEqual, commandWithInvalidHash.MessageID().String())
-							So(event.Meta().StreamVersion(), ShouldEqual, 3)
+						Convey("Then no event", func() {
+							So(recordedEvents, ShouldBeEmpty)
 						})
 					})
 				})
@@ -165,18 +159,18 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 		var recordedEvents es.RecordedEvents
 
 		customerID := value.GenerateCustomerID()
-		emailAddress := value.RebuildUnconfirmedEmailAddress("kevin@ball.com")
-		confirmationHash := value.GenerateConfirmationHash(emailAddress.String())
-		changedEmailAddress := value.RebuildUnconfirmedEmailAddress("latoya@ball.net")
-		changedConfirmationHash := value.GenerateConfirmationHash(changedEmailAddress.String())
-		personName := value.RebuildPersonName("Kevin", "Ball")
+		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
+		So(err, ShouldBeNil)
+		changedEmailAddress, err := value.BuildUnconfirmedEmailAddress("latoya@ball.net")
+		So(err, ShouldBeNil)
+		personName, err := value.BuildPersonName("Kevin", "Ball")
+		So(err, ShouldBeNil)
 
-		command := domain.BuildConfirmCustomerEmailAddress(customerID, changedConfirmationHash)
+		command := domain.BuildConfirmCustomerEmailAddress(customerID, changedEmailAddress.ConfirmationHash())
 
 		customerRegistered := domain.BuildCustomerRegistered(
 			customerID,
 			emailAddress,
-			confirmationHash,
 			personName,
 			es.GenerateMessageID(),
 			1,
@@ -192,7 +186,6 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 		customerEmailAddressChanged := domain.BuildCustomerEmailAddressChanged(
 			customerID,
 			changedEmailAddress,
-			changedConfirmationHash,
 			es.GenerateMessageID(),
 			3,
 		)
@@ -220,6 +213,7 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 								So(event.IsFailureEvent(), ShouldBeFalse)
 								So(event.FailureReason(), ShouldBeNil)
 								So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
+								So(event.Meta().MessageID(), ShouldNotBeEmpty)
 								So(event.Meta().StreamVersion(), ShouldEqual, 4)
 							})
 						})

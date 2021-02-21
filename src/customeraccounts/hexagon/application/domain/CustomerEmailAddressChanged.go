@@ -6,24 +6,21 @@ import (
 )
 
 type CustomerEmailAddressChanged struct {
-	customerID       value.CustomerID
-	emailAddress     value.UnconfirmedEmailAddress
-	confirmationHash value.ConfirmationHash
-	meta             es.EventMeta
+	customerID   value.CustomerID
+	emailAddress value.UnconfirmedEmailAddress
+	meta         es.EventMeta
 }
 
 func BuildCustomerEmailAddressChanged(
 	customerID value.CustomerID,
 	emailAddress value.UnconfirmedEmailAddress,
-	confirmationHash value.ConfirmationHash,
 	causationID es.MessageID,
 	streamVersion uint,
 ) CustomerEmailAddressChanged {
 
 	event := CustomerEmailAddressChanged{
-		customerID:       customerID,
-		emailAddress:     emailAddress,
-		confirmationHash: confirmationHash,
+		customerID:   customerID,
+		emailAddress: emailAddress,
 	}
 
 	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
@@ -39,10 +36,9 @@ func RebuildCustomerEmailAddressChanged(
 ) CustomerEmailAddressChanged {
 
 	event := CustomerEmailAddressChanged{
-		customerID:       value.RebuildCustomerID(customerID),
-		emailAddress:     value.RebuildUnconfirmedEmailAddress(emailAddress),
-		confirmationHash: value.RebuildConfirmationHash(confirmationHash),
-		meta:             meta,
+		customerID:   value.RebuildCustomerID(customerID),
+		emailAddress: value.RebuildUnconfirmedEmailAddress(emailAddress, confirmationHash),
+		meta:         meta,
 	}
 
 	return event
@@ -54,10 +50,6 @@ func (event CustomerEmailAddressChanged) CustomerID() value.CustomerID {
 
 func (event CustomerEmailAddressChanged) EmailAddress() value.UnconfirmedEmailAddress {
 	return event.emailAddress
-}
-
-func (event CustomerEmailAddressChanged) ConfirmationHash() value.ConfirmationHash {
-	return event.confirmationHash
 }
 
 func (event CustomerEmailAddressChanged) Meta() es.EventMeta {

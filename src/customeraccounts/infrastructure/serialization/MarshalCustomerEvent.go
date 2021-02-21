@@ -41,7 +41,7 @@ func marshalCustomerRegistered(event domain.CustomerRegistered) []byte {
 	data := CustomerRegisteredForJSON{
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
-		ConfirmationHash: event.ConfirmationHash().String(),
+		ConfirmationHash: event.EmailAddress().ConfirmationHash().String(),
 		PersonGivenName:  event.PersonName().GivenName(),
 		PersonFamilyName: event.PersonName().FamilyName(),
 		Meta:             marshalEventMeta(event),
@@ -81,7 +81,7 @@ func marshalCustomerEmailAddressChanged(event domain.CustomerEmailAddressChanged
 	data := CustomerEmailAddressChangedForJSON{
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
-		ConfirmationHash: event.ConfirmationHash().String(),
+		ConfirmationHash: event.EmailAddress().ConfirmationHash().String(),
 		Meta:             marshalEventMeta(event),
 	}
 

@@ -6,10 +6,9 @@ import (
 )
 
 type ChangeCustomerEmailAddress struct {
-	customerID       value.CustomerID
-	emailAddress     value.UnconfirmedEmailAddress
-	confirmationHash value.ConfirmationHash
-	messageID        es.MessageID
+	customerID   value.CustomerID
+	emailAddress value.UnconfirmedEmailAddress
+	messageID    es.MessageID
 }
 
 func BuildChangeCustomerEmailAddress(
@@ -18,10 +17,9 @@ func BuildChangeCustomerEmailAddress(
 ) ChangeCustomerEmailAddress {
 
 	changeEmailAddress := ChangeCustomerEmailAddress{
-		customerID:       customerID,
-		emailAddress:     emailAddress,
-		confirmationHash: value.GenerateConfirmationHash(emailAddress.String()),
-		messageID:        es.GenerateMessageID(),
+		customerID:   customerID,
+		emailAddress: emailAddress,
+		messageID:    es.GenerateMessageID(),
 	}
 
 	return changeEmailAddress
@@ -33,10 +31,6 @@ func (command ChangeCustomerEmailAddress) CustomerID() value.CustomerID {
 
 func (command ChangeCustomerEmailAddress) EmailAddress() value.UnconfirmedEmailAddress {
 	return command.emailAddress
-}
-
-func (command ChangeCustomerEmailAddress) ConfirmationHash() value.ConfirmationHash {
-	return command.confirmationHash
 }
 
 func (command ChangeCustomerEmailAddress) MessageID() es.MessageID {
