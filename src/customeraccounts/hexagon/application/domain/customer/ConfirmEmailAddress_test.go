@@ -35,9 +35,12 @@ func TestConfirmEmailAddress(t *testing.T) {
 			1,
 		)
 
+		confirmedEmailAddress, err := value.ConfirmEmailAddressWithHash(emailAddress, emailAddress.ConfirmationHash())
+		So(err, ShouldBeNil)
+
 		customerEmailAddressConfirmed := domain.BuildCustomerEmailAddressConfirmed(
 			customerID,
-			value.ToConfirmedEmailAddress(emailAddress),
+			confirmedEmailAddress,
 			es.GenerateMessageID(),
 			2,
 		)
@@ -176,9 +179,12 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 			1,
 		)
 
+		confirmedEmailAddress, err := value.ConfirmEmailAddressWithHash(emailAddress, emailAddress.ConfirmationHash())
+		So(err, ShouldBeNil)
+
 		customerEmailAddressConfirmed := domain.BuildCustomerEmailAddressConfirmed(
 			customerID,
-			value.ToConfirmedEmailAddress(emailAddress),
+			confirmedEmailAddress,
 			es.GenerateMessageID(),
 			2,
 		)

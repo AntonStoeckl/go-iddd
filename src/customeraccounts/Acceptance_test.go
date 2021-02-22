@@ -234,7 +234,7 @@ func TestCustomerAcceptanceScenarios_ForConfirmingCustomerEmailAddresses(t *test
 					givenCustomerEmailAddressWasConfirmed(v.customerID, v.emailAddress, 2)
 
 					Convey("When she tries to confirm her email address again with a wrong confirmation hash", func() {
-						err = ac.confirmCustomerEmailAddress(v.customerID.String(), v.emailAddress.ConfirmationHash().String())
+						err = ac.confirmCustomerEmailAddress(v.customerID.String(), v.ch)
 						So(err, ShouldBeNil)
 
 						Convey("Then her email address should still be confirmed", func() {
@@ -558,7 +558,7 @@ func TestCustomerAcceptanceScenarios_ForDeletingCustomers(t *testing.T) {
 					})
 
 					Convey("And when she tries to confirm her email address", func() {
-						err = ac.confirmCustomerEmailAddress(v.customerID.String(), v.emailAddress.ConfirmationHash().String())
+						err = ac.confirmCustomerEmailAddress(v.customerID.String(), v.ch)
 
 						Convey("Then she should receive an error", func() {
 							So(err, ShouldBeError)
@@ -743,14 +743,17 @@ func givenCustomerEmailAddressWasConfirmed(
 	streamVersion uint,
 ) {
 
+	confirmedEmailAddress, err := value.ConfirmEmailAddressWithHash(emailAddress, emailAddress.ConfirmationHash())
+	So(err, ShouldBeNil)
+
 	event := domain.BuildCustomerEmailAddressConfirmed(
 		customerID,
-		value.ToConfirmedEmailAddress(emailAddress),
+		confirmedEmailAddress,
 		es.GenerateMessageID(),
 		streamVersion,
 	)
 
-	err := atAppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
+	err = atAppendToCustomerEventStream(es.RecordedEvents{event}, customerID)
 	So(err, ShouldBeNil)
 }
 

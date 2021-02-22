@@ -18,7 +18,8 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 	case value.ConfirmedEmailAddress:
 		return nil, nil
 	case value.UnconfirmedEmailAddress:
-		err := assertMatchingConfirmationHash(actualEmailAddress.ConfirmationHash(), command.ConfirmationHash())
+		confirmedEmailAddress, err := value.ConfirmEmailAddressWithHash(actualEmailAddress, command.ConfirmationHash())
+
 		if err != nil {
 			return es.RecordedEvents{
 				domain.BuildCustomerEmailAddressConfirmationFailed(
@@ -34,7 +35,7 @@ func ConfirmEmailAddress(eventStream es.EventStream, command domain.ConfirmCusto
 		return es.RecordedEvents{
 			domain.BuildCustomerEmailAddressConfirmed(
 				command.CustomerID(),
-				value.ToConfirmedEmailAddress(customer.emailAddress),
+				confirmedEmailAddress,
 				command.MessageID(),
 				customer.currentStreamVersion+1,
 			),
