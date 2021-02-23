@@ -8,17 +8,20 @@ import (
 type RegisterIdentity struct {
 	identityID   value.IdentityID
 	emailAddress value.UnconfirmedEmailAddress
+	password     value.HashedPassword
 	messageID    es.MessageID
 }
 
 func BuildRegisterIdentity(
 	identityID value.IdentityID,
 	emailAddress value.UnconfirmedEmailAddress,
+	password value.HashedPassword,
 ) RegisterIdentity {
 
 	command := RegisterIdentity{
 		identityID:   identityID,
 		emailAddress: emailAddress,
+		password:     password,
 		messageID:    es.GenerateMessageID(),
 	}
 
@@ -31,6 +34,10 @@ func (command RegisterIdentity) IdentityID() value.IdentityID {
 
 func (command RegisterIdentity) EmailAddress() value.UnconfirmedEmailAddress {
 	return command.emailAddress
+}
+
+func (command RegisterIdentity) Password() value.HashedPassword {
+	return command.password
 }
 
 func (command RegisterIdentity) MessageID() es.MessageID {

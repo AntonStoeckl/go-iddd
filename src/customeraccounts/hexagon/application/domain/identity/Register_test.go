@@ -14,10 +14,15 @@ func TestRegister(t *testing.T) {
 		identityID := value.GenerateIdentityID()
 		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
 		So(err, ShouldBeNil)
+		plainPassword, err := value.BuildPlainPassword("superSecretPW123")
+		So(err, ShouldBeNil)
+		hashedPassword, err := value.HashedPasswordFromPlainPassword(plainPassword)
+		So(err, ShouldBeNil)
 
 		command := domain.BuildRegisterIdentity(
 			identityID,
 			emailAddress,
+			hashedPassword,
 		)
 
 		Convey("\nSCENARIO: Register an Identity", func() {
@@ -28,6 +33,8 @@ func TestRegister(t *testing.T) {
 					So(event.IdentityID().Equals(identityID), ShouldBeTrue)
 					So(event.EmailAddress().Equals(emailAddress), ShouldBeTrue)
 					So(event.EmailAddress().ConfirmationHash().Equals(emailAddress.ConfirmationHash()), ShouldBeTrue)
+					So(event.Password().Equals(hashedPassword), ShouldBeTrue)
+					So(event.Password().CompareWith(plainPassword), ShouldBeTrue)
 					So(event.IsFailureEvent(), ShouldBeFalse)
 					So(event.FailureReason(), ShouldBeNil)
 					So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())
