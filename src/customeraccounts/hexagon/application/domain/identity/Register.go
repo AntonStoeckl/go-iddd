@@ -8,6 +8,7 @@ func Register(command domain.RegisterIdentity) domain.IdentityRegistered {
 	event := domain.BuildIdentityRegistered(
 		command.IdentityID(),
 		command.EmailAddress(),
+		command.Password(),
 		command.MessageID(),
 		1,
 	)

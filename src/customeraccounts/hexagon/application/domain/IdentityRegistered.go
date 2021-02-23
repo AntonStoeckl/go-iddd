@@ -8,12 +8,14 @@ import (
 type IdentityRegistered struct {
 	identityID   value.IdentityID
 	emailAddress value.UnconfirmedEmailAddress
+	password     value.HashedPassword
 	meta         es.EventMeta
 }
 
 func BuildIdentityRegistered(
 	identityID value.IdentityID,
 	emailAddress value.UnconfirmedEmailAddress,
+	password value.HashedPassword,
 	causationID es.MessageID,
 	streamVersion uint,
 ) IdentityRegistered {
@@ -21,6 +23,7 @@ func BuildIdentityRegistered(
 	event := IdentityRegistered{
 		identityID:   identityID,
 		emailAddress: emailAddress,
+		password:     password,
 	}
 
 	event.meta = es.BuildEventMeta(event, causationID, streamVersion)
@@ -50,6 +53,10 @@ func (event IdentityRegistered) IdentityID() value.IdentityID {
 
 func (event IdentityRegistered) EmailAddress() value.UnconfirmedEmailAddress {
 	return event.emailAddress
+}
+
+func (event IdentityRegistered) Password() value.HashedPassword {
+	return event.password
 }
 
 func (event IdentityRegistered) Meta() es.EventMeta {
