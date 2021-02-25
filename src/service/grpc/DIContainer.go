@@ -113,11 +113,11 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 }
 
 func (container *DIContainer) init() {
-	_ = container.GetEventStore()
+	_ = container.getEventStore()
 	_ = container.GetCustomerEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
-	_ = container.GetGRPCCustomerServer()
+	_ = container.getGRPCCustomerServer()
 	_ = container.GetGRPCServer()
 }
 
@@ -125,7 +125,7 @@ func (container *DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.infra.pgDBConn
 }
 
-func (container *DIContainer) GetEventStore() *postgres.EventStore {
+func (container *DIContainer) getEventStore() *postgres.EventStore {
 	if container.service.eventStore == nil {
 		container.service.eventStore = postgres.NewEventStore(
 			eventStoreTableName,
@@ -139,11 +139,18 @@ func (container *DIContainer) GetEventStore() *postgres.EventStore {
 
 func (container *DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
 	if container.service.customerEventStore == nil {
-		container.service.customerEventStore = postgres.NewCustomerEventStore(
-			container.infra.pgDBConn,
-			container.GetEventStore(),
+		uniqueCustomerEmailAddresses := postgres.NewUniqueCustomerEmailAddresses(
 			uniqueEmailAddressesTableName,
 			container.dependency.buildUniqueEmailAddressAssertions,
+		)
+
+		container.service.customerEventStore = postgres.NewCustomerEventStore(
+			container.infra.pgDBConn,
+			container.getEventStore().RetrieveEventStream,
+			container.getEventStore().AppendEventsToStream,
+			container.getEventStore().PurgeEventStream,
+			uniqueCustomerEmailAddresses.AssertUniqueEmailAddress,
+			uniqueCustomerEmailAddresses.PurgeUniqueEmailAddress,
 		)
 	}
 
@@ -172,7 +179,7 @@ func (container *DIContainer) GetCustomerQueryHandler() *application.CustomerQue
 	return container.service.customerQueryHandler
 }
 
-func (container *DIContainer) GetGRPCCustomerServer() customergrpcproto.CustomerServer {
+func (container *DIContainer) getGRPCCustomerServer() customergrpcproto.CustomerServer {
 	if container.service.grpcCustomerServer == nil {
 		container.service.grpcCustomerServer = customergrpc.NewCustomerServer(
 			container.GetCustomerCommandHandler().RegisterCustomer,
@@ -190,7 +197,7 @@ func (container *DIContainer) GetGRPCCustomerServer() customergrpcproto.Customer
 func (container *DIContainer) GetGRPCServer() *grpc.Server {
 	if container.service.grpcServer == nil {
 		container.service.grpcServer = grpc.NewServer()
-		customergrpcproto.RegisterCustomerServer(container.service.grpcServer, container.GetGRPCCustomerServer())
+		customergrpcproto.RegisterCustomerServer(container.service.grpcServer, container.getGRPCCustomerServer())
 		reflection.Register(container.service.grpcServer)
 	}
 
