@@ -82,6 +82,7 @@ type DIContainer struct {
 	}
 
 	service struct {
+		eventStore             *postgres.EventStore
 		customerEventStore     *postgres.CustomerEventStore
 		customerCommandHandler *application.CustomerCommandHandler
 		customerQueryHandler   *application.CustomerQueryHandler
@@ -112,6 +113,7 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 }
 
 func (container *DIContainer) init() {
+	_ = container.GetEventStore()
 	_ = container.GetCustomerEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
@@ -123,13 +125,23 @@ func (container *DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.infra.pgDBConn
 }
 
+func (container *DIContainer) GetEventStore() *postgres.EventStore {
+	if container.service.eventStore == nil {
+		container.service.eventStore = postgres.NewEventStore(
+			eventStoreTableName,
+			container.dependency.marshalCustomerEvent,
+			container.dependency.unmarshalCustomerEvent,
+		)
+	}
+
+	return container.service.eventStore
+}
+
 func (container *DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
 	if container.service.customerEventStore == nil {
 		container.service.customerEventStore = postgres.NewCustomerEventStore(
 			container.infra.pgDBConn,
-			eventStoreTableName,
-			container.dependency.marshalCustomerEvent,
-			container.dependency.unmarshalCustomerEvent,
+			container.GetEventStore(),
 			uniqueEmailAddressesTableName,
 			container.dependency.buildUniqueEmailAddressAssertions,
 		)

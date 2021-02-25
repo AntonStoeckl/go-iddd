@@ -16,29 +16,31 @@ import (
 
 const streamPrefix = "customer"
 
+type forRetrievingEventStreams func(streamID es.StreamID, fromVersion uint, maxEvents uint, db *sql.DB) (es.EventStream, error)
+type forAppendingEventsToStreams func(streamID es.StreamID, events []es.DomainEvent, tx *sql.Tx) error
+type forPurgingEventStreams func(streamID es.StreamID, tx *sql.Tx) error
+
 type CustomerEventStore struct {
 	db                                *sql.DB
-	eventStoreTableName               string
-	marshalDomainEvent                es.MarshalDomainEvent
-	unmarshalDomainEvent              es.UnmarshalDomainEvent
+	retrieveEventStream               forRetrievingEventStreams
+	appendEventsToStream              forAppendingEventsToStreams
+	purgeEventStream                  forPurgingEventStreams
 	uniqueEmailAddressesTableName     string
 	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions
 }
 
 func NewCustomerEventStore(
 	db *sql.DB,
-	eventStoreTableName string,
-	marshalDomainEvent es.MarshalDomainEvent,
-	unmarshalDomainEvent es.UnmarshalDomainEvent,
+	eventStore *EventStore,
 	uniqueEmailAddressesTableName string,
 	buildUniqueEmailAddressAssertions customer.ForBuildingUniqueEmailAddressAssertions,
 ) *CustomerEventStore {
 
 	return &CustomerEventStore{
 		db:                                db,
-		eventStoreTableName:               eventStoreTableName,
-		marshalDomainEvent:                marshalDomainEvent,
-		unmarshalDomainEvent:              unmarshalDomainEvent,
+		retrieveEventStream:               eventStore.RetrieveEventStream,
+		appendEventsToStream:              eventStore.AppendEventsToStream,
+		purgeEventStream:                  eventStore.PurgeEventStream,
 		uniqueEmailAddressesTableName:     uniqueEmailAddressesTableName,
 		buildUniqueEmailAddressAssertions: buildUniqueEmailAddressAssertions,
 	}
@@ -47,7 +49,7 @@ func NewCustomerEventStore(
 func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventStream, error) {
 	wrapWithMsg := "customerEventStore.RetrieveEventStream"
 
-	eventStream, err := s.loadEventStream(s.streamID(id), 0, math.MaxUint32)
+	eventStream, err := s.retrieveEventStream(s.streamID(id), 0, math.MaxUint32, s.db)
 	if err != nil {
 		return nil, errors.Wrap(err, wrapWithMsg)
 	}
@@ -77,7 +79,10 @@ func (s *CustomerEventStore) StartEventStream(customerRegistered domain.Customer
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = s.appendEventsToStream(tx, s.streamID(customerRegistered.CustomerID()), customerRegistered); err != nil {
+	events := []es.DomainEvent{customerRegistered}
+	streamID := s.streamID(customerRegistered.CustomerID())
+
+	if err = s.appendEventsToStream(streamID, events, tx); err != nil {
 		_ = tx.Rollback()
 
 		if errors.Is(err, shared.ErrConcurrencyConflict) {
@@ -111,7 +116,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = s.appendEventsToStream(tx, s.streamID(id), recordedEvents...); err != nil {
+	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -133,7 +138,13 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	if err = s.clearUniqueEmailAddress(id, tx); err != nil {
+	if err = s.remove(id, tx); err != nil {
+		_ = tx.Rollback()
+
+		return errors.Wrap(err, wrapWithMsg)
+	}
+
+	if err = s.purgeEventStream(s.streamID(id), tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)
@@ -143,125 +154,11 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 		return shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 	}
 
-	if err := s.purgeEventStream(s.streamID(id)); err != nil {
-		return errors.Wrap(err, wrapWithMsg)
-	}
-
 	return nil
 }
 
 func (s *CustomerEventStore) streamID(id value.CustomerID) es.StreamID {
 	return es.BuildStreamID(streamPrefix + "-" + id.String())
-}
-
-/***** local methods for reading from and writing to the event store *****/
-
-func (s *CustomerEventStore) loadEventStream(
-	streamID es.StreamID,
-	fromVersion uint,
-	maxEvents uint,
-) (es.EventStream, error) {
-
-	var err error
-	wrapWithMsg := "loadEventStream"
-
-	queryTemplate := `SELECT event_name, payload, stream_version FROM %name% 
-						WHERE stream_id = $1 AND stream_version >= $2
-						ORDER BY stream_version ASC
-						LIMIT $3`
-
-	query := strings.Replace(queryTemplate, "%name%", s.eventStoreTableName, 1)
-
-	eventRows, err := s.db.Query(query, streamID.String(), fromVersion, maxEvents)
-	if err != nil {
-		return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
-	}
-
-	defer eventRows.Close()
-
-	var eventStream es.EventStream
-	var eventName string
-	var payload string
-	var streamVersion uint
-	var domainEvent es.DomainEvent
-
-	for eventRows.Next() {
-		if eventRows.Err() != nil {
-			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
-		}
-
-		if err = eventRows.Scan(&eventName, &payload, &streamVersion); err != nil {
-			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
-		}
-
-		if domainEvent, err = s.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
-			return nil, shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, wrapWithMsg)
-		}
-
-		eventStream = append(eventStream, domainEvent)
-	}
-
-	return eventStream, nil
-}
-
-func (s *CustomerEventStore) appendEventsToStream(
-	tx *sql.Tx,
-	streamID es.StreamID,
-	events ...es.DomainEvent,
-) error {
-
-	var err error
-	wrapWithMsg := "appendEventsToStream"
-
-	queryTemplate := `INSERT INTO %name% (stream_id, stream_version, event_name, occurred_at, payload)
-						VALUES ($1, $2, $3, $4, $5)`
-	query := strings.Replace(queryTemplate, "%name%", s.eventStoreTableName, 1)
-
-	for _, event := range events {
-		var eventJSON []byte
-
-		eventJSON, err = s.marshalDomainEvent(event)
-		if err != nil {
-			return shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, wrapWithMsg)
-		}
-
-		_, err = tx.Exec(
-			query,
-			streamID.String(),
-			event.Meta().StreamVersion(),
-			event.Meta().EventName(),
-			event.Meta().OccurredAt(),
-			eventJSON,
-		)
-
-		if err != nil {
-			return errors.Wrap(s.mapEventStorePostgresErrors(err), wrapWithMsg)
-		}
-	}
-
-	return nil
-}
-
-func (s *CustomerEventStore) purgeEventStream(streamID es.StreamID) error {
-	queryTemplate := `DELETE FROM %name% WHERE stream_id = $1`
-	query := strings.Replace(queryTemplate, "%name%", s.eventStoreTableName, 1)
-
-	if _, err := s.db.Exec(query, streamID.String()); err != nil {
-		return shared.MarkAndWrapError(err, shared.ErrTechnical, "purgeEventStream")
-	}
-
-	return nil
-}
-
-func (s *CustomerEventStore) mapEventStorePostgresErrors(err error) error {
-	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
-	if actualErr, ok := err.(*pq.Error); ok {
-		if actualErr.Code == "23505" {
-			return errors.Mark(err, shared.ErrConcurrencyConflict)
-		}
-	}
-
-	return errors.Mark(err, shared.ErrTechnical) // some other DB error (Tx closed, wrong table, ...)
 }
 
 /***** local methods for asserting unique email addresses *****/
@@ -284,22 +181,6 @@ func (s *CustomerEventStore) assertUniqueEmailAddress(assertions customer.Unique
 				return errors.Wrap(err, wrapWithMsg)
 			}
 		}
-	}
-
-	return nil
-}
-
-func (s *CustomerEventStore) clearUniqueEmailAddress(customerID value.CustomerID, tx *sql.Tx) error {
-	queryTemplate := `DELETE FROM %tablename% WHERE customer_id = $1`
-	query := strings.Replace(queryTemplate, "%tablename%", s.uniqueEmailAddressesTableName, 1)
-
-	_, err := tx.Exec(
-		query,
-		customerID.String(),
-	)
-
-	if err != nil {
-		return s.mapUniqueEmailAddressPostgresErrors(err)
 	}
 
 	return nil
@@ -373,7 +254,7 @@ func (s *CustomerEventStore) mapUniqueEmailAddressPostgresErrors(err error) erro
 	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
 	if actualErr, ok := err.(*pq.Error); ok {
 		if actualErr.Code == "23505" {
-			return errors.Mark(errors.Newf("duplicate email address"), shared.ErrDuplicate)
+			return errors.Mark(errors.New("duplicate email address"), shared.ErrDuplicate)
 		}
 	}
 
