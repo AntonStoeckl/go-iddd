@@ -9,6 +9,8 @@ var (
 
 	ErrDomainConstraintsViolation = errors.New("domain constraints violation")
 
+	ErrInvalidCredentials = errors.New("invalid credentitals supplied")
+
 	ErrMaxRetriesExceeded  = errors.New("max retries exceeded")
 	ErrConcurrencyConflict = errors.New("concurrency conflict")
 
