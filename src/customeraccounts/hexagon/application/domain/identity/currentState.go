@@ -15,21 +15,23 @@ type currentState struct {
 }
 
 func buildCurrentStateFrom(eventStream es.EventStream) currentState {
-	customer := currentState{}
+	identity := currentState{}
 
 	for _, event := range eventStream {
 		switch actualEvent := event.(type) {
 		case domain.IdentityRegistered:
-			customer.id = actualEvent.IdentityID()
-			customer.emailAddress = actualEvent.EmailAddress()
-			customer.password = actualEvent.Password()
+			identity.id = actualEvent.IdentityID()
+			identity.emailAddress = actualEvent.EmailAddress()
+			identity.password = actualEvent.Password()
+		case domain.IdentityDeleted:
+			identity.isDeleted = true
 		default:
 			// until Go has "sum types" we need to use an interface (Event) and this case could exist - we don't want to hide it
 			panic("buildCurrentStateFrom(eventStream): unknown event " + event.Meta().EventName())
 		}
 
-		customer.currentStreamVersion = event.Meta().StreamVersion()
+		identity.currentStreamVersion = event.Meta().StreamVersion()
 	}
 
-	return customer
+	return identity
 }

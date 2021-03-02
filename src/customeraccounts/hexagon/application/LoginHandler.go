@@ -1,31 +1,32 @@
 package application
 
 import (
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/identity"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/identity/value"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
 )
 
-type IdentityLoginHandler struct {
+type LoginHandler struct {
 	findIndentity               ForFindingIdentities
 	retrieveIdentityEventStream ForRetrievingIdentityEventStreams
 }
 
-func NewIdentityLoginHandler(retrieveIdentityEventStream ForRetrievingIdentityEventStreams) *IdentityLoginHandler {
-	return &IdentityLoginHandler{
+func NewLoginHandler(retrieveIdentityEventStream ForRetrievingIdentityEventStreams) *LoginHandler {
+	return &LoginHandler{
 		retrieveIdentityEventStream: retrieveIdentityEventStream,
 	}
 }
 
-func (h *IdentityLoginHandler) Login(emailAddress, password string) (bool, error) {
+func (h *LoginHandler) Login(emailAddress, password string) (bool, error) {
 	var err error
 	var identityIDValue value.IdentityID
 	var emailAddressValue value.UnconfirmedEmailAddress
 	var passwordValue value.PlainPassword
 	var eventStream es.EventStream
 
-	wrapWithMsg := "identityLoginHandler.Login"
+	wrapWithMsg := "loginHandler.Login"
 
 	if emailAddressValue, err = value.BuildUnconfirmedEmailAddress(emailAddress); err != nil {
 		return false, errors.Wrap(err, wrapWithMsg)
@@ -43,7 +44,11 @@ func (h *IdentityLoginHandler) Login(emailAddress, password string) (bool, error
 		return false, errors.Wrap(err, wrapWithMsg)
 	}
 
-	identity.ComparePasswords(eventStream, passwordValue)
+	query := domain.BuildIsMatchingPasswordForIdentity(passwordValue)
+
+	if err = identity.IsMatchingPassword(eventStream, query); err != nil {
+		return false, errors.Wrap(err, wrapWithMsg)
+	}
 
 	return true, nil
 }
