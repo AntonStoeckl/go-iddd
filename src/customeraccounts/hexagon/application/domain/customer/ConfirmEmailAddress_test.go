@@ -196,7 +196,7 @@ func TestConfirmEmailAddressAfterItWasChanged(t *testing.T) {
 			3,
 		)
 
-		Convey("\nSCENARIO 1: ConfirmEmailAddress a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
+		Convey("\nSCENARIO 1: Confirm a Customer's changed emailAddress, after the original emailAddress was confirmed", func() {
 			Convey("Given CustomerRegistered", func() {
 				eventStream := es.EventStream{customerRegistered}
 
