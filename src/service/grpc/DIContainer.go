@@ -82,7 +82,7 @@ type DIContainer struct {
 	}
 
 	service struct {
-		eventStore             *postgres.EventStore
+		eventStore             *es.EventStore
 		customerEventStore     *postgres.CustomerEventStore
 		customerCommandHandler *application.CustomerCommandHandler
 		customerQueryHandler   *application.CustomerQueryHandler
@@ -125,9 +125,9 @@ func (container *DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.infra.pgDBConn
 }
 
-func (container *DIContainer) getEventStore() *postgres.EventStore {
+func (container *DIContainer) getEventStore() *es.EventStore {
 	if container.service.eventStore == nil {
-		container.service.eventStore = postgres.NewEventStore(
+		container.service.eventStore = es.NewEventStore(
 			eventStoreTableName,
 			container.dependency.marshalCustomerEvent,
 			container.dependency.unmarshalCustomerEvent,

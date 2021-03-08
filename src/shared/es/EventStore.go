@@ -1,25 +1,24 @@
-package postgres
+package es
 
 import (
 	"database/sql"
 	"strings"
 
 	"github.com/AntonStoeckl/go-iddd/src/shared"
-	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
 	"github.com/lib/pq"
 )
 
 type EventStore struct {
 	eventStoreTableName  string
-	marshalDomainEvent   es.MarshalDomainEvent
-	unmarshalDomainEvent es.UnmarshalDomainEvent
+	marshalDomainEvent   MarshalDomainEvent
+	unmarshalDomainEvent UnmarshalDomainEvent
 }
 
 func NewEventStore(
 	eventStoreTableName string,
-	marshalDomainEvent es.MarshalDomainEvent,
-	unmarshalDomainEvent es.UnmarshalDomainEvent,
+	marshalDomainEvent MarshalDomainEvent,
+	unmarshalDomainEvent UnmarshalDomainEvent,
 ) *EventStore {
 
 	return &EventStore{
@@ -30,11 +29,11 @@ func NewEventStore(
 }
 
 func (s *EventStore) RetrieveEventStream(
-	streamID es.StreamID,
+	streamID StreamID,
 	fromVersion uint,
 	maxEvents uint,
 	db *sql.DB,
-) (es.EventStream, error) {
+) (EventStream, error) {
 
 	var err error
 	wrapWithMsg := "retrieveEventStream"
@@ -53,11 +52,11 @@ func (s *EventStore) RetrieveEventStream(
 
 	defer eventRows.Close()
 
-	var eventStream es.EventStream
+	var eventStream EventStream
 	var eventName string
 	var payload string
 	var streamVersion uint
-	var domainEvent es.DomainEvent
+	var domainEvent DomainEvent
 
 	for eventRows.Next() {
 		if eventRows.Err() != nil {
@@ -79,8 +78,8 @@ func (s *EventStore) RetrieveEventStream(
 }
 
 func (s *EventStore) AppendEventsToStream(
-	streamID es.StreamID,
-	events []es.DomainEvent,
+	streamID StreamID,
+	events []DomainEvent,
 	tx *sql.Tx,
 ) error {
 
@@ -117,7 +116,7 @@ func (s *EventStore) AppendEventsToStream(
 }
 
 func (s *EventStore) PurgeEventStream(
-	streamID es.StreamID,
+	streamID StreamID,
 	tx *sql.Tx,
 ) error {
 
