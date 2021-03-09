@@ -13,9 +13,6 @@ import (
 
 const streamPrefix = "customer"
 
-type forRetrievingEventStreams func(streamID es.StreamID, fromVersion uint, maxEvents uint, db *sql.DB) (es.EventStream, error)
-type forAppendingEventsToStreams func(streamID es.StreamID, events []es.DomainEvent, tx *sql.Tx) error
-type forPurgingEventStreams func(streamID es.StreamID, tx *sql.Tx) error
 type forAssertingUniqueEmailAddresses func(recordedEvents []es.DomainEvent, tx *sql.Tx) error
 type forPurgingUniqueEmailAddresses func(customerID value.CustomerID, tx *sql.Tx) error
 
