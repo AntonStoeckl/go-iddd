@@ -9,13 +9,14 @@ import (
 )
 
 type LoginHandler struct {
-	findIndentity               ForFindingIdentities
-	retrieveIdentityEventStream ForRetrievingIdentityEventStreams
+	identities           ForStoringUniqueIdentities
+	identityEventStreams ForStoringIdentityEventStreams
 }
 
-func NewLoginHandler(retrieveIdentityEventStream ForRetrievingIdentityEventStreams) *LoginHandler {
+func NewLoginHandler() *LoginHandler {
 	return &LoginHandler{
-		retrieveIdentityEventStream: retrieveIdentityEventStream,
+		identities:           nil,
+		identityEventStreams: nil,
 	}
 }
 
@@ -36,11 +37,11 @@ func (h *LoginHandler) Login(emailAddress, password string) (bool, error) {
 		return false, errors.Wrap(err, wrapWithMsg)
 	}
 
-	if identityIDValue, err = h.findIndentity(emailAddressValue); err != nil {
+	if identityIDValue, err = h.identities.FindIdentity(emailAddressValue); err != nil {
 		return false, errors.Wrap(err, wrapWithMsg)
 	}
 
-	if eventStream, err = h.retrieveIdentityEventStream(identityIDValue); err != nil {
+	if eventStream, err = h.identityEventStreams.RetrieveIdentityEventStream(identityIDValue); err != nil {
 		return false, errors.Wrap(err, wrapWithMsg)
 	}
 

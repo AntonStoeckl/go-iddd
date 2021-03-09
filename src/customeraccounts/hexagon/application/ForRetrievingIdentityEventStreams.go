@@ -6,3 +6,7 @@ import (
 )
 
 type ForRetrievingIdentityEventStreams func(id value.IdentityID) (es.EventStream, error)
+
+type ForStoringIdentityEventStreams interface {
+	RetrieveIdentityEventStream(id value.IdentityID) (es.EventStream, error)
+}

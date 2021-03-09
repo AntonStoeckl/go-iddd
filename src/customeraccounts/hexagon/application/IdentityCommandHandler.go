@@ -5,10 +5,15 @@ import (
 )
 
 type IdentityCommandHandler struct {
+	identities           ForStoringUniqueIdentities
+	identityEventStreams ForStoringIdentityEventStreams
 }
 
 func NewIdentityCommandHandler() *IdentityCommandHandler {
-	return &IdentityCommandHandler{}
+	return &IdentityCommandHandler{
+		identities:           nil,
+		identityEventStreams: nil,
+	}
 }
 
 func (h *IdentityCommandHandler) RegisterIdentity(
