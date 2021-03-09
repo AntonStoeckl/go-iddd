@@ -1,6 +1,6 @@
 module github.com/AntonStoeckl/go-iddd
 
-go 1.15
+go 1.16
 
 require (
 	github.com/cockroachdb/errors v1.8.2
@@ -16,13 +16,13 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.10.0
 	github.com/rs/zerolog v1.20.0
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
-	golang.org/x/net v0.0.0-20210220033124-5f55cee0dc0d // indirect
-	golang.org/x/sys v0.0.0-20210220050731-9a76102bfb43 // indirect
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/text v0.3.5 // indirect
-	google.golang.org/genproto v0.0.0-20210219173056-d891e3cb3b5b
-	google.golang.org/grpc v1.35.0
+	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb
+	google.golang.org/grpc v1.36.0
 )
