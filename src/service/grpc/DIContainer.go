@@ -84,6 +84,7 @@ type DIContainer struct {
 	service struct {
 		eventStore             *es.EventStore
 		customerEventStore     *postgres.CustomerEventStore
+		identityEventStore     *postgres.IdentityEventStore
 		customerCommandHandler *application.CustomerCommandHandler
 		customerQueryHandler   *application.CustomerQueryHandler
 		grpcCustomerServer     customergrpcproto.CustomerServer
@@ -115,6 +116,7 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 func (container *DIContainer) init() {
 	_ = container.getEventStore()
 	_ = container.GetCustomerEventStore()
+	_ = container.GetIdentityEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
 	_ = container.getGRPCCustomerServer()
@@ -155,6 +157,19 @@ func (container *DIContainer) GetCustomerEventStore() *postgres.CustomerEventSto
 	}
 
 	return container.service.customerEventStore
+}
+
+func (container *DIContainer) GetIdentityEventStore() *postgres.IdentityEventStore {
+	if container.service.identityEventStore == nil {
+		container.service.identityEventStore = postgres.NewIdentityEventStore(
+			container.infra.pgDBConn,
+			container.getEventStore().RetrieveEventStream,
+			container.getEventStore().AppendEventsToStream,
+			container.getEventStore().PurgeEventStream,
+		)
+	}
+
+	return container.service.identityEventStore
 }
 
 func (container *DIContainer) GetCustomerCommandHandler() *application.CustomerCommandHandler {
