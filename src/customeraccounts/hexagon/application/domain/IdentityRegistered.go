@@ -32,17 +32,17 @@ func BuildIdentityRegistered(
 }
 
 func RebuildIdentityRegistered(
-	customerID string,
+	identityID string,
 	emailAddress string,
 	confirmationHash string,
-	password value.HashedPassword,
+	password string,
 	meta es.EventMeta,
 ) IdentityRegistered {
 
 	event := IdentityRegistered{
-		identityID:   value.RebuildIdentityID(customerID),
+		identityID:   value.RebuildIdentityID(identityID),
 		emailAddress: value.RebuildUnconfirmedEmailAddress(emailAddress, confirmationHash),
-		password:     password,
+		password:     value.RebuildHashedPassword(password),
 		meta:         meta,
 	}
 

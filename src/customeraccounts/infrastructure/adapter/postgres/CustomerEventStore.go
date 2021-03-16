@@ -23,6 +23,8 @@ type CustomerEventStore struct {
 	purgeEventStream         forPurgingEventStreams
 	assertUniqueEmailAddress forAssertingUniqueEmailAddresses
 	purgeUniqueEmailAddress  forPurgingUniqueEmailAddresses
+	marshalDomainEvent       es.MarshalDomainEvent
+	unmarshalDomainEvent     es.UnmarshalDomainEvent
 }
 
 func NewCustomerEventStore(
@@ -32,6 +34,8 @@ func NewCustomerEventStore(
 	purgeEventStream forPurgingEventStreams,
 	assertUniqueEmailAddress forAssertingUniqueEmailAddresses,
 	purgeUniqueEmailAddress forPurgingUniqueEmailAddresses,
+	marshalDomainEvent es.MarshalDomainEvent,
+	unmarshalDomainEvent es.UnmarshalDomainEvent,
 ) *CustomerEventStore {
 
 	return &CustomerEventStore{
@@ -41,13 +45,15 @@ func NewCustomerEventStore(
 		purgeEventStream:         purgeEventStream,
 		assertUniqueEmailAddress: assertUniqueEmailAddress,
 		purgeUniqueEmailAddress:  purgeUniqueEmailAddress,
+		marshalDomainEvent:       marshalDomainEvent,
+		unmarshalDomainEvent:     unmarshalDomainEvent,
 	}
 }
 
 func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventStream, error) {
 	wrapWithMsg := "customerEventStore.RetrieveEventStream"
 
-	eventStream, err := s.retrieveEventStream(s.streamID(id), 0, math.MaxUint32, s.db)
+	eventStream, err := s.retrieveEventStream(s.streamID(id), 0, math.MaxUint32, s.db, s.unmarshalDomainEvent)
 	if err != nil {
 		return nil, errors.Wrap(err, wrapWithMsg)
 	}
@@ -79,7 +85,7 @@ func (s *CustomerEventStore) StartEventStream(customerRegistered domain.Customer
 
 	streamID := s.streamID(customerRegistered.CustomerID())
 
-	if err = s.appendEventsToStream(streamID, recordedEvents, tx); err != nil {
+	if err = s.appendEventsToStream(streamID, recordedEvents, s.marshalDomainEvent, tx); err != nil {
 		_ = tx.Rollback()
 
 		if errors.Is(err, shared.ErrConcurrencyConflict) {
@@ -111,7 +117,7 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 		return errors.Wrap(err, wrapWithMsg)
 	}
 
-	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, tx); err != nil {
+	if err = s.appendEventsToStream(s.streamID(id), recordedEvents, s.marshalDomainEvent, tx); err != nil {
 		_ = tx.Rollback()
 
 		return errors.Wrap(err, wrapWithMsg)

@@ -1,98 +1,216 @@
 package customeraccounts_test
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 
-	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
-	"github.com/AntonStoeckl/go-iddd/src/shared"
-
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/identity/value"
+	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
+	"github.com/AntonStoeckl/go-iddd/src/shared"
+	"github.com/AntonStoeckl/go-iddd/src/shared/es"
+	"github.com/cockroachdb/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type identityScenarios struct {
+	// values as VO
 	identityID          value.IdentityID
 	otherIdentityID     value.IdentityID
 	emailAddress        value.UnconfirmedEmailAddress
 	changedEmailAddress value.UnconfirmedEmailAddress
 	password            value.PlainPassword
-	ea                  string // emailAddress
-	cea                 string // changeEmailAddress
-	ch                  string // confirmationHash
-	cch                 string // changeConfirmationHash
-	pw                  string // password
+	hashedPassword      value.HashedPassword
 
+	// same values as scalars
+	ea  string // emailAddress
+	cea string // changeEmailAddress
+	ch  string // confirmationHash
+	cch string // changeConfirmationHash
+	pw  string // password
+	hpw string // hashedPassword
+
+	// DI
+	diContainer *grpc.DIContainer
+
+	// usecases / application ports
 	registerIdentity            hexagon.ForRegisteringIdentities
 	confirmIdentityEmailAddress hexagon.ForConfirmingIdentityEmailAddresses
 	logIn                       hexagon.ForLoggingIn
+
+	// persistence ports
+	uniqueIdentities   application.ForStoringUniqueIdentitiesWithTx
+	identityEventStore application.ForStoringIdentityEventStreamsWithTx
 }
 
 func TestScenarios_ForRegisteringIdentities(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
-		v := initIdentityScenarios()
+		s := initIdentityScenarios()
 
 		Convey("\nSCENARIO: A prospective Customer registers his identity", func() {
-			Convey(fmt.Sprintf("When a Customer registers his identity with [%s] and [%s]", v.ea, v.pw), func() {
-				err := v.registerIdentity(v.identityID, v.ea, v.pw)
+			Convey(fmt.Sprintf("When a Customer registers his identity with [%s] and [%s]", s.ea, s.pw), func() {
+				err := s.registerIdentity(s.identityID, s.ea, s.pw)
 				So(err, ShouldBeNil)
 
-				Convey(fmt.Sprintf("Then he should not be able to log in as his email address [%s] is unconfirmed", v.ea), func() {
-					isLoggedIn, err := v.logIn(v.ea, v.pw)
+				Convey(fmt.Sprintf("Then he should be able to log in with [%s] and [%s]", s.ea, s.pw), func() {
+					isLoggedIn, err := s.logIn(s.ea, s.pw)
 					So(err, ShouldBeNil)
-					So(isLoggedIn, ShouldBeFalse)
+					So(isLoggedIn, ShouldBeTrue)
 				})
+			})
+		})
 
-				Convey(fmt.Sprintf("And when he confirms his email address [%s]", v.ea), func() {
-					err := v.confirmIdentityEmailAddress(v.ea, v.ch)
-					So(err, ShouldBeNil)
+		Convey("\nSCENARIO: A prospective Customer can't register because his email address is already used", func() {
+			Convey(fmt.Sprintf("Given a Customer registered his identity with [%s]", s.ea), func() {
+				s.givenIdentityRegistered(s.identityID, s.emailAddress, s.hashedPassword)
 
-					Convey(fmt.Sprintf("Then he should be able to log in with [%s] and [%s]", v.ea, v.pw), func() {
-						isLoggedIn, err := v.logIn(v.ea, v.pw)
-						So(err, ShouldBeNil)
-						So(isLoggedIn, ShouldBeTrue)
+				Convey(fmt.Sprintf("When another Customer registers with the same email address [%s]", s.ea), func() {
+					err := s.registerIdentity(s.otherIdentityID, s.ea, s.pw)
+
+					Convey("Then he should receive an error", func() {
+						So(err, ShouldBeError)
+						So(errors.Is(err, shared.ErrDuplicate), ShouldBeTrue)
 					})
 				})
 			})
 		})
+
+		Reset(func() { s.reset() })
 	})
 }
 
-func initIdentityScenarios() identityScenarios {
+func (s *identityScenarios) reset() {
+	fn := func(tx *sql.Tx) error {
+		uniqueIdentitiesSession := s.uniqueIdentities.WithTx(tx)
+		eventStoreSession := s.identityEventStore.WithTx(tx)
+
+		if err := uniqueIdentitiesSession.RemoveIdentity(s.identityID); err != nil {
+			return err
+		}
+
+		if err := eventStoreSession.PurgeEventStream(s.identityID); err != nil {
+			return err
+		}
+
+		if err := uniqueIdentitiesSession.RemoveIdentity(s.otherIdentityID); err != nil {
+			return err
+		}
+
+		if err := eventStoreSession.PurgeEventStream(s.otherIdentityID); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := s.wrapWithTx(fn)
+	So(err, ShouldBeNil)
+}
+
+func (s *identityScenarios) givenIdentityRegistered(
+	identityID value.IdentityID,
+	emailAddress value.UnconfirmedEmailAddress,
+	password value.HashedPassword,
+) {
+
+	event := domain.BuildIdentityRegistered(
+		identityID,
+		emailAddress,
+		password,
+		es.GenerateMessageID(),
+		1,
+	)
+
+	fn := func(tx *sql.Tx) error {
+		uniqueIdentitiesSession := s.uniqueIdentities.WithTx(tx)
+		eventStoreSession := s.identityEventStore.WithTx(tx)
+
+		if err := uniqueIdentitiesSession.AddIdentity(identityID, emailAddress); err != nil {
+			return err
+		}
+
+		if err := eventStoreSession.StartEventStream(event); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err := s.wrapWithTx(fn)
+	So(err, ShouldBeNil)
+}
+
+type txFn func(tx *sql.Tx) error
+
+func (s *identityScenarios) wrapWithTx(fn txFn) error {
+	db := s.diContainer.GetPostgresDBConn()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
+
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+
+		return err
+	}
+
+	return nil
+}
+
+func initIdentityScenarios() *identityScenarios {
 	customerID := value.GenerateIdentityID()
 	otherCustomerID := value.GenerateIdentityID()
 	emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.net")
 	So(err, ShouldBeNil)
 	changedEmailAddress, err := value.BuildUnconfirmedEmailAddress("levinia@ball.net")
 	So(err, ShouldBeNil)
-	password, err := value.BuildPlainPassword(emailAddress.String())
+	password, err := value.BuildPlainPassword("jkjfU87aksdjf(&")
+	So(err, ShouldBeNil)
+	hashedPassword, err := value.HashedPasswordFromPlainPassword(password)
 	So(err, ShouldBeNil)
 
 	logger := shared.NewNilLogger()
 	config := grpc.MustBuildConfigFromEnv(logger)
 	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
 	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
-	eventStore := diContainer.GetIdentityEventStore()
 
-	identityCommandHandler := application.NewIdentityCommandHandler(eventStore)
-	loginHandler := application.NewLoginHandler(eventStore)
+	uniqueIdentities := diContainer.GetUniqueIdentities()
+	identityEventStore := diContainer.GetIdentityEventStore()
+	identityCommandHandler := diContainer.GetIdentityCommandHandler()
+	loginHandler := diContainer.GetLoginHandler()
 
-	return identityScenarios{
+	return &identityScenarios{
 		identityID:          customerID,
 		otherIdentityID:     otherCustomerID,
 		emailAddress:        emailAddress,
 		changedEmailAddress: changedEmailAddress,
 		password:            password,
+		hashedPassword:      hashedPassword,
 		ea:                  emailAddress.String(),
 		cea:                 changedEmailAddress.String(),
 		ch:                  emailAddress.ConfirmationHash().String(),
 		cch:                 changedEmailAddress.ConfirmationHash().String(),
 		pw:                  password.String(),
+		hpw:                 hashedPassword.String(),
+
+		diContainer: diContainer,
 
 		registerIdentity:            identityCommandHandler.RegisterIdentity,
 		confirmIdentityEmailAddress: identityCommandHandler.ConfirmIdentityEmailAddress,
 		logIn:                       loginHandler.Login,
+
+		uniqueIdentities:   uniqueIdentities,
+		identityEventStore: identityEventStore,
 	}
 }

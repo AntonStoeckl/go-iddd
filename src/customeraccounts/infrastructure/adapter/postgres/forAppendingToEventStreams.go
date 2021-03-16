@@ -6,4 +6,9 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 )
 
-type forAppendingEventsToStreams func(streamID es.StreamID, events []es.DomainEvent, tx *sql.Tx) error
+type forAppendingEventsToStreams func(
+	streamID es.StreamID,
+	events []es.DomainEvent,
+	marshalDomainEvent es.MarshalDomainEvent,
+	tx *sql.Tx,
+) error

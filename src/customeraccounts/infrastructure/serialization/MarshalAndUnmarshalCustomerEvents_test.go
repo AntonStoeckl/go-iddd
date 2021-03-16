@@ -1,4 +1,4 @@
-package serialization
+package serialization_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
@@ -68,10 +69,10 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 		eventName := originalEvent.Meta().EventName()
 
 		Convey(fmt.Sprintf("When %s is marshaled and unmarshaled", eventName), t, func() {
-			json, err := MarshalCustomerEvent(originalEvent)
+			json, err := serialization.MarshalCustomerEvent(originalEvent)
 			So(err, ShouldBeNil)
 
-			unmarshaledEvent, err := UnmarshalCustomerEvent(originalEvent.Meta().EventName(), json, streamVersion)
+			unmarshaledEvent, err := serialization.UnmarshalCustomerEvent(originalEvent.Meta().EventName(), json, streamVersion)
 			So(err, ShouldBeNil)
 
 			Convey(fmt.Sprintf("Then the unmarshaled %s should resemble the original %s", eventName, eventName), func() {
@@ -94,10 +95,10 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 
 		oEventName := originalEvent.Meta().EventName()
 
-		json, err := MarshalCustomerEvent(originalEvent)
+		json, err := serialization.MarshalCustomerEvent(originalEvent)
 		So(err, ShouldBeNil)
 
-		unmarshaledEvent, err := UnmarshalCustomerEvent(originalEvent.Meta().EventName(), json, streamVersion)
+		unmarshaledEvent, err := serialization.UnmarshalCustomerEvent(originalEvent.Meta().EventName(), json, streamVersion)
 		So(err, ShouldBeNil)
 
 		uEventName := unmarshaledEvent.Meta().EventName()
@@ -107,26 +108,14 @@ func TestMarshalAndUnmarshalCustomerEvents(t *testing.T) {
 			So(ok, ShouldBeTrue)
 			So(unmarshaledEvent.CustomerID().Equals(originalEvent.CustomerID()), ShouldBeTrue)
 			So(unmarshaledEvent.ConfirmationHash().Equals(originalEvent.ConfirmationHash()), ShouldBeTrue)
-			assertEventMetaResembles(originalEvent, unmarshaledEvent)
+			serialization.AssertEventMetaResembles(originalEvent, unmarshaledEvent)
 		})
 	})
 }
 
-func assertEventMetaResembles(originalEvent, unmarshaledEvent es.DomainEvent) {
-	So(unmarshaledEvent.Meta().EventName(), ShouldEqual, originalEvent.Meta().EventName())
-	So(unmarshaledEvent.Meta().OccurredAt(), ShouldEqual, originalEvent.Meta().OccurredAt())
-	So(unmarshaledEvent.Meta().CausationID(), ShouldEqual, originalEvent.Meta().CausationID())
-	So(unmarshaledEvent.Meta().StreamVersion(), ShouldEqual, originalEvent.Meta().StreamVersion())
-	So(unmarshaledEvent.IsFailureEvent(), ShouldEqual, originalEvent.IsFailureEvent())
-	So(unmarshaledEvent.FailureReason(), ShouldBeError)
-	So(unmarshaledEvent.FailureReason().Error(), ShouldEqual, originalEvent.FailureReason().Error())
-	So(errors.Is(originalEvent.FailureReason(), shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-	So(errors.Is(unmarshaledEvent.FailureReason(), shared.ErrDomainConstraintsViolation), ShouldBeTrue)
-}
-
 func TestMarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 	Convey("When an unknown event is marshaled", t, func() {
-		_, err := MarshalCustomerEvent(SomeEvent{})
+		_, err := serialization.MarshalCustomerEvent(serialization.SomeEvent{})
 
 		Convey("Then it should fail", func() {
 			So(errors.Is(err, shared.ErrMarshalingFailed), ShouldBeTrue)
@@ -136,26 +125,10 @@ func TestMarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 
 func TestUnmarshalCustomerEvent_WithUnknownEvent(t *testing.T) {
 	Convey("When an unknown event is unmarshaled", t, func() {
-		_, err := UnmarshalCustomerEvent("unknown", []byte{}, 1)
+		_, err := serialization.UnmarshalCustomerEvent("unknown", []byte{}, 1)
 
 		Convey("Then it should fail", func() {
 			So(errors.Is(err, shared.ErrUnmarshalingFailed), ShouldBeTrue)
 		})
 	})
-}
-
-/***** a mock event to test marshaling unknown event *****/
-
-type SomeEvent struct{}
-
-func (event SomeEvent) Meta() es.EventMeta {
-	return es.RebuildEventMeta("SomeEvent", "never", "someID", "someID", 1)
-}
-
-func (event SomeEvent) IsFailureEvent() bool {
-	return false
-}
-
-func (event SomeEvent) FailureReason() error {
-	return nil
 }

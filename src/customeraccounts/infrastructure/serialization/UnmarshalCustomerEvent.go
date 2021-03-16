@@ -55,7 +55,7 @@ func unmarshalCustomerRegisteredFromJSON(
 		unmarshaledData.ConfirmationHash,
 		unmarshaledData.PersonGivenName,
 		unmarshaledData.PersonFamilyName,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -73,7 +73,7 @@ func unmarshalCustomerEmailAddressConfirmedFromJSON(
 	event := domain.RebuildCustomerEmailAddressConfirmed(
 		unmarshaledData.CustomerID,
 		unmarshaledData.EmailAddress,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -92,7 +92,7 @@ func unmarshalCustomerEmailAddressConfirmationFailedFromJSON(
 		unmarshaledData.CustomerID,
 		unmarshaledData.ConfirmationHash,
 		unmarshaledData.Reason,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -111,7 +111,7 @@ func unmarshalCustomerEmailAddressChangedFromJSON(
 		unmarshaledData.CustomerID,
 		unmarshaledData.EmailAddress,
 		unmarshaledData.ConfirmationHash,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -130,7 +130,7 @@ func unmarshalCustomerNameChangedFromJSON(
 		unmarshaledData.CustomerID,
 		unmarshaledData.GivenName,
 		unmarshaledData.FamilyName,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
@@ -147,18 +147,8 @@ func unmarshalCustomerDeletedFromJSON(
 
 	event := domain.RebuildCustomerDeleted(
 		unmarshaledData.CustomerID,
-		unmarshalEventMeta(unmarshaledData.Meta, streamVersion),
+		es.UnmarshalEventMeta(unmarshaledData.Meta, streamVersion),
 	)
 
 	return event
-}
-
-func unmarshalEventMeta(meta es.EventMetaForJSON, streamVersion uint) es.EventMeta {
-	return es.RebuildEventMeta(
-		meta.EventName,
-		meta.OccurredAt,
-		meta.MessageID,
-		meta.CausationID,
-		streamVersion,
-	)
 }

@@ -37,14 +37,13 @@ func MarshalCustomerEvent(event es.DomainEvent) ([]byte, error) {
 }
 
 func marshalCustomerRegistered(event domain.CustomerRegistered) []byte {
-
 	data := CustomerRegisteredForJSON{
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
 		ConfirmationHash: event.EmailAddress().ConfirmationHash().String(),
 		PersonGivenName:  event.PersonName().GivenName(),
 		PersonFamilyName: event.PersonName().FamilyName(),
-		Meta:             marshalEventMeta(event),
+		Meta:             es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
@@ -56,7 +55,7 @@ func marshalCustomerEmailAddressConfirmed(event domain.CustomerEmailAddressConfi
 	data := CustomerEmailAddressConfirmedForJSON{
 		CustomerID:   event.CustomerID().String(),
 		EmailAddress: event.EmailAddress().String(),
-		Meta:         marshalEventMeta(event),
+		Meta:         es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
@@ -69,7 +68,7 @@ func marshalCustomerEmailAddressConfirmationFailed(event domain.CustomerEmailAdd
 		CustomerID:       event.CustomerID().String(),
 		ConfirmationHash: event.ConfirmationHash().String(),
 		Reason:           event.FailureReason().Error(),
-		Meta:             marshalEventMeta(event),
+		Meta:             es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
@@ -82,7 +81,7 @@ func marshalCustomerEmailAddressChanged(event domain.CustomerEmailAddressChanged
 		CustomerID:       event.CustomerID().String(),
 		EmailAddress:     event.EmailAddress().String(),
 		ConfirmationHash: event.EmailAddress().ConfirmationHash().String(),
-		Meta:             marshalEventMeta(event),
+		Meta:             es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
@@ -95,7 +94,7 @@ func marshalCustomerNameChanged(event domain.CustomerNameChanged) []byte {
 		CustomerID: event.CustomerID().String(),
 		GivenName:  event.PersonName().GivenName(),
 		FamilyName: event.PersonName().FamilyName(),
-		Meta:       marshalEventMeta(event),
+		Meta:       es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
@@ -106,19 +105,10 @@ func marshalCustomerNameChanged(event domain.CustomerNameChanged) []byte {
 func marshalCustomerDeleted(event domain.CustomerDeleted) []byte {
 	data := CustomerDeletedForJSON{
 		CustomerID: event.CustomerID().String(),
-		Meta:       marshalEventMeta(event),
+		Meta:       es.MarshalEventMeta(event),
 	}
 
 	json, _ := jsoniter.ConfigFastest.Marshal(data) // err intentionally ignored - see top comment
 
 	return json
-}
-
-func marshalEventMeta(event es.DomainEvent) es.EventMetaForJSON {
-	return es.EventMetaForJSON{
-		EventName:   event.Meta().EventName(),
-		OccurredAt:  event.Meta().OccurredAt(),
-		MessageID:   event.Meta().MessageID(),
-		CausationID: event.Meta().CausationID(),
-	}
 }

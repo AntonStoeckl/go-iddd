@@ -6,4 +6,10 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 )
 
-type forRetrievingEventStreams func(streamID es.StreamID, fromVersion uint, maxEvents uint, db *sql.DB) (es.EventStream, error)
+type forRetrievingEventStreams func(
+	streamID es.StreamID,
+	fromVersion uint,
+	maxEvents uint,
+	db *sql.DB,
+	unmarshalDomainEvent es.UnmarshalDomainEvent,
+) (es.EventStream, error)

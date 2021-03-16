@@ -10,21 +10,12 @@ import (
 )
 
 type EventStore struct {
-	eventStoreTableName  string
-	marshalDomainEvent   MarshalDomainEvent
-	unmarshalDomainEvent UnmarshalDomainEvent
+	eventStoreTableName string
 }
 
-func NewEventStore(
-	eventStoreTableName string,
-	marshalDomainEvent MarshalDomainEvent,
-	unmarshalDomainEvent UnmarshalDomainEvent,
-) *EventStore {
-
+func NewEventStore(eventStoreTableName string) *EventStore {
 	return &EventStore{
-		eventStoreTableName:  eventStoreTableName,
-		marshalDomainEvent:   marshalDomainEvent,
-		unmarshalDomainEvent: unmarshalDomainEvent,
+		eventStoreTableName: eventStoreTableName,
 	}
 }
 
@@ -33,6 +24,7 @@ func (s *EventStore) RetrieveEventStream(
 	fromVersion uint,
 	maxEvents uint,
 	db *sql.DB,
+	unmarshalDomainEvent UnmarshalDomainEvent,
 ) (EventStream, error) {
 
 	var err error
@@ -67,7 +59,7 @@ func (s *EventStore) RetrieveEventStream(
 			return nil, shared.MarkAndWrapError(err, shared.ErrTechnical, wrapWithMsg)
 		}
 
-		if domainEvent, err = s.unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
+		if domainEvent, err = unmarshalDomainEvent(eventName, []byte(payload), streamVersion); err != nil {
 			return nil, shared.MarkAndWrapError(err, shared.ErrUnmarshalingFailed, wrapWithMsg)
 		}
 
@@ -80,6 +72,7 @@ func (s *EventStore) RetrieveEventStream(
 func (s *EventStore) AppendEventsToStream(
 	streamID StreamID,
 	events []DomainEvent,
+	marshalDomainEvent MarshalDomainEvent,
 	tx *sql.Tx,
 ) error {
 
@@ -93,7 +86,7 @@ func (s *EventStore) AppendEventsToStream(
 	for _, event := range events {
 		var eventJSON []byte
 
-		eventJSON, err = s.marshalDomainEvent(event)
+		eventJSON, err = marshalDomainEvent(event)
 		if err != nil {
 			return shared.MarkAndWrapError(err, shared.ErrMarshalingFailed, wrapWithMsg)
 		}

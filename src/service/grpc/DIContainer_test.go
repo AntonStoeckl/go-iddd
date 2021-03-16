@@ -38,6 +38,8 @@ func TestNewDIContainer(t *testing.T) {
 				WithMarshalCustomerEvents(marshalDomainEvent),
 				WithUnmarshalCustomerEvents(unmarshalDomainEvent),
 				WithBuildUniqueEmailAddressAssertions(buildUniqueEmailAddressAssertions),
+				WithMarshalIdentityEvents(marshalDomainEvent),
+				WithUnmarshalIdentityEvents(unmarshalDomainEvent),
 			)
 		}
 
@@ -60,6 +62,8 @@ func TestNewDIContainer(t *testing.T) {
 				WithMarshalCustomerEvents(marshalDomainEvent),
 				WithUnmarshalCustomerEvents(unmarshalDomainEvent),
 				WithBuildUniqueEmailAddressAssertions(buildUniqueEmailAddressAssertions),
+				WithMarshalIdentityEvents(marshalDomainEvent),
+				WithUnmarshalIdentityEvents(unmarshalDomainEvent),
 			)
 		}
 
