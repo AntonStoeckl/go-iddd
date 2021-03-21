@@ -4,18 +4,20 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
-func RetryOnConcurrencyConflict(originalFunc func() error, maxRetries uint8) error {
-	var err error
-	var retries uint8
+func RetryOnConcurrencyConflict(
+	retriedFn func() error,
+	maxRetries uint8,
+) error {
 
-	for retries = 0; retries < maxRetries; retries++ {
-		// call next method in chain
-		if err = originalFunc(); err == nil {
-			return nil // no need to retry, call to originalFunc was successful
+	var err error
+
+	for retries := uint8(0); retries < maxRetries; retries++ {
+		if err = retriedFn(); err == nil {
+			return nil // no need to retry, call to retriedFn was successful
 		}
 
 		if !errors.Is(err, ErrConcurrencyConflict) {
-			return err // don't retry for different errors
+			return err // don't retry - it's not a concurrency conflice error
 		}
 	}
 

@@ -6,19 +6,39 @@ import (
 )
 
 type IsMatchingPasswordForIdentity struct {
-	suppliedPassword value.PlainPassword
-	messageID        es.MessageID
+	emailAddress value.UnconfirmedEmailAddress
+	password     value.PlainPassword
+	messageID    es.MessageID
 }
 
-func BuildIsMatchingPasswordForIdentity(suppliedPassword value.PlainPassword) IsMatchingPasswordForIdentity {
-	return IsMatchingPasswordForIdentity{
-		suppliedPassword: suppliedPassword,
-		messageID:        es.GenerateMessageID(),
+func BuildIsMatchingPasswordForIdentity(
+	emailAddress string,
+	password string,
+) (IsMatchingPasswordForIdentity, error) {
+
+	emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
+	if err != nil {
+		return IsMatchingPasswordForIdentity{}, err
 	}
+
+	passwordValue, err := value.BuildPlainPassword(password)
+	if err != nil {
+		return IsMatchingPasswordForIdentity{}, err
+	}
+
+	return IsMatchingPasswordForIdentity{
+		emailAddress: emailAddressValue,
+		password:     passwordValue,
+		messageID:    es.GenerateMessageID(),
+	}, nil
+}
+
+func (query IsMatchingPasswordForIdentity) EmailAddress() value.UnconfirmedEmailAddress {
+	return query.emailAddress
 }
 
 func (query IsMatchingPasswordForIdentity) SuppliedPassword() value.PlainPassword {
-	return query.suppliedPassword
+	return query.password
 }
 
 func (query IsMatchingPasswordForIdentity) MessageID() es.MessageID {

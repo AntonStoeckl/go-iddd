@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRetryOnConcurrencyConflict(t *testing.T) {
+func TestRetryFnOnConcurrencyConflict(t *testing.T) {
 	Convey("Setup", t, func() {
 		retryFunc := shared.RetryOnConcurrencyConflict
 

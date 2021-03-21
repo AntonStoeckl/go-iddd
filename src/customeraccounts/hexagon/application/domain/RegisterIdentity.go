@@ -14,18 +14,33 @@ type RegisterIdentity struct {
 
 func BuildRegisterIdentity(
 	identityID value.IdentityID,
-	emailAddress value.UnconfirmedEmailAddress,
-	password value.HashedPassword,
-) RegisterIdentity {
+	emailAddress string,
+	password string,
+) (RegisterIdentity, error) {
+
+	emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
+	if err != nil {
+		return RegisterIdentity{}, err
+	}
+
+	plainPasswordValue, err := value.BuildPlainPassword(password)
+	if err != nil {
+		return RegisterIdentity{}, err
+	}
+
+	hashedPasswordValue, err := value.HashedPasswordFromPlainPassword(plainPasswordValue)
+	if err != nil {
+		return RegisterIdentity{}, err
+	}
 
 	command := RegisterIdentity{
 		identityID:   identityID,
-		emailAddress: emailAddress,
-		password:     password,
+		emailAddress: emailAddressValue,
+		password:     hashedPasswordValue,
 		messageID:    es.GenerateMessageID(),
 	}
 
-	return command
+	return command, nil
 }
 
 func (command RegisterIdentity) IdentityID() value.IdentityID {

@@ -16,21 +16,25 @@ import (
 func TestMatchesIdentityPassword(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		identityID := value.GenerateIdentityID()
-		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
-		So(err, ShouldBeNil)
-		plainPassword, err := value.BuildPlainPassword("superSecretPW123")
-		So(err, ShouldBeNil)
-		hashedPassword, err := value.HashedPasswordFromPlainPassword(plainPassword)
-		So(err, ShouldBeNil)
-		differentPlainPassword, err := value.BuildPlainPassword("differentSecretPW")
+		emailAddress := "kevin@ball.com"
+		plainPassword := "superSecretPW123"
+		differentPlainPassword := "differentSecretPW"
+
+		query, err := domain.BuildIsMatchingPasswordForIdentity(emailAddress, plainPassword)
 		So(err, ShouldBeNil)
 
-		query := domain.BuildIsMatchingPasswordForIdentity(plainPassword)
-		queryWithDifferentPassword := domain.BuildIsMatchingPasswordForIdentity(differentPlainPassword)
+		queryWithDifferentPassword, err := domain.BuildIsMatchingPasswordForIdentity(emailAddress, differentPlainPassword)
+		So(err, ShouldBeNil)
+
+		emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
+		So(err, ShouldBeNil)
+
+		hashedPassword, err := value.HashedPasswordFromPlainPassword(value.RebuildPlainPassword(plainPassword))
+		So(err, ShouldBeNil)
 
 		identityRegistered := domain.BuildIdentityRegistered(
 			identityID,
-			emailAddress,
+			emailAddressValue,
 			hashedPassword,
 			es.GenerateMessageID(),
 			1,

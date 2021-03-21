@@ -1,3 +1,3 @@
 package hexagon
 
-type ForConfirmingIdentityEmailAddresses func(customerID, confirmationHash string) error
+type ForConfirmingIdentityEmailAddresses func(identityID, confirmationHash string) error

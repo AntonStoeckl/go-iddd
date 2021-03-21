@@ -22,8 +22,8 @@ func BuildPlainPassword(input string) (PlainPassword, error) {
 	return PlainPassword(input), nil
 }
 
-func RebuildPlainPassword(input string) (PlainPassword, error) {
-	return PlainPassword(input), nil
+func RebuildPlainPassword(input string) PlainPassword {
+	return PlainPassword(input)
 }
 
 func validate(input string) error {

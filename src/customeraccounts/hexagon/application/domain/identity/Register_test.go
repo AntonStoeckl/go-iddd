@@ -12,29 +12,26 @@ import (
 func TestRegister(t *testing.T) {
 	Convey("Prepare test artifacts", t, func() {
 		identityID := value.GenerateIdentityID()
-		emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.com")
-		So(err, ShouldBeNil)
-		plainPassword, err := value.BuildPlainPassword("superSecretPW123")
-		So(err, ShouldBeNil)
-		hashedPassword, err := value.HashedPasswordFromPlainPassword(plainPassword)
-		So(err, ShouldBeNil)
+		emailAddress := "kevin@ball.com"
+		plainPassword := "superSecretPW123"
 
-		command := domain.BuildRegisterIdentity(
+		command, err := domain.BuildRegisterIdentity(
 			identityID,
 			emailAddress,
-			hashedPassword,
+			plainPassword,
 		)
+		So(err, ShouldBeNil)
 
 		Convey("\nSCENARIO: Register an Identity", func() {
-			Convey("When RegisterIdentity", func() {
+			Convey("When HandleRegisterIdentity", func() {
 				event := identity.Register(command)
 
 				Convey("Then IdentityRegistered", func() {
 					So(event.IdentityID().Equals(identityID), ShouldBeTrue)
-					So(event.EmailAddress().Equals(emailAddress), ShouldBeTrue)
-					So(event.EmailAddress().ConfirmationHash().Equals(emailAddress.ConfirmationHash()), ShouldBeTrue)
-					So(event.Password().Equals(hashedPassword), ShouldBeTrue)
-					So(event.Password().CompareWith(plainPassword), ShouldBeTrue)
+					So(event.EmailAddress().Equals(command.EmailAddress()), ShouldBeTrue)
+					So(event.EmailAddress().ConfirmationHash().Equals(command.EmailAddress().ConfirmationHash()), ShouldBeTrue)
+					So(event.Password().Equals(command.Password()), ShouldBeTrue)
+					So(event.Password().CompareWith(value.RebuildPlainPassword(plainPassword)), ShouldBeTrue)
 					So(event.IsFailureEvent(), ShouldBeFalse)
 					So(event.FailureReason(), ShouldBeNil)
 					So(event.Meta().CausationID(), ShouldEqual, command.MessageID().String())

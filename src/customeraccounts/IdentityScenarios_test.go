@@ -25,7 +25,7 @@ type identityScenarios struct {
 	password            value.PlainPassword
 	hashedPassword      value.HashedPassword
 
-	// same values as scalars
+	// values as scalars
 	ea  string // emailAddress
 	cea string // changeEmailAddress
 	ch  string // confirmationHash
@@ -33,15 +33,13 @@ type identityScenarios struct {
 	pw  string // password
 	hpw string // hashedPassword
 
-	// DI
-	diContainer *grpc.DIContainer
-
-	// usecases / application ports
+	// usecases
 	registerIdentity            hexagon.ForRegisteringIdentities
 	confirmIdentityEmailAddress hexagon.ForConfirmingIdentityEmailAddresses
 	logIn                       hexagon.ForLoggingIn
 
-	// persistence ports
+	// persistence
+	db                 *sql.DB
 	uniqueIdentities   application.ForStoringUniqueIdentitiesWithTx
 	identityEventStore application.ForStoringIdentityEventStreamsWithTx
 }
@@ -106,7 +104,7 @@ func (s *identityScenarios) reset() {
 		return nil
 	}
 
-	err := s.wrapWithTx(fn)
+	err := shared.WrapInTx(fn, s.db)
 	So(err, ShouldBeNil)
 }
 
@@ -116,15 +114,14 @@ func (s *identityScenarios) givenIdentityRegistered(
 	password value.HashedPassword,
 ) {
 
-	event := domain.BuildIdentityRegistered(
-		identityID,
-		emailAddress,
-		password,
-		es.GenerateMessageID(),
-		1,
-	)
-
 	fn := func(tx *sql.Tx) error {
+		event := domain.BuildIdentityRegistered(
+			identityID,
+			emailAddress,
+			password,
+			es.GenerateMessageID(),
+			1,
+		)
 		uniqueIdentitiesSession := s.uniqueIdentities.WithTx(tx)
 		eventStoreSession := s.identityEventStore.WithTx(tx)
 
@@ -139,36 +136,16 @@ func (s *identityScenarios) givenIdentityRegistered(
 		return nil
 	}
 
-	err := s.wrapWithTx(fn)
+	err := shared.WrapInTx(fn, s.db)
 	So(err, ShouldBeNil)
 }
 
-type txFn func(tx *sql.Tx) error
-
-func (s *identityScenarios) wrapWithTx(fn txFn) error {
-	db := s.diContainer.GetPostgresDBConn()
-
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback()
-
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		_ = tx.Rollback()
-
-		return err
-	}
-
-	return nil
-}
-
 func initIdentityScenarios() *identityScenarios {
+	logger := shared.NewNilLogger()
+	config := grpc.MustBuildConfigFromEnv(logger)
+	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
+	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
+
 	customerID := value.GenerateIdentityID()
 	otherCustomerID := value.GenerateIdentityID()
 	emailAddress, err := value.BuildUnconfirmedEmailAddress("kevin@ball.net")
@@ -180,37 +157,34 @@ func initIdentityScenarios() *identityScenarios {
 	hashedPassword, err := value.HashedPasswordFromPlainPassword(password)
 	So(err, ShouldBeNil)
 
-	logger := shared.NewNilLogger()
-	config := grpc.MustBuildConfigFromEnv(logger)
-	postgresDBConn := grpc.MustInitPostgresDB(config, logger)
-	diContainer := grpc.MustBuildDIContainer(config, logger, grpc.UsePostgresDBConn(postgresDBConn))
-
-	uniqueIdentities := diContainer.GetUniqueIdentities()
-	identityEventStore := diContainer.GetIdentityEventStore()
 	identityCommandHandler := diContainer.GetIdentityCommandHandler()
 	loginHandler := diContainer.GetLoginHandler()
 
 	return &identityScenarios{
+		// values as VO
 		identityID:          customerID,
 		otherIdentityID:     otherCustomerID,
 		emailAddress:        emailAddress,
 		changedEmailAddress: changedEmailAddress,
 		password:            password,
 		hashedPassword:      hashedPassword,
-		ea:                  emailAddress.String(),
-		cea:                 changedEmailAddress.String(),
-		ch:                  emailAddress.ConfirmationHash().String(),
-		cch:                 changedEmailAddress.ConfirmationHash().String(),
-		pw:                  password.String(),
-		hpw:                 hashedPassword.String(),
 
-		diContainer: diContainer,
+		// values as scalars
+		ea:  emailAddress.String(),
+		cea: changedEmailAddress.String(),
+		ch:  emailAddress.ConfirmationHash().String(),
+		cch: changedEmailAddress.ConfirmationHash().String(),
+		pw:  password.String(),
+		hpw: hashedPassword.String(),
 
-		registerIdentity:            identityCommandHandler.RegisterIdentity,
+		// usecases
+		registerIdentity:            identityCommandHandler.HandleRegisterIdentity,
 		confirmIdentityEmailAddress: identityCommandHandler.ConfirmIdentityEmailAddress,
-		logIn:                       loginHandler.Login,
+		logIn:                       loginHandler.HandleLogIn,
 
-		uniqueIdentities:   uniqueIdentities,
-		identityEventStore: identityEventStore,
+		// persistence
+		db:                 diContainer.GetPostgresDBConn(),
+		uniqueIdentities:   diContainer.GetUniqueIdentities(),
+		identityEventStore: diContainer.GetIdentityEventStore(),
 	}
 }

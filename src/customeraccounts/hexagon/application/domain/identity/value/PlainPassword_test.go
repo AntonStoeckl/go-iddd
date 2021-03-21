@@ -39,14 +39,10 @@ func TestPlainPassword(t *testing.T) {
 
 	Convey("When RebuildPassword", t, func() {
 		input := "superSecurePW123"
-		pwd, err := value.RebuildPlainPassword(input)
+		pwd := value.RebuildPlainPassword(input)
 
-		Convey("Then it should succeed", func() {
-			So(err, ShouldBeNil)
-
-			Convey("And the PlainPassword should contain the supplied value", func() {
-				So(pwd.String(), ShouldEqual, input)
-			})
+		Convey("The PlainPassword should contain the supplied value", func() {
+			So(pwd.String(), ShouldEqual, input)
 		})
 	})
 

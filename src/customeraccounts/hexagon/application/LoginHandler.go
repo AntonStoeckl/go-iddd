@@ -3,8 +3,6 @@ package application
 import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/identity"
-	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/identity/value"
-	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
 )
 
@@ -24,35 +22,36 @@ func NewLoginHandler(
 	}
 }
 
-func (h *LoginHandler) Login(emailAddress, password string) (bool, error) {
-	var err error
-	var identityIDValue value.IdentityID
-	var emailAddressValue value.UnconfirmedEmailAddress
-	var passwordValue value.PlainPassword
-	var eventStream es.EventStream
+func (h *LoginHandler) HandleLogIn(
+	emailAddress string,
+	password string,
+) (bool, error) {
 
-	wrapWithMsg := "loginHandler.Login"
+	logIn := func() error {
+		query, err := domain.BuildIsMatchingPasswordForIdentity(emailAddress, password)
+		if err != nil {
+			return err
+		}
 
-	if emailAddressValue, err = value.BuildUnconfirmedEmailAddress(emailAddress); err != nil {
-		return false, errors.Wrap(err, wrapWithMsg)
+		identityIDValue, err := h.uniqueIdentities.FindIdentity(query.EmailAddress())
+		if err != nil {
+			return err
+		}
+
+		eventStream, err := h.identityEventStreams.RetrieveEventStream(identityIDValue)
+		if err != nil {
+			return err
+		}
+
+		if err := identity.IsMatchingPassword(eventStream, query); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	if passwordValue, err = value.BuildPlainPassword(password); err != nil {
-		return false, errors.Wrap(err, wrapWithMsg)
-	}
-
-	if identityIDValue, err = h.uniqueIdentities.FindIdentity(emailAddressValue); err != nil {
-		return false, errors.Wrap(err, wrapWithMsg)
-	}
-
-	if eventStream, err = h.identityEventStreams.RetrieveEventStream(identityIDValue); err != nil {
-		return false, errors.Wrap(err, wrapWithMsg)
-	}
-
-	query := domain.BuildIsMatchingPasswordForIdentity(passwordValue)
-
-	if err = identity.IsMatchingPassword(eventStream, query); err != nil {
-		return false, errors.Wrap(err, wrapWithMsg)
+	if err := logIn(); err != nil {
+		return false, errors.Wrap(err, "LoginHandler.HandleLogIn")
 	}
 
 	return true, nil

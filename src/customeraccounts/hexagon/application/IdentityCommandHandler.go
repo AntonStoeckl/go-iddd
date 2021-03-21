@@ -11,10 +11,10 @@ import (
 )
 
 type IdentityCommandHandler struct {
-	db                              *sql.DB
-	uniqueIdentities                ForStoringUniqueIdentitiesWithTx
-	identityEventStreams            ForStoringIdentityEventStreamsWithTx
-	maxRetriesOnConcurrencyConflict uint8
+	db                   *sql.DB
+	uniqueIdentities     ForStoringUniqueIdentitiesWithTx
+	identityEventStreams ForStoringIdentityEventStreamsWithTx
+	maxRetries           uint8
 }
 
 func NewIdentityCommandHandler(
@@ -25,93 +25,77 @@ func NewIdentityCommandHandler(
 ) *IdentityCommandHandler {
 
 	return &IdentityCommandHandler{
-		db:                              db,
-		uniqueIdentities:                uniqueIdentities,
-		identityEventStreams:            identityEventStreams,
-		maxRetriesOnConcurrencyConflict: maxRetriesOnConcurrencyConflict,
+		db:                   db,
+		uniqueIdentities:     uniqueIdentities,
+		identityEventStreams: identityEventStreams,
+		maxRetries:           maxRetriesOnConcurrencyConflict,
 	}
 }
 
-func (h *IdentityCommandHandler) RegisterIdentity(
+func (h *IdentityCommandHandler) HandleRegisterIdentity(
 	identityIDValue value.IdentityID,
 	emailAddress string,
 	plainPassword string,
 ) error {
 
-	wrapWithMsg := "IdentityCommandHandler.RegisterIdentity"
+	registerIdentityWithSessions := func(
+		uniqueIdentities ForStoringUniqueIdentities,
+		identityEventStreams ForStoringIdentityEventStreams,
+	) error {
 
-	emailAddressValue, err := value.BuildUnconfirmedEmailAddress(emailAddress)
-	if err != nil {
-		return errors.Wrap(err, wrapWithMsg)
-	}
-
-	plainPasswordValue, err := value.BuildPlainPassword(plainPassword)
-	if err != nil {
-		return errors.Wrap(err, wrapWithMsg)
-	}
-
-	hashedPasswordValue, err := value.HashedPasswordFromPlainPassword(plainPasswordValue)
-	if err != nil {
-		return errors.Wrap(err, wrapWithMsg)
-	}
-
-	registerIdentity := domain.BuildRegisterIdentity(
-		identityIDValue,
-		emailAddressValue,
-		hashedPasswordValue,
-	)
-
-	doRegister := func(tx *sql.Tx) error {
-		uniqueIdentitiesSession := h.uniqueIdentities.WithTx(tx)
-		identityEventStreamsSession := h.identityEventStreams.WithTx(tx)
-
-		if err := uniqueIdentitiesSession.AddIdentity(identityIDValue, emailAddressValue); err != nil {
+		command, err := domain.BuildRegisterIdentity(
+			identityIDValue,
+			emailAddress,
+			plainPassword,
+		)
+		if err != nil {
 			return err
 		}
 
-		identityRegistered := identity.Register(registerIdentity)
+		if err := uniqueIdentities.AddIdentity(identityIDValue, command.EmailAddress()); err != nil {
+			return err
+		}
 
-		if err := identityEventStreamsSession.StartEventStream(identityRegistered); err != nil {
+		identityRegistered := identity.Register(command)
+
+		if err := identityEventStreams.StartEventStream(identityRegistered); err != nil {
 			return err
 		}
 
 		return nil
 	}
 
-	doRegisterWithinTx := func() error {
-		return h.wrapWithTx(doRegister)
-	}
-
-	if err := shared.RetryOnConcurrencyConflict(doRegisterWithinTx, h.maxRetriesOnConcurrencyConflict); err != nil {
-		return errors.Wrap(err, wrapWithMsg)
+	if err := h.handle(registerIdentityWithSessions); err != nil {
+		return errors.Wrap(err, "IdentityCommandHandler.HandleRegisterIdentity")
 	}
 
 	return nil
 }
 
-func (h *IdentityCommandHandler) wrapWithTx(fn func(tx *sql.Tx) error) error {
-	tx, err := h.db.Begin()
-	if err != nil {
-		return err
-	}
+type withSessions func(
+	uniqueIdentities ForStoringUniqueIdentities,
+	identityEventStreams ForStoringIdentityEventStreams,
+) error
 
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback()
-
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		_ = tx.Rollback()
-
-		return err
-	}
-
-	return nil
+func (h *IdentityCommandHandler) handle(usecaseFn withSessions) error {
+	return shared.RetryOnConcurrencyConflict(
+		func() error {
+			return shared.WrapInTx(
+				func(tx *sql.Tx) error {
+					return usecaseFn(
+						h.uniqueIdentities.WithTx(tx),
+						h.identityEventStreams.WithTx(tx),
+					)
+				},
+				h.db,
+			)
+		},
+		h.maxRetries,
+	)
 }
 
 func (h *IdentityCommandHandler) ConfirmIdentityEmailAddress(
-	customerID string,
+	identityID string,
 	confirmationHash string,
 ) error {
 	return errors.New("dummy error")
