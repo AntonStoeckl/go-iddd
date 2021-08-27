@@ -6,7 +6,7 @@ This code is the basis for a series of blog posts:
 
 [Implementing Domain-Driven Design and Hexagonal Architecture with Go - Part 2](https://medium.com/@TonyBologni/implementing-domain-driven-design-and-hexagonal-architecture-with-go-2-efd432505554)
 
-Part 3 (about Hexagonal Architecture) is ongoing
+[Implementing Domain-Driven Design and Hexagonal Architecture with Go - Part 3](https://medium.com/@TonyBologni/implementing-domain-driven-design-and-hexagonal-architecture-with-go-3-f9dfd7ab0a78)
 
 The code those blog posts are about is frozen in this branch: [freeze_blog-posts_1-3](https://github.com/AntonStoeckl/go-iddd/tree/freeze_blog-posts_1-3)
 
