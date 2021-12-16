@@ -1,9 +1,9 @@
-version: "2"
-
+version: "3"
 services:
-
   postgres:
     image: postgres:11
+    container_name: postgres-container
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -13,5 +13,94 @@ services:
       GOIDDD_TEST_DATABASE: goiddd_test
     volumes:
       - ./src/customeraccounts/infrastructure/adapter/postgres/database/setup:/docker-entrypoint-initdb.d
+    networks:
+      - goiddd-networks
+  mongodb0:
+    image: mongo:5.0-focal
+    container_name: mongodb0-container
+    restart: unless-stopped
+    command: --replSet rs0 --dbpath /home/data --oplogSize 128
+    environment:
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+    networks:
+      - goiddd-networks
+    volumes:
+      - "./dev/db0:/home/data"
+      - "./replicaSet.js:/home/replicaSet.js:ro"
+  mongodb1:
+    image: mongo:5.0-focal
+    container_name: mongodb1-container
+    command: --replSet rs0 --dbpath /home/data --oplogSize 128
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+    networks:
+      - goiddd-networks
+    volumes:
+      - "./dev/db1:/home/data"
+  mongodb2:
+    image: mongo:5.0-focal
+    container_name: mongodb2-container
+    command: --replSet rs0 --dbpath /home/data --oplogSize 128
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+    networks:
+      - goiddd-networks
+    volumes:
+      - "./dev/db2:/home/data"
+  goiddd-grpc:
+    build:
+      context: .
+      dockerfile: grpc.Dockerfile
+    image: goiddd-grpc-image
+    container_name: goiddd-grpc-container
+    restart: unless-stopped
+    environment:
+      - EVENTSTORE_DB=$EVENTSTORE_DB
+      - POSTGRES_DSN=$POSTGRES_DSN
+      - MONGODB_DSN=$MONGODB_DSN
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+      - POSTGRES_MIGRATIONS_PATH_CUSTOMER=$POSTGRES_MIGRATIONS_PATH_CUSTOMER
+      - GRPC_HOST_AND_PORT=$GRPC_HOST_AND_PORT
+      - REST_HOST_AND_PORT=$REST_HOST_AND_PORT
+      - REST_GRPC_DIAL_TIMEOUT=$REST_GRPC_DIAL_TIMEOUT
+      - SWAGGER_FILE_PATH_CUSTOMER=$SWAGGER_FILE_PATH_CUSTOMER
+    networks:
+      - goiddd-networks
+    depends_on:
+      - postgres
+      - mongodb0
     ports:
-      - "15432:5432"
+      - "15566:5566"
+    volumes:
+      - ./migrations:/home/migrations
+  goiddd-rest:
+    build:
+      context: .
+      dockerfile: rest.Dockerfile
+    image: goiddd-rest-image
+    container_name: goiddd-rest-container
+    restart: unless-stopped
+    environment:
+      - EVENTSTORE_DB=$EVENTSTORE_DB
+      - POSTGRES_DSN=$POSTGRES_DSN
+      - MONGODB_DSN=$MONGODB_DSN
+      - MONGO_INITDB_DATABASE=$MONGO_INITDB_DATABASE
+      - POSTGRES_MIGRATIONS_PATH_CUSTOMER=$POSTGRES_MIGRATIONS_PATH_CUSTOMER
+      - GRPC_HOST_AND_PORT=$GRPC_HOST_AND_PORT
+      - REST_HOST_AND_PORT=$REST_HOST_AND_PORT
+      - REST_GRPC_DIAL_TIMEOUT=$REST_GRPC_DIAL_TIMEOUT
+      - SWAGGER_FILE_PATH_CUSTOMER=$SWAGGER_FILE_PATH_CUSTOMER
+    networks:
+      - goiddd-networks
+    depends_on:
+      - postgres
+      - goiddd-grpc
+      - mongodb0
+    ports:
+      - "18085:8085"
+    volumes:
+      - ./swagger_out:/home/swagger_out
+networks:
+  goiddd-networks:

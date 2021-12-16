@@ -5,7 +5,6 @@ import (
 
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
-	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/src/service/grpc"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 )
@@ -121,7 +120,7 @@ func prepareForBenchmark(
 
 func cleanUpAfterBenchmark(
 	b *testing.B,
-	eventstore *postgres.CustomerEventStore,
+	eventstore application.EventStoreInterface,
 	commandHandler *application.CustomerCommandHandler,
 	id value.CustomerID,
 ) {

@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"net"
 	"os"
 	"os/signal"
@@ -72,12 +73,19 @@ func (s *Service) shutdown() {
 		s.logger.Info().Msg("shutdown: stopping gRPC server gracefully ...")
 		grpcServer.GracefulStop()
 	}
-
 	postgresDBConn := s.diContainter.GetPostgresDBConn()
 	if postgresDBConn != nil {
 		s.logger.Info().Msg("shutdown: closing Postgres DB connection ...")
 		if err := postgresDBConn.Close(); err != nil {
 			s.logger.Warn().Msgf("shutdown: failed to close the Postgres DB connection: %s", err)
+		}
+	}
+
+	mongodbConn := s.diContainter.GetMongoDBConn()
+	if mongodbConn != nil {
+		s.logger.Info().Msg("shutdown: closing Mongodb DB connection ...")
+		if err := mongodbConn.Disconnect(context.Background()); err != nil {
+			s.logger.Warn().Msgf("shutdown: failed to close the Mongodb DB connection: %s", err)
 		}
 	}
 

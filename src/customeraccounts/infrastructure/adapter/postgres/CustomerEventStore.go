@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"math"
 
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
@@ -19,7 +20,7 @@ type forPurgingEventStreams func(streamID es.StreamID, tx *sql.Tx) error
 type forAssertingUniqueEmailAddresses func(recordedEvents []es.DomainEvent, tx *sql.Tx) error
 type forPurgingUniqueEmailAddresses func(customerID value.CustomerID, tx *sql.Tx) error
 
-type CustomerEventStore struct {
+type CustomerPostgresEventStore struct {
 	db                       *sql.DB
 	retrieveEventStream      forRetrievingEventStreams
 	appendEventsToStream     forAppendingEventsToStreams
@@ -28,16 +29,16 @@ type CustomerEventStore struct {
 	purgeUniqueEmailAddress  forPurgingUniqueEmailAddresses
 }
 
-func NewCustomerEventStore(
+func NewCustomerPostgresEventStore(
 	db *sql.DB,
 	retrieveEventStream forRetrievingEventStreams,
 	appendEventsToStream forAppendingEventsToStreams,
 	purgeEventStream forPurgingEventStreams,
 	assertUniqueEmailAddress forAssertingUniqueEmailAddresses,
 	purgeUniqueEmailAddress forPurgingUniqueEmailAddresses,
-) *CustomerEventStore {
+) application.EventStoreInterface {
 
-	return &CustomerEventStore{
+	return &CustomerPostgresEventStore{
 		db:                       db,
 		retrieveEventStream:      retrieveEventStream,
 		appendEventsToStream:     appendEventsToStream,
@@ -47,8 +48,8 @@ func NewCustomerEventStore(
 	}
 }
 
-func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventStream, error) {
-	wrapWithMsg := "customerEventStore.RetrieveEventStream"
+func (s *CustomerPostgresEventStore) RetrieveEventStream(id value.CustomerID) (es.EventStream, error) {
+	wrapWithMsg := "CustomerPostgresEventStore.RetrieveEventStream"
 
 	eventStream, err := s.retrieveEventStream(s.streamID(id), 0, math.MaxUint32, s.db)
 	if err != nil {
@@ -63,9 +64,9 @@ func (s *CustomerEventStore) RetrieveEventStream(id value.CustomerID) (es.EventS
 	return eventStream, nil
 }
 
-func (s *CustomerEventStore) StartEventStream(customerRegistered domain.CustomerRegistered) error {
+func (s *CustomerPostgresEventStore) StartEventStream(customerRegistered domain.CustomerRegistered) error {
 	var err error
-	wrapWithMsg := "customerEventStore.StartEventStream"
+	wrapWithMsg := "CustomerPostgresEventStore.StartEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -99,9 +100,9 @@ func (s *CustomerEventStore) StartEventStream(customerRegistered domain.Customer
 	return nil
 }
 
-func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvents, id value.CustomerID) error {
+func (s *CustomerPostgresEventStore) AppendToEventStream(recordedEvents es.RecordedEvents, id value.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.AppendToEventStream"
+	wrapWithMsg := "CustomerPostgresEventStore.AppendToEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -127,9 +128,9 @@ func (s *CustomerEventStore) AppendToEventStream(recordedEvents es.RecordedEvent
 	return nil
 }
 
-func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
+func (s *CustomerPostgresEventStore) PurgeEventStream(id value.CustomerID) error {
 	var err error
-	wrapWithMsg := "customerEventStore.PurgeEventStream"
+	wrapWithMsg := "CustomerPostgresEventStore.PurgeEventStream"
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -155,6 +156,6 @@ func (s *CustomerEventStore) PurgeEventStream(id value.CustomerID) error {
 	return nil
 }
 
-func (s *CustomerEventStore) streamID(id value.CustomerID) es.StreamID {
+func (s *CustomerPostgresEventStore) streamID(id value.CustomerID) es.StreamID {
 	return es.BuildStreamID(streamPrefix + "-" + id.String())
 }

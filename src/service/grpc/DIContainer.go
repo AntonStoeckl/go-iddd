@@ -7,11 +7,13 @@ import (
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	customergrpc "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc"
 	customergrpcproto "github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/grpc/proto"
+	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/mongodb"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/adapter/postgres"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/infrastructure/serialization"
 	"github.com/AntonStoeckl/go-iddd/src/shared"
 	"github.com/AntonStoeckl/go-iddd/src/shared/es"
 	"github.com/cockroachdb/errors"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -25,7 +27,7 @@ type DIOption func(container *DIContainer) error
 
 func UsePostgresDBConn(dbConn *sql.DB) DIOption {
 	return func(container *DIContainer) error {
-		if dbConn == nil {
+		if (dbConn == nil) && (container.config.EventStoreDB == "postgres") {
 			return errors.New("pgDBConn must not be nil")
 		}
 
@@ -34,7 +36,17 @@ func UsePostgresDBConn(dbConn *sql.DB) DIOption {
 		return nil
 	}
 }
+func UseMongoDBConn(dbConn *mongo.Client) DIOption {
+	return func(container *DIContainer) error {
+		if (dbConn == nil) && (container.config.EventStoreDB == "mongodb") {
+			return errors.New("mongodbConn must not be nil")
+		}
 
+		container.infra.mongodbConn = dbConn
+
+		return nil
+	}
+}
 func WithMarshalCustomerEvents(fn es.MarshalDomainEvent) DIOption {
 	return func(container *DIContainer) error {
 		container.dependency.marshalCustomerEvent = fn
@@ -72,7 +84,8 @@ type DIContainer struct {
 	config *Config
 
 	infra struct {
-		pgDBConn *sql.DB
+		pgDBConn    *sql.DB
+		mongodbConn *mongo.Client
 	}
 
 	dependency struct {
@@ -82,8 +95,7 @@ type DIContainer struct {
 	}
 
 	service struct {
-		eventStore             *es.EventStore
-		customerEventStore     *postgres.CustomerEventStore
+		customerEventStore     application.EventStoreInterface
 		customerCommandHandler *application.CustomerCommandHandler
 		customerQueryHandler   *application.CustomerQueryHandler
 		grpcCustomerServer     customergrpcproto.CustomerServer
@@ -113,7 +125,6 @@ func MustBuildDIContainer(config *Config, logger *shared.Logger, opts ...DIOptio
 }
 
 func (container *DIContainer) init() {
-	_ = container.getEventStore()
 	_ = container.GetCustomerEventStore()
 	_ = container.GetCustomerCommandHandler()
 	_ = container.GetCustomerQueryHandler()
@@ -124,36 +135,64 @@ func (container *DIContainer) init() {
 func (container *DIContainer) GetPostgresDBConn() *sql.DB {
 	return container.infra.pgDBConn
 }
-
-func (container *DIContainer) getEventStore() *es.EventStore {
-	if container.service.eventStore == nil {
-		container.service.eventStore = es.NewEventStore(
-			eventStoreTableName,
-			container.dependency.marshalCustomerEvent,
-			container.dependency.unmarshalCustomerEvent,
-		)
-	}
-
-	return container.service.eventStore
+func (container *DIContainer) GetMongoDBConn() *mongo.Client {
+	return container.infra.mongodbConn
 }
 
-func (container *DIContainer) GetCustomerEventStore() *postgres.CustomerEventStore {
-	if container.service.customerEventStore == nil {
-		uniqueCustomerEmailAddresses := postgres.NewUniqueCustomerEmailAddresses(
-			uniqueEmailAddressesTableName,
-			container.dependency.buildUniqueEmailAddressAssertions,
-		)
+func (container *DIContainer) getPostgresEventStore() *es.PostgresEventStore {
 
-		container.service.customerEventStore = postgres.NewCustomerEventStore(
-			container.infra.pgDBConn,
-			container.getEventStore().RetrieveEventStream,
-			container.getEventStore().AppendEventsToStream,
-			container.getEventStore().PurgeEventStream,
-			uniqueCustomerEmailAddresses.AssertUniqueEmailAddress,
-			uniqueCustomerEmailAddresses.PurgeUniqueEmailAddress,
-		)
+	return es.NewPostgresEventStore(
+		eventStoreTableName,
+		container.dependency.marshalCustomerEvent,
+		container.dependency.unmarshalCustomerEvent,
+	)
+}
+func (container *DIContainer) getMongoEventStore() *es.MongodbEventStore {
+	collection := container.infra.mongodbConn.Database(container.config.Mongodb.MongoInitdbDatabase).Collection(eventStoreTableName)
+	return es.NewMongodbEventStore(
+		collection,
+		container.dependency.marshalCustomerEvent,
+		container.dependency.unmarshalCustomerEvent,
+	)
+}
+
+func (container *DIContainer) GetCustomerEventStore() application.EventStoreInterface {
+
+	switch container.config.EventStoreDB {
+	case "postgres":
+		if container.service.customerEventStore == nil {
+			uniqueCustomerEmailAddresses := postgres.NewUniqueCustomerEmailAddresses(
+				uniqueEmailAddressesTableName,
+				container.dependency.buildUniqueEmailAddressAssertions,
+			)
+
+			container.service.customerEventStore = postgres.NewCustomerPostgresEventStore(
+				container.infra.pgDBConn,
+				container.getPostgresEventStore().RetrieveEventStream,
+				container.getPostgresEventStore().AppendEventsToStream,
+				container.getPostgresEventStore().PurgeEventStream,
+				uniqueCustomerEmailAddresses.AssertUniqueEmailAddress,
+				uniqueCustomerEmailAddresses.PurgeUniqueEmailAddress,
+			)
+		}
+	case "mongodb":
+		if container.service.customerEventStore == nil {
+			emailCollection := container.infra.mongodbConn.Database(container.config.Mongodb.MongoInitdbDatabase).Collection(uniqueEmailAddressesTableName)
+			uniqueCustomerEmailAddresses := mongodb.NewUniqueCustomerEmailAddresses(
+				emailCollection,
+				container.dependency.buildUniqueEmailAddressAssertions,
+			)
+			collection := container.infra.mongodbConn.Database(container.config.Mongodb.MongoInitdbDatabase).Collection(eventStoreTableName)
+			container.service.customerEventStore = mongodb.NewCustomerMongodbEventStore(
+				collection,
+				container.getMongoEventStore().RetrieveEventStream,
+				container.getMongoEventStore().AppendEventsToStream,
+				container.getMongoEventStore().PurgeEventStream,
+				uniqueCustomerEmailAddresses.AssertUniqueEmailAddress,
+				uniqueCustomerEmailAddresses.PurgeUniqueEmailAddress,
+			)
+		}
 	}
-
 	return container.service.customerEventStore
 }
 

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"fmt"
+
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer"
 	"github.com/AntonStoeckl/go-iddd/src/customeraccounts/hexagon/application/domain/customer/value"
@@ -56,8 +58,9 @@ func (h *CustomerCommandHandler) RegisterCustomer(
 
 	doRegister := func() error {
 		customerRegistered := customer.Register(command)
-
+		fmt.Println("customerRegistered: ", customerRegistered)
 		if err := h.startCustomerEventStream(customerRegistered); err != nil {
+			fmt.Println("err: ", err)
 			return err
 		}
 
