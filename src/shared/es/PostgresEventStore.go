@@ -9,26 +9,26 @@ import (
 	"github.com/lib/pq"
 )
 
-type EventStore struct {
+type PostgresEventStore struct {
 	eventStoreTableName  string
 	marshalDomainEvent   MarshalDomainEvent
 	unmarshalDomainEvent UnmarshalDomainEvent
 }
 
-func NewEventStore(
+func NewPostgresEventStore(
 	eventStoreTableName string,
 	marshalDomainEvent MarshalDomainEvent,
 	unmarshalDomainEvent UnmarshalDomainEvent,
-) *EventStore {
+) *PostgresEventStore {
 
-	return &EventStore{
+	return &PostgresEventStore{
 		eventStoreTableName:  eventStoreTableName,
 		marshalDomainEvent:   marshalDomainEvent,
 		unmarshalDomainEvent: unmarshalDomainEvent,
 	}
 }
 
-func (s *EventStore) RetrieveEventStream(
+func (s *PostgresEventStore) RetrieveEventStream(
 	streamID StreamID,
 	fromVersion uint,
 	maxEvents uint,
@@ -77,7 +77,7 @@ func (s *EventStore) RetrieveEventStream(
 	return eventStream, nil
 }
 
-func (s *EventStore) AppendEventsToStream(
+func (s *PostgresEventStore) AppendEventsToStream(
 	streamID StreamID,
 	events []DomainEvent,
 	tx *sql.Tx,
@@ -115,7 +115,7 @@ func (s *EventStore) AppendEventsToStream(
 	return nil
 }
 
-func (s *EventStore) PurgeEventStream(
+func (s *PostgresEventStore) PurgeEventStream(
 	streamID StreamID,
 	tx *sql.Tx,
 ) error {
@@ -130,7 +130,7 @@ func (s *EventStore) PurgeEventStream(
 	return nil
 }
 
-func (s *EventStore) mapEventStorePostgresErrors(err error) error {
+func (s *PostgresEventStore) mapEventStorePostgresErrors(err error) error {
 	// nolint:errorlint // errors.As() suggested, but somehow cockroachdb/errors can't convert this properly
 	if actualErr, ok := err.(*pq.Error); ok {
 		if actualErr.Code == "23505" {

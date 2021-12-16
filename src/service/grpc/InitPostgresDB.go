@@ -9,8 +9,9 @@ import (
 
 func MustInitPostgresDB(config *Config, logger *shared.Logger) *sql.DB {
 	var err error
-
-	logger.Info().Msg("bootstrapPostgresDB: opening Postgres DB connection ...")
+	if config.EventStoreDB != "postgres" {
+		return nil
+	}
 
 	postgresDBConn, err := sql.Open("postgres", config.Postgres.DSN)
 	if err != nil {

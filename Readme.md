@@ -12,38 +12,63 @@ The code those blog posts are about is frozen in this branch: [freeze_blog-posts
 
 ### Setup for local development
 
+#### Choose your db for eventstore database
+
+for postgres database set `EVENTSTORE_DB="postgres"` in .env
+
+for mongodb database set `EVENTSTORE_DB="mongodb"` in .env
+
 #### Start Docker container(s)
 
-Run `docker-compose up -d` in the project root.
+If you want use mongodb as eventstore must start cluster first.mongodb suport transaction just in **replicaSet** from mongo v4.2 and after.if don't,just comment mongodb section in docker-compose and check `depends_on`
+
+So:
+
+1. `mkdir -p dev/{db0,db1,db2}`
+
+2. exec `docker-compose up mongodb0 mongodb1 mongodb2`
+
+3. exec `chmod +x setup-replica.sh`.and run `./setup-replica`.
+
+[for more info about setup replica](https://github.com/alikarimii/mongodb_cluster)
+
+After that run `docker-compose up -d` in the project root.
+
+If you change some code must run `docker-compose up -d --build` to build image again.
 
 #### Environment configuration
 
 ##### To be able to start the service
 
-Create local.env file in the project root (.env files is gitignored there) with following contents and replace
-$PathToProjectRoot$ with the path to the root of the go-iddd project sources.
+Create .env file in the project root (.env files is gitignored there) with following contents.
 
 ```
-POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_local?sslmode=disable
-POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/service/customeraccounts/infrastructure/postgres/database/migrations
-GRPC_HOST_AND_PORT=localhost:5566
-REST_HOST_AND_PORT=localhost:8085
+POSTGRES_DSN=postgresql://goiddd:password123@postgres-container:5432/goiddd_local?sslmode=disable
+POSTGRES_MIGRATIONS_PATH_CUSTOMER=/home/migrations
+GRPC_HOST_AND_PORT="goiddd-grpc-container:5566"
+REST_HOST_AND_PORT=":8085"
 REST_GRPC_DIAL_TIMEOUT=3
-SWAGGER_FILE_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/rest
+EVENTSTORE_DB="mongodb"
+SWAGGER_FILE_PATH_CUSTOMER=/home/swagger_out
+MONGODB_DSN=mongodb://mongodb0:27017,mongodb1:27017,mongodb2:27017/?replicaSet=rs0&authSource=goiddd_local
+MONGO_INITDB_DATABASE=goiddd_local
 ```
 
 ##### To be able to run the tests
 
-Create test.env file in the project root (.env files is gitignored there) with following contents and replace
-$PathToProjectRoot$ with the path to the root of the go-iddd project sources.
+(@TODO)
+Create test.env file in the project root (.env files is gitignored there) with following contents.
 
 ```
-POSTGRES_DSN=postgresql://goiddd:password123@localhost:15432/goiddd_test?sslmode=disable
-POSTGRES_MIGRATIONS_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/postgres/database/migrations
-GRPC_HOST_AND_PORT=localhost:5566
-REST_HOST_AND_PORT=localhost:8085
+POSTGRES_DSN=postgresql://goiddd:password123@postgres-container:5432/goiddd_local?sslmode=disable
+POSTGRES_MIGRATIONS_PATH_CUSTOMER=/home/migrations
+GRPC_HOST_AND_PORT="goiddd-grpc-container:5566"
+REST_HOST_AND_PORT=":8085"
 REST_GRPC_DIAL_TIMEOUT=3
-SWAGGER_FILE_PATH_CUSTOMER=$PathToProjectRoot$/go-iddd/src/customeraccounts/infrastructure/adapter/rest
+EVENTSTORE_DB="mongodb"
+SWAGGER_FILE_PATH_CUSTOMER=/home/swagger_out
+MONGODB_DSN=mongodb://mongodb0:27017,mongodb1:27017,mongodb2:27017/?replicaSet=rs0&authSource=goiddd_local
+MONGO_INITDB_DATABASE=goiddd_local
 ```
 
 ##### To run HTTP requests with GoLand's (IntelliJ) new built-in HTTP client
@@ -52,7 +77,7 @@ Create a customer.http file in the project root (.http files are gitignored ther
 
 ```
 ### Register a Customer
-POST http://localhost:8085/v1/customer
+POST http://localhost:18085/v1/customer
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -66,7 +91,7 @@ Content-Type: application/json
 > {% client.global.set("id", response.body.id); %}
 
 ### Confirm a Customer's email address
-PUT http://localhost:8085/v1/customer/{{id}}/emailaddress/confirm
+PUT http://localhost:18085/v1/customer/{{id}}/emailaddress/confirm
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -76,7 +101,7 @@ Content-Type: application/json
 }
 
 ### Change a Customer's email address
-PUT http://localhost:8085/v1/customer/{{id}}/emailaddress
+PUT http://localhost:18085/v1/customer/{{id}}/emailaddress
 Accept: */*
 Cache-Control: no-cache
 Content-Type: application/json
@@ -86,7 +111,7 @@ Content-Type: application/json
 }
 
 ### Change a Customer's name
-PUT http://localhost:8085/v1/customer/{{id}}/name
+PUT http://localhost:18085/v1/customer/{{id}}/name
 Accept: application/json
 Cache-Control: no-cache
 Content-Type: application/json
@@ -97,38 +122,38 @@ Content-Type: application/json
 }
 
 ### Delete a Customer
-DELETE http://localhost:8085/v1/customer/{{id}}
+DELETE http://localhost:18085/v1/customer/{{id}}
 Accept: application/json
 Cache-Control: no-cache
 Content-Type: application/json
 
 ### Retrieve a Customer View
-GET http://localhost:8085/v1/customer/{{id}}
+GET http://localhost:18085/v1/customer/{{id}}
 Accept: application/json
 Cache-Control: no-cache
 Content-Type: application/json
 
 ### Get the Swagger documentation
-GET http://localhost:8085/v1/customer/swagger.json
+GET http://localhost:18085/v1/customer/swagger.json
 
 ###
 ```
 
 **Attention**
 
-The *ConfirmEmailAddress* request does not work without changes - the *confirmationHash* needs to be adapted.
-You can find it in the *CustomerRegistered* event in the eventstore DB table.
-For security reasons the response of the *Register* request does not return the hash (it **must** only be sent to the Customer via email ;-)
+The _ConfirmEmailAddress_ request does not work without changes - the _confirmationHash_ needs to be adapted.
+You can find it in the _CustomerRegistered_ event in the eventstore DB table.
+For security reasons the response of the _Register_ request does not return the hash (it **must** only be sent to the Customer via email ;-)
 
 #### Start the service (gRPC and REST)
 
 ##### Via Terminal
 
-1) Source the local.env file in your terminal, e.g. `source dev/local.env` or set the env vars in a different way
-2) In the project root run `go run service/cmd/grpc/main.go`
+1. Source the local.env file in your terminal, e.g. `source dev/local.env` or set the env vars in a different way
+2. In the project root run `go run service/cmd/grpc/main.go`
 
 ##### Via GoLand
 
-1) Create a build configuration for `service/cmd/grpc/main.go`
-2) I suggest using the [EnvFile](https://plugins.jetbrains.com/plugin/7861-envfile) GoLand plugin
-and add the local.env file in the build configuration
+1. Create a build configuration for `service/cmd/grpc/main.go`
+2. I suggest using the [EnvFile](https://plugins.jetbrains.com/plugin/7861-envfile) GoLand plugin
+   and add the local.env file in the build configuration
